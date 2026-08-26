@@ -1,0 +1,92 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "ClearOne",
+    "Packages":  [
+                     {
+                         "Name":  "ClearOne CONSOLE AI",
+                         "Id":  "ClearOne.ConsoleAI",
+                         "Note":  "Current ClearOne DSP configuration software for supported CONVERGE systems; installation can add a shared USB driver and the application uses local network discovery and control ports.",
+                         "Metadata":  {
+                                          "Vendor":  "ClearOne",
+                                          "ProductFamily":  "CONVERGE",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "Conferencing",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialProductUri":  "https://pages.clearone.com/console",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "ClearOne CONVERGE Pro Console",
+                         "Id":  "ClearOne.ConvergeProConsole",
+                         "Note":  "Legacy ClearOne configuration software retained for installed CONVERGE Pro systems; the public installer page is no longer available, so obtain required versions through ClearOne support.",
+                         "Metadata":  {
+                                          "Vendor":  "ClearOne",
+                                          "ProductFamily":  "CONVERGE Pro",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "Conferencing",
+                                                                  "Driver",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialProductUri":  "https://kb.clearone.com/portal/en/kb/audio-support/dsp-mixers",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

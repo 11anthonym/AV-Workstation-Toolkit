@@ -1,0 +1,119 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Vaddio",
+    "Packages":  [
+                     {
+                         "Name":  "Vaddio Deployment Tool",
+                         "Id":  "Vaddio.DeploymentTool",
+                         "Note":  "Free device discovery, configuration, and firmware deployment utility for supported Vaddio equipment.",
+                         "Metadata":  {
+                                          "Vendor":  "Vaddio",
+                                          "ProductFamily":  "Deployment Tool",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "FirmwareUtility",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.legrandav.com/products/system_management/vaddio-deployment-tool",
+                                          "OfficialDownloadUri":  "https://www.legrandav.com/tools_and_training/tools/vaddio_tools",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Vaddio Dante Interface Application",
+                         "Id":  "Vaddio.DanteInterface",
+                         "Note":  "Product-specific Dante interface utility; verify supported Vaddio hardware before obtaining it.",
+                         "Metadata":  {
+                                          "Vendor":  "Vaddio",
+                                          "ProductFamily":  "Dante Interfaces",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "AudioNetworking"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.legrandav.com/tools_and_training/tools/vaddio_tools",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Vaddio Loader",
+                         "Id":  "Vaddio.Loader",
+                         "Note":  "Legacy or product-specific Vaddio firmware loader; use only when current vendor instructions explicitly require it.",
+                         "Metadata":  {
+                                          "Vendor":  "Vaddio",
+                                          "ProductFamily":  "Firmware Tools",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "FirmwareUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.legrandav.com/tools_and_training/tools/vaddio_tools",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

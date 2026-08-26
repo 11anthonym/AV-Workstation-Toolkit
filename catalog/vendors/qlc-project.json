@@ -1,0 +1,60 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "QLC+ Project",
+    "Packages":  [
+                     {
+                         "Name":  "QLC+",
+                         "Id":  "QLCPlus.QLCPlus",
+                         "KnownVersion":  "5.0.0",
+                         "Note":  "Open-source cross-platform lighting console with DMX, Art-Net, sACN, OSC, MIDI, scripting, and optional web control. Output and listener functions require explicit network approval.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^QLC\\+(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "QLC+ Project",
+                                          "ProductFamily":  "QLC+",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "NetworkUtility",
+                                                                  "MediaServerShowControl"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.qlcplus.org/",
+                                          "OfficialProductUri":  "https://www.qlcplus.org/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

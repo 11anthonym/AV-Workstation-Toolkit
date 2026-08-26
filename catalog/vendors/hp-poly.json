@@ -1,0 +1,120 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "HP Poly",
+    "Packages":  [
+                     {
+                         "Name":  "HP Poly Studio App",
+                         "Id":  "HP.PolyStudioApp",
+                         "Note":  "Current local configuration and update application for supported HP Poly USB devices, replacing the Poly Lens App workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "HP Poly",
+                                          "ProductFamily":  "Poly Studio",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.hp.com/us-en/poly/software-and-services/software/poly-lens/app.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Poly Camera Control",
+                         "Id":  "HP.PolyCameraControl",
+                         "Note":  "Product-specific Poly camera-control utility awareness; current applicability has not been verified beyond the official support channel.",
+                         "Metadata":  {
+                                          "Vendor":  "HP Poly",
+                                          "ProductFamily":  "Poly Cameras",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.hp.com/us-en/poly",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Poly Lens Desktop",
+                         "Id":  "HP.PolyLensDesktop",
+                         "Note":  "Transition and legacy awareness: use HP Poly Studio App where current vendor guidance supports it.",
+                         "Metadata":  {
+                                          "Vendor":  "HP Poly",
+                                          "ProductFamily":  "Poly Lens",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FirmwareUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.hp.com/us-en/poly/software-and-services/software/poly-lens.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

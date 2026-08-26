@@ -1,0 +1,131 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Allen \u0026 Heath",
+    "Packages":  [
+                     {
+                         "Name":  "Allen \u0026 Heath AHM System Manager",
+                         "Id":  "AllenHeath.AHMSystemManager",
+                         "Note":  "Primary AHM matrix processor design and commissioning software; pair versions with the deployed system firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "Allen \u0026 Heath",
+                                          "ProductFamily":  "AHM",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Use the System Manager release documented for the target AHM firmware."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.allen-heath.com/hardware/ahm/ahm-64/resources/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Allen \u0026 Heath Custom Control Editor",
+                         "Id":  "AllenHeath.CustomControlEditor",
+                         "Note":  "Custom control-interface authoring application for supported Allen \u0026 Heath systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Allen \u0026 Heath",
+                                          "ProductFamily":  "Custom Control",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.allen-heath.com/hardware/ahm/ahm-64/resources/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Allen \u0026 Heath Custom Control App",
+                         "Id":  "AllenHeath.CustomControlApp",
+                         "Note":  "Runtime operator application for Custom Control projects; deployment is tied to the approved system design.",
+                         "Metadata":  {
+                                          "Vendor":  "Allen \u0026 Heath",
+                                          "ProductFamily":  "Custom Control",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "SameMajorMinor",
+                                                                  "PackageId":  "AllenHeath.CustomControlEditor",
+                                                                  "Notes":  "Use the runtime supported by the authored Custom Control project."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.allen-heath.com/hardware/ahm/ahm-64/resources/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

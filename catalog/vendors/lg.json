@@ -1,0 +1,97 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "LG",
+    "Packages":  [
+                     {
+                         "Name":  "LG SuperSign CMS",
+                         "Id":  "LG.SuperSignCMS",
+                         "Note":  "LG digital-signage content and device-management platform; server and licensing impacts require project review.",
+                         "Metadata":  {
+                                          "Vendor":  "LG",
+                                          "ProductFamily":  "SuperSign",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.lg.com/global/business/supersign-cms",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "LG LED Assistant",
+                         "Id":  "LG.LEDAssistant",
+                         "Note":  "Current LG DVLED setup and service utility; supported hardware and project compatibility still govern use.",
+                         "Metadata":  {
+                                          "Vendor":  "LG",
+                                          "ProductFamily":  "LED Signage",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://solutions.lg.com/us/software/supersign/supersign-downloads",
+                                          "OfficialDownloadUri":  "https://solutions.lg.com/us/software/supersign/supersign-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

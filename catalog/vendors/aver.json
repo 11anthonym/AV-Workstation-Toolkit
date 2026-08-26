@@ -1,0 +1,307 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "AVer",
+    "Packages":  [
+                     {
+                         "Name":  "AVer Room Management",
+                         "Id":  "AVer.RoomManagement",
+                         "Note":  "Current free AVer camera-control, diagnostics, and firmware application; it succeeds the PTZApp 2 workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "Room Management",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://communication.aver.com/model/room-management",
+                                          "OfficialDownloadUri":  "https://www.aver.com/Downloads/search?q=Room+Management",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer PTZApp 2",
+                         "Id":  "AVer.PTZApp2",
+                         "Note":  "Transition awareness: AVer Room Management is the successor; retain PTZApp 2 only for a documented device or workflow dependency.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "PTZApp",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=PTZApp+2",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer EZManager 2",
+                         "Id":  "AVer.EZManager2",
+                         "Note":  "Central management utility for supported AVer room devices; service and browser-management behavior require review.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "EZManager",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=EZManager+2",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer CaptureShare",
+                         "Id":  "AVer.CaptureShare",
+                         "Note":  "AVer capture and collaboration application awareness; obtain only for a supported classroom or meeting workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "CaptureShare",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "BroadcastVideo"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=CaptureShare",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer Camera Setting Tool",
+                         "Id":  "AVer.CameraSettingTool",
+                         "Note":  "Product-specific AVer camera setting utility; use only when the supported model documentation calls for it.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "Camera Utilities",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/Downloads",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer PTZ Management",
+                         "Id":  "AVer.PTZManagement",
+                         "Note":  "PTZ fleet-management utility awareness; current product scope and acquisition are not inferred beyond AVer\u0027s official download center.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "PTZ Cameras",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/Downloads",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer PTZ Link",
+                         "Id":  "AVer.PTZLink",
+                         "Note":  "AVer PTZ automation and tracking integration utility; validate camera and third-party audio compatibility before use.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "PTZ Cameras",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "Conferencing"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=PTZ+Link",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AVer Cloud Management",
+                         "Id":  "AVer.CloudManagement",
+                         "Note":  "Cloud device-management awareness; account and subscription scope are separate from local application installation.",
+                         "Metadata":  {
+                                          "Vendor":  "AVer",
+                                          "ProductFamily":  "Cloud Management",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.aver.com/",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

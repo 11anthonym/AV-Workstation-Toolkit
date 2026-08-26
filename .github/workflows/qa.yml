@@ -1,0 +1,88 @@
+name: AV Workstation Toolkit QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: av-workstation-toolkit-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-qa:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Run host-independent safety suite
+        shell: powershell
+        run: >-
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
+          -File .\tests\Run-Tests.ps1 -CoreOnly
+
+      - name: Run endpoint-trust regression suite
+        shell: powershell
+        run: >-
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
+          -File .\tests\Test-EndpointTrust.ps1
+
+      - name: Install pinned PSScriptAnalyzer
+        shell: powershell
+        run: Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
+
+      - name: Run targeted static analysis
+        shell: powershell
+        run: |
+          $diagnostics = @(
+            Invoke-ScriptAnalyzer -Path .\scripts -Recurse -Settings .\PSScriptAnalyzerSettings.psd1
+            Invoke-ScriptAnalyzer -Path .\tests -Recurse -Settings .\PSScriptAnalyzerSettings.psd1
+            Invoke-ScriptAnalyzer -Path .\build -Recurse -Settings .\PSScriptAnalyzerSettings.psd1
+          )
+          $diagnostics | Format-Table RuleName,Severity,ScriptName,Line,Message -AutoSize
+          if ($diagnostics.Count -gt 0) { throw "PSScriptAnalyzer reported $($diagnostics.Count) diagnostic(s)." }
+
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    needs: core-qa
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build standalone executable, portable ZIP, and MSI
+        shell: powershell
+        run: >-
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
+          -File .\build\Build-Release.ps1 -SkipTests
+
+      - name: Verify launcher formatting
+        shell: powershell
+        run: dotnet format .\src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj --verify-no-changes --no-restore
+
+      - name: Verify CI-safe standalone and MSI packages
+        shell: powershell
+        run: >-
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA
+          -File .\tests\Test-Package.ps1 -SkipDesktopSmoke
+
+      - name: Upload unsigned release candidates
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: AV-Workstation-Toolkit-${{ github.sha }}-win-x64
+          path: artifacts/release/**/*
+          if-no-files-found: error

@@ -1,0 +1,100 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Ross Video",
+    "Packages":  [
+                     {
+                         "Name":  "Ross DashBoard",
+                         "Id":  "RossVideo.DashBoard",
+                         "KnownVersion":  "9.16.2",
+                         "Note":  "Free cross-platform control, monitoring, CustomPanel, and workflow application for Ross and openGear/DashBoard Connect ecosystems. Network control must remain within the authorized production environment.",
+                         "Metadata":  {
+                                          "Vendor":  "Ross Video",
+                                          "ProductFamily":  "DashBoard",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "ControlSystem",
+                                                                  "NetworkUtility",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "ControlProgramming",
+                                                        "FieldService",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.rossvideo.com/products/automation-and-control/dashboard/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Ross Platform Manager",
+                         "Id":  "RossVideo.PlatformManager",
+                         "Note":  "Central web platform for hosting DashBoard panels, software-license management, monitoring, logging, and fleet consistency. Treat as enterprise server infrastructure rather than a routine workstation app.",
+                         "Metadata":  {
+                                          "Vendor":  "Ross Video",
+                                          "ProductFamily":  "Ross Platform Manager",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "Server",
+                                                                  "Service",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "SystemAdministration",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.rossvideo.com/products/automation-and-control/ross-platform-manager/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

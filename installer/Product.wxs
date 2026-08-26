@@ -1,0 +1,37 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="AV Workstation Toolkit"
+      Manufacturer="AV Workstation Toolkit Project"
+      Version="$(var.ProductVersion)"
+      UpgradeCode="{7A3A4978-78F0-5824-B93F-A2C741BF853E}"
+      Scope="perMachine"
+      InstallerVersion="500"
+      Compressed="yes">
+
+    <!-- Preserve the released UpgradeCode explicitly. Existing AVinite packages must remain in this major-upgrade family. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of AV Workstation Toolkit is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <Property Id="ARPCOMMENTS" Value="Local commercial-AV engineering workstation manager." />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/11anthonym/AV-Workstation-Toolkit" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="AVWorkstationToolkit" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AVWorkstationToolkitProgramMenuFolder" Name="AV Workstation Toolkit" />
+    </StandardDirectory>
+
+    <Component Id="AVWorkstationToolkitLauncherComponent" Directory="INSTALLFOLDER">
+      <File Id="AVWorkstationToolkitLauncher" Source="$(var.PayloadDir)\AVWorkstationToolkit.exe" KeyPath="yes">
+        <Shortcut
+            Id="AVWorkstationToolkitStartMenuShortcut"
+            Directory="AVWorkstationToolkitProgramMenuFolder"
+            Name="AV Workstation Toolkit"
+            Description="AV/IT workstation setup and maintenance"
+            WorkingDirectory="INSTALLFOLDER"
+            Advertise="yes" />
+      </File>
+      <RemoveFolder Id="RemoveAVWorkstationToolkitProgramMenuFolder" Directory="AVWorkstationToolkitProgramMenuFolder" On="uninstall" />
+    </Component>
+  </Package>
+</Wix>

@@ -1,0 +1,89 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "d\u0026b audiotechnik",
+    "Packages":  [
+                     {
+                         "Name":  "d\u0026b ArrayCalc",
+                         "Id":  "dbaudio.ArrayCalc",
+                         "Note":  "Free d\u0026b electroacoustic and mechanical prediction software; use current or archived releases according to project and amplifier compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "d\u0026b audiotechnik",
+                                          "ProductFamily":  "d\u0026b Workflow",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.dbaudio.com/global/en/products/software/arraycalc/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "d\u0026b R1 Remote Control Software",
+                         "Id":  "dbaudio.R1",
+                         "Note":  "d\u0026b amplifier and system control software; pair the release with ArrayCalc projects, amplifiers, and firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "d\u0026b audiotechnik",
+                                          "ProductFamily":  "d\u0026b Workflow",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "ProjectPinned",
+                                                                  "PackageId":  "dbaudio.ArrayCalc",
+                                                                  "Notes":  "Confirm the supported ArrayCalc, R1, amplifier, and firmware combination for the project."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.dbaudio.com/global/en/products/software/r1/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

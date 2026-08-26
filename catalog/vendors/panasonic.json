@@ -1,0 +1,203 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Panasonic",
+    "Packages":  [
+                     {
+                         "Name":  "Panasonic Media Production Suite",
+                         "Id":  "Panasonic.MediaProductionSuite",
+                         "Note":  "Current Panasonic ProAV camera software platform; paid plug-ins and firmware operations remain project-specific.",
+                         "Metadata":  {
+                                          "Vendor":  "Panasonic",
+                                          "ProductFamily":  "Remote Camera Systems",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "BroadcastVideo",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://pro-av.panasonic.net/en/software/mps/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Panasonic EasyIP Setup Tool Plus",
+                         "Id":  "Panasonic.EasyIPSetupToolPlus",
+                         "Note":  "Transition awareness: functionality is integrated into Media Production Suite; retain standalone use only where current project guidance permits.",
+                         "Metadata":  {
+                                          "Vendor":  "Panasonic",
+                                          "ProductFamily":  "Remote Camera Systems",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Panasonic PTZ Virtual USB Driver",
+                         "Id":  "Panasonic.PTZVirtualUSBDriver",
+                         "Note":  "Virtual USB camera driver; it changes system drivers and should be installed only for an identified Panasonic PTZ workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "Panasonic",
+                                          "ProductFamily":  "Remote Camera Systems",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Panasonic PTZ Control Center",
+                         "Id":  "Panasonic.PTZControlCenter",
+                         "Note":  "Transition awareness: future updates are delivered through Media Production Suite; keep standalone versions only for compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Panasonic",
+                                          "ProductFamily":  "Remote Camera Systems",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "BroadcastVideo"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Panasonic Geometry Manager Pro",
+                         "Id":  "Panasonic.GeometryManagerPro",
+                         "Note":  "Professional projector geometry, warping, and blending software; paid features and model support are project-specific.",
+                         "Metadata":  {
+                                          "Vendor":  "Panasonic",
+                                          "ProductFamily":  "Professional Projectors",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.connect.panasonic.com/projector/products/geometry/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

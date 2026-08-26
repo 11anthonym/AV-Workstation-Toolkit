@@ -1,0 +1,93 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "NEXO",
+    "Packages":  [
+                     {
+                         "Name":  "NEXO NS-1",
+                         "Id":  "NEXO.NS1",
+                         "Note":  "NEXO sound-system configuration and prediction software; use current manufacturer data for the target loudspeaker system.",
+                         "Metadata":  {
+                                          "Vendor":  "NEXO",
+                                          "ProductFamily":  "NS-1",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.nexo-sa.com/software/ns-1/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "NEXO NeMo",
+                         "Id":  "NEXO.NeMo",
+                         "Note":  "NEXO amplifier and device monitoring/control software; maintain firmware and project compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "NEXO",
+                                          "ProductFamily":  "NeMo",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "AudioNetworking",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.nexo-sa.com/software/nemo/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

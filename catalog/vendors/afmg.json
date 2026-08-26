@@ -1,0 +1,250 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "AFMG",
+    "Packages":  [
+                     {
+                         "Name":  "AFMG SysTune",
+                         "Id":  "AFMG.SysTune",
+                         "Note":  "Licensed real-time acoustic measurement and analysis software for commissioning and tuning work.",
+                         "Metadata":  {
+                                          "Vendor":  "AFMG",
+                                          "ProductFamily":  "SysTune",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/systune",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "EASE 5",
+                         "Id":  "AFMG.EASE5",
+                         "Note":  "Licensed room-acoustics and sound-system modeling platform for design engineers.",
+                         "Metadata":  {
+                                          "Vendor":  "AFMG",
+                                          "ProductFamily":  "EASE",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction",
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/ease",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "EASE Focus 3",
+                         "Id":  "AFMG.EASEFocus3",
+                         "Note":  "Free loudspeaker-system prediction tool using supported manufacturer data; validate the GLL and product version used in each design.",
+                         "Metadata":  {
+                                          "Vendor":  "AFMG",
+                                          "ProductFamily":  "EASE Focus",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/ease-focus",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "EASERA",
+                         "Id":  "AFMG.EASERA",
+                         "Note":  "Licensed room-acoustics and electroacoustic measurement software for specialized commissioning roles.",
+                         "Metadata":  {
+                                          "Vendor":  "AFMG",
+                                          "ProductFamily":  "EASERA",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/easera",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AFMG SoundFlow",
+                         "Id":  "AFMG.SoundFlow",
+                         "Note":  "Specialized sound absorption and transmission-loss simulation software for acoustical design work.",
+                         "Metadata":  {
+                                          "Vendor":  "AFMG",
+                                          "ProductFamily":  "SoundFlow",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction",
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/soundflow",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "EASE SpeakerLab",
+                         "Id":  "AFMG.EASESpeakerLab",
+                         "Note":  "Licensed loudspeaker data authoring and GLL modeling software for specialized manufacturer and design workflows.",
+                         "Metadata":  {
+                                          "Vendor":  "AFMG",
+                                          "ProductFamily":  "EASE",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction",
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/ease-speakerlab",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

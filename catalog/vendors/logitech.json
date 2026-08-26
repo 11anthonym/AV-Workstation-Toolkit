@@ -1,0 +1,97 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Logitech",
+    "Packages":  [
+                     {
+                         "Name":  "Logitech Sync",
+                         "Id":  "Logitech.Sync",
+                         "Note":  "Room-device monitoring and management platform with local agent and cloud components; service and account scope require approval.",
+                         "Metadata":  {
+                                          "Vendor":  "Logitech",
+                                          "ProductFamily":  "Sync",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "Service",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.logitech.com/en-us/video-collaboration/products/sync.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage",
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Logitech CollabOS",
+                         "Id":  "Logitech.CollabOS",
+                         "Note":  "Embedded operating-system and firmware awareness for Logitech room appliances; never treat as a Windows application.",
+                         "Metadata":  {
+                                          "Vendor":  "Logitech",
+                                          "ProductFamily":  "CollabOS",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "EmbeddedSoftware",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialProductUri":  "https://prosupport.logi.com/hc/en-us/articles/1500001344641-CollabOS-Guide",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,43 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Bose Professional",
+    "Packages":  [
+                     {
+                         "Name":  "Bose ControlSpace Designer",
+                         "Id":  "Bose.ControlSpaceDesigner",
+                         "Note":  "Bose Professional DSP design and commissioning software; version and firmware selection remain project-specific.",
+                         "Metadata":  {
+                                          "Vendor":  "Bose Professional",
+                                          "ProductFamily":  "ControlSpace",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://boseprofessional.com/products/software/controlspace-designer-software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

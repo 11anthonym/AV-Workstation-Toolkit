@@ -1,0 +1,1071 @@
+{
+  "SchemaVersion": 3,
+  "Packages": [
+    {
+      "Profile": "Field",
+      "Name": "Q-SYS Designer Software LTS",
+      "Id": "QSC.QSYSDesigner.LTS",
+      "Risk": "None",
+      "Note": "Vendor-managed download; match Designer and Core firmware versions and review release notes before upgrading",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "9.13.2",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Q-SYS Designer(?: Software)?(?:\\s+\\d|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "SameMajorMinor"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.qsys.com/products-solutions/q-sys/software/q-sys-designer-software/",
+        "VersionPattern": "Q-SYS\\s+Designer\\s+Software\\s+v(?<Version>\\d+\\.\\d+\\.\\d+)\\s+LTS",
+        "Channel": "LTS"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.qsys.com/products-solutions/q-sys/software/q-sys-designer-software/"
+      },
+      "Metadata": {
+        "Vendor": "Q-SYS",
+        "ProductFamily": "Q-SYS",
+        "ApplicationType": ["ControlSystem", "DSPAudio", "FirmwareUtility"],
+        "Priority": "P1",
+        "Roles": ["AVEngineer", "FieldService", "ControlProgramming", "DSPEngineering", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "SameMajorMinor",
+        "VersionCoupling": { "Mode": "FirmwarePaired", "Notes": "Designer and Core firmware major/minor versions must match." },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["PUBLIC-PAGE"],
+        "DownloadDifficulty": "MODERATE",
+        "SystemImpact": { "FirmwareUtility": true },
+        "Architecture": ["x64"],
+        "SupportedOS": ["Windows"],
+        "SideBySideSupported": "Yes",
+        "OfficialProductUri": "https://www.qsys.com/products-solutions/q-sys/software/q-sys-designer-software/",
+        "OfficialDownloadUri": "https://www.qsys.com/products-solutions/software-and-firmware/",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Crestron MasterInstaller toolchain",
+      "Id": "Crestron.MasterInstaller",
+      "Risk": "Driver",
+      "Note": "Authorized Crestron account required; browse only the curated MasterInstaller product feed and download without redistribution",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Crestron MasterInstaller(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "InventoryOnly",
+        "Channel": "Crestron account"
+      },
+      "Delivery": {
+        "Mode": "AuthenticatedSftp",
+        "Host": "ftp.crestron.com",
+        "Port": 22,
+        "CatalogUri": "https://www.crestron.com/liveupdate/MasterInstallerSFTP.xml",
+        "RemoteRoot": "/software",
+        "AllowedProductIds": ["1", "2", "9", "10", "137", "400", "406"],
+        "PublisherPattern": "Crestron Electronics",
+        "MaxBytes": 2147483648
+      },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "MasterInstaller",
+        "ApplicationType": ["ControlSystem", "Development", "Driver", "FirmwareUtility"],
+        "Priority": "P1",
+        "Roles": ["ControlProgramming", "FieldService", "Development"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "InventoryOnly",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
+        "SystemImpact": { "InstallsDriver": true, "FirmwareUtility": true },
+        "Architecture": ["x64"],
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Crestron VisionTools Pro-e / VT Pro-e",
+      "Id": "Crestron.VTProE",
+      "Risk": "None",
+      "Note": "Independently inventoried Crestron UI authoring application delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^(?:Crestron )?(?:VisionTools Pro-e|VT Pro-e)(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "1" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "VisionTools Pro-e",
+        "ApplicationType": ["ControlSystem", "Development"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "P1",
+        "Roles": ["ControlProgramming"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller", "Notes": "Delivery and available-version data come from the common curated MasterInstaller feed." },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Developer",
+      "Name": "Crestron SIMPL Windows",
+      "Id": "Crestron.SIMPLWindows",
+      "Risk": "None",
+      "Note": "Independently inventoried Crestron programming application delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^(?:Crestron )?SIMPL(?:[ +#]|\\s)*Windows(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "2" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "SIMPL Windows",
+        "ApplicationType": ["ControlSystem", "Development"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "DEV",
+        "Roles": ["ControlProgramming", "Development"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller" },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "TRAINING", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Developer",
+      "Name": "Crestron Database",
+      "Id": "Crestron.Database",
+      "Risk": "None",
+      "Note": "Independently inventoried Crestron programming database delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^Crestron Database(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "9" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "Programming Databases",
+        "ApplicationType": ["ControlSystem", "Development"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "DEV",
+        "Roles": ["ControlProgramming", "Development"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller" },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true },
+        "Architecture": ["Unknown"],
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Developer",
+      "Name": "Crestron Device Database",
+      "Id": "Crestron.DeviceDatabase",
+      "Risk": "None",
+      "Note": "Independently inventoried Crestron device database delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^(?:Crestron )?Device Database(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "10" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "Programming Databases",
+        "ApplicationType": ["ControlSystem", "Development"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "DEV",
+        "Roles": ["ControlProgramming", "Development"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller" },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true },
+        "Architecture": ["Unknown"],
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Crestron Toolbox",
+      "Id": "Crestron.Toolbox",
+      "Risk": "Driver",
+      "Note": "Independently inventoried Crestron service utility delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^(?:Crestron )?Toolbox(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "137" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "Toolbox",
+        "ApplicationType": ["ControlSystem", "FieldUtility", "FirmwareUtility", "Driver"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "P1",
+        "Roles": ["ControlProgramming", "FieldService", "Commissioning"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller" },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "TRAINING", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
+        "SystemImpact": { "InstallsDriver": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Developer",
+      "Name": "Crestron Smart Graphics",
+      "Id": "Crestron.SmartGraphics",
+      "Risk": "None",
+      "Note": "Independently inventoried Smart Graphics component delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^(?:Crestron )?Smart Graphics(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "400" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "Smart Graphics",
+        "ApplicationType": ["ControlSystem", "Development"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "DEV",
+        "Roles": ["ControlProgramming", "Development"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller" },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Crestron DM NVX Tool",
+      "Id": "Crestron.DMNVXTool",
+      "Risk": "Service",
+      "Note": "Independently inventoried DM NVX commissioning utility delivered only through the curated MasterInstaller provider",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "Mode": "Registry",
+        "RegistryDisplayNamePattern": "^(?:Crestron )?DM[ -]?NVX Tool(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": { "Mode": "ParentCatalog", "Channel": "Crestron MasterInstaller" },
+      "Delivery": { "Mode": "ParentProvider", "ProductId": "406" },
+      "Metadata": {
+        "Vendor": "Crestron",
+        "ProductFamily": "DM NVX",
+        "ApplicationType": ["AVoIP", "NetworkUtility", "FirmwareUtility", "Service"],
+        "ParentProviderId": "Crestron.MasterInstaller",
+        "Priority": "P1",
+        "Roles": ["AVEngineer", "FieldService", "NetworkEngineering", "Commissioning"],
+        "DeploymentClass": "ParentProvider",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ParentCatalog",
+        "VersionCoupling": { "Mode": "ParentProvider", "PackageId": "Crestron.MasterInstaller" },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["DEALER-LICENSE"],
+        "DownloadAccess": ["DEALER", "PORTAL"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.crestron.com/getmedia/09678b09-2665-445a-acfd-084bc638fe02/ss_SW-DMNVXTOOL",
+        "ValidationMethod": ["Registry", "ParentProviderCatalog"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Biamp Tesira Software",
+      "Id": "Biamp.Tesira",
+      "Risk": "None",
+      "Note": "Direct vendor download; review Tesira software and deployed-device firmware compatibility before installation",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "5.7.0",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Biamp )?Tesira(?: Software)?(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "VersionPattern": "Tesira\\s+Software\\s+v(?<Version>\\d+\\.\\d+\\.\\d+)",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "DirectDownload",
+        "Uri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "DownloadUriPattern": "(?<Uri>https://downloads\\.biamp\\.com/[^\\s\\\"'<>]*tesira-software-(?<Version>\\d+-\\d+-\\d+)\\.exe)",
+        "AllowedHosts": ["downloads.biamp.com"],
+        "PublisherPattern": "Biamp Systems",
+        "MaxBytes": 536870912
+      },
+      "Metadata": {
+        "Vendor": "Biamp",
+        "ProductFamily": "Tesira",
+        "ApplicationType": ["DSPAudio", "AudioNetworking", "FirmwareUtility"],
+        "Priority": "P1",
+        "Roles": ["DSPEngineering", "FieldService", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ProjectPinned",
+        "VersionCoupling": { "Mode": "FirmwarePaired", "Notes": "Confirm Tesira software and device firmware compatibility before connecting or updating." },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["PUBLIC-DL"],
+        "DownloadDifficulty": "EASY",
+        "SystemImpact": { "FirmwareUtility": true },
+        "Architecture": ["x64"],
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "OfficialDownloadUri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Biamp Canvas Software",
+      "Id": "Biamp.Canvas",
+      "Risk": "None",
+      "Note": "Vendor-managed control-interface software; use the Canvas release matching the deployed Tesira software and firmware line",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "5.7.0",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Biamp\\s+)?Canvas(?:\\s+Software)?(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "SameMajorMinor"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "VersionPattern": "Biamp\\s+Canvas\\s+Software\\s+v(?<Version>\\d+\\.\\d+\\.\\d+)",
+        "Channel": "Tesira-matched"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://support.biamp.com/Tesira/Software-Firmware"
+      },
+      "Metadata": {
+        "Vendor": "Biamp",
+        "ProductFamily": "Tesira Canvas",
+        "ApplicationType": ["DSPAudio", "ControlSystem"],
+        "Priority": "P2",
+        "Roles": ["DSPEngineering", "ControlProgramming"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "SameMajorMinor",
+        "VersionCoupling": { "Mode": "SameMajorMinor", "PackageId": "Biamp.Tesira", "Notes": "Use the Canvas release matching the Tesira software and firmware line." },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["PUBLIC-PAGE"],
+        "DownloadDifficulty": "EASY",
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Biamp Vocia Software",
+      "Id": "Biamp.Vocia",
+      "Risk": "Service",
+      "Note": "Life-safety paging configuration software; back up the system and custom audio before any separately initiated firmware work",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "1.9.0",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Biamp\\s+)?Vocia(?:\\s+Software)?(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.biamp.com/products/families/vocia/vocia-software",
+        "VersionPattern": "Vocia\\s+Software\\s+v(?<Version>\\d+\\.\\d+\\.\\d+)",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://support.biamp.com/Vocia/Software-Firmware"
+      },
+      "Metadata": {
+        "Vendor": "Biamp",
+        "ProductFamily": "Vocia",
+        "ApplicationType": ["DSPAudio", "FirmwareUtility", "Service"],
+        "Priority": "P2",
+        "Roles": ["DSPEngineering", "FieldService", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ProjectPinned",
+        "VersionCoupling": { "Mode": "FirmwarePaired", "Notes": "Life-safety system software and firmware changes require backups and a separate approved procedure." },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["PUBLIC-PAGE"],
+        "DownloadDifficulty": "MODERATE",
+        "SystemImpact": { "InstallsService": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.biamp.com/products/families/vocia/vocia-software",
+        "OfficialDownloadUri": "https://support.biamp.com/Vocia/Software-Firmware",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Dante Controller",
+      "Id": "Audinate.DanteController",
+      "Risk": "Service",
+      "Note": "Vendor portal handoff; install only for Dante engineering and avoid unnecessary discovery services",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "4.18.1.2",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Dante Controller(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.getdante.com/resources/software-downloads/",
+        "VersionPattern": "Dante\\s+Controller\\s+v(?<Version>\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+Package\\s+\\(Windows\\)",
+        "Channel": "Windows"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.getdante.com/resources/software-downloads/"
+      },
+      "Metadata": {
+        "Vendor": "Audinate",
+        "ProductFamily": "Dante",
+        "ApplicationType": ["AudioNetworking", "NetworkUtility", "Service"],
+        "Priority": "P1",
+        "Roles": ["DSPEngineering", "FieldService", "NetworkEngineering", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "VendorManaged",
+        "VersionRule": "Latest",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["ACCOUNT", "PUBLIC-PAGE"],
+        "DownloadDifficulty": "MODERATE",
+        "Requirements": { "RequiresVendorAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true },
+        "Architecture": ["x64"],
+        "SupportedOS": ["Windows", "macOS"],
+        "OfficialProductUri": "https://www.getdante.com/products/software-essentials/dante-controller/",
+        "OfficialDownloadUri": "https://www.getdante.com/resources/software-downloads/",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Shure Designer",
+      "Id": "Shure.Designer",
+      "Risk": "Service",
+      "Note": "Registered Shure software-store handoff; match managed hardware and project requirements",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "6.10.0",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Shure Designer(?:\\s|$)|^Designer 6(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/support/downloads/software-firmware-archive/designer",
+        "VersionPattern": "(?<Version>6\\.\\d+(?:\\.\\d+){1,2})",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/products/software/designer_software"
+      },
+      "Metadata": {
+        "Vendor": "Shure",
+        "ProductFamily": "Designer",
+        "ApplicationType": ["DSPAudio", "Conferencing", "FirmwareUtility", "Service"],
+        "Priority": "P1",
+        "Roles": ["DSPEngineering", "FieldService", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ProjectPinned",
+        "VersionCoupling": { "Mode": "FirmwarePaired", "Notes": "Use versions supported by the managed Shure device and firmware families." },
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["REGISTERED", "ACCOUNT"],
+        "DownloadDifficulty": "MODERATE",
+        "Requirements": { "RequiresVendorAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows", "macOS"],
+        "OfficialProductUri": "https://www.shure.com/en-US/products/software/designer_software",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Shure Wireless Workbench",
+      "Id": "Shure.WirelessWorkbench",
+      "Risk": "Service",
+      "Note": "Registered Shure software-store handoff; install only for managed wireless systems",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "7.8.3",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Shure )?Wireless Workbench(?: 7)?(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/support/downloads/software-firmware-archive/wireless-workbench",
+        "VersionPattern": "(?<Version>7\\.\\d+(?:\\.\\d+){1,2})",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/products/software/wwb"
+      },
+      "Metadata": {
+        "Vendor": "Shure",
+        "ProductFamily": "Wireless Workbench",
+        "ApplicationType": ["WirelessRF", "FirmwareUtility", "Service"],
+        "Priority": "P1",
+        "Roles": ["RFCoordination", "FieldService"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ProjectPinned",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["REGISTERED", "ACCOUNT"],
+        "DownloadDifficulty": "MODERATE",
+        "Requirements": { "RequiresVendorAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows", "macOS"],
+        "OfficialProductUri": "https://www.shure.com/en-US/products/software/wwb",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Shure Update Utility",
+      "Id": "Shure.UpdateUtility",
+      "Risk": "Service",
+      "Note": "Firmware utility handoff only; review model-family compatibility and maintain matching major/minor firmware before updating hardware",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "2.8.16",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Shure\\s+Update\\s+Utility(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/support/downloads/software-firmware-archive/shure-update-utility",
+        "VersionPattern": "(?<Version>2\\.8(?:\\.\\d+){1,2})",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/products/software/shure_update_utility"
+      },
+      "Metadata": {
+        "Vendor": "Shure",
+        "ProductFamily": "Firmware Utilities",
+        "ApplicationType": ["FirmwareUtility", "NetworkUtility"],
+        "Priority": "P2",
+        "Roles": ["FieldService", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ProjectPinned",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["REGISTERED", "ACCOUNT"],
+        "DownloadDifficulty": "MODERATE",
+        "Requirements": { "RequiresVendorAccount": true },
+        "SystemImpact": { "InstallsService": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows", "macOS"],
+        "OfficialProductUri": "https://www.shure.com/en-US/products/software/shure_update_utility",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Shure Discovery",
+      "Id": "Shure.Discovery",
+      "Risk": "Service",
+      "Note": "Same-subnet Shure device discovery and web-interface handoff; no device configuration or firmware action is automated",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "2.8.16",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Shure\\s+(?:Web\\s+Device\\s+)?Discovery(?:\\s+(?:Application|App))?(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/support/downloads/software-firmware-archive/shure-discovery",
+        "VersionPattern": "(?<Version>2\\.8(?:\\.\\d+){1,2})",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/products/software/shure-discovery"
+      },
+      "Metadata": {
+        "Vendor": "Shure",
+        "ProductFamily": "Discovery Utilities",
+        "ApplicationType": ["NetworkUtility", "FieldUtility", "Service"],
+        "Priority": "UTILITY",
+        "Roles": ["FieldService", "NetworkEngineering"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "VendorManaged",
+        "VersionRule": "Latest",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["REGISTERED", "ACCOUNT"],
+        "DownloadDifficulty": "MODERATE",
+        "Requirements": { "RequiresVendorAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true },
+        "SupportedOS": ["Windows", "macOS"],
+        "OfficialProductUri": "https://www.shure.com/en-US/products/software/shure-discovery",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Optional",
+      "Name": "Shure Microflex Wireless Software (legacy MXW)",
+      "Id": "Shure.MicroflexWireless",
+      "Risk": "Service",
+      "Note": "Legacy service tool for original MXWAPT2, MXWAPT4, and MXWAPT8 systems whose Flash web interface is no longer usable",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "1.2.0",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Shure\\s+)?Microflex\\s+Wireless(?:\\s+Software)?(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/support/downloads/software-firmware-archive/microflex-wireless-software",
+        "VersionPattern": "(?<Version>1\\.2(?:\\.\\d+){1,2})",
+        "Channel": "Legacy"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.shure.com/en-US/products/software/microflex_wireless_software"
+      },
+      "Metadata": {
+        "Vendor": "Shure",
+        "ProductFamily": "Microflex Wireless",
+        "ApplicationType": ["WirelessRF", "Conferencing", "LegacySupport", "Service"],
+        "Priority": "P2",
+        "Roles": ["FieldService", "RFCoordination"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "LegacyHold",
+        "VersionRule": "ProjectPinned",
+        "CurrentOrLegacy": "Legacy",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["LEGACY-ARCHIVE", "REGISTERED"],
+        "DownloadDifficulty": "HARD",
+        "SystemImpact": { "InstallsService": true, "OpensListener": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.shure.com/en-US/products/software/microflex_wireless_software",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Sennheiser Control Cockpit",
+      "Id": "Sennheiser.ControlCockpit",
+      "Risk": "Service",
+      "Note": "Vendor form and terms handoff; installation creates a local service and HTTPS management interface",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "9.2",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Sennheiser Control Cockpit(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://docs.cloud.sennheiser.com/en-us/control-cockpit/control-cockpit/release-notes.html",
+        "VersionPattern": "Sennheiser\\s+Control\\s+Cockpit\\s+(?<Version>\\d+\\.\\d+(?:\\.\\d+)?)",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://docs.cloud.sennheiser.com/en-us/control-cockpit/control-cockpit/downloading-installing-software.html"
+      },
+      "Metadata": {
+        "Vendor": "Sennheiser",
+        "ProductFamily": "Control Cockpit",
+        "ApplicationType": ["WirelessRF", "Conferencing", "Server", "Service", "WebApplication"],
+        "Priority": "P1",
+        "Roles": ["FieldService", "RFCoordination", "SystemAdministration"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "VendorManaged",
+        "VersionRule": "Latest",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["EMAIL-FORM", "REGISTERED"],
+        "DownloadDifficulty": "MODERATE",
+        "Requirements": { "RequiresVendorAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true },
+        "Architecture": ["x64", "Server", "Web"],
+        "SupportedOS": ["Windows", "Server", "Web"],
+        "OfficialProductUri": "https://docs.cloud.sennheiser.com/en-us/control-cockpit/index.html",
+        "OfficialDownloadUri": "https://docs.cloud.sennheiser.com/en-us/control-cockpit/control-cockpit/downloading-installing-software.html",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Sennheiser Wireless Systems Manager",
+      "Id": "Sennheiser.WirelessSystemsManager",
+      "Risk": "Service",
+      "Note": "Optional RF planning and live wireless management for compatible EW-DX, G3/G4, Digital 6000, and related systems; plain EW-D uses Smart Assist instead",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "4.9.0",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Sennheiser\\s+)?Wireless\\s+Systems\\s+Manager(?:\\s|$)|^Sennheiser\\s+WSM(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "VendorPage",
+        "Uri": "https://docs.cloud.sennheiser.com/en-us/wsm/index.html",
+        "VersionPattern": "v(?<Version>4\\.\\d+\\.\\d+)",
+        "Channel": "Stable"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.sennheiser.com/en-us/catalog/products/software/wireless-systems-manager/wsm-111113"
+      },
+      "Metadata": {
+        "Vendor": "Sennheiser",
+        "ProductFamily": "Wireless Systems Manager",
+        "ApplicationType": ["WirelessRF", "FirmwareUtility", "Service"],
+        "Priority": "P1",
+        "Roles": ["RFCoordination", "FieldService"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "ProjectPinned",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["PUBLIC-PAGE"],
+        "DownloadDifficulty": "EASY",
+        "SystemImpact": { "OpensListener": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows", "macOS"],
+        "OfficialProductUri": "https://www.sennheiser.com/en-us/catalog/products/software/wireless-systems-manager/wsm-111113",
+        "ValidationMethod": ["Registry", "OfficialVersionPage"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Extron Toolbelt",
+      "Id": "Extron.Toolbelt",
+      "Risk": "Service",
+      "Note": "Extron Insider account required; installed-version inventory and official portal handoff only",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Extron Toolbelt(?:\\s|$)|^Toolbelt(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "InventoryOnly",
+        "Channel": "Extron Insider"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.extron.com/product/software/toolbelt"
+      },
+      "Metadata": {
+        "Vendor": "Extron",
+        "ProductFamily": "Toolbelt",
+        "ApplicationType": ["FieldUtility", "NetworkUtility", "FirmwareUtility", "Service"],
+        "Priority": "P1",
+        "Roles": ["FieldService", "Commissioning", "NetworkEngineering"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "InventoryOnly",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["DEALER", "ACCOUNT"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true },
+        "SystemImpact": { "InstallsService": true, "OpensListener": true, "FirmwareUtility": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.extron.com/product/software/toolbelt",
+        "ValidationMethod": ["Registry", "ManualInventory"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "Extron Product Configuration Software",
+      "Id": "Extron.PCS",
+      "Risk": "None",
+      "Note": "Extron Insider account required; installed-version inventory and official portal handoff only",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^Extron (?:Product Configuration Software|PCS)(?:\\s|$)|^Product Configuration Software(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "InventoryOnly",
+        "Channel": "Extron Insider"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://www.extron.com/article/sw_79-562-01"
+      },
+      "Metadata": {
+        "Vendor": "Extron",
+        "ProductFamily": "Product Configuration Software",
+        "ApplicationType": ["FieldUtility", "ControlSystem", "FirmwareUtility"],
+        "Priority": "P1",
+        "Roles": ["FieldService", "Commissioning"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "InventoryOnly",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["DEALER", "ACCOUNT"],
+        "DownloadDifficulty": "RESTRICTED",
+        "Requirements": { "RequiresDealerAccount": true },
+        "SystemImpact": { "FirmwareUtility": true },
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.extron.com/article/sw_79-562-01",
+        "ValidationMethod": ["Registry", "ManualInventory"]
+      }
+    },
+    {
+      "Profile": "Field",
+      "Name": "FileZilla Client",
+      "Id": "FileZilla.Client",
+      "Risk": "None",
+      "Note": "Optional transfer client; official vendor handoff because no current WinGet package is available",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^FileZilla Client(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "InventoryOnly",
+        "Channel": "Vendor"
+      },
+      "Delivery": {
+        "Mode": "VendorPage",
+        "Uri": "https://filezilla-project.org/download.php?show_all=1"
+      },
+      "Metadata": {
+        "Vendor": "FileZilla Project",
+        "ProductFamily": "FileZilla Client",
+        "ApplicationType": ["FieldUtility", "NetworkUtility"],
+        "Priority": "UTILITY",
+        "Roles": ["FieldService", "NetworkEngineering"],
+        "DeploymentClass": "ManualHandoff",
+        "MaintenancePolicy": "VendorManaged",
+        "VersionRule": "InventoryOnly",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["FREE"],
+        "DownloadAccess": ["PUBLIC-DL"],
+        "DownloadDifficulty": "EASY",
+        "SupportedOS": ["Windows", "macOS", "Linux"],
+        "OfficialProductUri": "https://filezilla-project.org/",
+        "OfficialDownloadUri": "https://filezilla-project.org/download.php?show_all=1",
+        "ValidationMethod": ["Registry", "ManualInventory"]
+      }
+    },
+    {
+      "Profile": "Developer",
+      "Name": "Java runtime inventory",
+      "Id": "Runtime.Java",
+      "Risk": "None",
+      "Note": "Inventory only; choose a vendor and JDK or JRE version only for an identified application dependency",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Java|OpenJDK|Eclipse Temurin|Microsoft Build of OpenJDK|Amazon Corretto)(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+(?:\\.\\d+){1,3})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "InventoryOnly",
+        "Channel": "Dependency inventory"
+      },
+      "Delivery": {
+        "Mode": "InventoryOnly"
+      },
+      "Metadata": {
+        "Vendor": "Multiple vendors",
+        "ProductFamily": "Java Runtime",
+        "ApplicationType": ["Development", "LegacySupport"],
+        "Priority": "DEV",
+        "Roles": ["Development", "ControlProgramming"],
+        "DeploymentClass": "InventoryOnly",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "InventoryOnly",
+        "CurrentOrLegacy": "Unknown",
+        "LicensingModel": ["UNKNOWN-COST"],
+        "DownloadAccess": ["UNKNOWN-ACCESS"],
+        "DownloadDifficulty": "HARD",
+        "Architecture": ["x86", "x64", "Arm64"],
+        "SupportedOS": ["Windows", "macOS", "Linux"],
+        "OfficialProductUri": "https://adoptium.net/",
+        "ValidationMethod": ["Registry", "ManualInventory"],
+        "Notes": "The official URI is an example approved runtime source, not a default vendor selection. Choose only after identifying the dependent application."
+      }
+    },
+    {
+      "Profile": "Optional",
+      "Name": "Dell/Waves audio processing",
+      "Id": "Dell.WavesAudio",
+      "Risk": "Service",
+      "Note": "OEM inventory only; preserve the Dell-approved audio baseline and document measurement-mode bypass",
+      "Deployment": "ManualHold",
+      "Maintenance": "Hold",
+      "KnownVersion": "",
+      "Detection": {
+        "RegistryDisplayNamePattern": "^(?:Waves MaxxAudio|Waves Audio|MaxxAudio|Dell Optimizer)(?:\\s|$)",
+        "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+        "VersionPolicy": "AtLeast"
+      },
+      "Release": {
+        "Mode": "InventoryOnly",
+        "Channel": "Dell OEM"
+      },
+      "Delivery": {
+        "Mode": "InventoryOnly"
+      },
+      "Metadata": {
+        "Vendor": "Dell / Waves",
+        "ProductFamily": "OEM Audio",
+        "ApplicationType": ["DSPAudio", "Driver", "Service"],
+        "Priority": "P2",
+        "Roles": ["DSPEngineering", "SystemAdministration"],
+        "DeploymentClass": "InventoryOnly",
+        "MaintenancePolicy": "ProjectPinned",
+        "VersionRule": "InventoryOnly",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": ["HARDWARE-LICENSE"],
+        "DownloadAccess": ["NO-DL"],
+        "DownloadDifficulty": "HARD",
+        "SystemImpact": { "InstallsDriver": true, "InstallsService": true },
+        "Architecture": ["x64"],
+        "SupportedOS": ["Windows"],
+        "OfficialProductUri": "https://www.dell.com/support/home/",
+        "ValidationMethod": ["Registry", "ManualInventory"]
+      }
+    }
+  ]
+}

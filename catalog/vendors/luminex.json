@@ -1,0 +1,116 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Luminex",
+    "Packages":  [
+                     {
+                         "Name":  "Luminex Araneo",
+                         "Id":  "Luminex.Araneo",
+                         "Note":  "Network monitoring and visualization platform awareness for entertainment and AV networks.",
+                         "Metadata":  {
+                                          "Vendor":  "Luminex",
+                                          "ProductFamily":  "Araneo",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "AudioNetworking",
+                                                                  "LightingControl"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "LightingProgramming",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Unknown",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "UNKNOWN-ACCESS"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Unknown"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.luminex.be/products/software/araneo/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Luminex Araneo Studio",
+                         "Id":  "Luminex.AraneoStudio",
+                         "Note":  "Araneo network design and documentation application; obtain only for Luminex/entertainment-network engineering work.",
+                         "Metadata":  {
+                                          "Vendor":  "Luminex",
+                                          "ProductFamily":  "Araneo",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "LightingControl"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "LightingProgramming",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.luminex.be/products/software/araneo-studio/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "LumiNet Monitor",
+                         "Id":  "Luminex.LumiNetMonitor",
+                         "Note":  "Legacy Luminex network-management software retained only for installed systems that require it.",
+                         "Metadata":  {
+                                          "Vendor":  "Luminex",
+                                          "ProductFamily":  "LumiNet",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "LightingControl",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "LightingProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.luminex.be/doccenter/",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

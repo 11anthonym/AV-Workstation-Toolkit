@@ -1,0 +1,48 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Powersoft",
+    "Packages":  [
+                     {
+                         "Name":  "Powersoft ArmoníaPlus",
+                         "Id":  "Powersoft.ArmoniaPlus",
+                         "Note":  "Current Powersoft amplifier design, control, monitoring, and firmware platform; project and device compatibility govern updates.",
+                         "Metadata":  {
+                                          "Vendor":  "Powersoft",
+                                          "ProductFamily":  "ArmoníaPlus",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "LoudspeakerPrediction",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.powersoft.com/en/software/armoniapluse",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

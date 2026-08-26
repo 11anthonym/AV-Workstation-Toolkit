@@ -1,0 +1,54 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Figure 53",
+    "Packages":  [
+                     {
+                         "Name":  "QLab",
+                         "Id":  "Figure53.QLab",
+                         "KnownVersion":  "5.6.3",
+                         "Note":  "macOS-only audio, video, lighting, and show-control application. Core features are free; advanced output and control features use account-based paid licenses.",
+                         "Metadata":  {
+                                          "Vendor":  "Figure 53",
+                                          "ProductFamily":  "QLab",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "BroadcastVideo",
+                                                                  "LightingControl",
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "LightingProgramming",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  null,
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://qlab.app/download/",
+                                          "OfficialProductUri":  "https://qlab.app/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

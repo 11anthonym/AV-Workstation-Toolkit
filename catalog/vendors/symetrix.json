@@ -1,0 +1,154 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Symetrix",
+    "Packages":  [
+                     {
+                         "Name":  "Symetrix Composer",
+                         "Id":  "Symetrix.Composer",
+                         "Note":  "Primary Symetrix DSP design, control, and commissioning environment for supported systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Symetrix",
+                                          "ProductFamily":  "Composer",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.symetrix.co/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Symetrix SymVue",
+                         "Id":  "Symetrix.SymVue",
+                         "Note":  "Operator control application generated from Composer projects; runtime deployment remains project-specific.",
+                         "Metadata":  {
+                                          "Vendor":  "Symetrix",
+                                          "ProductFamily":  "Composer",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "SameMajorMinor",
+                                                                  "PackageId":  "Symetrix.Composer",
+                                                                  "Notes":  "Use the SymVue runtime generated and supported by the corresponding Composer project."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.symetrix.co/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Symetrix Jupiter",
+                         "Id":  "Symetrix.Jupiter",
+                         "Note":  "Supported installed-base software with major development discontinued; choose only for Jupiter hardware service.",
+                         "Metadata":  {
+                                          "Vendor":  "Symetrix",
+                                          "ProductFamily":  "Jupiter",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.symetrix.co/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "SymNet Designer",
+                         "Id":  "Symetrix.SymNetDesigner",
+                         "Note":  "Legacy Symetrix design environment obtainable only through support when required for an installed system.",
+                         "Metadata":  {
+                                          "Vendor":  "Symetrix",
+                                          "ProductFamily":  "SymNet",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.symetrix.co/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

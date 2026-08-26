@@ -1,0 +1,92 @@
+{
+  "SchemaVersion": 1,
+  "Product": "AV Workstation Toolkit",
+  "Purpose": "Authoritative regression contract for processes AV Workstation Toolkit directly launches. This file documents boundaries and does not grant execution authority.",
+  "Launches": [
+    {
+      "Id": "frontend-powershell",
+      "Initiator": "AVWorkstationToolkit.exe",
+      "Executable": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "ShellExecute": false,
+      "Arguments": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "RemoteSigned",
+        "-STA",
+        "-File",
+        "<verified-versioned-runtime>\\scripts\\Start-AVWorkstationToolkit.ps1",
+        "-DataRoot",
+        "<validated-data-root>"
+      ],
+      "Boundary": "The launcher constructs this fixed argument vector. Unsupported launcher arguments are rejected."
+    },
+    {
+      "Id": "action-worker-powershell",
+      "Initiator": "Start-AVWorkstationToolkit.ps1",
+      "Executable": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "ShellExecute": false,
+      "Arguments": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "RemoteSigned",
+        "-File",
+        "<verified-versioned-runtime>\\scripts\\Invoke-AVWorkstationToolkitAction.ps1",
+        "-RequestPath",
+        "<validated-request-file>",
+        "-DataRoot",
+        "<validated-data-root>"
+      ],
+      "Boundary": "Only a direct request JSON child of AV Workstation Toolkit logs\\requests is accepted; the worker revalidates exact package IDs and policy."
+    },
+    {
+      "Id": "winget",
+      "Initiator": "AV Workstation Toolkit PowerShell runtime",
+      "Executable": "<Microsoft.DesktopAppInstaller-install-location>\\winget.exe",
+      "ShellExecute": false,
+      "Arguments": [
+        "<bounded-inventory-or-one-package-action-vector>"
+      ],
+      "Boundary": "The executable must be beneath protected Program Files\\WindowsApps and have a valid Microsoft Authenticode signature. Change actions contain one exact allowlisted package ID."
+    },
+    {
+      "Id": "vendor-bridge-self",
+      "Initiator": "Start-AVWorkstationToolkit.ps1",
+      "Executable": "<current-verified-AVWorkstationToolkit.exe>",
+      "ShellExecute": false,
+      "Arguments": [
+        "--vendor-bridge"
+      ],
+      "Boundary": "The constant bridge argument is the only process argument. Strict bounded JSON travels over redirected standard input; credentials never enter arguments or environment variables."
+    },
+    {
+      "Id": "explorer-handoff",
+      "Initiator": "Start-AVWorkstationToolkit.ps1",
+      "Executable": "%SystemRoot%\\explorer.exe",
+      "ShellExecute": false,
+      "Arguments": [
+        "<validated-directory-or-select-file>"
+      ],
+      "Boundary": "Used only for explicit Open logs and Show verified file actions. AV Workstation Toolkit does not execute the selected installer."
+    },
+    {
+      "Id": "https-shell-handoff",
+      "Initiator": "Start-AVWorkstationToolkit.ps1",
+      "Executable": "Windows HTTPS association",
+      "ShellExecute": true,
+      "Arguments": [
+        "<validated-absolute-https-uri-without-credentials>"
+      ],
+      "Boundary": "Used only for explicit operator requests to open catalogued official product or download pages."
+    },
+    {
+      "Id": "snapshot-dsregcmd",
+      "Initiator": "Get-WorkstationSnapshot.ps1",
+      "Executable": "%SystemRoot%\\System32\\dsregcmd.exe",
+      "ShellExecute": false,
+      "Arguments": [
+        "/status"
+      ],
+      "Boundary": "Optional read-only snapshot collection only; not part of normal desktop startup."
+    }
+  ]
+}

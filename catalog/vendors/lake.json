@@ -1,0 +1,47 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Lake",
+    "Packages":  [
+                     {
+                         "Name":  "Lake Controller",
+                         "Id":  "Lake.Controller",
+                         "Note":  "Lake processor and amplifier control software; maintain compatibility with device firmware and installed system files.",
+                         "Metadata":  {
+                                          "Vendor":  "Lake",
+                                          "ProductFamily":  "Lake Processing",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "DSPAudio",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.labgruppen.com/en/lake-processing",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

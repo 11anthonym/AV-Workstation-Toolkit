@@ -1,0 +1,210 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Crestron",
+    "Packages":  [
+                     {
+                         "Name":  "Crestron Construct",
+                         "Id":  "Crestron.Construct",
+                         "Note":  "Current Crestron user-interface authoring environment; acquisition remains through official Crestron access channels.",
+                         "Metadata":  {
+                                          "Vendor":  "Crestron",
+                                          "ProductFamily":  "Construct",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "DEALER-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-CRESTRON-CONSTRUCT-IDE",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "SIMPL# and SIMPL# Pro development dependencies",
+                         "Id":  "Crestron.SimplSharpDependencies",
+                         "Note":  "Development-runtime awareness only; install the SDK and Visual Studio dependencies required by a specific Crestron project.",
+                         "Metadata":  {
+                                          "Vendor":  "Crestron",
+                                          "ProductFamily":  "SIMPL#",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "DEALER-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "TRAINING",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true,
+                                                               "RequiresTraining":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://help.crestron.com/SimplSharp/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Crestron D3 Pro",
+                         "Id":  "Crestron.D3Pro",
+                         "Note":  "Lighting-system programming software in vendor maintenance mode since March 31, 2025; retain project-pinned versions for installed-system compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Crestron",
+                                          "ProductFamily":  "D3 Pro",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LightingControl"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "LightingProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "DEALER-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true,
+                                                               "RequiresTraining":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/D3PRO",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Crestron Studio",
+                         "Id":  "Crestron.Studio",
+                         "Note":  "Legacy installed-base support awareness; do not select for new projects without an explicit compatibility requirement.",
+                         "Metadata":  {
+                                          "Vendor":  "Crestron",
+                                          "ProductFamily":  "Crestron Studio",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "DEALER-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.crestron.com/Support/Resource-Library",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Crestron XiO Cloud",
+                         "Id":  "Crestron.XiOCloud",
+                         "Note":  "Cloud provisioning and fleet-management awareness; account and subscription entitlements are managed outside AV Workstation Toolkit.",
+                         "Metadata":  {
+                                          "Vendor":  "Crestron",
+                                          "ProductFamily":  "XiO Cloud",
+                                          "ApplicationType":  [
+                                                                  "WebApplication",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.crestron.com/Products/Featured-Solutions/XiO-Cloud",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,111 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "MA Lighting",
+    "Packages":  [
+                     {
+                         "Name":  "grandMA3 onPC",
+                         "Id":  "MALighting.grandMA3onPC",
+                         "KnownVersion":  "2.4.2.2",
+                         "Note":  "MA Lighting console software for programming, backup, and hardware-enabled output. Installation can add a USB driver, requires administrator mode, and supports multiple installed releases for project compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^grandMA3 onPC(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "SameMajorMinor"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "MA Lighting",
+                                          "ProductFamily":  "grandMA3",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "Driver",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Use the release supported by the target grandMA3 consoles, onPC hardware, viz-key, and show file."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Embedded"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialDownloadUri":  "https://www.malighting.com/downloads/products/grandMA3/",
+                                          "OfficialProductUri":  "https://www.malighting.com/grandma3/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "grandMA2 onPC",
+                         "Id":  "MALighting.grandMA2onPC",
+                         "KnownVersion":  "3.9.61.5",
+                         "Note":  "Installed-base support for grandMA2 systems and show files. Keep archived releases isolated and use only when the target system cannot migrate to grandMA3.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^grandMA2 onPC(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "SameMajorMinor"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "MA Lighting",
+                                          "ProductFamily":  "grandMA2",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialProductUri":  "https://www.malighting.com/downloads/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

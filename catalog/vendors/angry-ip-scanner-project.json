@@ -1,0 +1,57 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Angry IP Scanner Project",
+    "Packages":  [
+                     {
+                         "Name":  "Angry IP Scanner",
+                         "Id":  "AngryIP.IPScanner",
+                         "KnownVersion":  "3.9.3",
+                         "Note":  "Free open-source IP and port scanner with installer and portable builds. Use only within the approved network scope and account for the bundled or external Java runtime choice.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Angry IP Scanner(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Angry IP Scanner Project",
+                                          "ProductFamily":  "Angry IP Scanner",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialDownloadUri":  "https://angryip.org/download/",
+                                          "OfficialProductUri":  "https://angryip.org/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

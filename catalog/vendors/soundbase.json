@@ -1,0 +1,99 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "SoundBase",
+    "Packages":  [
+                     {
+                         "Name":  "SoundBase SE",
+                         "Id":  "SoundBase.SE",
+                         "Note":  "Free cloud RF coordination and project-management tier; device-control scope and account use should match the project.",
+                         "Metadata":  {
+                                          "Vendor":  "SoundBase",
+                                          "ProductFamily":  "SoundBase",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.sennheiser.com/en-gb/catalog/products/software/soundbase/soundbase-se-888888",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "SoundBase Pro Desktop",
+                         "Id":  "SoundBase.Pro",
+                         "Note":  "Licensed native RF coordination, offline project, spectrum, and hardware-control application; network and cloud-sync policy require review.",
+                         "Metadata":  {
+                                          "Vendor":  "SoundBase",
+                                          "ProductFamily":  "SoundBase",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.soundbase.app/get-started/soundbase-desktop/",
+                                          "OfficialDownloadUri":  "https://soundbase.app/download",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

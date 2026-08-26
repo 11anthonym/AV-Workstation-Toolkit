@@ -1,0 +1,80 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "JBL Professional",
+    "Packages":  [
+                     {
+                         "Name":  "JBL Line Array Calculator",
+                         "Id":  "JBL.LineArrayCalculator",
+                         "Note":  "JBL line-array prediction software retained for supported loudspeaker families; verify whether a newer project tool supersedes it.",
+                         "Metadata":  {
+                                          "Vendor":  "JBL Professional",
+                                          "ProductFamily":  "System Design",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://jblpro.com/en-US/softwares",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "JBL Performance Manager",
+                         "Id":  "JBL.PerformanceManager",
+                         "Note":  "JBL system configuration and amplifier management software; select versions for the supported Crown/JBL system and firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "JBL Professional",
+                                          "ProductFamily":  "Performance Manager",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "DSPAudio",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://jblpro.com/en-US/softwares",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

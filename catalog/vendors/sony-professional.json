@@ -1,0 +1,43 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Sony Professional",
+    "Packages":  [
+                     {
+                         "Name":  "Sony RM-IP Setup Tool",
+                         "Id":  "Sony.RMIPSetupTool",
+                         "Note":  "IP addressing and setup utility for supported Sony professional remote cameras and controllers.",
+                         "Metadata":  {
+                                          "Vendor":  "Sony Professional",
+                                          "ProductFamily":  "Remote Cameras",
+                                          "ApplicationType":  [
+                                                                  "CameraPTZ",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

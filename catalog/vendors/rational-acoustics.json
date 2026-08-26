@@ -1,0 +1,217 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Rational Acoustics",
+    "Packages":  [
+                     {
+                         "Name":  "Rational Acoustics Smaart Suite",
+                         "Id":  "RationalAcoustics.SmaartSuite",
+                         "Note":  "Full licensed Smaart acoustic measurement suite; license activation, calibrated hardware, and trained operating practice are prerequisites.",
+                         "Metadata":  {
+                                          "Vendor":  "Rational Acoustics",
+                                          "ProductFamily":  "Smaart",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.rationalacoustics.com/collections/smaart-suite",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Rational Acoustics Smaart RT",
+                         "Id":  "RationalAcoustics.SmaartRT",
+                         "Note":  "Licensed Smaart real-time measurement edition; select only when its feature set matches the commissioning role.",
+                         "Metadata":  {
+                                          "Vendor":  "Rational Acoustics",
+                                          "ProductFamily":  "Smaart",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.rationalacoustics.com/support/solutions/articles/150000188536-which-edition-of-smaart-is-right-for-me-",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Rational Acoustics Smaart LE",
+                         "Id":  "RationalAcoustics.SmaartLE",
+                         "Note":  "Licensed streamlined Smaart edition; choose based on documented measurement needs rather than installing every Smaart edition.",
+                         "Metadata":  {
+                                          "Vendor":  "Rational Acoustics",
+                                          "ProductFamily":  "Smaart",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.rationalacoustics.com/support/solutions/articles/150000188536-which-edition-of-smaart-is-right-for-me-",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Rational Acoustics Smaart SPL",
+                         "Id":  "RationalAcoustics.SmaartSPL",
+                         "Note":  "Dedicated licensed SPL monitoring edition; logging, microphone calibration, and compliance procedures remain separate operational controls.",
+                         "Metadata":  {
+                                          "Vendor":  "Rational Acoustics",
+                                          "ProductFamily":  "Smaart",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.rationalacoustics.com/support/solutions/articles/150000188536-which-edition-of-smaart-is-right-for-me-",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Rational Acoustics Smaart Data Modeler",
+                         "Id":  "RationalAcoustics.SmaartDataModeler",
+                         "Note":  "Licensed Smaart data-modeling application; install for loudspeaker/data analysis roles rather than general field use.",
+                         "Metadata":  {
+                                          "Vendor":  "Rational Acoustics",
+                                          "ProductFamily":  "Smaart",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement",
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.rationalacoustics.com/support/solutions/150000147592",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

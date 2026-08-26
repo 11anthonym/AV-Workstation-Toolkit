@@ -1,0 +1,39 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Professional Wireless Systems",
+    "Packages":  [
+                     {
+                         "Name":  "Professional Wireless Systems IAS",
+                         "Id":  "PWS.IAS",
+                         "Note":  "Established intermodulation-analysis application retained for workflows and files that require it; current status and acquisition remain explicitly unverified.",
+                         "Metadata":  {
+                                          "Vendor":  "Professional Wireless Systems",
+                                          "ProductFamily":  "IAS",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "Unknown",
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "UNKNOWN-ACCESS"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.professionalwireless.com/",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

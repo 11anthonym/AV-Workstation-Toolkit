@@ -1,0 +1,154 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Yamaha Professional Audio",
+    "Packages":  [
+                     {
+                         "Name":  "Yamaha ProVisionaire Design",
+                         "Id":  "Yamaha.ProVisionaireDesign",
+                         "Note":  "Current Yamaha system design and DSP configuration platform; preserve project and device-firmware compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Yamaha Professional Audio",
+                                          "ProductFamily":  "ProVisionaire",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "AudioNetworking",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "AVEngineer",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Yamaha ProVisionaire Control PLUS",
+                         "Id":  "Yamaha.ProVisionaireControlPlus",
+                         "Note":  "Custom-control interface authoring software for supported Yamaha systems; maintain version alignment with deployed projects.",
+                         "Metadata":  {
+                                          "Vendor":  "Yamaha Professional Audio",
+                                          "ProductFamily":  "ProVisionaire",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Yamaha ProVisionaire Kiosk",
+                         "Id":  "Yamaha.ProVisionaireKiosk",
+                         "Note":  "Runtime control application for ProVisionaire projects; install only on an approved operator workstation or appliance.",
+                         "Metadata":  {
+                                          "Vendor":  "Yamaha Professional Audio",
+                                          "ProductFamily":  "ProVisionaire",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Yamaha ProVisionaire Edge",
+                         "Id":  "Yamaha.ProVisionaireEdge",
+                         "Note":  "Monitoring and management component for supported Yamaha systems; listener and service behavior require deployment review.",
+                         "Metadata":  {
+                                          "Vendor":  "Yamaha Professional Audio",
+                                          "ProductFamily":  "ProVisionaire",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

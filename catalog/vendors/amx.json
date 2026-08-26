@@ -1,0 +1,363 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "AMX",
+    "Packages":  [
+                     {
+                         "Name":  "AMX NetLinx Studio 4",
+                         "Id":  "AMX.NetLinxStudio4",
+                         "Note":  "Primary AMX NetLinx programming environment; version selection remains project and controller-family specific.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "NetLinx",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX TPDesign5",
+                         "Id":  "AMX.TPDesign5",
+                         "Note":  "Current AMX touchpanel interface design software; keep output compatible with the target panel family and controller project.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "TPDesign",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX Driver Design",
+                         "Id":  "AMX.DriverDesign",
+                         "Note":  "AMX driver-authoring utility; intended for approved control-development workflows rather than general field deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "Driver Design",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX TPDesign4",
+                         "Id":  "AMX.TPDesign4",
+                         "Note":  "Legacy AMX touchpanel authoring software retained for installed panels and projects that require the older format.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "TPDesign",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX FileTransfer2",
+                         "Id":  "AMX.FileTransfer2",
+                         "Note":  "Legacy AMX file-transfer utility; keep only for explicit controller or panel service compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "NetLinx Utilities",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX IREdit",
+                         "Id":  "AMX.IREdit",
+                         "Note":  "Legacy infrared driver utility retained for installed AMX control projects.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "NetLinx Utilities",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX Support Files",
+                         "Id":  "AMX.SupportFiles",
+                         "Note":  "Driver, module, and support-file awareness; validate provenance and project compatibility before importing any file into a control project.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "Support Files",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Unknown"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Unknown"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/support",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX SVSI N-Able PC",
+                         "Id":  "AMX.SVSI.NAblePC",
+                         "Note":  "SVSI N-Series AVoIP configuration and management utility for supported installed systems.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "SVSI N-Series",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AMX N-Series Firmware Updater",
+                         "Id":  "AMX.NSeriesFirmwareUpdater",
+                         "Note":  "N-Series firmware utility; upgrades remain model-specific and manually approved.",
+                         "Metadata":  {
+                                          "Vendor":  "AMX",
+                                          "ProductFamily":  "SVSI N-Series",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

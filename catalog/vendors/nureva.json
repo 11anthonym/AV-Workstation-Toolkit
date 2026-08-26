@@ -1,0 +1,135 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Nureva",
+    "Packages":  [
+                     {
+                         "Name":  "Nureva App",
+                         "Id":  "Nureva.App",
+                         "Note":  "Current setup, configuration, and firmware application for Nureva systems; succeeds the retired Console client workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "Nureva",
+                                          "ProductFamily":  "Nureva Audio",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "DSPAudio",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "iOS",
+                                                              "Android",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.nureva.com/software-and-services/console",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Nureva Console",
+                         "Id":  "Nureva.Console",
+                         "Note":  "Cloud monitoring and management service included with Nureva systems; not a local workstation installer.",
+                         "Metadata":  {
+                                          "Vendor":  "Nureva",
+                                          "ProductFamily":  "Nureva Console",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.nureva.com/software-and-services/console",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Nureva Console Client",
+                         "Id":  "Nureva.ConsoleClient",
+                         "Note":  "End-of-life client retained only for existing systems; downloads were removed after April 19, 2026 and Nureva App is the replacement.",
+                         "Metadata":  {
+                                          "Vendor":  "Nureva",
+                                          "ProductFamily":  "Nureva Console",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "Service",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.nureva.com/docs/download-nureva-console-client",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

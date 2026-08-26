@@ -1,0 +1,55 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Milan Manager",
+    "Packages":  [
+                     {
+                         "Name":  "Milan Manager",
+                         "Id":  "Avnu.MilanManager",
+                         "Note":  "Free brand-neutral Milan-AVB configuration and monitoring tool supported by L-Acoustics and d\u0026b audiotechnik; review Npcap/driver requirements before field deployment.",
+                         "KnownVersion":  "2.5.3",
+                         "Metadata":  {
+                                          "Vendor":  "Milan Manager",
+                                          "ProductFamily":  "Milan Manager",
+                                          "ApplicationType":  [
+                                                                  "AudioNetworking",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  false,
+                                                               "RequiresLicense":  false,
+                                                               "RequiresSubscription":  false
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://milanmanager.com/",
+                                          "OfficialDownloadUri":  "https://milanmanager.com/#downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,57 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "WolfVision",
+    "Packages":  [
+                     {
+                         "Name":  "WolfVision vSolution Link Pro",
+                         "Id":  "WolfVision.VSolutionLinkPro",
+                         "Note":  "Free and premium remote management, firmware, inventory, and configuration platform for WolfVision devices; server mode exposes services.",
+                         "Metadata":  {
+                                          "Vendor":  "WolfVision",
+                                          "ProductFamily":  "vSolution",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "DisplayProjector",
+                                                                  "FirmwareUtility",
+                                                                  "Server"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://wolfvision.com/en/support/vsolution-link-pro",
+                                          "OfficialDownloadUri":  "https://wolfvision.com/en/support/vsolution-link-pro",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,57 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "OBS Project",
+    "Packages":  [
+                     {
+                         "Name":  "OBS Studio",
+                         "Id":  "OBSProject.OBSStudio",
+                         "Note":  "Open-source recording and live-streaming application. Plugins, virtual-camera use, capture drivers, and listening services must be evaluated for the intended workstation role.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^OBS Studio(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "OBS Project",
+                                          "ProductFamily":  "OBS Studio",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "MediaServerShowControl"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://obsproject.com/download",
+                                          "OfficialProductUri":  "https://obsproject.com/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,188 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Christie",
+    "Packages":  [
+                     {
+                         "Name":  "Christie Twist",
+                         "Id":  "Christie.Twist",
+                         "Note":  "Projector warping and blending software; free and licensed capability tiers must be distinguished per projector and project.",
+                         "Metadata":  {
+                                          "Vendor":  "Christie",
+                                          "ProductFamily":  "Twist",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "DvLEDVideoWall"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.christiedigital.com/en-gb/products/all-accessories/software/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Christie Mystique",
+                         "Id":  "Christie.Mystique",
+                         "Note":  "Camera-assisted projection alignment, warping, and blending platform; edition, hardware, and driver dependencies require project review.",
+                         "Metadata":  {
+                                          "Vendor":  "Christie",
+                                          "ProductFamily":  "Mystique",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "DvLEDVideoWall",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "SameMajorMinor",
+                                                                  "PackageId":  "Christie.Twist",
+                                                                  "Notes":  "Use a Mystique and Twist combination supported by current Christie release notes."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL",
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "InstallsService":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.christiedigital.com/products/warping-blending/mystique/mystique-premium-edition/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Christie Conductor",
+                         "Id":  "Christie.Conductor",
+                         "Note":  "Network monitoring and control software for supported Christie projectors; avoid co-installation conflicts documented with other Christie tools.",
+                         "Metadata":  {
+                                          "Vendor":  "Christie",
+                                          "ProductFamily":  "Projection Tools",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.christiedigital.com/products/projectors/all-projectors/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Christie Guardian",
+                         "Id":  "Christie.Guardian",
+                         "Note":  "Continuous alignment and projection-quality monitoring component used with supported Mystique systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Christie",
+                                          "ProductFamily":  "Mystique",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "ProjectPinned",
+                                                                  "PackageId":  "Christie.Mystique",
+                                                                  "Notes":  "Guardian deployment is tied to the supported Mystique edition and projection system."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.christiedigital.com/en-gb/products/all-accessories/software/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

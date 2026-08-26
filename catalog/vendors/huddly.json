@@ -1,0 +1,125 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Huddly",
+    "Packages":  [
+                     {
+                         "Name":  "Huddly Connect",
+                         "Id":  "Huddly.Connect",
+                         "Note":  "Current Huddly camera configuration, diagnostics, and update application for supported devices.",
+                         "Metadata":  {
+                                          "Vendor":  "Huddly",
+                                          "ProductFamily":  "Huddly Cameras",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.huddly.com/app/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Huddly Driver Manager",
+                         "Id":  "Huddly.DriverManager",
+                         "Note":  "Huddly network-adapter driver management component; driver impact requires equipment-specific approval.",
+                         "Metadata":  {
+                                          "Vendor":  "Huddly",
+                                          "ProductFamily":  "Huddly Cameras",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "InstallsService":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.huddly.com/app/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Huddly Desktop App",
+                         "Id":  "Huddly.DesktopApp",
+                         "Note":  "Legacy Huddly camera application retained for models such as Huddly GO when current vendor guidance still requires it.",
+                         "Metadata":  {
+                                          "Vendor":  "Huddly",
+                                          "ProductFamily":  "Huddly Cameras",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "CameraPTZ",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.huddly.com/app/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

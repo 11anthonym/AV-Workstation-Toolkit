@@ -1,0 +1,4 @@
+Name                         Id                                   Version   Available Source
+--------------------------------------------------------------------------------------------
+Visual Studio Code           Microsoft.VisualStudioCode          1.95.0    1.96.0    winget
+tftpd64                      PJO2.tftpd64                         4.71      4.74      winget

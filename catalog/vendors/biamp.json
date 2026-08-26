@@ -1,0 +1,265 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Biamp",
+    "Packages":  [
+                     {
+                         "Name":  "Biamp Workplace Tools Desktop App",
+                         "Id":  "Biamp.WorkplaceTools",
+                         "Note":  "High-value current Biamp workplace design, deployment, and commissioning toolset; obtain from the official Biamp channel.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "Biamp Workplace",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Biamp Workplace Control Designer",
+                         "Id":  "Biamp.WorkplaceControlDesigner",
+                         "Note":  "Biamp Workplace control-interface design component; cataloged separately for role and installed-component inventory.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "Biamp Workplace",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "ControlProgramming"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Biamp Workplace Connect",
+                         "Id":  "Biamp.WorkplaceConnect",
+                         "Note":  "Biamp Workplace connection and deployment component; use only for supported workplace systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "Biamp Workplace",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Biamp Workplace Designer",
+                         "Id":  "Biamp.WorkplaceDesigner",
+                         "Note":  "Biamp Workplace room-design component; cataloged independently for inventory while delivered through Workplace Tools.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "Biamp Workplace",
+                                          "ApplicationType":  [
+                                                                  "Conferencing"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Biamp Workplace Command",
+                         "Id":  "Biamp.WorkplaceCommand",
+                         "Note":  "Biamp Workplace management component awareness; deployment remains tied to an approved workplace system design.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "Biamp Workplace",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Biamp Vocia Firmware",
+                         "Id":  "Biamp.VociaFirmware",
+                         "Note":  "Firmware-awareness record only; life-safety system updates require backups, model verification, and a separate approved procedure.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "Vocia",
+                                          "ApplicationType":  [
+                                                                  "FirmwareUtility",
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.biamp.com/Vocia/Software-Firmware",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Biamp SageVue",
+                         "Id":  "Biamp.SageVue",
+                         "Note":  "Biamp monitoring and management platform awareness; server and workstation roles must be evaluated before deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "Biamp",
+                                          "ProductFamily":  "SageVue",
+                                          "ApplicationType":  [
+                                                                  "Server",
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/sagevue",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

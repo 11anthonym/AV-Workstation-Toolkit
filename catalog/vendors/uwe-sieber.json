@@ -1,0 +1,50 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Uwe Sieber",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "USB Device Tree Viewer",
+                         "Id":  "UweSieber.UsbTreeView",
+                         "Note":  "Free portable USB topology and descriptor diagnostic utility with x64, x86, and Arm64 builds; because it is portable, absence from uninstall registry is not evidence of absence.",
+                         "Metadata":  {
+                                          "Vendor":  "Uwe Sieber",
+                                          "ProductFamily":  "USB Device Tree Viewer",
+                                          "ApplicationType":  [
+                                                                  "UsbDiagnostic",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x86",
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialDownloadUri":  "https://www.uwe-sieber.de/usbtreeview_e.html",
+                                          "OfficialProductUri":  "https://www.uwe-sieber.de/usbtreeview_e.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
+  "CreationDate": "2026-08-10T00:00:00.000-00:00",
+  "Sources": [
+    {
+      "Packages": [
+        {
+          "PackageIdentifier": "7zip.7zip",
+          "Version": "24.09"
+        },
+        {
+          "PackageIdentifier": "Microsoft.VisualStudioCode",
+          "Version": "1.95.0"
+        },
+        {
+          "PackageIdentifier": "PJO2.tftpd64",
+          "Version": "4.71"
+        },
+        {
+          "PackageIdentifier": "DBBrowserForSQLite.DBBrowserForSQLite",
+          "Version": "3.13.1"
+        },
+        {
+          "PackageIdentifier": "Adobe.Acrobat.Reader.32-bit",
+          "Version": "26.001.21771"
+        }
+      ],
+      "SourceDetails": {
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      }
+    }
+  ],
+  "WinGetVersion": "1.29.280"
+}

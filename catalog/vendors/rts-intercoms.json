@@ -1,0 +1,224 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "RTS Intercoms",
+    "Packages":  [
+                     {
+                         "Name":  "RTS NEO Intercom Management Suite",
+                         "Id":  "RTS.NEOIntercomManagementSuite",
+                         "Note":  "Next-generation RTS configuration and management suite for supported OMNEO matrix and partyline systems.",
+                         "Metadata":  {
+                                          "Vendor":  "RTS Intercoms",
+                                          "ProductFamily":  "NEO",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "AudioNetworking",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://rtsintercoms.com/support/apps-and-tools/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "RTS AZedit",
+                         "Id":  "RTS.AZedit",
+                         "Note":  "RTS matrix configuration, monitoring, and firmware tool; current suite delivery coexists with legacy standalone labels.",
+                         "Metadata":  {
+                                          "Vendor":  "RTS Intercoms",
+                                          "ProductFamily":  "RTS Matrix",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://rtsintercoms.com/support/apps-and-tools/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "RTS IPedit",
+                         "Id":  "RTS.IPedit",
+                         "Note":  "Windows configuration application for RTS OMNEO and RVON devices; use the suite release supported by the matrix system.",
+                         "Metadata":  {
+                                          "Vendor":  "RTS Intercoms",
+                                          "ProductFamily":  "OMNEO",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "AudioNetworking",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://products.rtsintercoms.com/emea/en/ipedit",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "RTS OMNEO Suite",
+                         "Id":  "RTS.OMNEOSuite",
+                         "Note":  "Legacy suite bundle containing DNS-SD service, firmware tools, USB drivers, AZedit, and IPedit; install only as a release-matched set for existing systems.",
+                         "Metadata":  {
+                                          "Vendor":  "RTS Intercoms",
+                                          "ProductFamily":  "OMNEO",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "AudioNetworking",
+                                                                  "Driver",
+                                                                  "Service",
+                                                                  "FirmwareUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://products.rtsintercoms.com/emea/nl/downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "RTS VLink",
+                         "Id":  "RTS.VLink",
+                         "Note":  "Licensed software intercom platform and client; server, client, and matrix integration roles must be designed and licensed separately.",
+                         "Metadata":  {
+                                          "Vendor":  "RTS Intercoms",
+                                          "ProductFamily":  "VLink",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://rtsintercoms.com/support/apps-and-tools/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

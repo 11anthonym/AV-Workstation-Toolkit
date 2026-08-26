@@ -1,0 +1,47 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Adamson",
+    "Packages":  [
+                     {
+                         "Name":  "Adamson Blueprint AV",
+                         "Id":  "Adamson.BlueprintAV",
+                         "Note":  "Adamson system design and loudspeaker prediction software; account and training expectations should be verified for the project team.",
+                         "Metadata":  {
+                                          "Vendor":  "Adamson",
+                                          "ProductFamily":  "Blueprint AV",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "TRAINING"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresTraining":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://legacy.adamson.ai/support/downloads-directory/design-and-control/blueprint-av",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

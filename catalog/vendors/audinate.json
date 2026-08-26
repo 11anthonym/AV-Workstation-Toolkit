@@ -1,0 +1,211 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Audinate",
+    "Packages":  [
+                     {
+                         "Name":  "Dante Virtual Soundcard",
+                         "Id":  "Audinate.DanteVirtualSoundcard",
+                         "Note":  "Licensed virtual audio device; it changes the workstation audio/network environment and should be installed only for an identified workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "Audinate",
+                                          "ProductFamily":  "Dante",
+                                          "ApplicationType":  [
+                                                                  "AudioNetworking",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "BroadcastVideo",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "InstallsService":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.getdante.com/products/software-essentials/dante-virtual-soundcard/",
+                                          "OfficialDownloadUri":  "https://www.getdante.com/resources/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Dante Via",
+                         "Id":  "Audinate.DanteVia",
+                         "Note":  "Licensed workstation audio-routing software; service, driver, and network behavior are materially different from Dante Controller.",
+                         "Metadata":  {
+                                          "Vendor":  "Audinate",
+                                          "ProductFamily":  "Dante",
+                                          "ApplicationType":  [
+                                                                  "AudioNetworking",
+                                                                  "Driver",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "BroadcastVideo"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.getdante.com/products/software-essentials/dante-via/",
+                                          "OfficialDownloadUri":  "https://www.getdante.com/resources/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Dante Studio",
+                         "Id":  "Audinate.DanteStudio",
+                         "Note":  "Windows Dante video and production toolkit; license and capture/streaming impacts must be evaluated per project.",
+                         "Metadata":  {
+                                          "Vendor":  "Audinate",
+                                          "ProductFamily":  "Dante AV",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "AVoIP",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.getdante.com/products/software-essentials/dante-studio/",
+                                          "OfficialDownloadUri":  "https://www.getdante.com/resources/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Dante Domain Manager",
+                         "Id":  "Audinate.DanteDomainManager",
+                         "Note":  "Server infrastructure for secured and segmented Dante environments; awareness only on ordinary engineering workstations.",
+                         "Metadata":  {
+                                          "Vendor":  "Audinate",
+                                          "ProductFamily":  "Dante",
+                                          "ApplicationType":  [
+                                                                  "AudioNetworking",
+                                                                  "Server"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "SystemAdministration",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Linux",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.getdante.com/products/network-management/dante-domain-manager/",
+                                          "OfficialDownloadUri":  "https://www.getdante.com/resources/software-downloads/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

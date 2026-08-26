@@ -1,0 +1,84 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Lightware",
+    "Packages":  [
+                     {
+                         "Name":  "Lightware Device Controller",
+                         "Id":  "Lightware.LDC",
+                         "Note":  "Primary Lightware configuration and commissioning utility for supported devices.",
+                         "Metadata":  {
+                                          "Vendor":  "Lightware",
+                                          "ProductFamily":  "Device Controller",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.lightware.com/en/products/software/lightware-device-controller",
+                                          "OfficialDownloadUri":  "https://www.lightware.com/en/products/software/lightware-device-controller",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Lightware Device Updater 2",
+                         "Id":  "Lightware.LDU2",
+                         "Note":  "Lightware firmware utility; verify model, release notes, and recovery plan before any separately initiated update.",
+                         "Metadata":  {
+                                          "Vendor":  "Lightware",
+                                          "ProductFamily":  "Device Updater",
+                                          "ApplicationType":  [
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.lightware.com/en/products/Software/lightware-device-updater-2",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

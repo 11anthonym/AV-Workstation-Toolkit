@@ -1,0 +1,71 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Dataton",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Dataton WATCHOUT 7",
+                         "Id":  "Dataton.WATCHOUT7",
+                         "KnownVersion":  "7.8.2",
+                         "Note":  "Multi-display show authoring and playback suite. Producer is free, while media-server output and advanced Asset Manager functions require licensing; upgrades can require intermediate versions.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^WATCHOUT(?: 7)?(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Dataton",
+                                          "ProductFamily":  "WATCHOUT",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "Server",
+                                                                  "Service",
+                                                                  "EDIDHDCP"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "EMAIL-FORM"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Embedded"
+                                                          ],
+                                          "SideBySideSupported":  "Unknown",
+                                          "OfficialDownloadUri":  "https://www.dataton.com/downloads/watchout7",
+                                          "OfficialProductUri":  "https://www.dataton.com/watchout",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,81 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Martin Audio",
+    "Packages":  [
+                     {
+                         "Name":  "Martin Audio DISPLAY 3",
+                         "Id":  "MartinAudio.Display3",
+                         "Note":  "Martin Audio three-dimensional sound-system prediction and mechanical design application.",
+                         "Metadata":  {
+                                          "Vendor":  "Martin Audio",
+                                          "ProductFamily":  "DISPLAY",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://martin-audio.com/downloads/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Martin Audio VU-NET",
+                         "Id":  "MartinAudio.VUNET",
+                         "Note":  "Martin Audio amplifier and system control software; firmware and device-family compatibility require review.",
+                         "Metadata":  {
+                                          "Vendor":  "Martin Audio",
+                                          "ProductFamily":  "VU-NET",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "DSPAudio",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://martin-audio.com/downloads/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

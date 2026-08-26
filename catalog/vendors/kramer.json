@@ -1,0 +1,146 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Kramer",
+    "Packages":  [
+                     {
+                         "Name":  "Kramer K-Config",
+                         "Id":  "Kramer.KConfig",
+                         "KnownVersion":  "3.6.13.0",
+                         "Note":  "Windows design, configuration, deployment, and firmware utility for supported Kramer room-control products. Confirm controller generation and project compatibility before use.",
+                         "Metadata":  {
+                                          "Vendor":  "Kramer",
+                                          "ProductFamily":  "Kramer Control",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x86",
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www1.kramerav.com/product/k-config",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Kramer Network",
+                         "Id":  "Kramer.Network",
+                         "KnownVersion":  "2.7.0.62390",
+                         "Note":  "Centralized web-based AV-over-IP and site-management platform. Model as server infrastructure; licensing and deployment requirements must be confirmed for the target Kramer system.",
+                         "Metadata":  {
+                                          "Vendor":  "Kramer",
+                                          "ProductFamily":  "Kramer Network",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "ControlSystem",
+                                                                  "Server",
+                                                                  "Service",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www1.kramerav.com/br/page/kramer_network",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Kramer K-Router Plus",
+                         "Id":  "Kramer.KRouterPlus",
+                         "KnownVersion":  "2.0.38.0",
+                         "Note":  "Windows setup and remote-control utility for supported Kramer matrix switchers over Ethernet, RS-232, or USB, including EDID and communication settings.",
+                         "Metadata":  {
+                                          "Vendor":  "Kramer",
+                                          "ProductFamily":  "Kramer Routing",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "SerialUtility",
+                                                                  "EDIDHDCP",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x86",
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www1.kramerav.com/product/k-router%20plus",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

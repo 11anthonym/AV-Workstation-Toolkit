@@ -1,0 +1,60 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "TeraTerm Project",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Tera Term",
+                         "Id":  "TeraTermProject.TeraTerm",
+                         "KnownVersion":  "5.6.1",
+                         "Note":  "Free terminal emulator supporting serial, Telnet, SSH, file transfer, and scripting. Portable and installer builds are available from the signed project release page.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Tera Term(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "TeraTerm Project",
+                                          "ProductFamily":  "Tera Term",
+                                          "ApplicationType":  [
+                                                                  "SerialUtility",
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "ControlProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x86",
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialDownloadUri":  "https://github.com/TeraTermProject/teraterm/releases",
+                                          "OfficialProductUri":  "https://teratermproject.github.io/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

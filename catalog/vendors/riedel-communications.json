@@ -1,0 +1,99 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Riedel Communications",
+    "Packages":  [
+                     {
+                         "Name":  "Riedel Director",
+                         "Id":  "Riedel.Director",
+                         "Note":  "Artist matrix configuration and control software; account access and matrix firmware compatibility are project-specific.",
+                         "Metadata":  {
+                                          "Vendor":  "Riedel Communications",
+                                          "ProductFamily":  "Artist",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Confirm Director and Artist platform firmware compatibility before service."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.riedel.net/en/products-solutions/intercom/artist-matrix-intercom/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Riedel Bolero Web Interface",
+                         "Id":  "Riedel.BoleroWebInterface",
+                         "Note":  "Embedded Bolero configuration interface awareness; this is not a downloadable Windows application.",
+                         "Metadata":  {
+                                          "Vendor":  "Riedel Communications",
+                                          "ProductFamily":  "Bolero",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "EmbeddedSoftware",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.riedel.net/en/products-solutions/intercom/bolero-wireless-intercom/",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

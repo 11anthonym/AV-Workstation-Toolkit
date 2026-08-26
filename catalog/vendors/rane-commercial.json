@@ -1,0 +1,47 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Rane Commercial",
+    "Packages":  [
+                     {
+                         "Name":  "Rane Halogen",
+                         "Id":  "Rane.Halogen",
+                         "Note":  "Rane HAL DSP design and commissioning software; maintain project and hardware firmware compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Rane Commercial",
+                                          "ProductFamily":  "HAL",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.ranecommercial.com/halogen",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

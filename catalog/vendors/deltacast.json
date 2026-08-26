@@ -1,0 +1,48 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "DELTACAST",
+    "Packages":  [
+                     {
+                         "Name":  "DELTACAST E-EDID Editor",
+                         "Id":  "Deltacast.EEDIDEditor",
+                         "Note":  "Free Windows utility for reading, writing, and editing EDID files; hardware write operations must be limited to supported interfaces and approved test equipment.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:DELTACAST )?E-EDID Editor(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "DELTACAST",
+                                          "ProductFamily":  "E-EDID Editor",
+                                          "ApplicationType":  [
+                                                                  "EDIDHDCP",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.deltacast.tv/products/free-software/e-edid-editor",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

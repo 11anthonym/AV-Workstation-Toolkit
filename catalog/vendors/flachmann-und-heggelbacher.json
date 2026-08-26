@@ -1,0 +1,58 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Flachmann und Heggelbacher",
+    "Packages":  [
+                     {
+                         "Name":  "Docklight",
+                         "Id":  "FlachmannUndHeggelbacher.Docklight",
+                         "Note":  "Serial, TCP, and UDP monitoring, simulation, and scripting utility. Evaluation and licensed editions differ, and TCP/UDP server modes open listeners.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Docklight(?: Scripting)?(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Flachmann und Heggelbacher",
+                                          "ProductFamily":  "Docklight",
+                                          "ApplicationType":  [
+                                                                  "SerialUtility",
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "ControlProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docklight.de/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

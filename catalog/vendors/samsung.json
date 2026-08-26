@@ -1,0 +1,181 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Samsung",
+    "Packages":  [
+                     {
+                         "Name":  "Samsung MagicINFO Author",
+                         "Id":  "Samsung.MagicINFOAuthor",
+                         "Note":  "Samsung digital-signage content authoring application; project and player compatibility govern deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "Samsung",
+                                          "ProductFamily":  "MagicINFO",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.samsung.com/us/business/solutions/digital-signage-solutions/magicinfo/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Samsung MagicINFO Server",
+                         "Id":  "Samsung.MagicINFOServer",
+                         "Note":  "Server infrastructure for MagicINFO signage fleets; never place it in the ordinary workstation baseline.",
+                         "Metadata":  {
+                                          "Vendor":  "Samsung",
+                                          "ProductFamily":  "MagicINFO",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.samsung.com/us/business/solutions/digital-signage-solutions/magicinfo/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Samsung VXT",
+                         "Id":  "Samsung.VXT",
+                         "Note":  "Cloud-native signage content and device-management awareness; subscription and tenant access are separate from local installation.",
+                         "Metadata":  {
+                                          "Vendor":  "Samsung",
+                                          "ProductFamily":  "VXT",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://vxt.samsung.com/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Samsung Color Expert LED",
+                         "Id":  "Samsung.ColorExpertLED",
+                         "Note":  "Samsung LED display calibration and color-management software; system authorization is obtained through a Samsung account manager.",
+                         "Metadata":  {
+                                          "Vendor":  "Samsung",
+                                          "ProductFamily":  "Samsung LED Signage",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "DisplayProjector"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.samsung.com/uk/business/display-solutions/color-expert-led/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

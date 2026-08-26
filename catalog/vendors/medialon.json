@@ -1,0 +1,60 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Medialon",
+    "Packages":  [
+                     {
+                         "Name":  "Medialon Manager",
+                         "Id":  "Medialon.Manager",
+                         "Note":  "Licensed show-control programming and runtime platform; maintain the release required by the target Medialon system and project files.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Medialon Manager(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Medialon",
+                                          "ProductFamily":  "Manager",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "ControlSystem",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://medialon.com/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

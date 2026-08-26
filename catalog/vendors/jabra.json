@@ -1,0 +1,132 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Jabra",
+    "Packages":  [
+                     {
+                         "Name":  "Jabra Direct",
+                         "Id":  "Jabra.Direct",
+                         "Note":  "Free local management and firmware utility for supported Jabra headsets and conferencing devices.",
+                         "Metadata":  {
+                                          "Vendor":  "Jabra",
+                                          "ProductFamily":  "Jabra Software",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.jabra.com/software-and-services/jabra-direct",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Jabra Xpress",
+                         "Id":  "Jabra.Xpress",
+                         "Note":  "Enterprise device-management service and deployment package awareness; tenant and agent deployment are outside the standard baseline.",
+                         "Metadata":  {
+                                          "Vendor":  "Jabra",
+                                          "ProductFamily":  "Jabra Software",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "WebApplication",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web",
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.jabra.com/software-and-services/jabra-xpress",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Jabra Plus",
+                         "Id":  "Jabra.Plus",
+                         "Note":  "Jabra device-management application awareness; verify current product coverage before replacing an established Direct or Xpress workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "Jabra",
+                                          "ProductFamily":  "Jabra Software",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.jabra.com/software-and-services/jabra-plus",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

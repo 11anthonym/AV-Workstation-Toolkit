@@ -1,0 +1,68 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Green Hippo",
+    "Packages":  [
+                     {
+                         "Name":  "Green Hippo Hippotizer",
+                         "Id":  "GreenHippo.Hippotizer",
+                         "KnownVersion":  "4.9.4",
+                         "Note":  "Media-server software tied to Hippotizer hardware and software-assurance eligibility; project and server versions must remain coordinated.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Hippotizer(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Green Hippo",
+                                          "ProductFamily":  "Hippotizer",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "Server",
+                                                                  "Service",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://support.green-hippo.com/hc/en-gb/categories/16355399313170-Downloads",
+                                          "OfficialProductUri":  "https://www.green-hippo.com/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

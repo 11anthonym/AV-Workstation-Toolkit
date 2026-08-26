@@ -1,0 +1,62 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "AJA Video Systems",
+    "Packages":  [
+                     {
+                         "Name":  "AJA Desktop Software",
+                         "Id":  "AJA.DesktopSoftware",
+                         "KnownVersion":  "18.0",
+                         "Note":  "Unified AJA hardware driver, firmware, Control Panel, Control Room, System Test, and application-plugin package; third-party application and hardware compatibility must be checked before changing versions.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^AJA Desktop Software(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "AJA Video Systems",
+                                          "ProductFamily":  "Desktop Software",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "Driver",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.aja.com/support",
+                                          "OfficialProductUri":  "https://www.aja.com/family/software",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

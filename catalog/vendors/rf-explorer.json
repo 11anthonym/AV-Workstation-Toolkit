@@ -1,0 +1,52 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "RF Explorer",
+    "Packages":  [
+                     {
+                         "Name":  "ClearWaves RF Spectrum Analyzer Software",
+                         "Id":  "RFExplorer.ClearWaves",
+                         "Note":  "Licensed RF spectrum and coordination software whose license is associated with RF Explorer hardware.",
+                         "Metadata":  {
+                                          "Vendor":  "RF Explorer",
+                                          "ProductFamily":  "ClearWaves",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://rfexplorer.com/clearwaves/",
+                                          "OfficialDownloadUri":  "https://rfexplorer.com/clearwaves/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

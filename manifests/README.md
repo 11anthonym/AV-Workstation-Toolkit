@@ -1,0 +1,47 @@
+# Winget Manifests
+
+`winget-team-baseline.json` is the approved low-risk Standard profile for AV/IT workstations.
+It is generated from the authoritative `scripts/AppProfiles.psd1` catalog. Regenerate it after an approved Standard-profile catalog edit:
+
+```powershell
+.\scripts\Export-AVWorkstationToolkitBaselineManifest.ps1
+```
+
+It intentionally excludes:
+
+- KeePass until the corporate credential-manager standard is confirmed;
+- Everything because its service/startup behavior needs approval;
+- packet-capture drivers, scanners, listeners, VPNs, remote-access servers, and AV-vendor software;
+- development runtimes and compatibility packages;
+- IT/MDM-managed software.
+
+Do not run `winget import` as a discovery or dry-run command; import installs packages. AV Workstation Toolkit validates IDs and reports existing/missing packages before offering an install mode.
+
+## External and commercial AV applications
+
+Both JSON manifests use the backward-compatible schema 3 metadata model:
+
+- `external-applications.json` contains 25 operational external records with reviewed detection, release, and delivery behavior;
+- `commercial-av-catalog.json` contains 278 broad awareness records that describe commercial AV products without approving an installer path.
+
+The authoritative broad-awareness sources live in `catalog\vendors\*.json`. Run `build\Compile-CommercialCatalog.ps1` after a source edit; it validates and normalizes every vendor file and rewrites the tracked runtime artifact. Release builds use `-Check` and fail on drift. AV Workstation Toolkit embeds only `commercial-av-catalog.json` and never loads the loose vendor files at runtime.
+
+Schema 3 validates vendor, application type, priority, role, deployment class, maintenance and version policy, lifecycle, licensing, download access and difficulty, account/training/license requirements, driver/service/listener/firmware impact, platform, official HTTPS sources, and validation method. Missing uncertain facts normalize to explicit unknown values rather than guesses. Licensing and download access remain separate dimensions.
+
+Every external entry is forced to manual deployment and maintenance hold and is excluded from the WinGet action worker. Delivery modes are:
+
+- `VendorPage`: official HTTPS handoff;
+- `DirectDownload`: version/host/size-bounded download with Authenticode validation;
+- `AuthenticatedSftp`: host-pinned, credentialed, allowlisted provider;
+- `ParentProvider`: independently detectable child using an existing authenticated provider;
+- `Bundled`: redistribution-approved, path-contained, hash-pinned payload;
+- `InventoryOnly`: detection without acquisition or version-current claims; and
+- `Awareness`: product knowledge and official-page handoff without a Windows deployment action.
+
+Crestron MasterInstaller remains the sole authenticated SFTP provider. Its seven child applications inherit the fixed host, HTTPS feed, `/software` root, product scope, size bound, and publisher policy. A catalog edit cannot give a child an independent credential path.
+
+Downloaded files are cached beneath the per-user data root, hash-recorded, revalidated before reuse, and shown in Explorer without execution. Q-SYS Designer LTS remains vendor-page-only because the [Q-SYS 9.13 EULA](https://help.qsys.com/q-sys_9.13/Content/Legal.htm) restricts external distribution.
+
+Use `scripts\Add-AVWorkstationToolkitExternalPackage.ps1` only for software you are authorized to give to recipients. The authoring command requires schema 3 vendor and application-type metadata in addition to the redistribution assertion, hash, and signer review. Payload files live beneath the local `external-packages\packages` depot, which is ignored by Git. `Build-AVWorkstationToolkit.cmd -BuildOfflineBundle` validates every configured payload before producing an offline bundle ZIP.
+
+See the [commercial catalog model](../docs/Commercial-AV-Catalog.md) for taxonomy and source rules and the [external provider guide](../docs/External-Provider-Guide.md) before changing live detection, credentials, signers, or provider allowlists.

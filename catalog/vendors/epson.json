@@ -1,0 +1,81 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Epson",
+    "Packages":  [
+                     {
+                         "Name":  "Epson Projector Professional Tool",
+                         "Id":  "Epson.ProjectorProfessionalTool",
+                         "Note":  "Professional projector setup, geometry, edge-blending, and calibration utility for supported Epson models.",
+                         "Metadata":  {
+                                          "Vendor":  "Epson",
+                                          "ProductFamily":  "Professional Projectors",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://epson.com/Support/wa00812",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Epson iProjection",
+                         "Id":  "Epson.iProjection",
+                         "Note":  "Wireless presentation client for supported Epson projectors; install only where its network-sharing workflow is approved.",
+                         "Metadata":  {
+                                          "Vendor":  "Epson",
+                                          "ProductFamily":  "Projectors",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "Conferencing"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://epson.com/wireless-projector-app",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,50 @@
+# Workstation evidence can contain device, user, application, and path metadata.
+snapshots/*
+!snapshots/README.md
+
+# Change-mode execution logs are local operational evidence.
+logs/
+
+# Exported plans contain workstation-specific state.
+reports/
+diagnostics/
+diagnostic-exports/
+workstation-snapshots/
+vendor-cache/
+
+# Reproducible build and package outputs are generated locally or in CI.
+artifacts/
+external-packages/
+src/**/bin/
+src/**/obj/
+installer/bin/
+installer/obj/
+
+# Signing and credential material must never enter source control.
+*.pfx
+*.p12
+*.p8
+*.pem
+*.key
+*.snk
+signing-material/
+credential-exports/
+*.credential-export*
+
+# Environment and user-specific development settings.
+.env
+.env.*
+!.env.example
+.vs/
+*.user
+*.suo
+
+# Local Codex workspace policy is machine-specific, not application source.
+.codex/
+.codex-remote-attachments/
+.claude/
+
+# PowerShell/editor scratch files.
+*.tmp
+*.bak
+*~

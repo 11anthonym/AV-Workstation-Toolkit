@@ -1,0 +1,117 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Matrox Video",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Matrox ConvertIP Manager",
+                         "Id":  "Matrox.ConvertIPManager",
+                         "KnownVersion":  "2.07.00.340",
+                         "Note":  "Commissioning utility for Matrox ConvertIP endpoints, including discovery, routing, licensing, and firmware operations. Firmware and codec licensing are device-specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Matrox ConvertIP Manager(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Matrox Video",
+                                          "ProductFamily":  "ConvertIP",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "BroadcastVideo",
+                                                                  "NetworkUtility",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://video.matrox.com/en/apps/drivers/graphics/download/convertip",
+                                          "OfficialProductUri":  "https://video.matrox.com/en/products/infrastructure/convertip-series",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Matrox ConductIP",
+                         "Id":  "Matrox.ConductIP",
+                         "Note":  "Licensed NMOS media-routing platform for ST 2110 and IPMX infrastructure. Model as server/infrastructure software, not an ordinary workstation utility.",
+                         "Metadata":  {
+                                          "Vendor":  "Matrox Video",
+                                          "ProductFamily":  "ConductIP",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "BroadcastVideo",
+                                                                  "Server",
+                                                                  "Service",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering",
+                                                        "SystemAdministration",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://video.matrox.com/en/products/infrastructure/convertip-series",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,153 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Xilica",
+    "Packages":  [
+                     {
+                         "Name":  "Xilica Designer",
+                         "Id":  "Xilica.Designer",
+                         "Note":  "Primary Xilica DSP and control design environment for supported systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Xilica",
+                                          "ProductFamily":  "Designer",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.xilica.com/en/categories/1363970-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Xilica XTouch",
+                         "Id":  "Xilica.XTouch",
+                         "Note":  "Xilica control-interface application for supported Designer projects and devices.",
+                         "Metadata":  {
+                                          "Vendor":  "Xilica",
+                                          "ProductFamily":  "XTouch",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.xilica.com/en/categories/1363970-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Xilica XConsole",
+                         "Id":  "Xilica.XConsole",
+                         "Note":  "Legacy Xilica configuration application retained for installed systems not supported by current Designer workflows.",
+                         "Metadata":  {
+                                          "Vendor":  "Xilica",
+                                          "ProductFamily":  "XConsole",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.xilica.com/en/categories/1363970-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Xilica XLink",
+                         "Id":  "Xilica.XLink",
+                         "Note":  "Legacy Xilica utility awareness; preserve only for a documented installed-system requirement.",
+                         "Metadata":  {
+                                          "Vendor":  "Xilica",
+                                          "ProductFamily":  "XLink",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://support.xilica.com/en/categories/1363970-software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,136 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Yealink",
+    "Packages":  [
+                     {
+                         "Name":  "Yealink USB Connect",
+                         "Id":  "Yealink.USBConnect",
+                         "Note":  "Local configuration, diagnostics, and firmware utility for supported Yealink USB devices.",
+                         "Metadata":  {
+                                          "Vendor":  "Yealink",
+                                          "ProductFamily":  "Device Management",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.yealink.com/en/product-resource/usb-connect-management",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Yealink Device Management Platform",
+                         "Id":  "Yealink.YDMP",
+                         "Note":  "On-premises device-management platform awareness; server services and listeners exclude it from ordinary workstation deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "Yealink",
+                                          "ProductFamily":  "Device Management",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "Server"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "CONTACT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.yealink.com/en/product-detail/management-cloud-service",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Yealink Management Cloud Service",
+                         "Id":  "Yealink.YMCS",
+                         "Note":  "Cloud device-management awareness; tenant access and subscription are not a local software deployment concern.",
+                         "Metadata":  {
+                                          "Vendor":  "Yealink",
+                                          "ProductFamily":  "Device Management",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.yealink.com/en/product-detail/management-cloud-service",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,751 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Extron",
+    "Packages":  [
+                     {
+                         "Name":  "Extron DSP Configurator Pro",
+                         "Id":  "Extron.DSPConfiguratorPro",
+                         "Note":  "DSP design and commissioning software for supported Extron audio processors; requires Extron access and product-specific validation.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "ProDSP",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/technology/prodsp-audio-dsp-platform",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron DSP Configurator",
+                         "Id":  "Extron.DSPConfigurator",
+                         "Note":  "DSP configuration software retained for supported and installed Extron audio products.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "ProDSP",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/technology/prodsp-audio-dsp-platform",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron Global Scripter",
+                         "Id":  "Extron.GlobalScripter",
+                         "Note":  "Python control-system development environment; install only for an identified Extron control project and approved training path.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Control Professional",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "TRAINING",
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true,
+                                                               "RequiresTraining":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/article/python",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron ControlScript Deployment Utility",
+                         "Id":  "Extron.ControlScriptDeploymentUtility",
+                         "Note":  "Deployment utility for approved ControlScript projects; it is not a general-purpose automatic deployment target.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "ControlScript",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "TRAINING",
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true,
+                                                               "RequiresTraining":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/article/controlscript",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron ControlScript VS Code Extension",
+                         "Id":  "Extron.ControlScriptVSCode",
+                         "Note":  "ControlScript development extension awareness; pair it with the project-approved Python and Extron deployment toolchain.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "ControlScript",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "Development"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/article/controlscript",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron Global Configurator Plus",
+                         "Id":  "Extron.GlobalConfiguratorPlus",
+                         "Note":  "Configuration software for supported Extron control systems; maintain per-project compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Global Configurator",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/technology/global-configurator-plus-and-professional",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron Global Configurator Professional",
+                         "Id":  "Extron.GlobalConfiguratorProfessional",
+                         "Note":  "Advanced Extron control configuration software; training and account authorization are prerequisites.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Global Configurator",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "TRAINING",
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true,
+                                                               "RequiresTraining":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/technology/global-configurator-plus-and-professional",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron GUI Designer",
+                         "Id":  "Extron.GUIDesigner",
+                         "Note":  "User-interface design software for supported Extron touchpanels and control interfaces.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "GUI Designer",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/guidesigner",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron Videowall Configuration Software",
+                         "Id":  "Extron.VCS",
+                         "Note":  "Videowall processor configuration utility; select only for supported Extron processors and project firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Videowall",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "DisplayProjector"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron XTP System Configuration Software",
+                         "Id":  "Extron.XTPSystemConfiguration",
+                         "Note":  "Configuration and firmware utility for Extron XTP systems; preserve system-level firmware compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "XTP Systems",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/technology/xtp-systems",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron EDID Manager",
+                         "Id":  "Extron.EDIDManager",
+                         "Note":  "EDID inspection and management utility for supported Extron products and field troubleshooting.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "EDID Tools",
+                                          "ApplicationType":  [
+                                                                  "EDIDHDCP",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron Firmware Loader",
+                         "Id":  "Extron.FirmwareLoader",
+                         "Note":  "Firmware transfer utility; all device updates remain deliberate, model-specific, and outside automatic deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Firmware Tools",
+                                          "ApplicationType":  [
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron DataViewer",
+                         "Id":  "Extron.DataViewer",
+                         "Note":  "Serial and network command-testing utility for authorized AV device troubleshooting.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Engineering Utilities",
+                                          "ApplicationType":  [
+                                                                  "SerialUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "ControlProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron IR Learner",
+                         "Id":  "Extron.IRLearner",
+                         "Note":  "Infrared learning utility retained for devices and control projects that require custom IR drivers.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Engineering Utilities",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron USB Driver Package",
+                         "Id":  "Extron.USBDriverPackage",
+                         "Note":  "Driver package awareness; install only when a supported Extron device and connection workflow requires it.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "USB Drivers",
+                                          "ApplicationType":  [
+                                                                  "Driver",
+                                                                  "UsbDiagnostic"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "ACCOUNT"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron GUI Configurator",
+                         "Id":  "Extron.GUIConfigurator",
+                         "Note":  "Legacy user-interface software retained only for installed systems that cannot be migrated safely.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "GUI Configurator",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron Global Configurator Classic",
+                         "Id":  "Extron.GlobalConfiguratorClassic",
+                         "Note":  "Legacy control configuration software; retain only for explicit installed-base project support.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "Global Configurator",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron IP Link File Manager",
+                         "Id":  "Extron.IPLinkFileManager",
+                         "Note":  "Legacy IP Link support utility; do not deploy without a specific installed-system requirement.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "IP Link",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Extron HD CTL 100 Configuration Software",
+                         "Id":  "Extron.HDCTL100Configuration",
+                         "Note":  "Product-specific legacy configuration utility retained for HD CTL 100 installed-base service.",
+                         "Metadata":  {
+                                          "Vendor":  "Extron",
+                                          "ProductFamily":  "HD CTL 100",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.extron.com/product/hdctl100",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

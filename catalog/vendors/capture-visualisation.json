@@ -1,0 +1,65 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Capture Visualisation",
+    "Packages":  [
+                     {
+                         "Name":  "Capture",
+                         "Id":  "CaptureVisualisation.Capture",
+                         "KnownVersion":  "2026.0.39",
+                         "Note":  "Lighting design and visualization suite with Art-Net, sACN, MA-Net, NDI, OSC, and other production-network integrations. Demo/student and paid editions have distinct rights and limits.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Capture(?: 20\\d{2})?(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Capture Visualisation",
+                                          "ProductFamily":  "Capture",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "MediaServerShowControl",
+                                                                  "BroadcastVideo"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "DesignEngineering",
+                                                        "BroadcastVideo"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.capture.se/Downloads/Download-Capture",
+                                          "OfficialProductUri":  "https://www.capture.se/Products/Capture",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

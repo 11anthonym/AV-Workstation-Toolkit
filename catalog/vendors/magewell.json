@@ -1,0 +1,55 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Magewell",
+    "Packages":  [
+                     {
+                         "Name":  "Magewell USB Capture Utility",
+                         "Id":  "Magewell.USBCaptureUtility",
+                         "Note":  "Configuration, diagnostics, and firmware utility for supported Magewell USB Capture devices; obtain the release for the exact hardware family and operating system.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Magewell )?USB Capture Utility(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Magewell",
+                                          "ProductFamily":  "USB Capture",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "UsbDiagnostic",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.magewell.com/downloads",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

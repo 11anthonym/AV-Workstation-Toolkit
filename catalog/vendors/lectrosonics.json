@@ -1,0 +1,48 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Lectrosonics",
+    "Packages":  [
+                     {
+                         "Name":  "Lectrosonics Wireless Designer",
+                         "Id":  "Lectrosonics.WirelessDesigner",
+                         "Note":  "Wireless coordination, monitoring, and firmware utility; optional USB drivers are needed only for applicable receivers and programmers.",
+                         "Metadata":  {
+                                          "Vendor":  "Lectrosonics",
+                                          "ProductFamily":  "Wireless Designer",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "FirmwareUtility",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.lectrosonics.com/wireless-designer.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

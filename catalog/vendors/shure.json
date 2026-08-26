@@ -1,0 +1,108 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Shure",
+    "Packages":  [
+                     {
+                         "Name":  "Shure IntelliMix Room",
+                         "Id":  "Shure.IntelliMixRoom",
+                         "Note":  "Licensed software DSP for conferencing PCs; audio-driver, service, entitlement, and room-design impacts require deliberate approval.",
+                         "Metadata":  {
+                                          "Vendor":  "Shure",
+                                          "ProductFamily":  "IntelliMix",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "Conferencing",
+                                                                  "Driver",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "REGISTERED",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.shure.com/en-US/products/software/intellimix_room",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Shure SystemOn",
+                         "Id":  "Shure.SystemOn",
+                         "Note":  "Server-oriented Shure monitoring and management software; do not place it in an ordinary technician workstation baseline.",
+                         "Metadata":  {
+                                          "Vendor":  "Shure",
+                                          "ProductFamily":  "SystemOn",
+                                          "ApplicationType":  [
+                                                                  "Server",
+                                                                  "WirelessRF",
+                                                                  "DSPAudio"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "REGISTERED",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.shure.com/en-US/products/software/systemon",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

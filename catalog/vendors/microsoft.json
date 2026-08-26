@@ -1,0 +1,96 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Microsoft",
+    "Packages":  [
+                     {
+                         "Name":  "Microsoft USBView",
+                         "Id":  "Microsoft.USBView",
+                         "Note":  "USB controller and device viewer supplied through the Windows SDK Debugging Tools component; this is awareness of an SDK component, not a standalone installer target.",
+                         "Metadata":  {
+                                          "Vendor":  "Microsoft",
+                                          "ProductFamily":  "Windows SDK",
+                                          "ApplicationType":  [
+                                                                  "UsbDiagnostic",
+                                                                  "FieldUtility",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Development",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "Managed",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Architecture":  [
+                                                               "x86",
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-hardware/drivers/debugger/usbview",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Microsoft Sysinternals Suite",
+                         "Id":  "Microsoft.SysinternalsSuite",
+                         "KnownVersion":  "2026.7",
+                         "Note":  "Microsoft troubleshooting suite including Process Monitor, Process Explorer, TCPView, Sigcheck, Autoruns, PsPing, PendMoves, and other diagnostics. Individual tools can make privileged changes and remain operator-invoked.",
+                         "Metadata":  {
+                                          "Vendor":  "Microsoft",
+                                          "ProductFamily":  "Sysinternals",
+                                          "ApplicationType":  [
+                                                                  "FieldUtility",
+                                                                  "NetworkUtility",
+                                                                  "UsbDiagnostic"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "SystemAdministration",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialDownloadUri":  "https://learn.microsoft.com/sysinternals/downloads/sysinternals-suite",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/sysinternals/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

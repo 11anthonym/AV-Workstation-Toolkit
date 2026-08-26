@@ -1,0 +1,162 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Q-SYS",
+    "Packages":  [
+                     {
+                         "Name":  "Q-SYS UCI Viewer",
+                         "Id":  "QSC.QSYSUCIViewer",
+                         "Note":  "Standalone UCI client; keep its major/minor release aligned with the target Q-SYS design and Core firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "Q-SYS",
+                                          "ProductFamily":  "Q-SYS",
+                                          "ApplicationType":  [
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "ControlProgramming"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.qsys.com/products-solutions/software-and-firmware/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Attero Tech unIFY Control Panel",
+                         "Id":  "QSC.AtteroTech.UnifyControlPanel",
+                         "Note":  "Configuration and firmware utility for supported Attero Tech networked-audio endpoints.",
+                         "Metadata":  {
+                                          "Vendor":  "Q-SYS",
+                                          "ProductFamily":  "Attero Tech",
+                                          "ApplicationType":  [
+                                                                  "AudioNetworking",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "DSPEngineering",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.qsys.com/products-solutions/software-and-firmware/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Q-SYS MP Install",
+                         "Id":  "QSC.MPInstall",
+                         "Note":  "Commissioning utility associated with Q-SYS MP-series systems; obtain only when that equipment is in scope.",
+                         "Metadata":  {
+                                          "Vendor":  "Q-SYS",
+                                          "ProductFamily":  "MP Series",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.qsys.com/products-solutions/software-and-firmware/",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Q-SYS Reflect",
+                         "Id":  "QSC.Reflect",
+                         "Note":  "Cloud monitoring and management awareness; this is not modeled as a local Windows installer.",
+                         "Metadata":  {
+                                          "Vendor":  "Q-SYS",
+                                          "ProductFamily":  "Q-SYS Reflect",
+                                          "ApplicationType":  [
+                                                                  "WebApplication",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.qsys.com/products/q-sys/monitoring-management/q-sys-reflect/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

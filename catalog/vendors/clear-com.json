@@ -1,0 +1,187 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Clear-Com",
+    "Packages":  [
+                     {
+                         "Name":  "Clear-Com EHX Configuration Software",
+                         "Id":  "ClearCom.EHX",
+                         "Note":  "Primary Eclipse HX matrix configuration and firmware suite; software, card firmware, and panel firmware must remain release-matched.",
+                         "Metadata":  {
+                                          "Vendor":  "Clear-Com",
+                                          "ProductFamily":  "Eclipse HX",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Use the EHX software and firmware bundle documented for the target matrix, cards, and panels."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://clearcom.com/Download-Center/Software-Versions-Chart",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Clear-Com Dynam-EC",
+                         "Id":  "ClearCom.DynamEC",
+                         "Note":  "Licensed live assignment and routing client for Eclipse HX matrices; license is per connection or site.",
+                         "Metadata":  {
+                                          "Vendor":  "Clear-Com",
+                                          "ProductFamily":  "Eclipse HX",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "SameMajorMinor",
+                                                                  "PackageId":  "ClearCom.EHX",
+                                                                  "Notes":  "Use Dynam-EC with the supported EHX system release."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.clearcom.com/Products/Products-By-Name/Station-IC/dynam-ec",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Clear-Com Station-IC",
+                         "Id":  "ClearCom.StationIC",
+                         "Note":  "Virtual desktop intercom client for Eclipse HX, LQ, and Gen-IC; demo access is registered and full use requires license or subscription.",
+                         "Metadata":  {
+                                          "Vendor":  "Clear-Com",
+                                          "ProductFamily":  "Station-IC",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "REGISTERED",
+                                                                 "EMAIL-FORM",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.clearcom.com/Station-IC",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Clear-Com FreeSpeak II Configuration Editor",
+                         "Id":  "ClearCom.FreeSpeakIIConfigurationEditor",
+                         "Note":  "Configuration and firmware utility for installed FreeSpeak II systems; retain release compatibility with base-station firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "Clear-Com",
+                                          "ProductFamily":  "FreeSpeak II",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "FirmwareUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Use the editor documented for the FreeSpeak II base-station and beltpack firmware set."
+                                                              },
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://clearcom.com/Download-Center/Software-Versions-Chart",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

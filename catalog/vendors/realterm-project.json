@@ -1,0 +1,54 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "RealTerm Project",
+    "Packages":  [
+                     {
+                         "Name":  "RealTerm",
+                         "Id":  "RealTerm.RealTerm",
+                         "Note":  "Engineering terminal for binary serial streams, RS-485, Winsock/Telnet, capture, and automation. Retain for difficult installed-base protocol work; current support status is not asserted.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^RealTerm(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "RealTerm Project",
+                                          "ProductFamily":  "RealTerm",
+                                          "ApplicationType":  [
+                                                                  "SerialUtility",
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "ControlProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "InventoryOnly",
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://realterm.sourceforge.io/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

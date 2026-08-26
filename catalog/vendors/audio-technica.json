@@ -1,0 +1,46 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Audio-Technica",
+    "Packages":  [
+                     {
+                         "Name":  "Audio-Technica Wireless Manager",
+                         "Id":  "AudioTechnica.WirelessManager",
+                         "Note":  "Wireless coordination and system-management utility for supported Audio-Technica receivers and transmitters.",
+                         "Metadata":  {
+                                          "Vendor":  "Audio-Technica",
+                                          "ProductFamily":  "Wireless",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.audio-technica.com/en-us/support/software-downloads",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

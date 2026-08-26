@@ -1,0 +1,46 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Room EQ Wizard",
+    "Packages":  [
+                     {
+                         "Name":  "Room EQ Wizard",
+                         "Id":  "REW.RoomEQWizard",
+                         "Note":  "Widely used acoustic measurement and analysis application; verify calibration, Java/runtime requirements, and commercial-use support needs.",
+                         "Metadata":  {
+                                          "Vendor":  "Room EQ Wizard",
+                                          "ProductFamily":  "REW",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.roomeqwizard.com/",
+                                          "OfficialDownloadUri":  "https://www.roomeqwizard.com/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,173 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Mersive",
+    "Packages":  [
+                     {
+                         "Name":  "Mersive Solstice App",
+                         "Id":  "Mersive.SolsticeApp",
+                         "Note":  "User sharing and collaboration client for Solstice systems; deploy only where the client workflow is approved.",
+                         "Metadata":  {
+                                          "Vendor":  "Mersive",
+                                          "ProductFamily":  "Solstice",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Solstice Dashboard",
+                         "Id":  "Mersive.SolsticeDashboard",
+                         "Note":  "Legacy Solstice management application; use Solstice Cloud or current vendor workflows for new deployments.",
+                         "Metadata":  {
+                                          "Vendor":  "Mersive",
+                                          "ProductFamily":  "Solstice",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "DigitalSignage",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Solstice Discovery Service",
+                         "Id":  "Mersive.SolsticeDiscoveryService",
+                         "Note":  "Free on-premises discovery server for Solstice clients; listener and server placement must be approved by network administration.",
+                         "Metadata":  {
+                                          "Vendor":  "Mersive",
+                                          "ProductFamily":  "Solstice",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Solstice Cloud",
+                         "Id":  "Mersive.SolsticeCloud",
+                         "Note":  "Cloud monitoring and management awareness; tenant, subscription, and network policy are handled outside AV Workstation Toolkit.",
+                         "Metadata":  {
+                                          "Vendor":  "Mersive",
+                                          "ProductFamily":  "Solstice",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://documentation.mersive.com/en/solstice/manage-solstice/manage-solstice-with-solstice-cloud.html",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

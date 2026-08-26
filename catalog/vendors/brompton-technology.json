@@ -1,0 +1,52 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Brompton Technology",
+    "Packages":  [
+                     {
+                         "Name":  "Brompton Tessera Remote",
+                         "Id":  "Brompton.TesseraRemote",
+                         "Note":  "Free LED processor remote control and offline editor; the application version must match processor firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "Brompton Technology",
+                                          "ProductFamily":  "Tessera",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Tessera Remote and processor firmware versions must match; side-by-side versions may be retained."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialProductUri":  "https://www.bromptontech.com/support/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

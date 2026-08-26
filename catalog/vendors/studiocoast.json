@@ -1,0 +1,62 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "StudioCoast",
+    "Packages":  [
+                     {
+                         "Name":  "vMix",
+                         "Id":  "StudioCoast.vMix",
+                         "KnownVersion":  "29.0",
+                         "Note":  "Windows live-production, recording, streaming, replay, and network-video application. It offers both perpetual and subscription licensing and can expose streaming and remote-production services.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^vMix(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "StudioCoast",
+                                          "ProductFamily":  "vMix",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "MediaServerShowControl",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true,
+                                                               "RequiresSubscription":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.vmix.com/software/download.aspx",
+                                          "OfficialProductUri":  "https://www.vmix.com/software/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

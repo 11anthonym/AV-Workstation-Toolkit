@@ -1,0 +1,58 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "sACNView Project",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "sACNView",
+                         "Id":  "sACNView.sACNView",
+                         "Note":  "Free protocol analyzer, monitor, transmitter, snapshot, and PCAP-playback utility for ANSI E1.31 sACN. Transmit and listen functions must be used only on an authorized lighting network.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^sACNView(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "sACNView Project",
+                                          "ProductFamily":  "sACNView",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://sacnview.org/",
+                                          "OfficialProductUri":  "https://sacnview.org/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

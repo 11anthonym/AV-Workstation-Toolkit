@@ -1,0 +1,47 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Colorlight",
+    "Packages":  [
+                     {
+                         "Name":  "Colorlight LEDVISION",
+                         "Id":  "Colorlight.LEDVISION",
+                         "Note":  "Colorlight LED display configuration and sender/receiver management software; acquisition and driver impact require official-channel verification.",
+                         "Metadata":  {
+                                          "Vendor":  "Colorlight",
+                                          "ProductFamily":  "LEDVISION",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "FirmwareUtility",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Unknown",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  null,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://en.colorlightinside.com/",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

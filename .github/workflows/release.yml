@@ -1,0 +1,134 @@
+name: AV Workstation Toolkit Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Verify tag and source version
+        shell: powershell
+        run: |
+          $version = (Get-Content -LiteralPath .\VERSION -Raw).Trim()
+          if ($env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match VERSION $version."
+          }
+
+      - name: Run CI-safe source QA
+        shell: powershell
+        run: >-
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
+          -File .\tests\Run-Tests.ps1 -CoreOnly
+
+      - name: Import required organizational signing certificate
+        shell: powershell
+        env:
+          # Legacy secret names remain a transition fallback because GitHub
+          # cannot rename or copy encrypted repository secrets through a workflow.
+          SIGNING_PFX_BASE64: ${{ secrets.AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64 || secrets.AVINITE_SIGNING_PFX_BASE64 }}
+          SIGNING_PFX_PASSWORD: ${{ secrets.AVWORKSTATIONTOOLKIT_SIGNING_PFX_PASSWORD || secrets.AVINITE_SIGNING_PFX_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SIGNING_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:SIGNING_PFX_PASSWORD)) {
+            throw 'Tagged production releases require both AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64 and AVWORKSTATIONTOOLKIT_SIGNING_PFX_PASSWORD.'
+          }
+          $pfxPath = Join-Path $env:RUNNER_TEMP 'avworkstationtoolkit-signing.pfx'
+          [IO.File]::WriteAllBytes($pfxPath,[Convert]::FromBase64String($env:SIGNING_PFX_BASE64))
+          $password = ConvertTo-SecureString $env:SIGNING_PFX_PASSWORD -AsPlainText -Force
+          $certificate = @(Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $password |
+            Where-Object HasPrivateKey | Select-Object -First 1)
+          if ($certificate.Count -ne 1) { throw 'The supplied PFX did not import a certificate with an accessible private key.' }
+          $utf8 = [Text.UTF8Encoding]::new($false)
+          [IO.File]::AppendAllText($env:GITHUB_ENV,"AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT=$($certificate[0].Thumbprint)`n",$utf8)
+
+      - name: Build standalone executable, MSI, and portable ZIP
+        shell: powershell
+        run: |
+          $arguments = @(
+            '-NoProfile','-ExecutionPolicy','RemoteSigned','-File','.\build\Build-Release.ps1','-SkipTests',
+            '-CertificateThumbprint',$env:AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT,'-CertificateStore','CurrentUser',
+            '-RequireSignature','-BuildChannel','Production'
+          )
+          & powershell.exe @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify release artifacts
+        shell: powershell
+        run: |
+          $arguments = @('-NoProfile','-ExecutionPolicy','RemoteSigned','-STA','-File','.\tests\Test-Package.ps1','-SkipDesktopSmoke','-RequireSignature')
+          & powershell.exe @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run endpoint-trust checks and optional Defender scan
+        shell: powershell
+        run: |
+          $version = (Get-Content -LiteralPath .\VERSION -Raw).Trim()
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1 `
+            -ReleaseRoot ".\artifacts\release\$version" -ScanWithDefender
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Publish GitHub release assets
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content -LiteralPath .\VERSION -Raw).Trim()
+          $releaseRoot = Join-Path $PWD "artifacts\release\$version"
+          $assets = @(
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-win-x64.exe"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-x64.msi"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-win-x64.zip"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-LICENSE.txt"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-THIRD-PARTY-NOTICES.md"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-SHA256SUMS.txt"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-release.json"
+            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-sbom.cdx.json"
+          )
+          foreach ($asset in $assets) {
+            if (-not (Test-Path -LiteralPath $asset -PathType Leaf)) {
+              throw "Release asset is missing: $asset"
+            }
+          }
+          $publisherNote = 'The executable and MSI were Authenticode signed, RFC3161 timestamped, and signature-required package QA passed before publication.'
+          $notes = @(
+            "Download **AV-Workstation-Toolkit-$version-win-x64.exe** and run it directly; it carries the complete AV Workstation Toolkit runtime and requires no extraction or separate .NET installation."
+            ''
+            "The MSI and one-file portable ZIP are alternate delivery formats. $publisherNote The Apache-2.0 project license, third-party notices, CycloneDX SBOM, release manifest, and SHA-256 checksum list are published beside them."
+            ''
+            "Review the [Code signing policy](https://github.com/11anthonym/AV-Workstation-Toolkit/blob/$env:GITHUB_REF_NAME/docs/Code-Signing-Policy.md) for the release trust model and verification requirements."
+          ) -join [Environment]::NewLine
+          $releaseListJson = gh release list --limit 1000 --json tagName
+          if ($LASTEXITCODE -ne 0) { throw 'Existing release lookup failed.' }
+          $existingReleaseTags = @($releaseListJson | ConvertFrom-Json | ForEach-Object tagName)
+          if ($env:GITHUB_REF_NAME -in $existingReleaseTags) {
+            throw "Release $env:GITHUB_REF_NAME already exists. Published release assets are immutable; correct the source, increment VERSION, and create a new tag."
+          }
+          gh release create $env:GITHUB_REF_NAME @assets --verify-tag --title "AV Workstation Toolkit $version" --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'Release creation failed.' }
+
+      - name: Remove imported signing material
+        if: always()
+        shell: powershell
+        run: |
+          $pfxPath = Join-Path $env:RUNNER_TEMP 'avworkstationtoolkit-signing.pfx'
+          if (Test-Path -LiteralPath $pfxPath -PathType Leaf) { Remove-Item -LiteralPath $pfxPath -Force }
+          if (-not [string]::IsNullOrWhiteSpace($env:AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT)) {
+            $certificatePath = "Cert:\CurrentUser\My\$env:AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT"
+            if (Test-Path -LiteralPath $certificatePath) { Remove-Item -LiteralPath $certificatePath -Force }
+          }

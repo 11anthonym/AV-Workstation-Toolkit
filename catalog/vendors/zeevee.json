@@ -1,0 +1,61 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "ZeeVee",
+    "Packages":  [
+                     {
+                         "Name":  "ZeeVee ZyPer Management Platform / MaestroZ",
+                         "Id":  "ZeeVee.ZyPerManagementPlatform",
+                         "Note":  "Embedded or VM management platform and browser UI for ZeeVee ZyPer endpoints. It is infrastructure awareness, not a Windows workstation application; firmware ordering and endpoint generation must be verified before updates.",
+                         "Metadata":  {
+                                          "Vendor":  "ZeeVee",
+                                          "ProductFamily":  "ZyPer",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "Server",
+                                                                  "WebApplication",
+                                                                  "EmbeddedSoftware",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded",
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded",
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.zeevee.com/av-over-ip/management/",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

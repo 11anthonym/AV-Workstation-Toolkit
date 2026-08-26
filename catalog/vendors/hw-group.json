@@ -1,0 +1,53 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "HW group",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Hercules SETUP Utility",
+                         "Id":  "HWGroup.Hercules",
+                         "Note":  "Portable serial, TCP client/server, UDP, and device-setup utility commonly used for control-protocol tests. The underlying HW group IP-Serial line is transitioning toward end of life, so retain this for installed-base support.",
+                         "Metadata":  {
+                                          "Vendor":  "HW group",
+                                          "ProductFamily":  "Hercules",
+                                          "ApplicationType":  [
+                                                                  "SerialUtility",
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "ControlProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "InventoryOnly",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x86"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.hw-group.com/software/hercules-setup-utility",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

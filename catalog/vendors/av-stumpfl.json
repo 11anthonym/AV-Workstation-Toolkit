@@ -1,0 +1,69 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "AV Stumpfl",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "AV Stumpfl PIXERA",
+                         "Id":  "AVStumpfl.PIXERA",
+                         "Note":  "Media-server authoring, control, and playback platform. Creator permits free preprogramming with watermarked output; production use requires the appropriate license and server design.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^PIXERA(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "AV Stumpfl",
+                                          "ProductFamily":  "PIXERA",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://avstumpfl.com/en/support/downloads/",
+                                          "OfficialProductUri":  "https://pixera.one/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

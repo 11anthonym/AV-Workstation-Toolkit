@@ -1,0 +1,49 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Intermodulation Analysis",
+    "Packages":  [
+                     {
+                         "Name":  "IntermodExplorer",
+                         "Id":  "IntermodulationAnalysis.IntermodExplorer",
+                         "Note":  "Web-based intermodulation analysis service; catalog awareness does not imply subscription or deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "Intermodulation Analysis",
+                                          "ProductFamily":  "IntermodExplorer",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.intermodulationanalysis.com/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

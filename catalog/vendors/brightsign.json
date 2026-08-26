@@ -1,0 +1,652 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "BrightSign",
+    "Packages":  [
+                     {
+                         "Name":  "BrightSign Author",
+                         "Id":  "BrightSign.Author",
+                         "Note":  "Current BrightSign presentation-authoring application, formerly branded BrightAuthor:connected.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSign Author",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "AVEngineer",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Control",
+                         "Id":  "BrightSign.Control",
+                         "Note":  "BrightSign fleet-control service awareness; entitlement and cloud access are managed outside AV Workstation Toolkit.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSign Control",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Author Plus",
+                         "Id":  "BrightSign.AuthorPlus",
+                         "Note":  "Paid BrightSign authoring tier awareness; subscription entitlement is separate from software availability.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSign Author",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Control Plus",
+                         "Id":  "BrightSign.ControlPlus",
+                         "Note":  "Subscription BrightSign fleet-management tier; no local installer is implied by this catalog record.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSign Control",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresSubscription":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSignOS",
+                         "Id":  "BrightSign.OS",
+                         "Note":  "Embedded player operating-system and firmware awareness; never treat this as an ordinary Windows application.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSignOS",
+                                          "ApplicationType":  [
+                                                                  "EmbeddedSoftware",
+                                                                  "FirmwareUtility",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/releases",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Diagnostic Web Server",
+                         "Id":  "BrightSign.DWS",
+                         "Note":  "Embedded player diagnostic interface awareness; this is not a Windows installer and may expose a network listener on the player.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "Diagnostics",
+                                          "ApplicationType":  [
+                                                                  "EmbeddedSoftware",
+                                                                  "WebApplication",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Remote Diagnostic Web Server",
+                         "Id":  "BrightSign.RDWS",
+                         "Note":  "Remote embedded diagnostics awareness; access controls and network exposure must be reviewed before enablement.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "Diagnostics",
+                                          "ApplicationType":  [
+                                                                  "EmbeddedSoftware",
+                                                                  "WebApplication",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Embedded",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Shell",
+                         "Id":  "BrightSign.Shell",
+                         "Note":  "Embedded command environment for supported service workflows; catalog awareness does not enable or expose it.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "Developer Tools",
+                                          "ApplicationType":  [
+                                                                  "EmbeddedSoftware",
+                                                                  "Development",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "Development",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Architecture":  [
+                                                               "Embedded"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightScript Debugger",
+                         "Id":  "BrightSign.BrightScriptDebugger",
+                         "Note":  "Embedded BrightScript debugging capability; availability and behavior are tied to player firmware and development mode.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "Developer Tools",
+                                          "ApplicationType":  [
+                                                                  "EmbeddedSoftware",
+                                                                  "Development",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Architecture":  [
+                                                               "Embedded"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightScript VS Code Extension",
+                         "Id":  "BrightSign.BrightScriptVSCode",
+                         "Note":  "BrightScript development extension; install only for an identified BrightSign development workflow.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "Developer Tools",
+                                          "ApplicationType":  [
+                                                                  "Development",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "Development"
+                                                    ],
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign App",
+                         "Id":  "BrightSign.App",
+                         "Note":  "Mobile BrightSign management awareness; this is not a Windows workstation deployment target.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSign App",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightAuthor Classic",
+                         "Id":  "BrightSign.BrightAuthorClassic",
+                         "Note":  "Legacy authoring software retained for installed BrightSign projects that cannot be migrated immediately.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightAuthor",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/legacy",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Network",
+                         "Id":  "BrightSign.Network",
+                         "Note":  "Legacy BrightSign network-service awareness; existing entitlements and migration planning are handled outside AV Workstation Toolkit.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightSign Network",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "WebApplication",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/legacy",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightSign Network Enterprise Edition",
+                         "Id":  "BrightSign.BSNEE",
+                         "Note":  "Legacy self-hosted BrightSign server platform awareness; never place it in an ordinary workstation deployment plan.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BSNEE",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "Server",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LICENSE-PORTAL",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/legacy",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightMenu",
+                         "Id":  "BrightSign.BrightMenu",
+                         "Note":  "Legacy BrightSign menu-authoring awareness for installed projects only.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightMenu",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/legacy",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BrightLink",
+                         "Id":  "BrightSign.BrightLink",
+                         "Note":  "Legacy BrightSign workflow awareness; no current download or deployment behavior is assumed.",
+                         "Metadata":  {
+                                          "Vendor":  "BrightSign",
+                                          "ProductFamily":  "BrightLink",
+                                          "ApplicationType":  [
+                                                                  "DigitalSignage",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/legacy",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

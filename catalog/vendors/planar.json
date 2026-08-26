@@ -1,0 +1,52 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Planar",
+    "Packages":  [
+                     {
+                         "Name":  "Planar WallDirector OS",
+                         "Id":  "Planar.WallDirectorOS",
+                         "Note":  "Web-based management application delivered with Planar WallDirector controllers for source layouts, video-wall configuration, health monitoring, alerts, and permissions. It is embedded system awareness, not a Windows installer.",
+                         "Metadata":  {
+                                          "Vendor":  "Planar",
+                                          "ProductFamily":  "WallDirector",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "DisplayProjector",
+                                                                  "WebApplication",
+                                                                  "EmbeddedSoftware"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Architecture":  [
+                                                               "Embedded",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.planar.com/products/planar-walldirector/planar-walldirector-os/",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface",
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,96 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "ChamSys",
+    "Packages":  [
+                     {
+                         "Name":  "ChamSys MediaMaster",
+                         "Id":  "ChamSys.MediaMaster",
+                         "Note":  "Media playback, pixel mapping, and LED integration software for ChamSys workflows; obtain through the official ChamSys software channel.",
+                         "Metadata":  {
+                                          "Vendor":  "ChamSys",
+                                          "ProductFamily":  "MediaMaster",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "LightingControl",
+                                                                  "BroadcastVideo"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "BroadcastVideo"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "EMAIL-FORM"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://chamsyslighting.com/software/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "ChamSys MagicQ",
+                         "Id":  "ChamSys.MagicQ",
+                         "KnownVersion":  "1.9.8.3",
+                         "Note":  "Free multi-platform lighting control, visualization, pixel-mapping, and media-playback software. Hardware unlocks additional output; Art-Net, sACN, web, and console networking can expose listeners.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^MagicQ(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "ChamSys",
+                                          "ProductFamily":  "MagicQ",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "MediaServerShowControl",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "EMAIL-FORM"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://chamsyslighting.com/software/magicq-downloads/",
+                                          "OfficialProductUri":  "https://chamsyslighting.com/product/magicq-software/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

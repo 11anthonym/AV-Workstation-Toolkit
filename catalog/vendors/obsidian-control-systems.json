@@ -1,0 +1,62 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Obsidian Control Systems",
+    "Packages":  [
+                     {
+                         "Name":  "Obsidian ONYX",
+                         "Id":  "Obsidian.ONYX",
+                         "KnownVersion":  "4.32.1311",
+                         "Note":  "Windows lighting-control software with one free Art-Net/sACN universe and hardware or USB-key licensing for larger systems; network output and remote features require approval.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^ONYX(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Obsidian Control Systems",
+                                          "ProductFamily":  "ONYX",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://support.obsidiancontrol.com/Content/Support/Downloads.htm",
+                                          "OfficialProductUri":  "https://obsidiancontrol.com/onyx",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

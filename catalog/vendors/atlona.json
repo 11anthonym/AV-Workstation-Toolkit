@@ -1,0 +1,113 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Atlona",
+    "Packages":  [
+                     {
+                         "Name":  "Atlona Velocity Device Manager",
+                         "Id":  "Atlona.VelocityDeviceManager",
+                         "Note":  "Hyper-V or UTM virtual appliance for Atlona device discovery, configuration, monitoring, and firmware management. Treat as infrastructure software with substantial VM and network impact, not an ordinary workstation utility.",
+                         "Metadata":  {
+                                          "Vendor":  "Atlona",
+                                          "ProductFamily":  "Velocity",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "FirmwareUtility",
+                                                                  "Server",
+                                                                  "Service",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://ts.atlona.com/velocity-av-control-systems/",
+                                          "ValidationMethod":  [
+                                                                           "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Atlona Management System / AMS",
+                         "Id":  "Atlona.AMS",
+                         "Note":  "Transition awareness for standalone AMS installations. Atlona states that AMS is now part of Velocity; use Velocity Device Manager for current deployments and retain AMS knowledge for installed-base support.",
+                         "Metadata":  {
+                                          "Vendor":  "Atlona",
+                                          "ProductFamily":  "AMS",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "FirmwareUtility",
+                                                                  "Server",
+                                                                  "WebApplication",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://ts.atlona.com/product/at-ams-hw/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

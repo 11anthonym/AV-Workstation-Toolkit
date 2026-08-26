@@ -1,0 +1,145 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "LEA Professional",
+    "Packages":  [
+                     {
+                         "Name":  "LEA Professional SharkWare",
+                         "Id":  "LEAProfessional.SharkWare",
+                         "KnownVersion":  "1.4.2",
+                         "Note":  "Free offline/online design, configuration, monitoring, grouping, and speaker-tuning application for LEA Connect Series amplifiers. Amplifiers require compatible firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "LEA Professional",
+                                          "ProductFamily":  "SharkWare",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "DSPAudio",
+                                                                  "AudioNetworking",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://leaprofessional.com/products/sharkware/page/2/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "LEA Professional Web UI",
+                         "Id":  "LEAProfessional.WebUI",
+                         "Note":  "Browser interface served directly by LEA Connect Series amplifiers for local configuration and monitoring. No workstation software download is required.",
+                         "Metadata":  {
+                                          "Vendor":  "LEA Professional",
+                                          "ProductFamily":  "Connect Series",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "DSPAudio",
+                                                                  "WebApplication",
+                                                                  "EmbeddedSoftware"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "Embedded",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "EmbeddedFirmware",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "Embedded",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Embedded",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://leaprofessional.com/products/web-ui/",
+                                          "ValidationMethod":  [
+                                                                   "EmbeddedInterface",
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "LEA Cloud",
+                         "Id":  "LEAProfessional.Cloud",
+                         "Note":  "Cloud browser platform for remote control, monitoring, and firmware updates of LEA Connect Series amplifiers. Account enrollment and site authorization are required; there is no workstation installer.",
+                         "Metadata":  {
+                                          "Vendor":  "LEA Professional",
+                                          "ProductFamily":  "LEA Cloud",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "FirmwareUtility",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://leaprofessional.com/products/leaprofessional-cloud/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

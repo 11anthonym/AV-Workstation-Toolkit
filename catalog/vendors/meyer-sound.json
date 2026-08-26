@@ -1,0 +1,141 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Meyer Sound",
+    "Packages":  [
+                     {
+                         "Name":  "Meyer Sound MAPP 3D",
+                         "Id":  "MeyerSound.MAPP3D",
+                         "Note":  "Current Meyer Sound three-dimensional system design and prediction tool; account activation is required.",
+                         "Metadata":  {
+                                          "Vendor":  "Meyer Sound",
+                                          "ProductFamily":  "MAPP 3D",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://software.meyersound.com/mapp-3d",
+                                          "OfficialDownloadUri":  "https://software.meyersound.com/downloads/software/mapp-3d",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Meyer Sound Compass",
+                         "Id":  "MeyerSound.Compass",
+                         "Note":  "Meyer Sound Galileo GALAXY configuration and control software; firmware and project compatibility govern version choice.",
+                         "Metadata":  {
+                                          "Vendor":  "Meyer Sound",
+                                          "ProductFamily":  "Compass",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "AmplifierManagement",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Use the Compass release documented for the target GALAXY firmware."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://software.meyersound.com/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Meyer Sound Nebra",
+                         "Id":  "MeyerSound.Nebra",
+                         "Note":  "Network monitoring and management software for supported Meyer Sound systems; review network scope and device compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "Meyer Sound",
+                                          "ProductFamily":  "Nebra",
+                                          "ApplicationType":  [
+                                                                  "AudioNetworking",
+                                                                  "AmplifierManagement",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "NetworkEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.meyersound.com/products/en/index-en.html",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

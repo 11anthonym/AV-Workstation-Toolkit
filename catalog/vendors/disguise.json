@@ -1,0 +1,64 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Disguise",
+    "Packages":  [
+                     {
+                         "Name":  "Disguise Designer",
+                         "Id":  "Disguise.Designer",
+                         "Note":  "Visual-experience design and show-control software. Starter requires a free Disguise Cloud account; Pro requires a paid subscription, and production servers carry their own licensed configuration.",
+                         "Metadata":  {
+                                          "Vendor":  "Disguise",
+                                          "ProductFamily":  "Designer",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  null,
+                                                               "RequiresSubscription":  null
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.disguise.one/en/products/designer",
+                                          "OfficialProductUri":  "https://www.disguise.one/en/products/designer",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

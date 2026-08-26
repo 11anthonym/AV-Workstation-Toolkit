@@ -1,0 +1,55 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Alcorn McBride",
+    "Packages":  [
+                     {
+                         "Name":  "Alcorn McBride WinScript Live",
+                         "Id":  "AlcornMcBride.WinScriptLive",
+                         "Note":  "Show-control programming and commissioning environment for supported Alcorn McBride controllers; preserve the project-specific controller and firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^WinScript Live(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Alcorn McBride",
+                                          "ProductFamily":  "WinScript Live",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "ControlSystem",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "ControlProgramming",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://alcorn.com/products/winscript-live/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

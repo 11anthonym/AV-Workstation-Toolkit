@@ -1,0 +1,236 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "BSS",
+    "Packages":  [
+                     {
+                         "Name":  "BSS AVX Architect",
+                         "Id":  "BSS.AVXArchitect",
+                         "Note":  "Current BSS Soundweb OMNI design and DSP configuration application delivered through the AVX Suite installer.",
+                         "Metadata":  {
+                                          "Vendor":  "BSS",
+                                          "ProductFamily":  "AVX Suite",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem",
+                                                                  "AVoIP"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "ControlProgramming",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/product_families/avx-suite",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BSS AVX Control",
+                         "Id":  "BSS.AVXControl",
+                         "Note":  "Free cross-platform runtime for interfaces authored in AVX Architect; production release availability must be checked before deployment.",
+                         "Metadata":  {
+                                          "Vendor":  "BSS",
+                                          "ProductFamily":  "AVX Suite",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "SameMajorMinor",
+                                                                  "PackageId":  "BSS.AVXArchitect",
+                                                                  "Notes":  "Use a runtime compatible with the AVX Architect project."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "iOS",
+                                                              "Android"
+                                                          ],
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/products/avx-control",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BSS AVX Manager",
+                         "Id":  "BSS.AVXManager",
+                         "Note":  "AVX Suite device discovery, management, event-log, and firmware component; firmware actions remain manual.",
+                         "Metadata":  {
+                                          "Vendor":  "BSS",
+                                          "ProductFamily":  "AVX Suite",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "AVoIP",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/product_families/avx-suite",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BSS AVX NAV Router",
+                         "Id":  "BSS.AVXNavRouter",
+                         "Note":  "AVX Suite AVoIP routing component for Soundweb OMNI environments; network scope requires project approval.",
+                         "Metadata":  {
+                                          "Vendor":  "BSS",
+                                          "ProductFamily":  "AVX Suite",
+                                          "ApplicationType":  [
+                                                                  "AVoIP",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "NetworkEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/product_families/avx-suite",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BSS Audio Architect",
+                         "Id":  "BSS.AudioArchitect",
+                         "Note":  "Installed-base configuration software for legacy BSS and Harman systems; use only for projects that require it.",
+                         "Metadata":  {
+                                          "Vendor":  "BSS",
+                                          "ProductFamily":  "Audio Architect",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/support_downloads/products",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "BSS London Architect",
+                         "Id":  "BSS.LondonArchitect",
+                         "Note":  "Legacy Soundweb London design software retained for installed projects that predate Audio Architect or AVX.",
+                         "Metadata":  {
+                                          "Vendor":  "BSS",
+                                          "ProductFamily":  "Soundweb London",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "LEGACY-ARCHIVE",
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/support_downloads/products",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

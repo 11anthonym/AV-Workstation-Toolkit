@@ -1,0 +1,63 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "NagleCode",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Packet Sender",
+                         "Id":  "NagleCode.PacketSender",
+                         "KnownVersion":  "8.10.4",
+                         "Note":  "Free TCP, UDP, SSL/TLS, DTLS, and HTTP client/server test utility with portable and installed Windows builds. Listener and traffic-generation modes require authorization for the target network.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Packet Sender(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "NagleCode",
+                                          "ProductFamily":  "Packet Sender",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "SerialUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "ControlProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "SideBySideSupported":  "Yes",
+                                          "OfficialDownloadUri":  "https://packetsender.com/download",
+                                          "OfficialProductUri":  "https://packetsender.com/packetsender",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

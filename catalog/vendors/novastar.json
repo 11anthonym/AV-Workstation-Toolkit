@@ -1,0 +1,169 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "NovaStar",
+    "Packages":  [
+                     {
+                         "Name":  "NovaStar NovaLCT",
+                         "Id":  "NovaStar.NovaLCT",
+                         "Note":  "Widely used LED display configuration and calibration tool; installer may add serial drivers and should be project-pinned.",
+                         "Metadata":  {
+                                          "Vendor":  "NovaStar",
+                                          "ProductFamily":  "Synchronous Control",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "FirmwareUtility",
+                                                                  "Driver"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.novastar.tech/download/data.html?catid=7\u0026typeid=",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "NovaStar SmartLCT",
+                         "Id":  "NovaStar.SmartLCT",
+                         "Note":  "LED screen configuration and mapping software for supported NovaStar systems; maintain controller and project compatibility.",
+                         "Metadata":  {
+                                          "Vendor":  "NovaStar",
+                                          "ProductFamily":  "LED Configuration",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.novastar.tech/download/data.html?catid=7\u0026typeid=",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "NovaStar ViPlex Express",
+                         "Id":  "NovaStar.ViPlexExpress",
+                         "Note":  "Content publishing and player-management software for NovaStar asynchronous signage systems.",
+                         "Metadata":  {
+                                          "Vendor":  "NovaStar",
+                                          "ProductFamily":  "Nova Cloud",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "DigitalSignage"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DigitalSignage",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.novastar.tech/download/data.html?catid=7\u0026typeid=",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "NovaStar VMP",
+                         "Id":  "NovaStar.VMP",
+                         "Note":  "COEX control-system configuration and management software; version selection is tied to the processor and firmware family.",
+                         "Metadata":  {
+                                          "Vendor":  "NovaStar",
+                                          "ProductFamily":  "COEX",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "Commissioning",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "Use the VMP release supported by the target COEX controller and firmware."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.novastar.tech/download/data.html?catid=7\u0026typeid=",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

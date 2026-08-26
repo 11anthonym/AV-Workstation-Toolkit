@@ -1,0 +1,58 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "ScreenBeam",
+    "Packages":  [
+                     {
+                         "Name":  "ScreenBeam CMS Enterprise",
+                         "Id":  "ScreenBeam.CMSEnterprise",
+                         "Note":  "Windows Server or VM service for centralized ScreenBeam management; never treat as an ordinary workstation app.",
+                         "Metadata":  {
+                                          "Vendor":  "ScreenBeam",
+                                          "ProductFamily":  "CMS Enterprise",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true,
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://commercial.screenbeam.com/en/support/what-is-screenbeam-cms-/-cms-enterprise",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

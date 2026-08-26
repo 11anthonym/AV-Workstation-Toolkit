@@ -1,0 +1,90 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "L-Acoustics",
+    "Packages":  [
+                     {
+                         "Name":  "L-Acoustics Soundvision",
+                         "Id":  "LAcoustics.Soundvision",
+                         "Note":  "Current L-Acoustics 3D electroacoustic and mechanical system-design software.",
+                         "Metadata":  {
+                                          "Vendor":  "L-Acoustics",
+                                          "ProductFamily":  "Soundvision",
+                                          "ApplicationType":  [
+                                                                  "LoudspeakerPrediction"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DesignEngineering",
+                                                        "DSPEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.l-acoustics.com/products/soundvision/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "L-Acoustics LA Network Manager",
+                         "Id":  "LAcoustics.LANetworkManager",
+                         "Note":  "Amplified-controller configuration, monitoring, tuning, and firmware software; maintain compatibility with Soundvision data and device firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "L-Acoustics",
+                                          "ProductFamily":  "LA Network Manager",
+                                          "ApplicationType":  [
+                                                                  "AmplifierManagement",
+                                                                  "AudioNetworking",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "ProjectPinned",
+                                                                  "PackageId":  "LAcoustics.Soundvision",
+                                                                  "Notes":  "Confirm Soundvision import and amplified-controller firmware compatibility."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "EMAIL-FORM"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.l-acoustics.com/products/network-manager/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

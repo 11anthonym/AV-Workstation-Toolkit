@@ -1,0 +1,77 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Open Sound Meter",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Open Sound Meter",
+                         "Id":  "OpenSoundMeter.OpenSoundMeter",
+                         "Risk":  "None",
+                         "Note":  "High-value open-source dual-channel audio measurement and commissioning utility; validate the audio interface and calibration chain before field use.",
+                         "Deployment":  "ManualHold",
+                         "Maintenance":  "Hold",
+                         "KnownVersion":  "1.5.2",
+                         "Detection":  {
+                                           "Mode":  "Registry",
+                                           "RegistryDisplayNamePattern":  "^Open Sound Meter(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Release":  {
+                                         "Mode":  "VendorPage",
+                                         "Uri":  "https://opensoundmeter.com/releases",
+                                         "VersionPattern":  "v(?\u003cVersion\u003e\\d+\\.\\d+\\.\\d+)",
+                                         "Channel":  "Stable"
+                                     },
+                         "Delivery":  {
+                                          "Mode":  "VendorPage",
+                                          "Uri":  "https://opensoundmeter.com/releases"
+                                      },
+                         "Metadata":  {
+                                          "Vendor":  "Open Sound Meter",
+                                          "ProductFamily":  "Open Sound Meter",
+                                          "ApplicationType":  [
+                                                                  "AudioMeasurement",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  false,
+                                                               "RequiresLicense":  false
+                                                           },
+                                          "Architecture":  [
+                                                               "x64",
+                                                               "Arm64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux",
+                                                              "iOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://opensoundmeter.com/",
+                                          "OfficialDownloadUri":  "https://opensoundmeter.com/releases",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

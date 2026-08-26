@@ -1,0 +1,88 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Sennheiser",
+    "Packages":  [
+                     {
+                         "Name":  "Sennheiser Transmitter Manager",
+                         "Id":  "Sennheiser.TransmitterManager",
+                         "Note":  "Legacy transmitter configuration utility retained for installed-base awareness; no current official download was verified.",
+                         "Metadata":  {
+                                          "Vendor":  "Sennheiser",
+                                          "ProductFamily":  "Wireless",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "FirmwareUtility",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.sennheiser.com/en-au/terms-and-conditions/sennheiser-transmitter-manager",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Sennheiser Spectera LINKDESK",
+                         "Id":  "Sennheiser.SpecteraLinkDesk",
+                         "Note":  "Transition awareness: LINKDESK is being superseded by Spectera WebUI and SoundBase; preserve only for compatible Spectera firmware.",
+                         "Metadata":  {
+                                          "Vendor":  "Sennheiser",
+                                          "ProductFamily":  "Spectera",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "FirmwarePaired",
+                                                                  "Notes":  "LINKDESK 1.6.0 is incompatible with Spectera firmware newer than 1.3.0; use current vendor guidance."
+                                                              },
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.sennheiser.com/en-us/catalog/products/software/spectera-link-desk-829c7449/spectera-linkdesk-linkdesk",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,63 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "NDI",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "NDI Tools",
+                         "Id":  "NDI.NDITools",
+                         "KnownVersion":  "6.3.2",
+                         "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. Some components expose sources, listeners, or services; commercial-use terms require vendor review.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^NDI(?: \\d+)? Tools(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "NDI",
+                                          "ProductFamily":  "NDI Tools",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "AVoIP",
+                                                                  "NetworkUtility",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://ndi.video/tools/",
+                                          "OfficialProductUri":  "https://ndi.video/tools/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

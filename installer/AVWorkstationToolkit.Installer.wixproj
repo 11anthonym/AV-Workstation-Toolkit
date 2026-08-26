@@ -1,0 +1,8 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <PropertyGroup>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputName>AV-Workstation-Toolkit-$(ProductVersion)-x64</OutputName>
+    <DefineConstants>ProductVersion=$(ProductVersion);PayloadDir=$(PayloadDir)</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

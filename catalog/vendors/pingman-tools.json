@@ -1,0 +1,57 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Pingman Tools",
+    "Packages":  [
+                     {
+                         "Name":  "PingPlotter",
+                         "Id":  "PingmanTools.PingPlotter",
+                         "Note":  "Continuous latency, route, and packet-loss visualization for network troubleshooting. Paid and trial editions differ; monitoring targets must be authorized.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^PingPlotter(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Pingman Tools",
+                                          "ProductFamily":  "PingPlotter",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREEMIUM",
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  null,
+                                                               "RequiresSubscription":  null
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.pingplotter.com/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

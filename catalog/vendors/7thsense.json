@@ -1,0 +1,59 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "7thSense",
+    "Packages":  [
+                     {
+                         "Name":  "7thSense Delta Media Server",
+                         "Id":  "7thSense.DeltaMediaServer",
+                         "Note":  "Server-oriented media playback and show-control platform; software, hardware image, licenses, and project content belong to a controlled server deployment rather than the general workstation baseline.",
+                         "Metadata":  {
+                                          "Vendor":  "7thSense",
+                                          "ProductFamily":  "Delta Media Server",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server",
+                                                              "Embedded"
+                                                          ],
+                                          "OfficialProductUri":  "https://7thsense.one/product/delta-media-server",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

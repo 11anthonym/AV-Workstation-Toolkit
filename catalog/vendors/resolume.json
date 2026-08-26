@@ -1,0 +1,169 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Resolume",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Resolume Arena",
+                         "Id":  "Resolume.Arena",
+                         "KnownVersion":  "7.27.1",
+                         "Note":  "Live visual, projection-mapping, and multi-output media-server software; project files, plugins, capture drivers, and output licensing must be validated before show use.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Resolume Arena(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Resolume",
+                                          "ProductFamily":  "Resolume",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "BroadcastVideo",
+                                                                  "LightingControl"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage",
+                                                        "LightingProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://resolume.com/download/",
+                                          "OfficialProductUri":  "https://resolume.com/software/avenue-arena",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Resolume Avenue",
+                         "Id":  "Resolume.Avenue",
+                         "KnownVersion":  "7.27.1",
+                         "Note":  "Live visual performance software; keep show files, plugins, capture drivers, and the licensed feature set aligned with the production environment.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Resolume Avenue(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Resolume",
+                                          "ProductFamily":  "Resolume",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "BroadcastVideo"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "DigitalSignage"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://resolume.com/download/",
+                                          "OfficialProductUri":  "https://resolume.com/software/avenue-arena",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Resolume Wire",
+                         "Id":  "Resolume.Wire",
+                         "KnownVersion":  "7.27.1",
+                         "Note":  "Node-based patching environment for Resolume effects, sources, and mixers; plugin compatibility follows the target Resolume release.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Resolume Wire(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Resolume",
+                                          "ProductFamily":  "Resolume",
+                                          "ApplicationType":  [
+                                                                  "MediaServerShowControl",
+                                                                  "Development"
+                                                              ],
+                                          "Priority":  "DEV",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "Development"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "PAID",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://resolume.com/download/",
+                                          "OfficialProductUri":  "https://resolume.com/software/wire",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

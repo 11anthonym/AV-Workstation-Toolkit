@@ -1,0 +1,83 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "AtlasIED",
+    "Packages":  [
+                     {
+                         "Name":  "AtlasIED BlueBridge Designer II",
+                         "Id":  "AtlasIED.BlueBridgeDesignerII",
+                         "Note":  "Current BlueBridge DSP design and configuration environment for supported AtlasIED processors.",
+                         "Metadata":  {
+                                          "Vendor":  "AtlasIED",
+                                          "ProductFamily":  "BlueBridge",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.atlasied.com/bluebridge-software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "AtlasIED BlueBridge Control",
+                         "Id":  "AtlasIED.BlueBridgeControl",
+                         "Note":  "BlueBridge operator control application; runtime version should match the authored Designer II project.",
+                         "Metadata":  {
+                                          "Vendor":  "AtlasIED",
+                                          "ProductFamily":  "BlueBridge",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "ControlSystem"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "SameMajorMinor",
+                                          "VersionCoupling":  {
+                                                                  "Mode":  "SameMajorMinor",
+                                                                  "PackageId":  "AtlasIED.BlueBridgeDesignerII",
+                                                                  "Notes":  "Use a control runtime compatible with the Designer II project."
+                                                              },
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "iOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.atlasied.com/bluebridge-software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

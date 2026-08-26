@@ -1,0 +1,108 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Datapath",
+    "Packages":  [
+                     {
+                         "Name":  "Datapath WallControl 10",
+                         "Id":  "Datapath.WallControl10",
+                         "Note":  "Datapath video-wall control and management software; server and operator components should be scoped separately.",
+                         "Metadata":  {
+                                          "Vendor":  "Datapath",
+                                          "ProductFamily":  "WallControl",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "DisplayProjector",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.datapath.co.uk/datapath-products/video-wall-management-software/wallcontrol-10-software/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Datapath Aetria",
+                         "Id":  "Datapath.Aetria",
+                         "Note":  "Integrated control-room video management platform; server services, clients, and licensing are project infrastructure rather than baseline apps.",
+                         "Metadata":  {
+                                          "Vendor":  "Datapath",
+                                          "ProductFamily":  "Aetria",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "AVoIP",
+                                                                  "Server",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "AVEngineer",
+                                                        "SystemAdministration",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "LICENSE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "CONTACT",
+                                                                 "LICENSE-PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server",
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server",
+                                                              "Web",
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.datapath.co.uk/datapath-products/aetria/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

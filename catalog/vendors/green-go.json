@@ -1,0 +1,48 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Green-GO",
+    "Packages":  [
+                     {
+                         "Name":  "Green-GO Control Software",
+                         "Id":  "GreenGO.ControlSoftware",
+                         "Note":  "Configuration, monitoring, and firmware software for Green-GO digital intercom systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Green-GO",
+                                          "ProductFamily":  "Green-GO",
+                                          "ApplicationType":  [
+                                                                  "Intercom",
+                                                                  "AudioNetworking",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.greengocom.com/software-products/control",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

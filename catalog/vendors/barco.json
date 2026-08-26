@@ -1,0 +1,221 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Barco",
+    "Packages":  [
+                     {
+                         "Name":  "Barco Projector Toolset",
+                         "Id":  "Barco.ProjectorToolset",
+                         "Note":  "Configuration and service tool for supported Barco projectors; model, firmware, and service authorization govern use.",
+                         "Metadata":  {
+                                          "Vendor":  "Barco",
+                                          "ProductFamily":  "Projection",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.barco.com/en/support/software",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Barco Video wall Management / WallConnect",
+                         "Id":  "Barco.WallConnect",
+                         "Note":  "Barco renamed the WallConnect cloud service to Video wall Management in 2026; embedded WallConnect remains relevant to supported video-wall hardware.",
+                         "Metadata":  {
+                                          "Vendor":  "Barco",
+                                          "ProductFamily":  "Video Walls",
+                                          "ApplicationType":  [
+                                                                  "DvLEDVideoWall",
+                                                                  "DisplayProjector",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Transition",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.barco.com/en/support/software/r3306365",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Barco ClickShare Configurator",
+                         "Id":  "Barco.ClickShareConfigurator",
+                         "Note":  "Local ClickShare configuration and update utility awareness for supported base units.",
+                         "Metadata":  {
+                                          "Vendor":  "Barco",
+                                          "ProductFamily":  "ClickShare",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.barco.com/en/support/software",
+                                          "ValidationMethod":  [
+                                                                   "Unknown"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Barco XMS Cloud",
+                         "Id":  "Barco.XMSCloud",
+                         "Note":  "Cloud monitoring and management awareness for Barco collaboration devices; tenant access is not a local deployment target.",
+                         "Metadata":  {
+                                          "Vendor":  "Barco",
+                                          "ProductFamily":  "XMS",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "SUBSCRIPTION"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://xms.cloud.barco.com/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Barco XMS Edge",
+                         "Id":  "Barco.XMSEdge",
+                         "Note":  "On-premises Barco management appliance/server awareness; services and listeners exclude it from ordinary workstations.",
+                         "Metadata":  {
+                                          "Vendor":  "Barco",
+                                          "ProductFamily":  "XMS",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "Server",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ServerOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "ACCOUNT",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresVendorAccount":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "Server"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Server",
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.barco.com/en/product/xms-edge",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

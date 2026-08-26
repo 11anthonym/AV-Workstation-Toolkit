@@ -1,0 +1,48 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "NETGEAR",
+    "Packages":  [
+                     {
+                         "Name":  "NETGEAR Engage Controller",
+                         "Id":  "Netgear.EngageController",
+                         "Note":  "Portable AV-network switch configuration and firmware utility; use only on authorized networks and approved switch fleets.",
+                         "Metadata":  {
+                                          "Vendor":  "NETGEAR",
+                                          "ProductFamily":  "AV Line",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "AVoIP",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "AVEngineer"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.netgear.com/business/management/engage-software/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

@@ -1,0 +1,59 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Avolites",
+    "Packages":  [
+                     {
+                         "Name":  "Avolites Titan PC Suite",
+                         "Id":  "Avolites.TitanPCSuite",
+                         "KnownVersion":  "19.2",
+                         "Note":  "Lighting-console programming and control suite. Current releases require an AvoKey for output/simulation functions, and newer show files are not backward compatible.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Avolites )?Titan PC Suite(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "SameMajorMinor"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Avolites",
+                                          "ProductFamily":  "Titan",
+                                          "ApplicationType":  [
+                                                                  "LightingControl",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "LightingProgramming",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "HARDWARE-LICENSE",
+                                                                 "LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Requirements":  {
+                                                               "RequiresLicense":  true
+                                                           },
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Embedded"
+                                                          ],
+                                          "SideBySideSupported":  "Unknown",
+                                          "OfficialDownloadUri":  "https://www.avolites.com/support/titan-pc-suite/",
+                                          "OfficialProductUri":  "https://www.avolites.com/software/titan/",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

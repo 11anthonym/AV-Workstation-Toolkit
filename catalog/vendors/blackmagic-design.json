@@ -1,0 +1,114 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Blackmagic Design",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Blackmagic Desktop Video",
+                         "Id":  "Blackmagic.DesktopVideo",
+                         "Note":  "Unified driver and utility package for supported DeckLink, UltraStudio, Intensity, and Teranex hardware; installation changes system drivers and can require a restart.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Blackmagic Desktop Video(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Blackmagic Design",
+                                          "ProductFamily":  "Desktop Video",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "Driver",
+                                                                  "FirmwareUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS",
+                                                              "Linux"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.blackmagicdesign.com/support/",
+                                          "OfficialProductUri":  "https://www.blackmagicdesign.com/products/decklink/software",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Blackmagic ATEM Software Control",
+                         "Id":  "Blackmagic.ATEMSoftwareControl",
+                         "Note":  "Free hardware-control application for ATEM switchers; the package also carries device setup and firmware-update functions, so match it to the target switcher and production workflow.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic )?ATEM Software Control(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Blackmagic Design",
+                                          "ProductFamily":  "ATEM",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "FirmwareUtility",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE",
+                                                                 "HARDWARE-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.blackmagicdesign.com/support/",
+                                          "OfficialProductUri":  "https://www.blackmagicdesign.com/products/atemmini/software",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

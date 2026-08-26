@@ -1,0 +1,53 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Wisycom",
+    "Packages":  [
+                     {
+                         "Name":  "Wisycom Manager",
+                         "Id":  "Wisycom.Manager",
+                         "Note":  "Wireless system configuration, coordination, monitoring, and firmware utility with optional USB drivers and network services.",
+                         "Metadata":  {
+                                          "Vendor":  "Wisycom",
+                                          "ProductFamily":  "Wireless",
+                                          "ApplicationType":  [
+                                                                  "WirelessRF",
+                                                                  "FirmwareUtility",
+                                                                  "Driver",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "RFCoordination",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "ProjectPinned",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SystemImpact":  {
+                                                               "InstallsDriver":  true,
+                                                               "OpensListener":  true,
+                                                               "FirmwareUtility":  true
+                                                           },
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://wisycom.com/product/wisycom-manager/",
+                                          "OfficialDownloadUri":  "https://wisycom.com/products/support/downloads-results-2/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

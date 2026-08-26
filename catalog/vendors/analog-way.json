@@ -1,0 +1,54 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Analog Way",
+    "Packages":  [
+                     {
+                         "Profile":  "Field",
+                         "Name":  "Analog Way AW EDID Editor",
+                         "Id":  "AnalogWay.AWEDIDEditor",
+                         "KnownVersion":  "3.0.20",
+                         "Note":  "Free EDID and DisplayID file editor for diagnosing source/display compatibility. Editing a file does not by itself write EDID to arbitrary hardware; deployment remains device-specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^AW EDID Editor(?:\\s|$)",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
+                         "Metadata":  {
+                                          "Vendor":  "Analog Way",
+                                          "ProductFamily":  "AW EDID Editor",
+                                          "ApplicationType":  [
+                                                                  "EDIDHDCP",
+                                                                  "FieldUtility",
+                                                                  "DisplayProjector"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "DesignEngineering"
+                                                    ],
+                                          "DeploymentClass":  "InventoryOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialDownloadUri":  "https://www.analogway.com/products/aw-edid-editor",
+                                          "OfficialProductUri":  "https://www.analogway.com/products/aw-edid-editor",
+                                          "ValidationMethod":  [
+                                                                   "Registry",
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

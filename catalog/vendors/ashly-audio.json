@@ -1,0 +1,82 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Ashly Audio",
+    "Packages":  [
+                     {
+                         "Name":  "Ashly AquaControl Portal",
+                         "Id":  "Ashly.AquaControl",
+                         "Note":  "Current Ashly browser-based design and control workflow with offline local capability; account and device scope require review.",
+                         "Metadata":  {
+                                          "Vendor":  "Ashly Audio",
+                                          "ProductFamily":  "AquaControl",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "WebApplication"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "DeploymentClass":  "WebOnly",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE",
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "Architecture":  [
+                                                               "Web"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Web"
+                                                          ],
+                                          "OfficialProductUri":  "https://ashly.com/aquacontrol-portal/",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ]
+                                      }
+                     },
+                     {
+                         "Name":  "Ashly Protea DSP Software",
+                         "Id":  "Ashly.ProteaDSP",
+                         "Note":  "Legacy Ashly DSP configuration suite retained for installed Protea-family systems.",
+                         "Metadata":  {
+                                          "Vendor":  "Ashly Audio",
+                                          "ProductFamily":  "Protea",
+                                          "ApplicationType":  [
+                                                                  "DSPAudio",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "DSPEngineering",
+                                                        "FieldService"
+                                                    ],
+                                          "MaintenancePolicy":  "LegacyHold",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Legacy",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE",
+                                                                 "LEGACY-ARCHIVE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://ashly.com/protea-dsp-software-suite-for-windows/",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}

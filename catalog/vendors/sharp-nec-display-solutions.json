@@ -1,0 +1,47 @@
+{
+    "SchemaVersion":  1,
+    "Vendor":  "Sharp NEC Display Solutions",
+    "Packages":  [
+                     {
+                         "Name":  "Sharp NEC NaViSet Administrator 2",
+                         "Id":  "SharpNEC.NaViSetAdministrator2",
+                         "Note":  "Display and projector asset management, control, and monitoring utility; network and service scope require approval.",
+                         "Metadata":  {
+                                          "Vendor":  "Sharp NEC Display Solutions",
+                                          "ProductFamily":  "NaViSet",
+                                          "ApplicationType":  [
+                                                                  "DisplayProjector",
+                                                                  "NetworkUtility",
+                                                                  "Service"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "ManualHandoff",
+                                          "MaintenancePolicy":  "VendorManaged",
+                                          "VersionRule":  "Latest",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "SystemImpact":  {
+                                                               "InstallsService":  true,
+                                                               "OpensListener":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://proav.sharpusa.com/monitor-download/navisetdownloadcontact",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     }
+                 ]
+}
