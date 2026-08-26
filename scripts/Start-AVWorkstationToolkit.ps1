@@ -299,7 +299,20 @@ function ConvertTo-DisplayItem {
         OfficialProductUri = $Package.OfficialProductUri
         ValidationMethod = @($Package.ValidationMethod)
         CatalogNotes = $Package.CatalogNotes
-        SearchText = (@($Package.Name,$Package.Id,$Package.Vendor,$Package.ProductFamily,$Package.Note,$Package.CatalogNotes) + @($Package.ApplicationType) + @($Package.Roles) + @($Package.SupportedOS) + @($Package.CatalogTags)) -join ' '
+        DistributionPolicy = $Package.DistributionPolicy
+        WorkflowCategories = @($Package.WorkflowCategories)
+        InstallationForms = @($Package.InstallationForms)
+        MetadataVerifiedOn = $Package.MetadataVerifiedOn
+        MetadataVerificationState = $Package.MetadataVerificationState
+        MetadataReviewTriggers = @($Package.MetadataReviewTriggers)
+        MetadataQuarantined = $Package.MetadataQuarantined
+        MetadataQuarantineReason = $Package.MetadataQuarantineReason
+        AuthoritativeDomain = $Package.AuthoritativeDomain
+        ExpectedPublisher = $Package.ExpectedPublisher
+        SignatureValidation = $Package.SignatureValidation
+        VendorHashAvailability = $Package.VendorHashAvailability
+        DownloadStrategy = $Package.DownloadStrategy
+        SearchText = (@($Package.Name,$Package.Id,$Package.Vendor,$Package.ProductFamily,$Package.Note,$Package.CatalogNotes,$Package.DistributionPolicy,$Package.AuthoritativeDomain) + @($Package.ApplicationType) + @($Package.Roles) + @($Package.SupportedOS) + @($Package.CatalogTags) + @($Package.WorkflowCategories) + @($Package.InstallationForms)) -join ' '
         StableSortKey = $stableSortKey
         ApplicationSortKey = (([string]$Package.Name).ToUpperInvariant() + '|' + $stableSortKey)
         VendorSortKey = (([string]$Package.Vendor).ToUpperInvariant() + '|' + $stableSortKey)
@@ -414,6 +427,7 @@ function Show-AVWorkstationToolkitCatalogDetail {
         '  Application type: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.ApplicationType)
         '  Priority: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.Priority)
         '  Roles: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.Roles)
+        '  Workflows: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.WorkflowCategories)
         ''
         'Workstation state'
         '  Catalog status: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.StatusLabel)
@@ -436,6 +450,8 @@ function Show-AVWorkstationToolkitCatalogDetail {
         '  Licensing: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.LicensingModel)
         '  Download access: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.DownloadAccess)
         '  Download difficulty: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.DownloadDifficulty)
+        '  Distribution policy: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.DistributionPolicy)
+        '  Installation forms: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.InstallationForms)
         '  Vendor account required: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.RequiresVendorAccount)
         '  Dealer account required: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.RequiresDealerAccount)
         '  Training required: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.RequiresTraining)
@@ -452,6 +468,15 @@ function Show-AVWorkstationToolkitCatalogDetail {
         ''
         'Evidence'
         '  Validation: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.ValidationMethod)
+        '  Metadata verified on: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.MetadataVerifiedOn)
+        '  Verification state: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.MetadataVerificationState)
+        '  Review triggers: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.MetadataReviewTriggers)
+        '  Quarantine reason: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.MetadataQuarantineReason)
+        '  Authoritative domain: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.AuthoritativeDomain)
+        '  Expected publisher: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.ExpectedPublisher)
+        '  Signature validation: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.SignatureValidation)
+        '  Vendor hash availability: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.VendorHashAvailability)
+        '  Download strategy: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.DownloadStrategy)
         '  Release check: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.ReleaseCheckDetail)
         '  Delivery: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.DeliveryDetail)
         '  Notes: ' + (ConvertTo-AVWorkstationToolkitDetailValue $item.CatalogNotes)
@@ -823,7 +848,7 @@ function Export-AVWorkstationToolkitPlan {
             Reboot = $state.Plan.Reboot
             ExternalInventory = $state.Plan.ExternalInventory
             Summary = $state.Plan.Summary
-            Packages = @($state.Items | Select-Object Profile,Priority,Vendor,ProductFamily,Name,Id,Provider,Risk,ApplicationType,Roles,DeploymentClass,CatalogMaintenancePolicy,VersionRule,VersionCoupling,VersionCouplingTargetId,VersionCouplingNotes,CurrentOrLegacy,LicensingModel,DownloadAccess,DownloadDifficulty,RequiresVendorAccount,RequiresDealerAccount,RequiresTraining,RequiresLicense,RequiresSubscription,InstallsDriver,InstallsService,OpensListener,FirmwareUtility,Architecture,SupportedOS,SideBySideSupported,Status,StatusDetail,InventoryQuality,InstalledVersion,AvailableVersion,ReleaseCheckDetail,DeliveryMode,DeliveryProviderId,DeliveryProductId,DeliveryDetail,OfficialDownloadUri,OfficialProductUri,ValidationMethod,CatalogNotes,Note)
+            Packages = @($state.Items | Select-Object Profile,Priority,Vendor,ProductFamily,Name,Id,Provider,Risk,ApplicationType,Roles,WorkflowCategories,DeploymentClass,CatalogMaintenancePolicy,VersionRule,VersionCoupling,VersionCouplingTargetId,VersionCouplingNotes,CurrentOrLegacy,LicensingModel,DownloadAccess,DownloadDifficulty,DistributionPolicy,InstallationForms,RequiresVendorAccount,RequiresDealerAccount,RequiresTraining,RequiresLicense,RequiresSubscription,InstallsDriver,InstallsService,OpensListener,FirmwareUtility,Architecture,SupportedOS,SideBySideSupported,Status,StatusDetail,InventoryQuality,InstalledVersion,AvailableVersion,ReleaseCheckDetail,DeliveryMode,DeliveryProviderId,DeliveryProductId,DeliveryDetail,OfficialDownloadUri,OfficialProductUri,ValidationMethod,MetadataVerifiedOn,MetadataVerificationState,MetadataReviewTriggers,MetadataQuarantined,MetadataQuarantineReason,AuthoritativeDomain,ExpectedPublisher,SignatureValidation,VendorHashAvailability,DownloadStrategy,CatalogNotes,Note)
         }
         $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $dialog.FileName -Encoding UTF8
         Add-ActivityLine ('Exported plan: ' + $dialog.FileName) -Level Success

@@ -56,7 +56,32 @@
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                      "ProtocolSocketTesting",
+                                                                      "DiscoveryReachability"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "EXE",
+                                                                    "Portable",
+                                                                    "WinGet"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "packetsender.com",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      }
                  ]

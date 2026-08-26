@@ -117,7 +117,7 @@ Invoke-Check 'Catalog aggregates WinGet, operational providers, and commercial A
 Invoke-Check 'Vendor catalog sources compile deterministically to the only runtime artifact' {
     $compilerPath = Join-Path $repositoryRoot 'build\Compile-CommercialCatalog.ps1'
     $compilerOutput = (& $compilerPath -Check | Out-String)
-    Assert-True ($compilerOutput -match 'CATALOG_OK vendors=113 packages=278') 'Catalog compiler did not validate the expected source set.'
+    Assert-True ($compilerOutput -match 'CATALOG_OK vendors=113 packages=281') 'Catalog compiler did not validate the expected source set.'
     $vendorSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'catalog\vendors') -File -Filter '*.json')
     Assert-Equal 113 $vendorSources.Count 'Vendor source-file count differs.'
     Assert-Equal $expectedAwarenessCount @($vendorSources | ForEach-Object {
@@ -153,13 +153,67 @@ Invoke-Check 'Commercial AV metadata is normalized, bounded, and independently d
         foreach ($value in @($item.DownloadAccess)) { Assert-Contains $access $value "Invalid download access on $($item.Id)." }
         Assert-Contains @('P1','P2','UTILITY','DEV') $item.Priority "Invalid priority on $($item.Id)."
         Assert-Contains @('EASY','MODERATE','RESTRICTED','HARD') $item.DownloadDifficulty "Invalid download difficulty on $($item.Id)."
-        Assert-Contains @('Current','Legacy','Transition','Unknown') $item.CurrentOrLegacy "Invalid lifecycle on $($item.Id)."
+        Assert-Contains @('Current','Legacy','Transition','CompatibilityUnverified','Discontinued','Unknown') $item.CurrentOrLegacy "Invalid lifecycle on $($item.Id)."
+        Assert-Contains @('Unknown','LinkOnly','VendorDownloadAllowed','Redistributable','PackageManagerOnly','ManualInstall','ReviewBeforeBundling') $item.DistributionPolicy "Invalid distribution policy on $($item.Id)."
+        Assert-Contains @('Current','ReviewSoon','VerificationRequired','Quarantined') $item.MetadataVerificationState "Invalid metadata verification state on $($item.Id)."
         Assert-True ($item.OfficialProductUri -match '^https://') "Official product URI is missing or insecure: $($item.Id)"
     }
     $qsys = @($externalCatalog | Where-Object Id -eq 'QSC.QSYSDesigner.LTS')[0]
     Assert-Contains @($qsys.LicensingModel) 'FREE' 'Q-SYS licensing classification differs.'
     Assert-Contains @($qsys.DownloadAccess) 'PUBLIC-PAGE' 'Q-SYS access classification differs.'
     Assert-NotContains @($qsys.DownloadAccess) 'FREE' 'Licensing leaked into the access dimension.'
+}
+Invoke-Check 'Catalog verification metadata is deterministic and fail closed' {
+    $asOf = [datetime]'2026-08-25'
+    Assert-Equal 'Current' (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn ($asOf.AddDays(-59).ToString('yyyy-MM-dd')) -AsOf $asOf) '59-day metadata should remain current.'
+    Assert-Equal 'ReviewSoon' (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn ($asOf.AddDays(-60).ToString('yyyy-MM-dd')) -AsOf $asOf) '60-day metadata should require review soon.'
+    Assert-Equal 'ReviewSoon' (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn ($asOf.AddDays(-180).ToString('yyyy-MM-dd')) -AsOf $asOf) '180-day metadata should require review soon.'
+    Assert-Equal 'VerificationRequired' (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn ($asOf.AddDays(-181).ToString('yyyy-MM-dd')) -AsOf $asOf) '181-day metadata should require verification.'
+    Assert-Equal 'VerificationRequired' (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn '' -AsOf $asOf) 'Missing verification evidence should fail closed.'
+    Assert-Equal 'Quarantined' (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn '' -AsOf $asOf -Quarantined $true) 'Explicit quarantine should take precedence.'
+    Assert-Throws { Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn '08/25/2026' -AsOf $asOf } 'ISO date format' 'A locale-dependent verification date was accepted.'
+    Assert-Throws { Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn '2026-08-26' -AsOf $asOf } 'future' 'A future verification date was accepted.'
+
+    $ndiSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'catalog\vendors\ndi.json') -Raw | ConvertFrom-Json
+    $invalid = $ndiSource.Packages[2]
+    $invalid.Metadata.Verification.QuarantineReason = ''
+    $invalidDocument = [ordered]@{ SchemaVersion=3; Packages=@($invalid) } | ConvertTo-Json -Depth 20
+    Assert-Throws { ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json $invalidDocument } 'requires a reason' 'Quarantined metadata without a reason was accepted.'
+
+    $domainInvalid = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'catalog\vendors\ndi.json') -Raw | ConvertFrom-Json).Packages[0]
+    $domainInvalid.Metadata.Provenance.AuthoritativeDomain = 'example.com'
+    $domainDocument = [ordered]@{ SchemaVersion=3; Packages=@($domainInvalid) } | ConvertTo-Json -Depth 20
+    Assert-Throws { ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json $domainDocument } 'outside Metadata.Provenance.AuthoritativeDomain' 'A mismatched authoritative domain was accepted.'
+}
+Invoke-Check 'First-tranche workflow and provenance records stay non-executable' {
+    $pktmon = @($externalCatalog | Where-Object Id -eq 'Microsoft.Pktmon')[0]
+    Assert-Equal 'AwarenessOnly' $pktmon.DeploymentClass 'Pktmon became an installer target.'
+    Assert-Equal 'Awareness' $pktmon.DeliveryMode 'Pktmon gained a delivery action.'
+    Assert-Contains @($pktmon.InstallationForms) 'WindowsInbox' 'Pktmon is not modeled as an in-box capability.'
+    Assert-Contains @($pktmon.WorkflowCategories) 'NetworkCaptureTiming' 'Pktmon capture workflow is missing.'
+    Assert-Equal 'None' $pktmon.DownloadStrategy 'Pktmon invented a download strategy.'
+
+    $analysis = @($externalCatalog | Where-Object Id -eq 'NDI.Analysis')[0]
+    Assert-Equal 'AwarenessOnly' $analysis.DeploymentClass 'NDI Analysis became executable.'
+    Assert-True ($analysis.Note -match 'not included') 'NDI Analysis is not explicitly modeled separately from NDI Tools.'
+    Assert-Contains @($analysis.WorkflowCategories) 'AVoIP' 'NDI Analysis AVoIP workflow is missing.'
+
+    $remote = @($externalCatalog | Where-Object Id -eq 'NDI.Remote')[0]
+    Assert-Equal 'Discontinued' $remote.CurrentOrLegacy 'NDI Remote is not marked discontinued.'
+    Assert-Equal 'Quarantined' $remote.MetadataVerificationState 'NDI Remote is not quarantined.'
+    Assert-Contains @($remote.DownloadAccess) 'NO-DL' 'NDI Remote exposes a source despite discontinuation.'
+    Assert-Equal 'None' $remote.DownloadStrategy 'NDI Remote exposes a download strategy.'
+
+    foreach ($id in @('NagleCode.PacketSender','UweSieber.UsbTreeView','TeraTermProject.TeraTerm','Netgear.EngageController')) {
+        $item = @($externalCatalog | Where-Object Id -eq $id)[0]
+        Assert-True (@($item.WorkflowCategories).Count -gt 0) "Workflow metadata is missing: $id"
+        Assert-True (@($item.InstallationForms).Count -gt 0) "Installation-form metadata is missing: $id"
+        Assert-Equal '2026-08-25' $item.MetadataVerifiedOn "Reviewed metadata date differs: $id"
+        Assert-Equal (Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn $item.MetadataVerifiedOn) $item.MetadataVerificationState "Reviewed metadata state does not follow the age policy: $id"
+        Assert-Equal 'ManualHold' $item.Deployment "Reviewed record gained execution authority: $id"
+    }
+    Assert-Equal '5.6.2' @($externalCatalog | Where-Object Id -eq 'TeraTermProject.TeraTerm')[0].KnownVersion 'Tera Term reviewed version differs.'
+    Assert-Equal '4.7.4' @($externalCatalog | Where-Object Id -eq 'UweSieber.UsbTreeView')[0].KnownVersion 'USB Device Tree Viewer reviewed version differs.'
 }
 Invoke-Check 'Commercial AV catalog covers every modeled engineering discipline and critical seed' {
     foreach ($type in @('ControlSystem','DSPAudio','AVoIP','AudioNetworking','WirelessRF','AudioMeasurement','LoudspeakerPrediction','AmplifierManagement','Conferencing','CameraPTZ','DisplayProjector','DigitalSignage','DvLEDVideoWall','Intercom','MediaServerShowControl','BroadcastVideo','LightingControl','FieldUtility','NetworkUtility','SerialUtility','UsbDiagnostic','EDIDHDCP','FirmwareUtility','Development','Driver','Service','Server','WebApplication','EmbeddedSoftware','LegacySupport')) {
@@ -169,7 +223,7 @@ Invoke-Check 'Commercial AV catalog covers every modeled engineering discipline 
         'QSC.QSYSUCIViewer','Crestron.Toolbox','Extron.DSPConfiguratorPro','Biamp.WorkplaceTools',
         'Lightware.LDC','BrightSign.OS','Shure.Designer','Audinate.DanteVirtualSoundcard',
         'Sennheiser.ControlCockpit','AMX.NetLinxStudio4','Netgear.EngageController','Luminex.Araneo',
-        'OpenSoundMeter.OpenSoundMeter','NDI.NDITools','ETC.EosFamily','MALighting.grandMA3onPC',
+        'OpenSoundMeter.OpenSoundMeter','NDI.NDITools','NDI.Analysis','NDI.Remote','Microsoft.Pktmon','ETC.EosFamily','MALighting.grandMA3onPC',
         'Samsung.ColorExpertLED','LG.LEDAssistant','ZeeVee.ZyPerManagementPlatform',
         'Atlona.VelocityDeviceManager','Kramer.KConfig','Kramer.Network','Kramer.KRouterPlus',
         'Planar.WallDirectorOS','RossVideo.DashBoard','RossVideo.PlatformManager',
@@ -222,6 +276,8 @@ Invoke-Check 'Catalog query API composes role, access, lifecycle, impact, and in
     Assert-True (@(Find-AVWorkstationToolkitCatalog -Catalog $catalog -CurrentOrLegacy Legacy).Count -gt 15) 'Legacy query returned too few records.'
     Assert-True (@(Find-AVWorkstationToolkitCatalog -Catalog $catalog -ApplicationType DSPAudio -Role DSPEngineering).Count -gt 10) 'DSP role query returned too few records.'
     Assert-True (@(Find-AVWorkstationToolkitCatalog -Catalog $catalog -Vendor Crestron).Count -ge 10) 'Crestron vendor query returned too few records.'
+    Assert-True (@(Find-AVWorkstationToolkitCatalog -Catalog $catalog -WorkflowCategory NetworkCaptureTiming -MetadataVerificationState @('Current','ReviewSoon','VerificationRequired')).Count -ge 3) 'Workflow plus verification-state query returned too few non-quarantined diagnostics.'
+    Assert-True (@(Find-AVWorkstationToolkitCatalog -Catalog $catalog -InstallationForm WindowsInbox -DistributionPolicy LinkOnly).Id -contains 'Microsoft.Pktmon') 'Installation-form plus distribution-policy query omitted Pktmon.'
     $fieldOverlay = @(Find-AVWorkstationToolkitCatalog -Catalog $catalog -Role FieldService -Vendor @('Q-SYS','Crestron','Shure'))
     Assert-True ($fieldOverlay.Count -gt 5) 'Role plus manufacturer-overlay query returned too few records.'
     Assert-Equal 0 @($fieldOverlay | Where-Object { $_.Vendor -notin @('Q-SYS','Crestron','Shure') -or 'FieldService' -notin @($_.Roles) }).Count 'Role plus manufacturer-overlay query leaked unrelated records.'
@@ -319,6 +375,7 @@ Invoke-Check 'Module manifest is valid and versioned' {
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Find-AVWorkstationToolkitCatalog' 'Catalog query API is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitCatalogVendors' 'Catalog manufacturer resolver is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Test-AVWorkstationToolkitCatalogFilter' 'Composable desktop catalog filter is not exported.'
+    Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitMetadataVerificationState' 'Metadata verification policy is not exported.'
 }
 Invoke-Check 'Data root is deterministic for source, package, and explicit paths' {
     Assert-Equal $repositoryRoot (Get-AVWorkstationToolkitDataRoot) 'Developer checkout data root differs.'
@@ -1783,6 +1840,7 @@ if (-not $CoreOnly) {
             Assert-True ($uiSource -match 'Update-AVWorkstationToolkitGridLayout') 'Responsive narrow/wide DataGrid layout handler is missing.'
             Assert-True ($uiSource -notmatch "'Crestron'\s*\{|'Extron'\s*\{") 'Manufacturer-specific discipline branches remain in the UI filter.'
             Assert-True ($uiSource -match 'Show-AVWorkstationToolkitCatalogDetail' -and $uiSource -match 'Open-AVWorkstationToolkitOfficialCatalogUri') 'Read-only catalog detail and official-link boundaries are missing.'
+            Assert-True ($uiSource -match 'MetadataVerificationState' -and $uiSource -match 'DistributionPolicy' -and $uiSource -match 'WorkflowCategories') 'Read-only catalog detail omits verification, distribution, or workflow metadata.'
             Assert-True ($uiSource -match 'Show-AVWorkstationToolkitDiagnostics' -and $uiSource -match 'Copy diagnostics' -and $uiSource -match 'Export diagnostics') 'Read-only diagnostics actions are missing.'
             $xamlSource = Get-Content -LiteralPath $xamlPath -Raw
             Assert-True ($xamlSource -match 'Grid Background="\{TemplateBinding Background\}"' -and $xamlSource -match 'HorizontalAlignment="Stretch" VerticalAlignment="Stretch"' -and $xamlSource -match 'ToolTipService.ShowOnDisabled="True"') 'Checkbox hit target or disabled-state explanation regressed.'

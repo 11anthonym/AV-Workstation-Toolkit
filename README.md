@@ -32,6 +32,7 @@ and release artifacts.
 - [Contributing](CONTRIBUTING.md)
 - [Architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md)
 - [Commercial AV catalog model](docs/Commercial-AV-Catalog.md)
+- [Workstation research reconciliation and backlog](docs/Workstation-Research-Backlog.md)
 - [Security audit](docs/AV-Workstation-Toolkit-Security-Audit.md)
 - [QA report](docs/AV-Workstation-Toolkit-QA-Report.md)
 - [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
@@ -89,7 +90,7 @@ source command is:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\scripts\Start-AVWorkstationToolkit.ps1
 ```
 
-AV Workstation Toolkit combines 29 exact-ID WinGet applications, 25 operational external records, and 278 non-deployable commercial AV awareness records. The resulting 332-record catalog can describe role, discipline, lifecycle, licensing, access restrictions, account/training requirements, workstation impact, supported platform, version policy, and official source without turning catalog knowledge into installation permission.
+AV Workstation Toolkit combines 29 exact-ID WinGet applications, 25 operational external records, and 281 non-deployable commercial AV awareness records. The resulting 335-record catalog can describe role, discipline, workflow, lifecycle, licensing, distribution policy, installation form, metadata verification, provenance, access restrictions, account/training requirements, workstation impact, supported platform, version policy, and official source without turning catalog knowledge into installation permission.
 
 WinGet apps can be selected for managed install or update. External apps use fail-closed vendor-page, signed direct-download, authenticated-SFTP, parent-provider, rights-approved offline-bundle, inventory-only, or awareness modes. Every external app remains on manual deployment and maintenance hold, never enters the WinGet action worker, and is never executed by AV Workstation Toolkit. A pending Windows reboot remains prominent: low-risk applications may continue, while driver-, service-, and listener-bearing actions are blocked until restart.
 

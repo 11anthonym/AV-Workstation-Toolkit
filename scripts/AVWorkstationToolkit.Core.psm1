@@ -346,6 +346,32 @@ function ConvertTo-AVWorkstationToolkitCatalogEnumArray {
     return @($result)
 }
 
+function Get-AVWorkstationToolkitMetadataVerificationState {
+    [CmdletBinding()]
+    param(
+        [AllowNull()][string]$VerifiedOn,
+        [datetime]$AsOf = [datetime]::UtcNow.Date,
+        [bool]$Quarantined = $false
+    )
+
+    if ([string]::IsNullOrWhiteSpace($VerifiedOn)) {
+        return $(if ($Quarantined) { 'Quarantined' } else { 'VerificationRequired' })
+    }
+
+    $verifiedDate = [datetime]::MinValue
+    if (-not [datetime]::TryParseExact($VerifiedOn,'yyyy-MM-dd',[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::None,[ref]$verifiedDate)) {
+        throw "VerifiedOn must use the ISO date format yyyy-MM-dd."
+    }
+    $referenceDate = $AsOf.Date
+    if ($verifiedDate.Date -gt $referenceDate) { throw 'VerifiedOn cannot be in the future.' }
+    if ($Quarantined) { return 'Quarantined' }
+
+    $ageDays = [int]($referenceDate - $verifiedDate.Date).TotalDays
+    if ($ageDays -lt 60) { return 'Current' }
+    if ($ageDays -le 180) { return 'ReviewSoon' }
+    return 'VerificationRequired'
+}
+
 function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
     param(
         [AllowNull()]$Metadata,
@@ -371,11 +397,20 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
     $validationMethods = @('Registry','WinGet','OfficialVersionPage','ParentProviderCatalog','ManualInventory','WebPresence','EmbeddedInterface','Unknown')
     $architectures = @('x86','x64','Arm64','Web','Embedded','Server','Unknown')
     $supportedOperatingSystems = @('Windows','macOS','Linux','iOS','Android','Web','Embedded','Server','Unknown')
+    $distributionPolicies = @('Unknown','LinkOnly','VendorDownloadAllowed','Redistributable','PackageManagerOnly','ManualInstall','ReviewBeforeBundling')
+    $workflowCategories = @(
+        'NetworkCaptureTiming','DiscoveryReachability','ProtocolSocketTesting','SerialConsole','RemoteFileTransfer',
+        'UsbConferencing','VideoEdidSignal','AudioMeasurementAoIP','AVoIP','WindowsDiagnostics',
+        'FilesFirmwareComparison','ControlApis','ManufacturerPack','LegacyService'
+    )
+    $installationForms = @('Installed','Portable','MSI','EXE','ZIP','Store','WinGet','VendorPortal','WindowsInbox','Web','Embedded')
+    $reviewTriggers = @('DomainChange','PublisherChange','ProductDiscontinued','DownloadStrategyChange','SignaturePolicyChange')
     $metadataKeys = @(
         'Vendor','ProductFamily','ApplicationType','ParentProviderId','Priority','Roles','DeploymentClass',
         'MaintenancePolicy','VersionRule','VersionCoupling','CurrentOrLegacy','LicensingModel',
         'DownloadAccess','DownloadDifficulty','Requirements','SystemImpact','Architecture','SupportedOS',
-        'SideBySideSupported','OfficialDownloadUri','OfficialProductUri','ValidationMethod','Notes'
+        'SideBySideSupported','OfficialDownloadUri','OfficialProductUri','ValidationMethod','Notes',
+        'DistributionPolicy','WorkflowCategories','InstallationForms','Verification','Provenance'
     )
 
     if ($null -eq $Metadata) {
@@ -388,7 +423,10 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
             RequiresVendorAccount=$null; RequiresDealerAccount=$null; RequiresTraining=$null; RequiresLicense=$null; RequiresSubscription=$null
             InstallsDriver=$null; InstallsService=$null; OpensListener=$null; FirmwareUtility=$null
             Architecture=@('Unknown'); SupportedOS=@('Unknown'); SideBySideSupported='Unknown'; OfficialDownloadUri=''; OfficialProductUri=''
-            ValidationMethod=@('Unknown'); CatalogNotes=''; CatalogTags=@('P2','UNKNOWN-COST','UNKNOWN-ACCESS')
+            ValidationMethod=@('Unknown'); CatalogNotes=''; DistributionPolicy='Unknown'; WorkflowCategories=@(); InstallationForms=@()
+            MetadataVerifiedOn=''; MetadataVerificationState='VerificationRequired'; MetadataReviewTriggers=@(); MetadataQuarantined=$false; MetadataQuarantineReason=''
+            AuthoritativeDomain=''; ExpectedPublisher=''; SignatureValidation='Unknown'; VendorHashAvailability='Unknown'; DownloadStrategy='Unknown'
+            CatalogTags=@('P2','UNKNOWN-COST','UNKNOWN-ACCESS','VerificationRequired')
         }
     }
     if ($Metadata -is [string] -or $null -eq $Metadata.PSObject) { throw "External catalog entry $EntryIndex Metadata must be an object." }
@@ -425,7 +463,7 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
         throw "External catalog entry $EntryIndex Metadata.VersionRule is invalid."
     }
     $currentOrLegacy = [string](Get-AVWorkstationToolkitValue $Metadata 'CurrentOrLegacy' 'Unknown')
-    if ($currentOrLegacy -notin @('Current','Legacy','Transition','Unknown')) { throw "External catalog entry $EntryIndex Metadata.CurrentOrLegacy is invalid." }
+    if ($currentOrLegacy -notin @('Current','Legacy','Transition','CompatibilityUnverified','Discontinued','Unknown')) { throw "External catalog entry $EntryIndex Metadata.CurrentOrLegacy is invalid." }
     $licenseValues = @(ConvertTo-AVWorkstationToolkitCatalogEnumArray -Value (Get-AVWorkstationToolkitValue $Metadata 'LicensingModel' @('UNKNOWN-COST')) -Allowed $licensingModels -Field "External catalog entry $EntryIndex Metadata.LicensingModel")
     $accessValues = @(ConvertTo-AVWorkstationToolkitCatalogEnumArray -Value (Get-AVWorkstationToolkitValue $Metadata 'DownloadAccess' @('UNKNOWN-ACCESS')) -Allowed $downloadAccessValues -Field "External catalog entry $EntryIndex Metadata.DownloadAccess")
     $difficulty = [string](Get-AVWorkstationToolkitValue $Metadata 'DownloadDifficulty' 'HARD')
@@ -435,6 +473,10 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
     $sideBySide = [string](Get-AVWorkstationToolkitValue $Metadata 'SideBySideSupported' 'Unknown')
     if ($sideBySide -notin @('Yes','No','Unknown')) { throw "External catalog entry $EntryIndex Metadata.SideBySideSupported is invalid." }
     $validationValues = @(ConvertTo-AVWorkstationToolkitCatalogEnumArray -Value (Get-AVWorkstationToolkitValue $Metadata 'ValidationMethod' @('Unknown')) -Allowed $validationMethods -Field "External catalog entry $EntryIndex Metadata.ValidationMethod")
+    $distributionPolicy = [string](Get-AVWorkstationToolkitValue $Metadata 'DistributionPolicy' 'Unknown')
+    if ($distributionPolicy -notin $distributionPolicies) { throw "External catalog entry $EntryIndex Metadata.DistributionPolicy is invalid." }
+    $workflowValues = @(ConvertTo-AVWorkstationToolkitCatalogEnumArray -Value (Get-AVWorkstationToolkitValue $Metadata 'WorkflowCategories' @()) -Allowed $workflowCategories -Field "External catalog entry $EntryIndex Metadata.WorkflowCategories" -AllowEmpty)
+    $installationFormValues = @(ConvertTo-AVWorkstationToolkitCatalogEnumArray -Value (Get-AVWorkstationToolkitValue $Metadata 'InstallationForms' @()) -Allowed $installationForms -Field "External catalog entry $EntryIndex Metadata.InstallationForms" -AllowEmpty)
     $parentProviderId = ConvertTo-AVWorkstationToolkitCatalogText -Value (Get-AVWorkstationToolkitValue $Metadata 'ParentProviderId' '') -Field "External catalog entry $EntryIndex Metadata.ParentProviderId" -MaximumLength 128 -AllowEmpty
     if (-not [string]::IsNullOrWhiteSpace($parentProviderId) -and $parentProviderId -notmatch '^[A-Za-z0-9][A-Za-z0-9+_.-]{1,127}$') {
         throw "External catalog entry $EntryIndex Metadata.ParentProviderId is invalid."
@@ -494,6 +536,56 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
     if (-not [string]::IsNullOrWhiteSpace($officialDownloadUri)) { $officialDownloadUri = Assert-AVWorkstationToolkitHttpsUri -Value $officialDownloadUri -Field "External catalog entry $EntryIndex Metadata.OfficialDownloadUri" }
     $catalogNotes = ConvertTo-AVWorkstationToolkitCatalogText -Value (Get-AVWorkstationToolkitValue $Metadata 'Notes' '') -Field "External catalog entry $EntryIndex Metadata.Notes" -MaximumLength 1024 -AllowEmpty
 
+    $verifiedOn = ''
+    $reviewTriggerValues = @()
+    $quarantined = $false
+    $quarantineReason = ''
+    $verification = Get-AVWorkstationToolkitValue $Metadata 'Verification' $null
+    if ($null -ne $verification) {
+        $verificationKeys = @($verification.PSObject.Properties.Name)
+        $unexpectedVerification = @($verificationKeys | Where-Object { $_ -notin @('VerifiedOn','ReviewTriggers','Quarantined','QuarantineReason') })
+        if ($unexpectedVerification.Count -gt 0) { throw "External catalog entry $EntryIndex Metadata.Verification contains unsupported keys." }
+        $verifiedOn = ConvertTo-AVWorkstationToolkitCatalogText -Value (Get-AVWorkstationToolkitValue $verification 'VerifiedOn' '') -Field "External catalog entry $EntryIndex Metadata.Verification.VerifiedOn" -MaximumLength 10 -AllowEmpty
+        $reviewTriggerValues = @(ConvertTo-AVWorkstationToolkitCatalogEnumArray -Value (Get-AVWorkstationToolkitValue $verification 'ReviewTriggers' @()) -Allowed $reviewTriggers -Field "External catalog entry $EntryIndex Metadata.Verification.ReviewTriggers" -AllowEmpty)
+        $quarantinedValue = Get-AVWorkstationToolkitValue $verification 'Quarantined' $false
+        if ($quarantinedValue -isnot [bool]) { throw "External catalog entry $EntryIndex Metadata.Verification.Quarantined must be Boolean." }
+        $quarantined = [bool]$quarantinedValue
+        $quarantineReason = ConvertTo-AVWorkstationToolkitCatalogText -Value (Get-AVWorkstationToolkitValue $verification 'QuarantineReason' '') -Field "External catalog entry $EntryIndex Metadata.Verification.QuarantineReason" -MaximumLength 512 -AllowEmpty
+        if ($quarantined -and [string]::IsNullOrWhiteSpace($quarantineReason)) { throw "External catalog entry $EntryIndex quarantined metadata requires a reason." }
+    }
+    $verificationState = Get-AVWorkstationToolkitMetadataVerificationState -VerifiedOn $verifiedOn -Quarantined $quarantined
+
+    $authoritativeDomain = ''
+    $expectedPublisher = ''
+    $signatureValidation = 'Unknown'
+    $vendorHashAvailability = 'Unknown'
+    $downloadStrategy = 'Unknown'
+    $provenance = Get-AVWorkstationToolkitValue $Metadata 'Provenance' $null
+    if ($null -ne $provenance) {
+        $provenanceKeys = @($provenance.PSObject.Properties.Name)
+        $unexpectedProvenance = @($provenanceKeys | Where-Object { $_ -notin @('AuthoritativeDomain','ExpectedPublisher','SignatureValidation','VendorHashAvailability','DownloadStrategy') })
+        if ($unexpectedProvenance.Count -gt 0) { throw "External catalog entry $EntryIndex Metadata.Provenance contains unsupported keys." }
+        $authoritativeDomain = (ConvertTo-AVWorkstationToolkitCatalogText -Value (Get-AVWorkstationToolkitValue $provenance 'AuthoritativeDomain' '') -Field "External catalog entry $EntryIndex Metadata.Provenance.AuthoritativeDomain" -MaximumLength 253 -AllowEmpty).ToLowerInvariant()
+        if (-not [string]::IsNullOrWhiteSpace($authoritativeDomain) -and $authoritativeDomain -notmatch '^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$') {
+            throw "External catalog entry $EntryIndex Metadata.Provenance.AuthoritativeDomain is invalid."
+        }
+        $expectedPublisher = ConvertTo-AVWorkstationToolkitCatalogText -Value (Get-AVWorkstationToolkitValue $provenance 'ExpectedPublisher' '') -Field "External catalog entry $EntryIndex Metadata.Provenance.ExpectedPublisher" -MaximumLength 256 -AllowEmpty
+        $signatureValidation = [string](Get-AVWorkstationToolkitValue $provenance 'SignatureValidation' 'Unknown')
+        if ($signatureValidation -notin @('Required','Optional','NotApplicable','Unknown')) { throw "External catalog entry $EntryIndex Metadata.Provenance.SignatureValidation is invalid." }
+        $vendorHashAvailability = [string](Get-AVWorkstationToolkitValue $provenance 'VendorHashAvailability' 'Unknown')
+        if ($vendorHashAvailability -notin @('Available','Unavailable','Unknown')) { throw "External catalog entry $EntryIndex Metadata.Provenance.VendorHashAvailability is invalid." }
+        $downloadStrategy = [string](Get-AVWorkstationToolkitValue $provenance 'DownloadStrategy' 'Unknown')
+        if ($downloadStrategy -notin @('PackageManager','VendorPage','DirectVendor','AuthenticatedVendor','ParentProvider','Bundled','None','Unknown')) { throw "External catalog entry $EntryIndex Metadata.Provenance.DownloadStrategy is invalid." }
+        foreach ($sourceUri in @($officialProductUri,$officialDownloadUri)) {
+            if (-not [string]::IsNullOrWhiteSpace($sourceUri) -and -not [string]::IsNullOrWhiteSpace($authoritativeDomain)) {
+                $sourceHost = ([uri]$sourceUri).DnsSafeHost.ToLowerInvariant()
+                if ($sourceHost -ne $authoritativeDomain -and -not $sourceHost.EndsWith('.' + $authoritativeDomain,[StringComparison]::OrdinalIgnoreCase)) {
+                    throw "External catalog entry $EntryIndex official source is outside Metadata.Provenance.AuthoritativeDomain."
+                }
+            }
+        }
+    }
+
     $tags = [System.Collections.Generic.List[string]]::new()
     $tags.Add($priority)
     foreach ($value in @($licenseValues + $accessValues)) { if ($value -notin $tags) { $tags.Add($value) } }
@@ -503,6 +595,10 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
     if ($deploymentClass -eq 'WebOnly' -or 'WebApplication' -in $types) { $tags.Add('WEB') }
     if ($currentOrLegacy -eq 'Legacy') { $tags.Add('LEGACY') }
     if ($currentOrLegacy -eq 'Transition') { $tags.Add('TRANSITION') }
+    if ($currentOrLegacy -eq 'CompatibilityUnverified') { $tags.Add('COMPATIBILITY-UNVERIFIED') }
+    if ($currentOrLegacy -eq 'Discontinued') { $tags.Add('DISCONTINUED') }
+    foreach ($value in $workflowValues) { if ($value -notin $tags) { $tags.Add($value) } }
+    if ($verificationState -notin $tags) { $tags.Add($verificationState) }
 
     return [pscustomobject]@{
         Vendor=$vendor; ProductFamily=$productFamily; ApplicationType=@($types); ParentProviderId=$parentProviderId
@@ -514,7 +610,12 @@ function ConvertFrom-AVWorkstationToolkitCatalogMetadata {
         RequiresSubscription=$requirementValues.RequiresSubscription; InstallsDriver=$impactValues.InstallsDriver
         InstallsService=$impactValues.InstallsService; OpensListener=$impactValues.OpensListener; FirmwareUtility=$impactValues.FirmwareUtility
         Architecture=@($architectureValues); SupportedOS=@($supportedOsValues); SideBySideSupported=$sideBySide; OfficialDownloadUri=$officialDownloadUri
-        OfficialProductUri=$officialProductUri; ValidationMethod=@($validationValues); CatalogNotes=$catalogNotes; CatalogTags=@($tags | Sort-Object -Unique)
+        OfficialProductUri=$officialProductUri; ValidationMethod=@($validationValues); CatalogNotes=$catalogNotes
+        DistributionPolicy=$distributionPolicy; WorkflowCategories=@($workflowValues); InstallationForms=@($installationFormValues)
+        MetadataVerifiedOn=$verifiedOn; MetadataVerificationState=$verificationState; MetadataReviewTriggers=@($reviewTriggerValues)
+        MetadataQuarantined=$quarantined; MetadataQuarantineReason=$quarantineReason; AuthoritativeDomain=$authoritativeDomain
+        ExpectedPublisher=$expectedPublisher; SignatureValidation=$signatureValidation; VendorHashAvailability=$vendorHashAvailability
+        DownloadStrategy=$downloadStrategy; CatalogTags=@($tags | Sort-Object -Unique)
     }
 }
 
@@ -793,6 +894,19 @@ function ConvertFrom-AVWorkstationToolkitExternalCatalogJson {
             OfficialProductUri = [string]$metadata.OfficialProductUri
             ValidationMethod = @($metadata.ValidationMethod)
             CatalogNotes = [string]$metadata.CatalogNotes
+            DistributionPolicy = [string]$metadata.DistributionPolicy
+            WorkflowCategories = @($metadata.WorkflowCategories)
+            InstallationForms = @($metadata.InstallationForms)
+            MetadataVerifiedOn = [string]$metadata.MetadataVerifiedOn
+            MetadataVerificationState = [string]$metadata.MetadataVerificationState
+            MetadataReviewTriggers = @($metadata.MetadataReviewTriggers)
+            MetadataQuarantined = [bool]$metadata.MetadataQuarantined
+            MetadataQuarantineReason = [string]$metadata.MetadataQuarantineReason
+            AuthoritativeDomain = [string]$metadata.AuthoritativeDomain
+            ExpectedPublisher = [string]$metadata.ExpectedPublisher
+            SignatureValidation = [string]$metadata.SignatureValidation
+            VendorHashAvailability = [string]$metadata.VendorHashAvailability
+            DownloadStrategy = [string]$metadata.DownloadStrategy
             CatalogTags = @($metadata.CatalogTags)
         }) | Out-Null
         $index++
@@ -962,7 +1076,20 @@ function Get-AVWorkstationToolkitCatalog {
             OfficialProductUri = ''
             ValidationMethod = @('WinGet')
             CatalogNotes = ''
-            CatalogTags = @($(if ([string](Get-AVWorkstationToolkitValue $raw 'Profile' '') -eq 'Developer') { 'DEV' } elseif ([string](Get-AVWorkstationToolkitValue $raw 'Profile' '') -in @('Standard','Field')) { 'UTILITY' } else { 'P2' }),'UNKNOWN-COST','PUBLIC-DL')
+            DistributionPolicy = 'PackageManagerOnly'
+            WorkflowCategories = @()
+            InstallationForms = @('WinGet')
+            MetadataVerifiedOn = ''
+            MetadataVerificationState = 'VerificationRequired'
+            MetadataReviewTriggers = @()
+            MetadataQuarantined = $false
+            MetadataQuarantineReason = ''
+            AuthoritativeDomain = ''
+            ExpectedPublisher = ''
+            SignatureValidation = 'Unknown'
+            VendorHashAvailability = 'Unknown'
+            DownloadStrategy = 'PackageManager'
+            CatalogTags = @($(if ([string](Get-AVWorkstationToolkitValue $raw 'Profile' '') -eq 'Developer') { 'DEV' } elseif ([string](Get-AVWorkstationToolkitValue $raw 'Profile' '') -in @('Standard','Field')) { 'UTILITY' } else { 'P2' }),'UNKNOWN-COST','PUBLIC-DL','VerificationRequired')
         }
 
         $packages.Add($package) | Out-Null
@@ -2429,6 +2556,19 @@ function New-AVWorkstationToolkitPlanItem {
         OfficialProductUri = $Package.OfficialProductUri
         ValidationMethod = @($Package.ValidationMethod)
         CatalogNotes = $Package.CatalogNotes
+        DistributionPolicy = $Package.DistributionPolicy
+        WorkflowCategories = @($Package.WorkflowCategories)
+        InstallationForms = @($Package.InstallationForms)
+        MetadataVerifiedOn = $Package.MetadataVerifiedOn
+        MetadataVerificationState = $Package.MetadataVerificationState
+        MetadataReviewTriggers = @($Package.MetadataReviewTriggers)
+        MetadataQuarantined = $Package.MetadataQuarantined
+        MetadataQuarantineReason = $Package.MetadataQuarantineReason
+        AuthoritativeDomain = $Package.AuthoritativeDomain
+        ExpectedPublisher = $Package.ExpectedPublisher
+        SignatureValidation = $Package.SignatureValidation
+        VendorHashAvailability = $Package.VendorHashAvailability
+        DownloadStrategy = $Package.DownloadStrategy
         CatalogTags = @($Package.CatalogTags)
     }
 }
@@ -2505,7 +2645,7 @@ function Test-AVWorkstationToolkitCatalogFilter {
         'Services' { (Get-AVWorkstationToolkitValue $Item 'InstallsService' $null) -eq $true -or (Get-AVWorkstationToolkitValue $Item 'OpensListener' $null) -eq $true }
         'Firmware' { (Get-AVWorkstationToolkitValue $Item 'FirmwareUtility' $null) -eq $true }
         'Current'  { [string](Get-AVWorkstationToolkitValue $Item 'CurrentOrLegacy' '') -eq 'Current' }
-        'Legacy'   { [string](Get-AVWorkstationToolkitValue $Item 'CurrentOrLegacy' '') -in @('Legacy','Transition') }
+        'Legacy'   { [string](Get-AVWorkstationToolkitValue $Item 'CurrentOrLegacy' '') -in @('Legacy','Transition','CompatibilityUnverified','Discontinued') }
         'Unmanaged'{ [string](Get-AVWorkstationToolkitValue $Item 'Provider' '') -eq 'External' -and $deploymentClass -ne 'Managed' }
         'InstalledSourceLimited' {
             (Get-AVWorkstationToolkitValue $Item 'Installed' $false) -eq $true -and @($access | Where-Object { $_ -in @('NO-DL','LEGACY-ARCHIVE','UNKNOWN-ACCESS') }).Count -gt 0
@@ -2569,7 +2709,11 @@ function Find-AVWorkstationToolkitCatalog {
         [ValidateSet('PUBLIC-DL','PUBLIC-PAGE','EMAIL-FORM','ACCOUNT','REGISTERED','DEALER','TRAINING','PORTAL','CONTACT','LICENSE-PORTAL','LEGACY-ARCHIVE','NO-DL','UNKNOWN-ACCESS')][string[]]$DownloadAccess,
         [ValidateSet('EASY','MODERATE','RESTRICTED','HARD')][string[]]$DownloadDifficulty,
         [ValidateSet('Windows','macOS','Linux','iOS','Android','Web','Embedded','Server','Unknown')][string[]]$SupportedOS,
-        [ValidateSet('Current','Legacy','Transition','Unknown')][string[]]$CurrentOrLegacy,
+        [ValidateSet('Current','Legacy','Transition','CompatibilityUnverified','Discontinued','Unknown')][string[]]$CurrentOrLegacy,
+        [ValidateSet('Unknown','LinkOnly','VendorDownloadAllowed','Redistributable','PackageManagerOnly','ManualInstall','ReviewBeforeBundling')][string[]]$DistributionPolicy,
+        [ValidateSet('NetworkCaptureTiming','DiscoveryReachability','ProtocolSocketTesting','SerialConsole','RemoteFileTransfer','UsbConferencing','VideoEdidSignal','AudioMeasurementAoIP','AVoIP','WindowsDiagnostics','FilesFirmwareComparison','ControlApis','ManufacturerPack','LegacyService')][string[]]$WorkflowCategory,
+        [ValidateSet('Installed','Portable','MSI','EXE','ZIP','Store','WinGet','VendorPortal','WindowsInbox','Web','Embedded')][string[]]$InstallationForm,
+        [ValidateSet('Current','ReviewSoon','VerificationRequired','Quarantined')][string[]]$MetadataVerificationState,
         [switch]$Free,
         [switch]$PublicWithoutAccount,
         [switch]$RequiresDealerAccount,
@@ -2593,7 +2737,9 @@ function Find-AVWorkstationToolkitCatalog {
                 [string](Get-AVWorkstationToolkitValue $_ 'Vendor' ''),[string](Get-AVWorkstationToolkitValue $_ 'ProductFamily' ''),
                 [string](Get-AVWorkstationToolkitValue $_ 'Note' ''),[string](Get-AVWorkstationToolkitValue $_ 'CatalogNotes' ''),
                 @((Get-AVWorkstationToolkitValue $_ 'ApplicationType' @())),@((Get-AVWorkstationToolkitValue $_ 'Roles' @())),
-                @((Get-AVWorkstationToolkitValue $_ 'CatalogTags' @())),@((Get-AVWorkstationToolkitValue $_ 'SupportedOS' @()))
+                @((Get-AVWorkstationToolkitValue $_ 'CatalogTags' @())),@((Get-AVWorkstationToolkitValue $_ 'SupportedOS' @())),
+                @((Get-AVWorkstationToolkitValue $_ 'WorkflowCategories' @())),@((Get-AVWorkstationToolkitValue $_ 'InstallationForms' @())),
+                [string](Get-AVWorkstationToolkitValue $_ 'DistributionPolicy' ''),[string](Get-AVWorkstationToolkitValue $_ 'AuthoritativeDomain' '')
             ) -join ' '
             $searchText.IndexOf($needle,[StringComparison]::OrdinalIgnoreCase) -ge 0
         })
@@ -2611,6 +2757,10 @@ function Find-AVWorkstationToolkitCatalog {
     if ($PSBoundParameters.ContainsKey('DownloadDifficulty')) { $result = @($result | Where-Object { [string](Get-AVWorkstationToolkitValue $_ 'DownloadDifficulty' '') -in $DownloadDifficulty }) }
     if ($PSBoundParameters.ContainsKey('SupportedOS')) { $result = @($result | Where-Object { @((Get-AVWorkstationToolkitValue $_ 'SupportedOS' @()) | Where-Object { $_ -in $SupportedOS }).Count -gt 0 }) }
     if ($PSBoundParameters.ContainsKey('CurrentOrLegacy')) { $result = @($result | Where-Object { [string](Get-AVWorkstationToolkitValue $_ 'CurrentOrLegacy' '') -in $CurrentOrLegacy }) }
+    if ($PSBoundParameters.ContainsKey('DistributionPolicy')) { $result = @($result | Where-Object { [string](Get-AVWorkstationToolkitValue $_ 'DistributionPolicy' '') -in $DistributionPolicy }) }
+    if ($PSBoundParameters.ContainsKey('WorkflowCategory')) { $result = @($result | Where-Object { @((Get-AVWorkstationToolkitValue $_ 'WorkflowCategories' @()) | Where-Object { $_ -in $WorkflowCategory }).Count -gt 0 }) }
+    if ($PSBoundParameters.ContainsKey('InstallationForm')) { $result = @($result | Where-Object { @((Get-AVWorkstationToolkitValue $_ 'InstallationForms' @()) | Where-Object { $_ -in $InstallationForm }).Count -gt 0 }) }
+    if ($PSBoundParameters.ContainsKey('MetadataVerificationState')) { $result = @($result | Where-Object { [string](Get-AVWorkstationToolkitValue $_ 'MetadataVerificationState' '') -in $MetadataVerificationState }) }
     if ($Free) { $result = @($result | Where-Object { 'FREE' -in @((Get-AVWorkstationToolkitValue $_ 'LicensingModel' @())) }) }
     if ($PublicWithoutAccount) {
         $result = @($result | Where-Object {
@@ -3306,6 +3456,7 @@ Export-ModuleMember -Function @(
     'Get-AVWorkstationToolkitCatalogVendors',
     'Resolve-AVWorkstationToolkitCatalogVendorSelection',
     'Test-AVWorkstationToolkitCatalogFilter',
+    'Get-AVWorkstationToolkitMetadataVerificationState',
     'ConvertFrom-AVWorkstationToolkitExternalCatalogJson',
     'Compare-AVWorkstationToolkitVersion',
     'Get-AVWorkstationToolkitExternalInventory',

@@ -42,7 +42,29 @@
                                           "OfficialProductUri":  "https://learn.microsoft.com/windows-hardware/drivers/debugger/usbview",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                      "UsbConferencing",
+                                                                      "WindowsDiagnostics"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "Installed"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "microsoft.com",
+                                                             "SignatureValidation":  "NotApplicable",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      },
                      {
@@ -89,7 +111,94 @@
                                           "OfficialProductUri":  "https://learn.microsoft.com/sysinternals/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                      "WindowsDiagnostics",
+                                                                      "NetworkCaptureTiming",
+                                                                      "DiscoveryReachability"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "ZIP",
+                                                                    "Store",
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "microsoft.com",
+                                                             "SignatureValidation":  "Required",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
+                                      }
+                     },
+                     {
+                         "Name":  "Windows Packet Monitor (Pktmon)",
+                         "Id":  "Microsoft.Pktmon",
+                         "Note":  "In-box Windows network diagnostic for packet capture, filtering, counters, and drop detection. No installer is needed; capture is an explicit operator-authorized workflow and AV Workstation Toolkit does not execute Pktmon.",
+                         "Metadata":  {
+                                          "Vendor":  "Microsoft",
+                                          "ProductFamily":  "Windows",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-server/networking/technologies/pktmon/pktmon",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                      "NetworkCaptureTiming",
+                                                                      "WindowsDiagnostics"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "WindowsInbox"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "microsoft.com",
+                                                             "SignatureValidation":  "NotApplicable",
+                                                             "VendorHashAvailability":  "Unavailable",
+                                                             "DownloadStrategy":  "None"
+                                                         }
                                       }
                      }
                  ]

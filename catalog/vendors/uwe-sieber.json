@@ -6,6 +6,7 @@
                          "Profile":  "Field",
                          "Name":  "USB Device Tree Viewer",
                          "Id":  "UweSieber.UsbTreeView",
+                         "KnownVersion":  "4.7.4",
                          "Note":  "Free portable USB topology and descriptor diagnostic utility with x64, x86, and Arm64 builds; because it is portable, absence from uninstall registry is not evidence of absence.",
                          "Metadata":  {
                                           "Vendor":  "Uwe Sieber",
@@ -43,7 +44,30 @@
                                           "OfficialProductUri":  "https://www.uwe-sieber.de/usbtreeview_e.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                      "UsbConferencing",
+                                                                      "WindowsDiagnostics"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "ZIP",
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "uwe-sieber.de",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      }
                  ]

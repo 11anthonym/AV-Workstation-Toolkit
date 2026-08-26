@@ -6,7 +6,7 @@
                          "Profile":  "Field",
                          "Name":  "Tera Term",
                          "Id":  "TeraTermProject.TeraTerm",
-                         "KnownVersion":  "5.6.1",
+                         "KnownVersion":  "5.6.2",
                          "Note":  "Free terminal emulator supporting serial, Telnet, SSH, file transfer, and scripting. Portable and installer builds are available from the signed project release page.",
                          "Detection":  {
                                            "RegistryDisplayNamePattern":  "^Tera Term(?:\\s|$)",
@@ -53,7 +53,31 @@
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                      "SerialConsole",
+                                                                      "RemoteFileTransfer"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "EXE",
+                                                                    "ZIP",
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Available",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      }
                  ]

@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-08-25 — Workstation research reconciliation
+
+- Reconciled the external workstation-software report against the actual managed, operational-external, and awareness catalogs; no default profile or managed WinGet authority changed.
+- Extended existing schema 3 metadata with bounded distribution policy, workflow categories, installation forms, provenance, verification dates, review triggers, and quarantine state while keeping omitted facts conservative.
+- Added non-executable awareness for in-box Windows Pktmon and separate NDI Analysis, and quarantined NDI Remote as discontinued with no download action.
+- Added reviewed metadata to Packet Sender, USB Device Tree Viewer, Tera Term, NETGEAR Engage, USBView, Sysinternals, and NDI Tools; refreshed the officially published Tera Term and USB Device Tree Viewer catalog versions.
+- Added a prioritized research backlog for unresolved utilities, capture/video hardware, ST 2110/IPMX/PTP, display/projector fleets, legacy compatibility, and redistribution review.
+
 ## 2026-08-25 — Workstation selection reliability
 
 - Fixed grid checkboxes so a user toggle is synchronized with the PowerShell-backed selection model instead of visually reverting without changing the planned action.

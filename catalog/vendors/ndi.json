@@ -7,7 +7,7 @@
                          "Name":  "NDI Tools",
                          "Id":  "NDI.NDITools",
                          "KnownVersion":  "6.3.2",
-                         "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. Some components expose sources, listeners, or services; commercial-use terms require vendor review.",
+                         "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. NDI Analysis is a separate utility and NDI Remote has been discontinued. Some suite components expose sources, listeners, or services; commercial-use terms require vendor review.",
                          "Detection":  {
                                            "RegistryDisplayNamePattern":  "^NDI(?: \\d+)? Tools(?:\\s|$)",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
@@ -56,7 +56,154 @@
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                      "NetworkCaptureTiming",
+                                                                      "AVoIP"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "EXE"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "ndi.video",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
+                                      }
+                     },
+                     {
+                         "Profile":  "Field",
+                         "Name":  "NDI Analysis",
+                         "Id":  "NDI.Analysis",
+                         "Note":  "Separate Windows command-line utility for NDI network analysis and statistics. It is not included in the standard NDI Tools launcher and remains a non-executable awareness record.",
+                         "Metadata":  {
+                                          "Vendor":  "NDI",
+                                          "ProductFamily":  "NDI Utilities",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "AVoIP",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "Manual",
+                                          "VersionRule":  "Unknown",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.ndi.video/all/using-ndi/utilities/analysis",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                      "NetworkCaptureTiming",
+                                                                      "AVoIP"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "EXE"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "ndi.video",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
+                                      }
+                     },
+                     {
+                         "Name":  "NDI Remote (discontinued)",
+                         "Id":  "NDI.Remote",
+                         "Note":  "Discontinued NDI remote-contribution service. The service is offline and this quarantined historical record provides no install or download action.",
+                         "Metadata":  {
+                                          "Vendor":  "NDI",
+                                          "ProductFamily":  "NDI Tools",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "AVoIP",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "Unknown",
+                                          "CurrentOrLegacy":  "Discontinued",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.ndi.video/all/using-ndi/ndi-tools/ndi-tools-for-windows/remote-discontinued",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                      "LegacyService",
+                                                                      "AVoIP"
+                                                                  ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued"
+                                                                                  ],
+                                                               "Quarantined":  true,
+                                                               "QuarantineReason":  "The vendor documents NDI Remote as discontinued and its service as offline."
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "ndi.video",
+                                                             "SignatureValidation":  "NotApplicable",
+                                                             "VendorHashAvailability":  "Unavailable",
+                                                             "DownloadStrategy":  "None"
+                                                         }
                                       }
                      }
                  ]

@@ -22,11 +22,11 @@ Do not run `winget import` as a discovery or dry-run command; import installs pa
 Both JSON manifests use the backward-compatible schema 3 metadata model:
 
 - `external-applications.json` contains 25 operational external records with reviewed detection, release, and delivery behavior;
-- `commercial-av-catalog.json` contains 278 broad awareness records that describe commercial AV products without approving an installer path.
+- `commercial-av-catalog.json` contains 281 broad awareness records that describe commercial AV products and built-in Windows capabilities without approving an installer path.
 
 The authoritative broad-awareness sources live in `catalog\vendors\*.json`. Run `build\Compile-CommercialCatalog.ps1` after a source edit; it validates and normalizes every vendor file and rewrites the tracked runtime artifact. Release builds use `-Check` and fail on drift. AV Workstation Toolkit embeds only `commercial-av-catalog.json` and never loads the loose vendor files at runtime.
 
-Schema 3 validates vendor, application type, priority, role, deployment class, maintenance and version policy, lifecycle, licensing, download access and difficulty, account/training/license requirements, driver/service/listener/firmware impact, platform, official HTTPS sources, and validation method. Missing uncertain facts normalize to explicit unknown values rather than guesses. Licensing and download access remain separate dimensions.
+Schema 3 validates vendor, application type, priority, role, deployment class, maintenance and version policy, lifecycle, licensing, download access and difficulty, distribution policy, workflow categories, installation forms, metadata verification/provenance, account/training/license requirements, driver/service/listener/firmware impact, platform, official HTTPS sources, and validation method. Missing uncertain facts normalize to explicit unknown values rather than guesses. Licensing, access, and redistribution policy remain separate dimensions.
 
 Every external entry is forced to manual deployment and maintenance hold and is excluded from the WinGet action worker. Delivery modes are:
 

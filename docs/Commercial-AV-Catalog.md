@@ -23,10 +23,10 @@ No earlier state grants a later one. In particular, a catalog record is not an a
 |---|---|---:|---|
 | `scripts/AppProfiles.psd1` | Exact-ID, approved WinGet applications | 29 | Yes, subject to profile, risk, hold, reboot, and live-state checks |
 | `manifests/external-applications.json` | Operational external detection and reviewed provider behavior | 25 | Never |
-| `catalog/vendors/*.json` | Authoritative, reviewable per-manufacturer awareness sources | 278 | Never |
-| `manifests/commercial-av-catalog.json` | Deterministically compiled and embedded commercial AV awareness artifact | 278 | Never |
+| `catalog/vendors/*.json` | Authoritative, reviewable per-manufacturer awareness sources | 281 | Never |
+| `manifests/commercial-av-catalog.json` | Deterministically compiled and embedded commercial AV awareness artifact | 281 | Never |
 
-The combined catalog has 332 unique records. Seven operational records are independently detectable Crestron child applications delivered through one shared secure parent provider.
+The combined catalog has 335 unique records. Seven operational records are independently detectable Crestron child applications delivered through one shared secure parent provider.
 
 `external-applications.json` remains the small operational boundary. The vendor sources can grow broadly without increasing the automatic execution surface; only the validated compiled artifact is embedded at runtime.
 
@@ -54,11 +54,13 @@ The model groups related facts rather than flattening every possibility into unc
 |---|---|
 | Identity and role | `Vendor`, `ProductFamily`, `ApplicationType`, `Priority`, `Roles`, existing `Profile` |
 | Deployment policy | `DeploymentClass`, `MaintenancePolicy`, existing provider and hold fields |
-| Version policy | `KnownVersion`, `VersionRule`, `VersionCoupling`, `CurrentOrLegacy`, registry detection patterns |
+| Version policy | `KnownVersion`, `Release.Channel`, `VersionRule`, `VersionCoupling`, `CurrentOrLegacy`, registry detection patterns |
 | Commercial terms | `LicensingModel`, `RequiresLicense`, `RequiresSubscription` |
 | Access | `DownloadAccess`, `DownloadDifficulty`, `RequiresVendorAccount`, `RequiresDealerAccount`, `RequiresTraining` |
+| Distribution and form | `DistributionPolicy`, `InstallationForms` |
+| Workflow | `WorkflowCategories` |
 | Workstation impact | `InstallsDriver`, `InstallsService`, `OpensListener`, `FirmwareUtility`, `Architecture`, `SupportedOS`, `SideBySideSupported` |
-| Authority and validation | `OfficialProductUri`, `OfficialDownloadUri`, `ValidationMethod`, `Notes` |
+| Authority and validation | `OfficialProductUri`, `OfficialDownloadUri`, `ValidationMethod`, `Verification`, `Provenance`, `Notes` |
 
 Licensing and access are intentionally independent arrays. `FREE` does not imply `PUBLIC-DL`; a free tool may require `ACCOUNT`, `DEALER`, or `TRAINING`, while paid software may expose a public installer.
 
@@ -78,7 +80,30 @@ Lifecycle:
 - `Current`
 - `Legacy`
 - `Transition`
+- `CompatibilityUnverified`
+- `Discontinued`
 - `Unknown`
+
+Distribution policy:
+
+- `LinkOnly`, `VendorDownloadAllowed`, `Redistributable`, `PackageManagerOnly`
+- `ManualInstall`, `ReviewBeforeBundling`, `Unknown`
+
+Installation form:
+
+- `Installed`, `Portable`, `MSI`, `EXE`, `ZIP`, `Store`, `WinGet`
+- `VendorPortal`, `WindowsInbox`, `Web`, `Embedded`
+
+Workflow categories:
+
+- `NetworkCaptureTiming`, `DiscoveryReachability`, `ProtocolSocketTesting`
+- `SerialConsole`, `RemoteFileTransfer`, `UsbConferencing`, `VideoEdidSignal`
+- `AudioMeasurementAoIP`, `AVoIP`, `WindowsDiagnostics`, `FilesFirmwareComparison`
+- `ControlApis`, `ManufacturerPack`, `LegacyService`
+
+`Verification.VerifiedOn` uses `yyyy-MM-dd`. At less than 60 days it normalizes to `Current`; from 60 through 180 days it becomes `ReviewSoon`; after 180 days, or when no evidence date exists, it becomes `VerificationRequired`. `Quarantined` overrides age and requires a bounded reason. Review triggers can identify domain, publisher, discontinuation, download-strategy, or signature-policy changes that require human review.
+
+`Provenance` can record an authoritative domain, expected publisher, signature-validation requirement, vendor hash availability, and bounded download strategy. Unknown publisher or hash facts stay unknown. An authoritative domain, when supplied, must contain every official source URI for that record.
 
 Licensing:
 
@@ -97,7 +122,7 @@ Download difficulty:
 
 Application types cover control, DSP, AVoIP, audio networking, RF, measurement, prediction, amplifier management, conferencing, cameras, displays, signage, dvLED, intercom, show control, broadcast video, lighting, field/network/serial/USB/EDID utilities, firmware, development, drivers, services, servers, web applications, embedded software, and legacy support.
 
-The parser rejects unknown enum values, unsupported object keys, duplicate IDs, insecure official URLs, malformed or unbounded regular expressions, and invalid parent references.
+The parser rejects unknown enum values, unsupported object keys, duplicate IDs, insecure official URLs, invalid provenance domains, future or malformed verification dates, reasonless quarantine, malformed or unbounded regular expressions, and invalid parent references.
 
 ## Provider and deployment classes
 
@@ -157,6 +182,11 @@ Find-AVWorkstationToolkitCatalog -Catalog $catalog `
 Find-AVWorkstationToolkitCatalog -Catalog $catalog `
   -CurrentOrLegacy Legacy `
   -SourceUnavailable
+
+# Reviewed packet/timing tools represented as portable or in-box capabilities.
+Find-AVWorkstationToolkitCatalog -Catalog $catalog `
+  -WorkflowCategory NetworkCaptureTiming `
+  -MetadataVerificationState Current
 ```
 
 For installed-only queries, pass the package array from a plan because installation is live state rather than static catalog metadata:
@@ -171,6 +201,8 @@ The desktop app composes text, profile, catalog-policy, manufacturer, and discip
 Roles remain normalized, independently composable metadata. A query can intersect a role such as `FieldService` with any set of manufacturer identities without encoding vendors as roles or disciplines. This is the current domain seam for future role profiles and Field Kits; it does not yet calculate or approve a site-preparation bundle.
 
 `MaintenancePolicy`, `VersionRule`, `VersionCoupling`, `CurrentOrLegacy`, and `SideBySideSupported` remain separate compatibility dimensions. They can later express project- or firmware-specific toolchain requirements, but AV Workstation Toolkit does not create compatibility rules without authoritative evidence.
+
+Workflow metadata is additive and independently filterable; it does not replace manufacturer or discipline identity. This supports future workflow and manufacturer overlays without turning categories into profiles or action permission. The prioritized unresolved research is maintained in [Workstation-Research-Backlog.md](Workstation-Research-Backlog.md).
 
 ## Source policy
 

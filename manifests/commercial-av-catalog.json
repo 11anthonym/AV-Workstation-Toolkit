@@ -8033,7 +8033,29 @@
                                           "OfficialProductUri":  "https://learn.microsoft.com/windows-hardware/drivers/debugger/usbview",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                     "UsbConferencing",
+                                                                     "WindowsDiagnostics"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "Installed"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "microsoft.com",
+                                                             "SignatureValidation":  "NotApplicable",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      },
                      {
@@ -8080,7 +8102,94 @@
                                           "OfficialProductUri":  "https://learn.microsoft.com/sysinternals/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                     "WindowsDiagnostics",
+                                                                     "NetworkCaptureTiming",
+                                                                     "DiscoveryReachability"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "ZIP",
+                                                                    "Store",
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "microsoft.com",
+                                                             "SignatureValidation":  "Required",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
+                                      }
+                     },
+                     {
+                         "Name":  "Windows Packet Monitor (Pktmon)",
+                         "Id":  "Microsoft.Pktmon",
+                         "Note":  "In-box Windows network diagnostic for packet capture, filtering, counters, and drop detection. No installer is needed; capture is an explicit operator-authorized workflow and AV Workstation Toolkit does not execute Pktmon.",
+                         "Metadata":  {
+                                          "Vendor":  "Microsoft",
+                                          "ProductFamily":  "Windows",
+                                          "ApplicationType":  [
+                                                                  "NetworkUtility",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "NetworkEngineering",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "WebManaged",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "EASY",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "Server"
+                                                          ],
+                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-server/networking/technologies/pktmon/pktmon",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                     "NetworkCaptureTiming",
+                                                                     "WindowsDiagnostics"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "WindowsInbox"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "microsoft.com",
+                                                             "SignatureValidation":  "NotApplicable",
+                                                             "VendorHashAvailability":  "Unavailable",
+                                                             "DownloadStrategy":  "None"
+                                                         }
                                       }
                      },
                      {
@@ -8186,7 +8295,32 @@
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                     "ProtocolSocketTesting",
+                                                                     "DiscoveryReachability"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "EXE",
+                                                                    "Portable",
+                                                                    "WinGet"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "packetsender.com",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      },
                      {
@@ -8194,7 +8328,7 @@
                          "Name":  "NDI Tools",
                          "Id":  "NDI.NDITools",
                          "KnownVersion":  "6.3.2",
-                         "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. Some components expose sources, listeners, or services; commercial-use terms require vendor review.",
+                         "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. NDI Analysis is a separate utility and NDI Remote has been discontinued. Some suite components expose sources, listeners, or services; commercial-use terms require vendor review.",
                          "Detection":  {
                                            "RegistryDisplayNamePattern":  "^NDI(?: \\d+)? Tools(?:\\s|$)",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
@@ -8243,7 +8377,154 @@
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                     "NetworkCaptureTiming",
+                                                                     "AVoIP"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "EXE"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "ndi.video",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
+                                      }
+                     },
+                     {
+                         "Profile":  "Field",
+                         "Name":  "NDI Analysis",
+                         "Id":  "NDI.Analysis",
+                         "Note":  "Separate Windows command-line utility for NDI network analysis and statistics. It is not included in the standard NDI Tools launcher and remains a non-executable awareness record.",
+                         "Metadata":  {
+                                          "Vendor":  "NDI",
+                                          "ProductFamily":  "NDI Utilities",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "AVoIP",
+                                                                  "NetworkUtility"
+                                                              ],
+                                          "Priority":  "P1",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering",
+                                                        "FieldService",
+                                                        "Commissioning"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "Manual",
+                                          "VersionRule":  "Unknown",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "FREE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "PUBLIC-PAGE"
+                                                             ],
+                                          "DownloadDifficulty":  "MODERATE",
+                                          "Architecture":  [
+                                                               "x64"
+                                                           ],
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.ndi.video/all/using-ndi/utilities/analysis",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                     "NetworkCaptureTiming",
+                                                                     "AVoIP"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "EXE"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "ndi.video",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
+                                      }
+                     },
+                     {
+                         "Name":  "NDI Remote (discontinued)",
+                         "Id":  "NDI.Remote",
+                         "Note":  "Discontinued NDI remote-contribution service. The service is offline and this quarantined historical record provides no install or download action.",
+                         "Metadata":  {
+                                          "Vendor":  "NDI",
+                                          "ProductFamily":  "NDI Tools",
+                                          "ApplicationType":  [
+                                                                  "BroadcastVideo",
+                                                                  "AVoIP",
+                                                                  "LegacySupport"
+                                                              ],
+                                          "Priority":  "P2",
+                                          "Roles":  [
+                                                        "BroadcastVideo",
+                                                        "NetworkEngineering"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "NotApplicable",
+                                          "VersionRule":  "Unknown",
+                                          "CurrentOrLegacy":  "Discontinued",
+                                          "LicensingModel":  [
+                                                                 "UNKNOWN-COST"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "NO-DL"
+                                                             ],
+                                          "DownloadDifficulty":  "HARD",
+                                          "SupportedOS":  [
+                                                              "Windows",
+                                                              "macOS"
+                                                          ],
+                                          "OfficialProductUri":  "https://docs.ndi.video/all/using-ndi/ndi-tools/ndi-tools-for-windows/remote-discontinued",
+                                          "ValidationMethod":  [
+                                                                   "WebPresence"
+                                                               ],
+                                          "DistributionPolicy":  "LinkOnly",
+                                          "WorkflowCategories":  [
+                                                                     "LegacyService",
+                                                                     "AVoIP"
+                                                                 ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "ProductDiscontinued"
+                                                                                  ],
+                                                               "Quarantined":  true,
+                                                               "QuarantineReason":  "The vendor documents NDI Remote as discontinued and its service as offline."
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "ndi.video",
+                                                             "SignatureValidation":  "NotApplicable",
+                                                             "VendorHashAvailability":  "Unavailable",
+                                                             "DownloadStrategy":  "None"
+                                                         }
                                       }
                      },
                      {
@@ -8285,7 +8566,31 @@
                                           "OfficialProductUri":  "https://www.netgear.com/business/management/engage-software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                     "AVoIP",
+                                                                     "DiscoveryReachability",
+                                                                     "FilesFirmwareComparison"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "netgear.com",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      },
                      {
@@ -11220,7 +11525,7 @@
                          "Profile":  "Field",
                          "Name":  "Tera Term",
                          "Id":  "TeraTermProject.TeraTerm",
-                         "KnownVersion":  "5.6.1",
+                         "KnownVersion":  "5.6.2",
                          "Note":  "Free terminal emulator supporting serial, Telnet, SSH, file transfer, and scripting. Portable and installer builds are available from the signed project release page.",
                          "Detection":  {
                                            "RegistryDisplayNamePattern":  "^Tera Term(?:\\s|$)",
@@ -11267,7 +11572,31 @@
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                     "SerialConsole",
+                                                                     "RemoteFileTransfer"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "EXE",
+                                                                    "ZIP",
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Available",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      },
                      {
@@ -11327,6 +11656,7 @@
                          "Profile":  "Field",
                          "Name":  "USB Device Tree Viewer",
                          "Id":  "UweSieber.UsbTreeView",
+                         "KnownVersion":  "4.7.4",
                          "Note":  "Free portable USB topology and descriptor diagnostic utility with x64, x86, and Arm64 builds; because it is portable, absence from uninstall registry is not evidence of absence.",
                          "Metadata":  {
                                           "Vendor":  "Uwe Sieber",
@@ -11364,7 +11694,30 @@
                                           "OfficialProductUri":  "https://www.uwe-sieber.de/usbtreeview_e.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                     "UsbConferencing",
+                                                                     "WindowsDiagnostics"
+                                                                 ],
+                                          "InstallationForms":  [
+                                                                    "ZIP",
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "uwe-sieber.de",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      },
                      {

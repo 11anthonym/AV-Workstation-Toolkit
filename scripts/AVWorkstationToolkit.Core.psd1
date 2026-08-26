@@ -16,6 +16,7 @@
         'Get-AVWorkstationToolkitCatalogVendors',
         'Resolve-AVWorkstationToolkitCatalogVendorSelection',
         'Test-AVWorkstationToolkitCatalogFilter',
+        'Get-AVWorkstationToolkitMetadataVerificationState',
         'ConvertFrom-AVWorkstationToolkitExternalCatalogJson',
         'Compare-AVWorkstationToolkitVersion',
         'Get-AVWorkstationToolkitExternalInventory',

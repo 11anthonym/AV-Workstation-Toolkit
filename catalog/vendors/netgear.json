@@ -41,7 +41,31 @@
                                           "OfficialProductUri":  "https://www.netgear.com/business/management/engage-software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
-                                                               ]
+                                                               ],
+                                          "DistributionPolicy":  "ReviewBeforeBundling",
+                                          "WorkflowCategories":  [
+                                                                      "AVoIP",
+                                                                      "DiscoveryReachability",
+                                                                      "FilesFirmwareComparison"
+                                                                  ],
+                                          "InstallationForms":  [
+                                                                    "Portable"
+                                                                ],
+                                          "Verification":  {
+                                                               "VerifiedOn":  "2026-08-25",
+                                                               "ReviewTriggers":  [
+                                                                                      "DomainChange",
+                                                                                      "PublisherChange",
+                                                                                      "DownloadStrategyChange"
+                                                                                  ],
+                                                               "Quarantined":  false
+                                                           },
+                                          "Provenance":  {
+                                                             "AuthoritativeDomain":  "netgear.com",
+                                                             "SignatureValidation":  "Unknown",
+                                                             "VendorHashAvailability":  "Unknown",
+                                                             "DownloadStrategy":  "VendorPage"
+                                                         }
                                       }
                      }
                  ]
