@@ -1818,6 +1818,7 @@ if (-not $CoreOnly) {
             Assert-True $packageGrid.Columns[7].Width.IsStar 'Purpose column does not adapt to wide viewports.'
             Assert-True (-not $packageGrid.Columns[0].CanUserSort -and -not $packageGrid.Columns[7].CanUserSort) 'Selection or purpose/restriction column allows sorting.'
             Assert-True $packageGrid.Columns[0].IsReadOnly 'Selection column still enters DataGrid edit mode before its checkbox can respond.'
+            Assert-Equal '0,0,0,0' ([string]$packageGrid.Columns[0].CellStyle.Setters[0].Value) 'Selection cell padding reduces the checkbox hit target.'
             $selectionTemplate = $packageGrid.Columns[0].CellTemplate
             $selectionCheckbox = [Windows.Controls.CheckBox]$selectionTemplate.LoadContent()
             $selectableItem = [pscustomobject]@{ Selected=$false; CanSelect=$true; SelectionHint='Select this managed application for installation.' }
@@ -1825,12 +1826,20 @@ if (-not $CoreOnly) {
             $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
             [void]$selectionCheckbox.ApplyTemplate()
             Assert-True $selectionCheckbox.IsEnabled 'Actionable application checkbox did not become enabled.'
+            Assert-True $selectionCheckbox.GetBindingExpression([Windows.Controls.Primitives.ToggleButton]::IsCheckedProperty).ParentBinding.NotifyOnSourceUpdated 'Selection binding does not distinguish user changes from target refreshes.'
+            $sourceUpdateState = [pscustomobject]@{ Count=0 }
+            $selectionCheckbox.AddHandler([Windows.Data.Binding]::SourceUpdatedEvent,[System.EventHandler[Windows.Data.DataTransferEventArgs]]{
+                param($sourceUpdatedSender,$sourceUpdatedEventArgs)
+                $sourceUpdateState.Count++
+            }.GetNewClosure(),$true)
             $selectionPeer = [Windows.Automation.Peers.CheckBoxAutomationPeer]::new($selectionCheckbox)
             $toggleProvider = $selectionPeer.GetPattern([Windows.Automation.Peers.PatternInterface]::Toggle)
             Assert-True ($null -ne $toggleProvider) 'Selection checkbox does not expose a standard toggle interaction.'
+            Assert-True ($selectionCheckbox.MinWidth -ge 32 -and $selectionCheckbox.MinHeight -ge 40) 'Selection checkbox does not expose a full-cell pointer target.'
             $toggleProvider.Toggle()
             $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
             Assert-True ([bool]$selectionCheckbox.IsChecked) 'Selection checkbox does not accept a standard toggle interaction.'
+            Assert-True ([bool]$selectableItem.Selected -and $sourceUpdateState.Count -eq 1) 'Selection checkbox toggle did not produce one model-source update.'
             $disabledItem = [pscustomobject]@{ Selected=$false; CanSelect=$false; SelectionHint='Selection is unavailable.' }
             $selectionCheckbox.DataContext = $disabledItem
             $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
@@ -1843,7 +1852,7 @@ if (-not $CoreOnly) {
             Assert-True ($uiSource -match 'MetadataVerificationState' -and $uiSource -match 'DistributionPolicy' -and $uiSource -match 'WorkflowCategories') 'Read-only catalog detail omits verification, distribution, or workflow metadata.'
             Assert-True ($uiSource -match 'Show-AVWorkstationToolkitDiagnostics' -and $uiSource -match 'Copy diagnostics' -and $uiSource -match 'Export diagnostics') 'Read-only diagnostics actions are missing.'
             $xamlSource = Get-Content -LiteralPath $xamlPath -Raw
-            Assert-True ($xamlSource -match 'Grid Background="\{TemplateBinding Background\}"' -and $xamlSource -match 'HorizontalAlignment="Stretch" VerticalAlignment="Stretch"' -and $xamlSource -match 'ToolTipService.ShowOnDisabled="True"') 'Checkbox hit target or disabled-state explanation regressed.'
+            Assert-True ($xamlSource -match 'Grid Background="\{TemplateBinding Background\}"' -and $xamlSource -match 'x:Key="GridSelectionCheckBox"' -and $xamlSource -match 'Property="MinWidth" Value="32"' -and $xamlSource -match 'Property="MinHeight" Value="40"' -and $xamlSource -match 'ToolTipService.ShowOnDisabled="True"') 'Checkbox hit target or disabled-state explanation regressed.'
             Assert-True ($xamlSource -match 'Content="\{TemplateBinding SelectionBoxItem\}"' -and $xamlSource -match '<Style TargetType="ComboBox">[\s\S]+?<Setter Property="Foreground" Value="#E8EEF8"') 'ComboBox template does not render its selected value with the dark-theme foreground.'
             Assert-True ($xamlSource -notmatch 'Safety boundary') 'Verbose safety policy remains in the primary sidebar.'
             Assert-True ($uiSource -match 'function Show-AVWorkstationToolkitSafetySecurity' -and $uiSource -match "Title = 'Safety & Security - AV Workstation Toolkit'") 'Safety and security content is not available from a read-only surface.'
@@ -1857,7 +1866,8 @@ if (-not $CoreOnly) {
                 $uiSource -match "AllAppsButton\.Add_Click\(\{ Set-AVWorkstationToolkitQuickView -View All \}\)" -and
                 $uiSource -match 'Clear-AVWorkstationToolkitSelection') 'Composable quick views or independent selection clearing are missing.'
             Assert-True ($uiSource -match 'function Apply-AVWorkstationToolkitSort' -and $uiSource -match 'PackageGrid\.Add_Sorting' -and $uiSource -match 'SortDirection') 'Persistent sort handling or visible sort direction is missing.'
-            Assert-True ($uiSource -match 'function Sync-AVWorkstationToolkitSelectionFromToggle' -and $uiSource -match 'CheckedEvent.+?Sync-AVWorkstationToolkitSelectionFromToggle' -and $uiSource -match 'UncheckedEvent.+?Sync-AVWorkstationToolkitSelectionFromToggle') 'Grid checkbox events do not synchronize with the PowerShell-backed selection model.'
+            Assert-True ($uiSource -match 'function Sync-AVWorkstationToolkitSelectionFromToggle' -and $uiSource -match 'Binding\]::SourceUpdatedEvent.+?Sync-AVWorkstationToolkitSelectionFromToggle') 'Grid checkbox source updates do not synchronize with the PowerShell-backed selection model.'
+            Assert-True ($uiSource -notmatch 'PackageGrid\.AddHandler\([^\r\n]+?(CheckedEvent|UncheckedEvent)') 'Grid selection still reacts to binding-driven Checked/Unchecked events.'
             $coreSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psm1') -Raw
             Assert-True ($coreSource -match '\(''Version: \{0\}'' -f \$Diagnostics\.WinGet\.Version\)' -and $coreSource -match '\(''Launcher runtime: \{0\}''') 'WinGet or launcher runtime information is missing from Diagnostics.'
             Assert-True ($xamlSource -match 'Content="Check again"' -and $uiSource -match [regex]::Escape('Restart recommended. Windows is waiting for a restart to finish an update. You can still install most apps, but some system-level changes are paused until you restart.')) 'Pending-reboot guidance is not plain language.'

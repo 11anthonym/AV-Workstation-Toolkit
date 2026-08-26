@@ -1671,8 +1671,10 @@ $controls.CancelButton.Add_Click({
         $controls.CancelButton.IsEnabled = $false
     }
 })
-$controls.PackageGrid.AddHandler([Windows.Controls.Primitives.ToggleButton]::CheckedEvent,[Windows.RoutedEventHandler]{ param($toggleSender,$toggleEventArgs) Sync-AVWorkstationToolkitSelectionFromToggle -ToggleEventArgs $toggleEventArgs })
-$controls.PackageGrid.AddHandler([Windows.Controls.Primitives.ToggleButton]::UncheckedEvent,[Windows.RoutedEventHandler]{ param($toggleSender,$toggleEventArgs) Sync-AVWorkstationToolkitSelectionFromToggle -ToggleEventArgs $toggleEventArgs })
+# SourceUpdated is raised only when an intentional mouse, keyboard, or UI
+# Automation toggle writes through the TwoWay binding. WPF cell creation,
+# recycling, filtering, and target refreshes must not rewrite the model.
+$controls.PackageGrid.AddHandler([Windows.Data.Binding]::SourceUpdatedEvent,[System.EventHandler[Windows.Data.DataTransferEventArgs]]{ param($toggleSender,$toggleEventArgs) Sync-AVWorkstationToolkitSelectionFromToggle -ToggleEventArgs $toggleEventArgs },$true)
 $controls.PackageGrid.Add_SelectionChanged({ Update-DeliveryState })
 $controls.PackageGrid.Add_MouseDoubleClick({ if ($null -ne $controls.PackageGrid.SelectedItem) { Show-AVWorkstationToolkitCatalogDetail } })
 $controls.PackageGrid.Add_SizeChanged({ Update-AVWorkstationToolkitGridLayout })

@@ -104,6 +104,18 @@
                 <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger>
             </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
+        <Style x:Key="GridSelectionCheckBox" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="Margin" Value="0"/><Setter Property="MinWidth" Value="32"/><Setter Property="MinHeight" Value="40"/><Setter Property="HorizontalAlignment" Value="Stretch"/><Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox"><Grid Background="Transparent" SnapsToDevicePixels="True">
+                <Border x:Name="CheckChrome" Width="17" Height="17" Background="#0C1423" BorderBrush="#526783" BorderThickness="1" CornerRadius="3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Path x:Name="CheckMark" Data="M 3 7 L 6 10 L 12 4" Stroke="#FFFFFF" StrokeThickness="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid><ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True"><Setter TargetName="CheckChrome" Property="Background" Value="#2563EB"/><Setter TargetName="CheckChrome" Property="BorderBrush" Value="#69A6FF"/><Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/></Trigger>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CheckChrome" Property="BorderBrush" Value="#8AB7F4"/></Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="CheckChrome" Property="BorderBrush" Value="#FFFFFF"/></Trigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+            </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
         <Style TargetType="Thumb"><Setter Property="Background" Value="#526783"/><Setter Property="MinWidth" Value="8"/><Setter Property="MinHeight" Value="8"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Thumb"><Border x:Name="ThumbChrome" Background="{TemplateBinding Background}" CornerRadius="4" Margin="2"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbChrome" Property="Background" Value="#7890AE"/></Trigger><Trigger Property="IsDragging" Value="True"><Setter TargetName="ThumbChrome" Property="Background" Value="#69A6FF"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
         <Style TargetType="ScrollBar">
             <Setter Property="Background" Value="#0A111E"/><Setter Property="Width" Value="12"/>
@@ -229,7 +241,10 @@
                 </Grid>
                 <DataGrid x:Name="PackageGrid" Grid.Row="1" Margin="0,4,0,14" IsReadOnly="False" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="Application selection table">
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Width="44" MinWidth="44" IsReadOnly="True" CanUserSort="False"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanSelect}" Margin="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Center" ToolTip="{Binding SelectionHint}" ToolTipService.ShowOnDisabled="True" AutomationProperties.Name="Select application" AutomationProperties.HelpText="{Binding SelectionHint}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                        <DataGridTemplateColumn Width="44" MinWidth="44" IsReadOnly="True" CanUserSort="False">
+                            <DataGridTemplateColumn.CellStyle><Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}"><Setter Property="Padding" Value="0"/></Style></DataGridTemplateColumn.CellStyle>
+                            <DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox Style="{StaticResource GridSelectionCheckBox}" IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}" IsEnabled="{Binding CanSelect}" ToolTip="{Binding SelectionHint}" ToolTipService.ShowOnDisabled="True" AutomationProperties.Name="Select application" AutomationProperties.HelpText="{Binding SelectionHint}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Application" SortMemberPath="ApplicationSortKey" Width="1.5*" MinWidth="190" IsReadOnly="True"><DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel VerticalAlignment="Center"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#F1F5FA" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/><TextBlock Text="{Binding Id}" Foreground="#70849D" FontSize="10.5" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Id}"/></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Vendor" SortMemberPath="VendorSortKey" Width="0.9*" MinWidth="95" IsReadOnly="True"><DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Vendor}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Vendor}"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
                         <DataGridTextColumn Header="Priority" SortMemberPath="PrioritySortKey" Binding="{Binding Priority}" Width="68" MinWidth="68" IsReadOnly="True"/>

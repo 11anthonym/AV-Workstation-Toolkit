@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-26 — Checkbox interaction correction
+
+- Made the complete selection cell a consistent pointer target while keeping non-actionable catalog records visibly disabled and non-executable.
+- Replaced binding-driven checked/unchecked synchronization with source-update synchronization, preventing DataGrid cell creation, recycling, filtering, or refresh from rewriting user selections.
+- Added a regression that exercises the standard WPF automation toggle, verifies exactly one model update, and checks the minimum selection target dimensions.
+
 ## 2026-08-25 — Workstation research reconciliation
 
 - Reconciled the external workstation-software report against the actual managed, operational-external, and awareness catalogs; no default profile or managed WinGet authority changed.
