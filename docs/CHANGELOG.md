@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-26 — Cached-installer handoff clarity
+
+- Corrected Explorer's `/select,<path>` argument construction so a verified cached installer is selected instead of Explorer falling back to the repository working directory.
+- Renamed cached vendor handoffs to `Show cached installer` and added contextual tooltip/accessibility text clarifying that the action reveals a validated installer but does not verify the installed application or execute the file.
+- Added a provider-wide delivery matrix covering official links, bounded HTTPS download, authenticated SFTP, bundled files, cached and uncached parent providers, awareness links, and inventory-only records.
+
 ## 2026-08-26 — Checkbox interaction correction
 
 - Made the complete selection cell a consistent pointer target while keeping non-actionable catalog records visibly disabled and non-executable.

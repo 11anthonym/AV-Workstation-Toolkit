@@ -60,6 +60,7 @@ Select an external application row to enable its delivery button:
 - `Download verified package` downloads from an allowlisted HTTPS host into AV Workstation Toolkit's per-user cache, then enables handoff only after version, size, hash, and Authenticode publisher checks pass.
 - `Browse Crestron software` opens the curated Crestron product picker and authenticated SFTP workflow described below.
 - `Show verified package` opens Explorer with a bundled installer selected. AV Workstation Toolkit has already matched the file to the SHA-256 hash and optional Authenticode publisher embedded in the application, but it does not execute the installer.
+- `Show cached installer` reveals the exact previously downloaded and validated vendor installer in Explorer. It does not verify the installed application, reinstall it, or execute the cached file. The button tooltip explains the selected row's handoff before it is opened.
 
 External applications never enter the automated WinGet worker and remain on manual deployment and maintenance holds. The exported plan includes role, lifecycle, licensing, access, account/training requirements, impact, platform, validation method, and official URLs so the handoff can be reviewed outside the UI. If a live operational vendor check is unavailable, AV Workstation Toolkit retains the catalog baseline, reports the check failure in Activity and exported plans, and does not invent a newer version.
 

@@ -377,6 +377,12 @@ function Update-DeliveryState {
         [string]$item.DeliveryLabel
     }
     else { 'Get package' }
+    $deliveryHelp = if ($available -and -not [string]::IsNullOrWhiteSpace([string]$item.DeliveryDetail)) {
+        [string]$item.DeliveryDetail
+    }
+    else { 'Select an external application with an available manual handoff.' }
+    $controls.GetPackageButton.ToolTip = $deliveryHelp
+    [Windows.Automation.AutomationProperties]::SetName($controls.GetPackageButton,([string]$controls.GetPackageButton.Content + '. ' + $deliveryHelp))
 }
 
 function ConvertTo-AVWorkstationToolkitDetailValue {
@@ -1622,7 +1628,7 @@ function Open-AVWorkstationToolkitPackageDelivery {
             return
         }
         Open-AVWorkstationToolkitExplorerPath -Path $path -SelectFile
-        Add-ActivityLine ("Opened the verified package location for {0}; AV Workstation Toolkit did not execute it." -f $item.Name) -Level Success
+        Add-ActivityLine ("Revealed the cached or bundled installer for {0}; AV Workstation Toolkit did not execute it." -f $item.Name) -Level Success
         return
     }
 

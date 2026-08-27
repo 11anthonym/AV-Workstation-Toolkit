@@ -556,6 +556,60 @@ Invoke-Check 'External providers remain manual and use only approved delivery mo
         Assert-Equal $expected @($externalCatalog | Where-Object DeliveryMode -eq $mode).Count "Delivery-mode aggregation differs: $mode"
     }
 }
+Invoke-Check 'External delivery actions stay explicit and bounded across provider modes' {
+    $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-delivery-matrix-{0}' -f [guid]::NewGuid().ToString('N'))
+    try {
+        $payloadDirectory = Join-Path $temporaryRoot 'packages\fixture'
+        New-Item -ItemType Directory -Path $payloadDirectory -Force | Out-Null
+        $payloadPath = Join-Path $payloadDirectory 'installer.exe'
+        'delivery fixture' | Set-Content -LiteralPath $payloadPath -Encoding ASCII
+        $payloadHash = (Get-FileHash -LiteralPath $payloadPath -Algorithm SHA256).Hash
+        $module = Get-Module AVWorkstationToolkit.Core
+        $newPackage = {
+            param($mode)
+            [pscustomobject]@{
+                Provider='External'; Id=('Example.' + $mode); DeliveryMode=$mode
+                DeliveryUri='https://vendor.example/downloads'; OfficialProductUri='https://vendor.example/product'; DeploymentClass='ManualHandoff'
+                DeliveryProviderId='Example.Parent'; DeliveryProductId='137'; PayloadRelativePath='fixture/installer.exe'; PayloadSha256=$payloadHash; PayloadPublisher=''
+                DownloadPublisherPattern='Microsoft Corporation'; DownloadMaxBytes=10MB
+            }
+        }.GetNewClosure()
+        $getDelivery = {
+            param($package,$releaseRecord)
+            & $module {
+                param($deliveryPackage,$deliveryRelease,$distributionRoot,$dataRoot)
+                Get-AVWorkstationToolkitExternalDeliveryState -Package $deliveryPackage -ReleaseRecord $deliveryRelease -AvailableVersion '1.2.3' -DistributionRoot $distributionRoot -DataRoot $dataRoot
+            } $package $releaseRecord $temporaryRoot $temporaryRoot
+        }.GetNewClosure()
+
+        $vendorPage = & $getDelivery (& $newPackage 'VendorPage') $null
+        $bundled = & $getDelivery (& $newPackage 'Bundled') $null
+        $direct = & $getDelivery (& $newPackage 'DirectDownload') ([pscustomobject]@{ DownloadUri='https://vendor.example/installer.exe' })
+        $sftp = & $getDelivery (& $newPackage 'AuthenticatedSftp') $null
+        $parent = & $getDelivery (& $newPackage 'ParentProvider') $null
+        $awareness = & $getDelivery (& $newPackage 'Awareness') $null
+        $inventoryOnly = & $getDelivery (& $newPackage 'InventoryOnly') $null
+
+        Assert-True ($vendorPage.Action -eq 'OpenUri' -and $vendorPage.Uri -eq 'https://vendor.example/downloads') 'Vendor-page delivery is not an explicit HTTPS handoff.'
+        Assert-True ($bundled.Action -eq 'ShowFile' -and $bundled.Path -eq $payloadPath -and $bundled.Label -eq 'Show verified package') 'Bundled delivery is not an exact verified-file handoff.'
+        Assert-True ($direct.Action -eq 'DownloadHttps' -and $direct.Uri -eq 'https://vendor.example/installer.exe') 'Direct delivery is not a bounded download handoff.'
+        Assert-Equal 'AuthenticatedSftp' $sftp.Action 'Authenticated SFTP delivery action differs.'
+        Assert-Equal 'AuthenticatedSftp' $parent.Action 'Uncached parent-provider delivery does not use its authenticated provider.'
+        Assert-True ($awareness.Action -eq 'OpenUri' -and $awareness.Label -eq 'Open official product') 'Awareness delivery gained more than an official-link handoff.'
+        Assert-True ($inventoryOnly.Action -eq 'None' -and -not $inventoryOnly.Available) 'Inventory-only delivery gained an actionable handoff.'
+
+        $allowedActions = @('None','OpenUri','DownloadHttps','AuthenticatedSftp','ShowFile')
+        foreach ($item in @($plan.Packages | Where-Object Provider -eq 'External')) {
+            Assert-Contains $allowedActions $item.DeliveryAction "Plan produced an unknown delivery action: $($item.Id)"
+        }
+        $uiSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
+        foreach ($action in @('DownloadHttps','AuthenticatedSftp','ShowFile','OpenUri')) {
+            Assert-True ($uiSource -match [regex]::Escape("DeliveryAction -eq '$action'") -or $uiSource -match [regex]::Escape("DeliveryAction -ne '$action'")) "Desktop delivery router omits $action."
+        }
+        Assert-True ($uiSource -match 'Open-AVWorkstationToolkitExplorerPath\s+-Path\s+\$path\s+-SelectFile') 'Exact file handoffs do not request Explorer selection.'
+    }
+    finally { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force -ErrorAction SilentlyContinue }
+}
 Invoke-Check 'Awareness-only records never become selectable deployment actions' {
     $awareness = @($plan.Packages | Where-Object DeliveryMode -eq 'Awareness')
     Assert-True ($awareness.Count -gt 200) 'Awareness catalog did not enter the plan.'
@@ -769,6 +823,16 @@ Invoke-Check 'Downloaded vendor installers require a valid publisher and tamper-
         Assert-True ($completed.Valid -and (Test-Path -LiteralPath $completed.Path -PathType Leaf)) 'Signed vendor fixture was not finalized.'
         $cached = Resolve-AVWorkstationToolkitVendorCachePayload -Package $package -Version '1.2.3' -DataRoot $temporaryRoot
         Assert-True ($cached.Valid -and $cached.Path -eq $completed.Path) 'Verified vendor fixture was not resolved from cache.'
+        $package.DeliveryMode = 'ParentProvider'
+        $package | Add-Member -NotePropertyName DeliveryProviderId -NotePropertyValue 'Example.Parent'
+        $package | Add-Member -NotePropertyName DeliveryProductId -NotePropertyValue '137'
+        $delivery = & (Get-Module AVWorkstationToolkit.Core) {
+            param($deliveryPackage,$deliveryRoot)
+            Get-AVWorkstationToolkitExternalDeliveryState -Package $deliveryPackage -AvailableVersion '1.2.3' -DistributionRoot $deliveryRoot -DataRoot $deliveryRoot
+        } $package $temporaryRoot
+        Assert-True ($delivery.Action -eq 'ShowFile' -and $delivery.Path -eq $completed.Path) 'Verified parent-provider cache did not produce an exact file handoff.'
+        Assert-Equal 'Show cached installer' $delivery.Label 'Cached installer handoff is mislabeled as an installed-package verification action.'
+        Assert-True ($delivery.Detail -match 'previously downloaded installer') 'Cached installer handoff does not explain its purpose.'
         Add-Content -LiteralPath $completed.Path -Value 'tamper' -Encoding ASCII
         $tampered = Resolve-AVWorkstationToolkitVendorCachePayload -Package $package -Version '1.2.3' -DataRoot $temporaryRoot
         Assert-True (-not $tampered.Valid) 'Tampered vendor cache payload was accepted.'
@@ -1329,6 +1393,10 @@ Invoke-Check 'Worker launch arguments are deterministic and arbitrary request pa
     $module = Get-Module AVWorkstationToolkit.Core
     $quoted = & $module { ConvertTo-AVWorkstationToolkitProcessArgument -Value 'C:\Program Files\AVWorkstationToolkit\worker.ps1' }
     Assert-Equal '"C:\Program Files\AVWorkstationToolkit\worker.ps1"' $quoted 'Windows process argument quoting differs.'
+    $explorerSelection = & $module { Get-AVWorkstationToolkitExplorerArgumentString -Path 'C:\Program Files\AVWorkstationToolkit\cached installer.exe' -SelectFile }
+    Assert-Equal '/select,"C:\Program Files\AVWorkstationToolkit\cached installer.exe"' $explorerSelection 'Explorer file-selection grammar incorrectly quotes the /select switch.'
+    $explorerDirectory = & $module { Get-AVWorkstationToolkitExplorerArgumentString -Path 'C:\Program Files\AVWorkstationToolkit' }
+    Assert-Equal '"C:\Program Files\AVWorkstationToolkit"' $explorerDirectory 'Explorer directory handoff quoting differs.'
     Assert-Throws { & $module { ConvertTo-AVWorkstationToolkitProcessArgument -Value "bad`r`nargument" } } 'line breaks' 'Line-break process argument was accepted.'
 
     $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-process-policy-{0}' -f [guid]::NewGuid().ToString('N'))
@@ -1851,6 +1919,7 @@ if (-not $CoreOnly) {
             Assert-True ($uiSource -match 'Show-AVWorkstationToolkitCatalogDetail' -and $uiSource -match 'Open-AVWorkstationToolkitOfficialCatalogUri') 'Read-only catalog detail and official-link boundaries are missing.'
             Assert-True ($uiSource -match 'MetadataVerificationState' -and $uiSource -match 'DistributionPolicy' -and $uiSource -match 'WorkflowCategories') 'Read-only catalog detail omits verification, distribution, or workflow metadata.'
             Assert-True ($uiSource -match 'Show-AVWorkstationToolkitDiagnostics' -and $uiSource -match 'Copy diagnostics' -and $uiSource -match 'Export diagnostics') 'Read-only diagnostics actions are missing.'
+            Assert-True ($uiSource -match 'GetPackageButton\.ToolTip\s*=\s*\$deliveryHelp' -and $uiSource -match 'AutomationProperties\]::SetName\(\$controls\.GetPackageButton') 'Dynamic package handoff lacks contextual tooltip or accessibility text.'
             $xamlSource = Get-Content -LiteralPath $xamlPath -Raw
             Assert-True ($xamlSource -match 'Grid Background="\{TemplateBinding Background\}"' -and $xamlSource -match 'x:Key="GridSelectionCheckBox"' -and $xamlSource -match 'Property="MinWidth" Value="32"' -and $xamlSource -match 'Property="MinHeight" Value="40"' -and $xamlSource -match 'ToolTipService.ShowOnDisabled="True"') 'Checkbox hit target or disabled-state explanation regressed.'
             Assert-True ($xamlSource -match 'Content="\{TemplateBinding SelectionBoxItem\}"' -and $xamlSource -match '<Style TargetType="ComboBox">[\s\S]+?<Setter Property="Foreground" Value="#E8EEF8"') 'ComboBox template does not render its selected value with the dark-theme foreground.'

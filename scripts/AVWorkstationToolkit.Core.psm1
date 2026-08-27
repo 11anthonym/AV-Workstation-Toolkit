@@ -2409,14 +2409,15 @@ function Get-AVWorkstationToolkitExternalDeliveryState {
         'DirectDownload' {
             try { $cached = Resolve-AVWorkstationToolkitVendorCachePayload -Package $Package -Version $AvailableVersion -DataRoot $DataRoot }
             catch { $cached = [pscustomobject]@{ Valid=$false; Path=''; Detail=$_.Exception.Message } }
-            $result.Detail = [string]$cached.Detail
             if ($cached.Valid) {
                 $result.Action = 'ShowFile'
                 $result.Available = $true
-                $result.Label = 'Show verified package'
+                $result.Label = 'Show cached installer'
                 $result.Path = [string]$cached.Path
+                $result.Detail = 'Reveal the previously downloaded installer in Explorer. ' + [string]$cached.Detail
             }
             else {
+                $result.Detail = [string]$cached.Detail
                 $observedDownloadUri = if ($null -ne $ReleaseRecord) { [string](Get-AVWorkstationToolkitValue $ReleaseRecord 'DownloadUri' '') } else { '' }
                 if (-not [string]::IsNullOrWhiteSpace($observedDownloadUri)) {
                     $result.Action = 'DownloadHttps'
@@ -2449,9 +2450,9 @@ function Get-AVWorkstationToolkitExternalDeliveryState {
             if ($null -ne $cached -and $cached.Valid) {
                 $result.Action = 'ShowFile'
                 $result.Available = $true
-                $result.Label = 'Show verified package'
+                $result.Label = 'Show cached installer'
                 $result.Path = [string]$cached.Path
-                $result.Detail = [string]$cached.Detail
+                $result.Detail = 'Reveal the previously downloaded installer in Explorer. ' + [string]$cached.Detail
             }
             else {
                 $result.Action = 'AuthenticatedSftp'
@@ -3169,6 +3170,17 @@ function Start-AVWorkstationToolkitDirectProcess {
     return $process
 }
 
+function Get-AVWorkstationToolkitExplorerArgumentString {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [switch]$SelectFile
+    )
+
+    $quotedPath = ConvertTo-AVWorkstationToolkitProcessArgument -Value $Path
+    if ($SelectFile) { return '/select,' + $quotedPath }
+    return $quotedPath
+}
+
 function Open-AVWorkstationToolkitExplorerPath {
     [CmdletBinding()]
     param(
@@ -3179,14 +3191,28 @@ function Open-AVWorkstationToolkitExplorerPath {
     $resolvedPath = [IO.Path]::GetFullPath($Path)
     if ($SelectFile) {
         if (-not (Test-Path -LiteralPath $resolvedPath -PathType Leaf)) { throw "The file to show in Explorer was not found: $resolvedPath" }
-        $arguments = @('/select,' + $resolvedPath)
+        # Explorer uses its own /select,<path> grammar rather than normal argv
+        # tokenization. Keep the switch outside the quoted path so Explorer
+        # selects the file instead of falling back to the current directory.
+        $argumentString = Get-AVWorkstationToolkitExplorerArgumentString -Path $resolvedPath -SelectFile
     }
     else {
         if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) { throw "The directory to open in Explorer was not found: $resolvedPath" }
-        $arguments = @($resolvedPath)
+        $argumentString = Get-AVWorkstationToolkitExplorerArgumentString -Path $resolvedPath
     }
     $explorerPath = [IO.Path]::GetFullPath((Join-Path $env:SystemRoot 'explorer.exe'))
-    $process = Start-AVWorkstationToolkitDirectProcess -FilePath $explorerPath -Arguments $arguments
+    if (-not (Test-Path -LiteralPath $explorerPath -PathType Leaf)) { throw "Windows Explorer was not found: $explorerPath" }
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $explorerPath
+    $startInfo.Arguments = $argumentString
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $false
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    if (-not $process.Start()) {
+        $process.Dispose()
+        throw 'Windows did not open the approved Explorer handoff.'
+    }
     $process.Dispose()
 }
 
