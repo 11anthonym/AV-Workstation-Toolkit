@@ -1,6 +1,6 @@
 # AV Workstation Toolkit 1.1.1 Packaging and Release
 
-AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The release set also includes the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Current release candidates are unsigned and are not yet public artifacts.
+AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The standard release set contains exactly eight assets: those three delivery formats, the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. The checksum list hashes the other seven assets and intentionally does not hash itself. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Current release candidates are unsigned and are not yet public artifacts.
 
 ## Runtime layout
 
@@ -64,7 +64,7 @@ Build-AVWorkstationToolkit.cmd
 
 The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs a non-mutating locked restore, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher target/runtime settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes a trimmed self-contained uncompressed `win-x64` single-file launcher with `--no-restore` and embedded resources, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM with reviewed license/scope metadata, and writes schema-v3 release metadata plus SHA-256 checksums beneath `artifacts\release\1.1.1`.
 
-The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
+The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, Apache-2.0 license, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
 
 The SDK baseline is intentionally `10.0.100` with `rollForward: latestFeature`: a machine with a stable 10.0.303 or 10.0.400 SDK can build, while .NET 11 and prerelease SDKs are not selected. This follows the [.NET `global.json` roll-forward policy](https://learn.microsoft.com/dotnet/core/tools/global-json) and matches CI's stable `10.0.x` installation.
 
@@ -147,6 +147,14 @@ The build requires the selected certificate to be currently valid, carry the cod
 
 The tagged release workflow requires a base64 PFX and password through `AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64` and `AVWORKSTATIONTOOLKIT_SIGNING_PFX_PASSWORD` secrets. During the repository rename only, the historical `AVINITE_SIGNING_PFX_BASE64` and `AVINITE_SIGNING_PFX_PASSWORD` names remain accepted as a CI compatibility fallback because GitHub cannot rename or copy encrypted secrets through a workflow. Configure the canonical names and remove the fallback after the repository settings are migrated. The workflow imports the certificate into an ephemeral CurrentUser store, builds with `-RequireSignature -BuildChannel Production`, runs package QA with `-RequireSignature`, and removes the imported certificate and temporary PFX in an always-run cleanup step. Missing signing secrets fail the tagged release; they never silently produce a public unsigned artifact. Ordinary local and pull-request builds remain explicitly unsigned development builds.
 
+Consequently, the current tag-triggered workflow is not an unsigned first-release
+path: without valid organizational signing secrets it fails before publication.
+If the owner decides that an initial unsigned public artifact is needed to
+establish public project history before a SignPath application, that artifact
+must use a separately reviewed, explicitly release-candidate publication
+procedure. Production mode and the tag-triggered production workflow must not
+be weakened or relabeled to make that possible.
+
 AV Workstation Toolkit is preparing—but has not submitted or been accepted—for
 SignPath Foundation signing. Future hosted signing must sign the exact verified
 EXE, package that returned signed EXE into the MSI, sign the exact MSI, and
@@ -175,10 +183,17 @@ The optional scan uses an existing valid Microsoft-signed `MpCmdRun.exe`, report
 
 ## Release checklist
 
-1. Confirm `main` is clean and protected.
+1. Confirm `main` is clean. While the repository remains private under the
+   current GitHub account capability, branch protection/rulesets are unavailable
+   (`Upgrade to GitHub Pro or make this repository public to enable this
+   feature`). Immediately after making the repository public, configure and
+   verify `main` protection before normal public development continues: require
+   pull-request changes and the existing `core-qa` and `package` checks, and
+   prevent force pushes and branch deletion while retaining an owner recovery
+   path.
 2. Run full source QA and targeted PSScriptAnalyzer with zero findings.
 3. Build from a clean checkout using the pinned toolchain.
 4. Run package QA and inspect the actual UI on an interactive Windows desktop.
 5. Sign with the approved certificate and rerun package QA with `-RequireSignature`.
-6. Publish the standalone EXE, MSI, portable ZIP, third-party notice, CycloneDX SBOM, checksum file, and release manifest together. A `vX.Y.Z` tag runs `.github/workflows/release.yml`, verifies the tag against `VERSION`, rebuilds and retests the artifacts, and creates a new immutable release with all seven standard assets. Existing release assets are never replaced in place; corrected bytes require a new version and tag. Offline bundles are separate controlled-delivery artifacts and are never created or uploaded by hosted CI because third-party payloads are not stored in Git.
+6. Publish the standalone EXE, MSI, portable ZIP, Apache-2.0 license, third-party notice, CycloneDX SBOM, checksum file, and release manifest together. A `vX.Y.Z` tag runs `.github/workflows/release.yml`, verifies the tag against `VERSION`, rebuilds and retests the artifacts, and creates a new immutable release with all eight standard assets. Existing release assets are never replaced in place; corrected bytes require a new version and tag. Offline bundles are separate controlled-delivery artifacts and are never created or uploaded by hosted CI because third-party payloads are not stored in Git.
 7. Preserve CI logs and release provenance; never publish `wixpdb`, PDB, certificate, private-key material, local logs, diagnostics, snapshots, caches, or vendor payloads.

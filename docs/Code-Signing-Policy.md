@@ -20,6 +20,21 @@ Production code signing is a release-security control. Every production
 signing request requires deliberate approval; a successful build, tag, or
 automated test does not itself grant signing authority.
 
+## Current tagged-release boundary
+
+The current `.github/workflows/release.yml` path implements organizational
+Authenticode/PFX signing, not SignPath. A version tag starts a Production build
+that requires the configured PFX secrets, signs and RFC3161-timestamps the EXE
+and MSI, runs signature-required package QA, and publishes only after those
+checks pass. Missing signing secrets fail closed; the workflow cannot silently
+publish an unsigned tagged Production release.
+
+Development and release-candidate builds may remain explicitly unsigned. If an
+initial unsigned public artifact is later needed to establish public project
+history before a SignPath application, the owner must approve a separate,
+clearly labeled release-candidate publication procedure. Production mode must
+not be weakened or described as unsigned to create that path.
+
 ## Planned hosted-signing model
 
 The intended high-level chain is:

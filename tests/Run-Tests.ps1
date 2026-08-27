@@ -1445,6 +1445,34 @@ Invoke-Check 'Clone build entry point and tagged-release workflow publish the st
     Assert-True ($qaWorkflow -match 'actions/upload-artifact@[a-f0-9]{40}' -and $qaWorkflow -notmatch 'uses:\s*actions/[^@]+@v\d+') 'QA workflow actions are not pinned to immutable commits.'
     Assert-True ($qaWorkflow -match 'persist-credentials:\s*false') 'QA checkout retains an unnecessary repository credential.'
 }
+Invoke-Check 'Tagged workflow and release documentation agree on eight standard assets' {
+    $workflowPath = Join-Path $repositoryRoot '.github\workflows\release.yml'
+    $workflow = Get-Content -LiteralPath $workflowPath -Raw
+    $assetBlock = [regex]::Match($workflow,'(?s)\$assets\s*=\s*@\((?<Body>.*?)\r?\n\s*\)\r?\n\s*foreach')
+    Assert-True $assetBlock.Success 'Tagged workflow release asset block was not found.'
+    $actualAssets = @([regex]::Matches($assetBlock.Groups['Body'].Value,'"(?<Name>AV-Workstation-Toolkit-\$version-[^"]+)"') |
+        ForEach-Object { $_.Groups['Name'].Value })
+    $expectedAssets = @(
+        'AV-Workstation-Toolkit-$version-win-x64.exe',
+        'AV-Workstation-Toolkit-$version-x64.msi',
+        'AV-Workstation-Toolkit-$version-win-x64.zip',
+        'AV-Workstation-Toolkit-$version-LICENSE.txt',
+        'AV-Workstation-Toolkit-$version-THIRD-PARTY-NOTICES.md',
+        'AV-Workstation-Toolkit-$version-SHA256SUMS.txt',
+        'AV-Workstation-Toolkit-$version-release.json',
+        'AV-Workstation-Toolkit-$version-sbom.cdx.json'
+    )
+    Assert-Equal ($expectedAssets -join '|') ($actualAssets -join '|') 'Tagged workflow standard release asset set differs.'
+
+    foreach ($relativePath in @(
+        'README.md','docs\Packaging-and-Release.md','docs\Endpoint-Security-Behavior.md',
+        'docs\SignPath-Readiness.md','docs\AV-Workstation-Toolkit-QA-Report.md'
+    )) {
+        $document = Get-Content -LiteralPath (Join-Path $repositoryRoot $relativePath) -Raw
+        Assert-True ($document -match '(?i)(?:exactly|all) eight (?:standard )?assets') "$relativePath does not state the eight-asset release boundary."
+        Assert-True ($document -notmatch '(?i)(?:exactly|all) seven standard assets') "$relativePath retains the stale seven-asset release count."
+    }
+}
 Invoke-Check 'Release dependency graph is locked' {
     $project = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
     $lockPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\packages.lock.json'
@@ -1775,7 +1803,7 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
         'Project: AV Workstation Toolkit','https://github.com/11anthonym/AV-Workstation-Toolkit',
         'Current executable: `AVWorkstationToolkit.exe`','Release EXE pattern: `AV-Workstation-Toolkit-<version>-win-x64.exe`',
         'MSI pattern: `AV-Workstation-Toolkit-<version>-x64.msi`','ZIP pattern: `AV-Workstation-Toolkit-<version>-win-x64.zip`',
-        'Build command: `Build-AVWorkstationToolkit.cmd`','Repository state during this review: local only; no remote configured'
+        'Build command: `Build-AVWorkstationToolkit.cmd`','Repository state during this review: private GitHub repository with canonical'
     )) {
         Assert-True ($readiness.Contains($fact)) "SignPath readiness identity differs: $fact"
     }
@@ -1796,11 +1824,24 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
     $checklistMatches = [regex]::Matches($readiness,'(?m)^- \[(?<Mark>[ xX])\] (?<Label>.+)$')
     Assert-Equal ($expectedChecklist -join '|') (@($checklistMatches | ForEach-Object { $_.Groups['Label'].Value.Trim() }) -join '|') 'SignPath human checklist differs from the required readiness gates.'
     $completedLabels = @($checklistMatches | Where-Object { $_.Groups['Mark'].Value -match '[xX]' } | ForEach-Object { $_.Groups['Label'].Value.Trim() })
-    Assert-Equal 'OSI-approved open-source license selected' ($completedLabels -join '|') 'Only independently verified SignPath-readiness gates may be marked complete before the fresh root commit.'
+    Assert-Equal 'OSI-approved open-source license selected|Root LICENSE committed' ($completedLabels -join '|') 'SignPath readiness marks an unverified gate complete or omits the committed project license.'
     $signPathWorkflows = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot '.github\workflows') -File | Where-Object {
         $_.Name -match '(?i)signpath' -or (Get-Content -LiteralPath $_.FullName -Raw) -match '(?i)signpath'
     })
     Assert-Equal 0 $signPathWorkflows.Count 'A placeholder or unverified SignPath workflow was added.'
+}
+Invoke-Check 'Defender investigation keeps historical and current specimens distinct' {
+    $path = Join-Path $repositoryRoot 'docs\Defender-False-Positive-Investigation.md'
+    Assert-True (Test-Path -LiteralPath $path -PathType Leaf) 'Maintained Defender investigation is missing.'
+    $document = Get-Content -LiteralPath $path -Raw
+    $historicalHash = '47DF422857F9A7B92902469ABB841E6E7942DD2978C0998548C00F7419AD95A8'
+    $currentHash = 'A95321BE3C193C1CC67B1BC0C635CEDAD07D9DB9C3E61ADB80042589FDF5E7C5'
+    Assert-True ($document.Contains($historicalHash) -and $document.Contains($currentHash) -and $historicalHash -ne $currentHash) 'Defender investigation omits or conflates specimen hashes.'
+    Assert-True ($document -match 'Trojan:Win32/Bearfoos\.A!ml' -and
+        $document -match 'Submission status\s+not independently verified during this repository pass' -and
+        $document -match 'does\s+not reproduce or disprove the historical classification') 'Defender investigation overstates the historical classification or submission status.'
+    Assert-True ($document -match 'no exclusions, policy changes, quarantine restoration, execution,\s+or evasion work' -and
+        $document -match 'No application or build change is justified solely by the historical alert') 'Defender investigation does not preserve the non-evasion boundary.'
 }
 Invoke-Check 'Publication documentation is present and relative links resolve' {
     $rootMarkdown = @(Get-ChildItem -LiteralPath $repositoryRoot -File | Where-Object Extension -eq '.md')

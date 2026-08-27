@@ -4,9 +4,9 @@ This document describes the process, file, registry, credential, network, and el
 
 AV Workstation Toolkit is a local-only, standard-user commercial-AV workstation manager. It has no HTTP command listener, service, scheduled task, telemetry endpoint, generic command runner, uninstall path, or mechanism for disabling endpoint protection. Knowledge in the commercial catalog does not grant download or execution authority.
 
-The repository remains private while publication readiness is reviewed. No
-open-source license has been selected, no public release under the current
-identity has been approved, and current development/release-candidate
+The repository remains private while publication readiness is reviewed. The
+project is licensed under [Apache-2.0](../LICENSE), no public release under the
+current identity has been approved, and current development/release-candidate
 artifacts are not signed by SignPath Foundation. These are release-governance
 facts, not changes to the runtime safety model. See the project
 [privacy policy](../PRIVACY.md), [security policy](../SECURITY.md),
@@ -116,9 +116,11 @@ Unsigned development builds are identified as such. A production-channel build r
 
 ## Release distribution boundary
 
-The normal release set contains the standalone EXE, MSI, one-file portable
-ZIP, versioned third-party notices, CycloneDX SBOM, release manifest, and a
-SHA-256 checksum list covering every preceding file. The manifest records the
+The normal release set contains exactly eight assets: the standalone EXE, MSI,
+one-file portable ZIP, versioned Apache-2.0 project license, versioned
+third-party notices, CycloneDX SBOM, release manifest, and SHA-256 checksum
+list. The checksum list covers the other seven assets and intentionally does
+not hash itself. The manifest records the
 source commit, dirty-tree state, selected SDK, actual .NET runtime/apphost,
 dependency-audit result, artifact hashes, and explicit signature/timestamp
 state. The tagged release workflow refuses to replace existing release assets
@@ -136,6 +138,11 @@ username, or developer path is written to release metadata.
 ## SmartScreen, EDR, and false positives
 
 Authenticode signing does not guarantee zero Microsoft SmartScreen, Defender, CrowdStrike, application-control, or EDR warnings. Reputation and organizational policy are external to AV Workstation Toolkit; a new certificate or binary can initially have limited reputation. Deterministic, timestamped, consistently identified releases help establish a trustworthy publisher history, but a security team can still block a legitimate artifact under local policy.
+
+The maintained [Defender false-positive investigation](Defender-False-Positive-Investigation.md)
+separates the exact historical detection from later rebuilt artifacts. A clean
+scan of different bytes is useful current evidence, but it neither reproduces
+nor disproves the historical classification.
 
 For a suspected false positive, a release operator should:
 

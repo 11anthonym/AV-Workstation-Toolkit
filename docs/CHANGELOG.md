@@ -1,5 +1,23 @@
 # Change Log
 
+## 2026-08-26 — Release-readiness and endpoint-trust reconciliation
+
+- Reconciled current private-GitHub, Apache-2.0, CI, branch-protection, release,
+  and SignPath readiness statements without changing runtime behavior or making
+  the repository public.
+- Derived the tagged workflow's exact eight standard assets, documented that the
+  checksum list covers the other seven but not itself, and added regression
+  coverage against workflow/documentation drift.
+- Documented that tagged Production publication fails closed without the
+  existing organizational Authenticode/PFX secrets; any future unsigned first
+  public artifact requires a separately reviewed release-candidate procedure,
+  not weakened Production policy.
+- Recorded the exact historical unsigned Defender
+  `Trojan:Win32/Bearfoos.A!ml` specimen separately from a different-hash current
+  development artifact that passed a supported Defender custom scan. No
+  exclusion, policy change, quarantine restoration, evasion technique, or
+  application behavior change was introduced.
+
 ## 2026-08-26 — Cached-installer handoff clarity
 
 - Corrected Explorer's `/select,<path>` argument construction so a verified cached installer is selected instead of Explorer falling back to the repository working directory.

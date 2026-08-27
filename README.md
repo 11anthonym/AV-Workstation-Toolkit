@@ -49,8 +49,8 @@ and release artifacts.
 
 ## Download / releases
 
-This fresh repository is being prepared for owner review and is not yet public.
-No public release under the AV Workstation Toolkit identity is available. When
+This repository is private while release readiness is reviewed. No public
+release under the AV Workstation Toolkit identity is available. When
 the owner publishes a release, the canonical location will be the
 [GitHub releases page](https://github.com/11anthonym/AV-Workstation-Toolkit/releases).
 
@@ -59,6 +59,11 @@ The planned 1.1.1 release-candidate outputs are:
 - run `AV-Workstation-Toolkit-1.1.1-win-x64.exe` directly;
 - install `AV-Workstation-Toolkit-1.1.1-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
 - extract `AV-Workstation-Toolkit-1.1.1-win-x64.zip` and run `AVWorkstationToolkit.exe`.
+
+The tagged workflow's standard release set contains exactly eight assets: the
+three delivery formats above, the Apache-2.0 `LICENSE`, third-party notices, a
+CycloneDX SBOM, a release manifest, and a SHA-256 checksum list. The checksum
+list covers the other seven assets and does not hash itself.
 
 AV Workstation Toolkit is preparing an application for sponsored open-source
 code signing through SignPath Foundation. Current artifacts remain unsigned

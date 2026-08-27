@@ -9,15 +9,17 @@ future attribution as current sponsorship.
 
 - Project: AV Workstation Toolkit
 - Repository: <https://github.com/11anthonym/AV-Workstation-Toolkit>
-- Repository state during this review: local only; no remote configured
+- Repository state during this review: private GitHub repository with canonical
+  `origin` and default branch `main`
 - Current executable: `AVWorkstationToolkit.exe`
 - Release EXE pattern: `AV-Workstation-Toolkit-<version>-win-x64.exe`
 - MSI pattern: `AV-Workstation-Toolkit-<version>-x64.msi`
 - ZIP pattern: `AV-Workstation-Toolkit-<version>-win-x64.zip`
 - Build command: `Build-AVWorkstationToolkit.cmd`
 
-No public release or repository-visibility change is part of this readiness
-work.
+The repository exists at the canonical URL and GitHub Actions has completed the
+`core-qa` and `package` jobs successfully. It remains private, with no tags or
+releases. No repository-visibility change is part of this readiness work.
 
 ## Reproducible build path
 
@@ -48,12 +50,14 @@ The build emits:
 - self-contained single-file EXE;
 - MSI containing that exact EXE;
 - portable ZIP containing that exact EXE;
+- versioned Apache-2.0 project license;
 - CycloneDX 1.6 SBOM with locked dependency versions, package hashes where
   available, scope/distribution metadata, and reviewed license expressions;
 - versioned third-party notices;
 - schema-versioned release manifest;
 - SHA-256 checksum list covering the distributables, notices, SBOM, and release
-  manifest.
+  manifest. The standard workflow publishes exactly eight assets; the checksum
+  file covers the other seven and intentionally excludes itself.
 
 ## Current signing capability
 
@@ -67,6 +71,14 @@ repository.
 
 This capability is retained as a working release-security path. Current
 artifacts are unsigned, and it is not a SignPath integration.
+
+The current tag-triggered workflow is deliberately Production-only. It requires
+the organizational PFX secrets, `-RequireSignature`, signature-required package
+QA, and post-build endpoint-trust checks; missing secrets fail the workflow
+before release creation. An unsigned initial public release, if the owner later
+chooses one for public project history or reputation evidence, therefore needs
+a separately reviewed release-candidate publication procedure. It must not be
+implemented by weakening or mislabeling Production mode.
 
 ## Future SignPath insertion point
 
@@ -100,7 +112,8 @@ Do not add placeholder workflow values that resemble a working integration.
 ## Open-source distribution boundary
 
 The normal project release boundary is the AV Workstation Toolkit EXE, MSI,
-portable ZIP, SBOM, third-party notices, release manifest, and checksums.
+portable ZIP, Apache-2.0 project license, SBOM, third-party notices, release
+manifest, and checksums.
 Commercial AV catalog entries are descriptive metadata, not redistributed
 applications. Vendor caches, authenticated credentials, local logs, plans,
 diagnostics, workstation snapshots, signing material, and the local external
@@ -116,11 +129,17 @@ independent redistribution review for every payload.
 - **Project license selected.** AV Workstation Toolkit is licensed under
   [Apache-2.0](../LICENSE). This resolves the license-selection gate only; it
   does not make the repository public or complete any SignPath gate.
-- The sanitized source tree has been exported into a fresh local Git repository
-  with no inherited history, tags, or remote. The intended root commit remains
-  staged for owner review and has not yet been created.
-- The owner must approve the staged source tree and Git attribution before the
-  fresh root commit and any private GitHub repository setup.
+- The owner-reviewed fresh history begins at zero-parent root commit
+  `e5300e490f997301b8d6c7bfb51bcca3f46c2dae`; the canonical GitHub repository
+  now exists and remains private. It has no tags or releases.
+- GitHub Actions is configured and has completed both current QA jobs,
+  `core-qa` and `package`, successfully.
+- Branch protection and repository rulesets are not currently enabled. GitHub's
+  API reports that the current private repository requires GitHub Pro or public
+  visibility for those features. Immediately after the owner makes the
+  repository public, require pull requests plus `core-qa` and `package`, prevent
+  force pushes and deletion, preserve an owner recovery path, and verify the
+  effective rules before normal public development continues.
 - Privacy, security, third-party notices, and code-signing policy review remain
   explicit owner checklist items.
 - Interactive Windows visual review, signed-artifact verification, and an
@@ -130,7 +149,7 @@ independent redistribution review for every payload.
 
 SignPath Foundation acceptance is discretionary. Executable applications may
 require verifiable project reputation in addition to technical correctness.
-This local repository has no public release under the current identity, so
+This private repository has no public release under the current identity, so
 reputation remains a non-code acceptance factor. The project will
 not fabricate users, stars, downloads, testimonials, adopters, press, reviews,
 or community size, and will not attempt to game an acceptance requirement.
@@ -141,7 +160,7 @@ Leave owner-review, public-state, account-security, application, acceptance,
 and signing items unchecked until they are independently verified.
 
 - [x] OSI-approved open-source license selected
-- [ ] Root LICENSE committed
+- [x] Root LICENSE committed
 - [ ] GitHub repository made public
 - [ ] Public repository history reviewed by owner
 - [ ] GitHub MFA enabled for every maintainer
