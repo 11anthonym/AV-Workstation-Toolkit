@@ -1,5 +1,18 @@
 # Change Log
 
+## 2026-08-26 — Selection-state synchronization correction
+
+- Corrected the WPF `SourceUpdated` ordering boundary that could leave a row
+  visibly checked while the PowerShell selection model, footer summary, and
+  Install/Update buttons still reported no selection.
+- Unified footer/button calculations and action execution around the same
+  eligible selected-item query, and added a sanitized action-selection trace
+  containing the exact package IDs presented to the constrained action path.
+- Replaced isolated checkbox smoke coverage with a generated DataGrid-row flow
+  covering select, deselect, combined Install/Update selection, low-risk actions
+  during a pending reboot, disabled catalog records, and selection stability
+  across refresh, filtering, sorting, recycling, and rebinding.
+
 ## 2026-08-26 — Release-readiness and endpoint-trust reconciliation
 
 - Reconciled current private-GitHub, Apache-2.0, CI, branch-protection, release,

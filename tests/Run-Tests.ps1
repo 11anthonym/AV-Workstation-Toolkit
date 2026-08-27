@@ -1971,12 +1971,20 @@ if (-not $CoreOnly) {
             Assert-True ($uiSource -match 'prioritySortOrder\s*=\s*@\{\s*P1=0;\s*P2=1;\s*UTILITY=2;\s*DEV=3' -and
                 $uiSource -match 'riskSortOrder\s*=\s*@\{\s*None=0;\s*Service=1;\s*Listener=2;\s*Driver=3' -and
                 $uiSource -match 'UpdateAvailable=0;\s*Missing=1;\s*ManualUpdate=2;\s*Held=3;\s*Error=4') 'Domain-aware priority, risk, or attention-status ordering differs.'
-            Assert-True ($uiSource -match 'function Get-AVWorkstationToolkitVersionSortKey' -and $uiSource -match 'UI_BEHAVIOR_OK sorting=6 quickViews=3 persistence=passed selectionToggle=passed') 'Version-aware sorting or deterministic UI behavior smoke coverage is missing.'
+            Assert-True ($uiSource -match 'function Get-AVWorkstationToolkitVersionSortKey' -and
+                $uiSource -match 'UI_BEHAVIOR_OK sorting=6 quickViews=3 persistence=passed selectionToggle=realGrid' -and
+                $uiSource -match 'UI_SELECTION_FLOW_OK sourceUpdates=\{0\} refresh=stable pendingReboot=lowRiskAllowed actions=shared') 'Version-aware sorting or deterministic real-grid UI behavior smoke coverage is missing.'
             Assert-True ($uiSource -match 'function Set-AVWorkstationToolkitQuickView' -and $uiSource -match 'function Test-AVWorkstationToolkitQuickViewFilter' -and
                 $uiSource -match "AllAppsButton\.Add_Click\(\{ Set-AVWorkstationToolkitQuickView -View All \}\)" -and
                 $uiSource -match 'Clear-AVWorkstationToolkitSelection') 'Composable quick views or independent selection clearing are missing.'
             Assert-True ($uiSource -match 'function Apply-AVWorkstationToolkitSort' -and $uiSource -match 'PackageGrid\.Add_Sorting' -and $uiSource -match 'SortDirection') 'Persistent sort handling or visible sort direction is missing.'
             Assert-True ($uiSource -match 'function Sync-AVWorkstationToolkitSelectionFromToggle' -and $uiSource -match 'Binding\]::SourceUpdatedEvent.+?Sync-AVWorkstationToolkitSelectionFromToggle') 'Grid checkbox source updates do not synchronize with the PowerShell-backed selection model.'
+            Assert-True ($uiSource -match '\$ToggleEventArgs\.Property\s+-ne\s+\[Windows\.Controls\.Primitives\.ToggleButton\]::IsCheckedProperty' -and
+                $uiSource -match '\$ToggleEventArgs\.TargetObject\s+-as\s+\[Windows\.Controls\.CheckBox\]' -and
+                $uiSource -notmatch '\$ToggleEventArgs\.OriginalSource') 'Selection synchronization does not use the reviewed IsChecked binding target contract.'
+            Assert-True ($uiSource -match 'DispatcherPriority\]::DataBind' -and $uiSource -match 'ReferenceEquals\(\$checkBox\.DataContext,\$item\)') 'Selection synchronization is not deferred safely across the WPF source-update ordering boundary.'
+            Assert-True (([regex]::Matches($uiSource,'Get-AVWorkstationToolkitSelectedActionItems -Action')).Count -eq 3 -and
+                $uiSource -match 'Action selection: action=\{0\}; count=\{1\}; packageIds=\{2\}') 'Footer/button state and action launch do not share the reviewed selected-action model or action trace.'
             Assert-True ($uiSource -notmatch 'PackageGrid\.AddHandler\([^\r\n]+?(CheckedEvent|UncheckedEvent)') 'Grid selection still reacts to binding-driven Checked/Unchecked events.'
             $coreSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psm1') -Raw
             Assert-True ($coreSource -match '\(''Version: \{0\}'' -f \$Diagnostics\.WinGet\.Version\)' -and $coreSource -match '\(''Launcher runtime: \{0\}''') 'WinGet or launcher runtime information is missing from Diagnostics.'

@@ -45,7 +45,8 @@ foreach ($viewport in $viewports) {
     $output = (& $powershellPath -NoProfile -ExecutionPolicy RemoteSigned -STA -File $frontendPath `
         -SmokeTest -RenderPreviewPath $previewPath -RenderWidth $width -RenderHeight $height -RenderQuickView $quickView -DataRoot $dataRoot 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) { throw "Visual render ${width}x${height} failed: $output" }
-    if ($output -notmatch 'SMOKE_OK' -or $output -notmatch 'UI_BEHAVIOR_OK' -or $output -notmatch ("LAYOUT_OK viewport=.* quickView={0}" -f $quickView) -or $output -notmatch 'PREVIEW_(?:OK|UNAVAILABLE)') {
+    if ($output -notmatch 'SMOKE_OK' -or $output -notmatch 'UI_BEHAVIOR_OK' -or $output -notmatch 'UI_SELECTION_FLOW_OK' -or
+        $output -notmatch ("LAYOUT_OK viewport=.* quickView={0}" -f $quickView) -or $output -notmatch 'PREVIEW_(?:OK|UNAVAILABLE)') {
         throw "Visual render ${width}x${height} did not report complete layout evidence: $output"
     }
     if (-not (Test-Path -LiteralPath $previewPath -PathType Leaf) -or (Get-Item -LiteralPath $previewPath).Length -le 0) {

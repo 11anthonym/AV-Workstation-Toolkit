@@ -332,9 +332,17 @@ function Get-EnabledProfiles {
     return @($profiles)
 }
 
+function Get-AVWorkstationToolkitSelectedActionItems {
+    param([Parameter(Mandatory)][ValidateSet('Install','Update')][string]$Action)
+
+    return @($state.Items | Where-Object {
+        [bool]$_.Selected -and [bool]$_.CanSelect -and [string]$_.Action -eq $Action
+    })
+}
+
 function Update-SelectionState {
-    $install = @($state.Items | Where-Object { $_.Selected -and $_.Action -eq 'Install' })
-    $update = @($state.Items | Where-Object { $_.Selected -and $_.Action -eq 'Update' })
+    $install = @(Get-AVWorkstationToolkitSelectedActionItems -Action Install)
+    $update = @(Get-AVWorkstationToolkitSelectedActionItems -Action Update)
     $total = $install.Count + $update.Count
     $rebootPending = $null -ne $state.Plan -and $state.Plan.Reboot.Pending
     $unsafeElevation = $null -ne $state.Plan -and $state.Plan.Elevated
@@ -352,20 +360,31 @@ function Update-SelectionState {
 function Sync-AVWorkstationToolkitSelectionFromToggle {
     param([Parameter(Mandatory)]$ToggleEventArgs)
 
-    $checkBox = $ToggleEventArgs.OriginalSource -as [Windows.Controls.CheckBox]
+    if ($ToggleEventArgs.Property -ne [Windows.Controls.Primitives.ToggleButton]::IsCheckedProperty) { return }
+    $checkBox = $ToggleEventArgs.TargetObject -as [Windows.Controls.CheckBox]
     if ($null -eq $checkBox -or $null -eq $checkBox.DataContext) { return }
     $item = $checkBox.DataContext
     if ($item.PSObject.Properties.Name -notcontains 'Selected' -or $item.PSObject.Properties.Name -notcontains 'CanSelect') { return }
 
-    $requested = [bool]$checkBox.IsChecked
-    if ($requested -and ($state.Busy -or -not [bool]$item.CanSelect)) {
-        $item.Selected = $false
-        $checkBox.IsChecked = $false
-    }
-    else {
-        $item.Selected = $requested
-    }
-    Update-SelectionState
+    # SourceUpdated is raised while WPF is still completing the target toggle.
+    # Reading IsChecked inline can therefore observe the previous value even
+    # though the visual check mark changes immediately after the event returns.
+    # Queue exactly one synchronization after the binding turn and retain the
+    # original row identity so virtualization cannot redirect the update.
+    [void]$checkBox.Dispatcher.BeginInvoke(
+        [Windows.Threading.DispatcherPriority]::DataBind,
+        [Action]{
+            if (-not [object]::ReferenceEquals($checkBox.DataContext,$item)) { return }
+            $requested = [bool]$checkBox.IsChecked
+            if ($requested -and ($state.Busy -or -not [bool]$item.CanSelect)) {
+                $item.Selected = $false
+                $checkBox.IsChecked = $false
+            }
+            else {
+                $item.Selected = $requested
+            }
+            Update-SelectionState
+        }.GetNewClosure())
 }
 
 function Update-DeliveryState {
@@ -1230,8 +1249,9 @@ function Start-AVWorkstationToolkitAction {
         [Windows.MessageBox]::Show('Close AV Workstation Toolkit and launch it normally. For safety, the action worker refuses to run with an administrator token. Individual installers can still request elevation through Windows.','Standard-user launch required','OK','Warning') | Out-Null
         return
     }
-    $selected = @($state.Items | Where-Object { $_.Selected -and $_.Action -eq $Action })
+    $selected = @(Get-AVWorkstationToolkitSelectedActionItems -Action $Action)
     if ($selected.Count -eq 0) { return }
+    Add-ActivityLine ('Action selection: action={0}; count={1}; packageIds={2}' -f $Action,$selected.Count,(($selected | ForEach-Object Id) -join ', '))
     $risky = @($selected | Where-Object Risk -ne 'None')
     if ($state.Plan.Reboot.Pending -and $risky.Count -gt 0) {
         [Windows.MessageBox]::Show('Windows reports a pending reboot. Driver, service, and listener packages are blocked until Windows is restarted and the plan is refreshed. Low-risk applications may still be changed.','Risk-bearing action blocked','OK','Warning') | Out-Null
@@ -1831,28 +1851,161 @@ if ($SmokeTest -or -not [string]::IsNullOrWhiteSpace($RenderPreviewPath)) {
         $controls.ManufacturerFilter.SelectedItem = $controls.ManufacturerFilter.Items[0]
         Set-AVWorkstationToolkitQuickView -View All
         Set-AVWorkstationToolkitSort -MemberPath ApplicationSortKey -Direction Ascending
-        $state.Items | Where-Object { $_.Action -in @('Install','Update') } | Select-Object -First 2 | ForEach-Object { $_.Selected = $true }
-        $controls.PackageGrid.Items.Refresh()
-        Update-SelectionState
+        Clear-AVWorkstationToolkitSelection
 
-        $clickableItem = @($state.Items | Where-Object CanSelect | Select-Object -First 1)[0]
-        if ($null -eq $clickableItem) { throw 'Checkbox smoke test could not locate an actionable managed application.' }
-        $clickableItem.Selected = $false
-        $selectionCheckbox = [Windows.Controls.CheckBox]$controls.PackageGrid.Columns[0].CellTemplate.LoadContent()
-        $selectionCheckbox.DataContext = $clickableItem
-        $selectionCheckbox.IsChecked = $true
-        Sync-AVWorkstationToolkitSelectionFromToggle -ToggleEventArgs ([pscustomobject]@{ OriginalSource=$selectionCheckbox })
-        if (-not [bool]$clickableItem.Selected) { throw 'Actionable application checkbox did not update the selection model.' }
-        $blockedItem = @($state.Items | Where-Object { -not $_.CanSelect } | Select-Object -First 1)[0]
-        $blockedItem.Selected = $false
-        $selectionCheckbox.DataContext = $blockedItem
-        $selectionCheckbox.IsChecked = $true
-        Sync-AVWorkstationToolkitSelectionFromToggle -ToggleEventArgs ([pscustomobject]@{ OriginalSource=$selectionCheckbox })
-        if ([bool]$blockedItem.Selected -or [bool]$selectionCheckbox.IsChecked) { throw 'Non-actionable application checkbox accepted a selection.' }
-        $clickableItem.Selected = $false
-        $controls.PackageGrid.Items.Refresh()
-        Update-SelectionState
-        Write-Output 'UI_BEHAVIOR_OK sorting=6 quickViews=3 persistence=passed selectionToggle=passed'
+        function Get-AVWorkstationToolkitSmokeDescendant {
+            param([Parameter(Mandatory)][Windows.DependencyObject]$Root, [Parameter(Mandatory)][type]$Type)
+
+            if ($Type.IsInstanceOfType($Root)) { return $Root }
+            for ($childIndex = 0; $childIndex -lt [Windows.Media.VisualTreeHelper]::GetChildrenCount($Root); $childIndex++) {
+                $found = Get-AVWorkstationToolkitSmokeDescendant -Root ([Windows.Media.VisualTreeHelper]::GetChild($Root,$childIndex)) -Type $Type
+                if ($null -ne $found) { return $found }
+            }
+            return $null
+        }
+
+        function Get-AVWorkstationToolkitSmokeSelectionCheckBox {
+            param([Parameter(Mandatory)]$Item)
+
+            $controls.PackageGrid.ScrollIntoView($Item,$controls.PackageGrid.Columns[0])
+            $controls.PackageGrid.UpdateLayout()
+            $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::Render)
+            $row = $controls.PackageGrid.ItemContainerGenerator.ContainerFromItem($Item) -as [Windows.Controls.DataGridRow]
+            if ($null -eq $row) { throw "Smoke test could not generate a DataGrid row for $($Item.Id)." }
+            $checkBox = Get-AVWorkstationToolkitSmokeDescendant -Root $row -Type ([Windows.Controls.CheckBox])
+            if ($null -eq $checkBox) { throw "Smoke test could not locate the generated selection checkbox for $($Item.Id)." }
+            return [Windows.Controls.CheckBox]$checkBox
+        }
+
+        function Invoke-AVWorkstationToolkitSmokeToggle {
+            param([Parameter(Mandatory)][Windows.Controls.CheckBox]$CheckBox)
+
+            $peer = [Windows.Automation.Peers.CheckBoxAutomationPeer]::new($CheckBox)
+            $provider = $peer.GetPattern([Windows.Automation.Peers.PatternInterface]::Toggle)
+            if ($null -eq $provider) { throw 'Generated selection checkbox does not expose the standard toggle pattern.' }
+            $provider.Toggle()
+            $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
+        }
+
+        $window.ShowInTaskbar = $false
+        $window.WindowStartupLocation = [Windows.WindowStartupLocation]::Manual
+        if ([string]::IsNullOrWhiteSpace($RenderPreviewPath)) {
+            $window.ShowActivated = $false
+            $window.Left = -32000
+            $window.Top = -32000
+        }
+        else {
+            $window.ShowActivated = $true
+            $window.Left = 0
+            $window.Top = 0
+            $window.Topmost = $true
+            if ($RenderWidth -gt 0) { $window.Width = $RenderWidth }
+            if ($RenderHeight -gt 0) { $window.Height = $RenderHeight }
+        }
+        $window.Show()
+        $window.UpdateLayout()
+
+        $sourceUpdateState = [pscustomobject]@{ Count=0; TargetChecked=$null; ContextSelected=$null; ContextId='' }
+        $sourceUpdateHandler = [System.EventHandler[Windows.Data.DataTransferEventArgs]]{
+            param($sourceUpdatedSender,$sourceUpdatedEventArgs)
+            if ($sourceUpdatedEventArgs.Property -eq [Windows.Controls.Primitives.ToggleButton]::IsCheckedProperty -and
+                $sourceUpdatedEventArgs.TargetObject -is [Windows.Controls.CheckBox]) {
+                $sourceUpdateState.Count++
+                $sourceUpdateState.TargetChecked = [bool]$sourceUpdatedEventArgs.TargetObject.IsChecked
+                $sourceUpdateState.ContextSelected = [bool]$sourceUpdatedEventArgs.TargetObject.DataContext.Selected
+                $sourceUpdateState.ContextId = [string]$sourceUpdatedEventArgs.TargetObject.DataContext.Id
+            }
+        }.GetNewClosure()
+        $controls.PackageGrid.AddHandler([Windows.Data.Binding]::SourceUpdatedEvent,$sourceUpdateHandler,$true)
+        $originalReboot = $state.Plan.Reboot
+        try {
+            $state.Plan.Reboot = [pscustomobject]@{
+                Pending = $true
+                Reasons = @('Component Based Servicing')
+                Summary = 'Pending reboot smoke fixture'
+            }
+            Update-SelectionState
+
+            $updateItem = @($state.Items | Where-Object { $_.Id -eq 'Microsoft.VisualStudioCode' -and $_.CanSelect -and $_.Action -eq 'Update' })[0]
+            if ($null -eq $updateItem -or $updateItem.Risk -ne 'None') { throw 'Smoke test could not locate the low-risk Visual Studio Code update fixture.' }
+            $updateCheckBox = Get-AVWorkstationToolkitSmokeSelectionCheckBox -Item $updateItem
+            $eventCountBefore = $sourceUpdateState.Count
+            Invoke-AVWorkstationToolkitSmokeToggle -CheckBox $updateCheckBox
+            if (-not [bool]$updateItem.Selected -or -not [bool]$updateCheckBox.IsChecked -or
+                $sourceUpdateState.Count -ne ($eventCountBefore + 1) -or $controls.SelectionSummary.Text -ne '1 selected | 0 install | 1 update' -or
+                $controls.InstallButton.IsEnabled -or -not $controls.UpdateButton.IsEnabled -or $controls.UpdateButton.Content -ne 'Update selected (1)') {
+                throw ('Selecting a low-risk update did not synchronize the generated checkbox, model, footer, and action buttons: model={0}; visual={1}; sourceUpdates={2}->{3}; eventTargetChecked={4}; eventContextSelected={5}; eventContextId={6}; summary={7}; installEnabled={8}; updateEnabled={9}; updateContent={10}.' -f
+                    [bool]$updateItem.Selected,[bool]$updateCheckBox.IsChecked,$eventCountBefore,$sourceUpdateState.Count,
+                    $sourceUpdateState.TargetChecked,$sourceUpdateState.ContextSelected,$sourceUpdateState.ContextId,$controls.SelectionSummary.Text,
+                    $controls.InstallButton.IsEnabled,$controls.UpdateButton.IsEnabled,$controls.UpdateButton.Content)
+            }
+
+            $eventCountBefore = $sourceUpdateState.Count
+            Invoke-AVWorkstationToolkitSmokeToggle -CheckBox $updateCheckBox
+            if ([bool]$updateItem.Selected -or [bool]$updateCheckBox.IsChecked -or
+                $sourceUpdateState.Count -ne ($eventCountBefore + 1) -or $controls.SelectionSummary.Text -ne 'Nothing selected' -or
+                $controls.InstallButton.IsEnabled -or $controls.UpdateButton.IsEnabled) {
+                throw 'Deselecting an update did not clear the generated checkbox, model, footer, and action buttons.'
+            }
+
+            $installItem = @($state.Items | Where-Object { $_.CanSelect -and $_.Action -eq 'Install' -and $_.Risk -eq 'None' } | Select-Object -First 1)[0]
+            if ($null -eq $installItem) { throw 'Smoke test could not locate a low-risk install fixture.' }
+            $installCheckBox = Get-AVWorkstationToolkitSmokeSelectionCheckBox -Item $installItem
+            Invoke-AVWorkstationToolkitSmokeToggle -CheckBox $installCheckBox
+            if (-not [bool]$installItem.Selected -or $controls.SelectionSummary.Text -ne '1 selected | 1 install | 0 update' -or
+                -not $controls.InstallButton.IsEnabled -or $controls.UpdateButton.IsEnabled -or $controls.InstallButton.Content -ne 'Install selected (1)') {
+                throw 'Selecting a low-risk install did not synchronize the shared action-selection model.'
+            }
+
+            $updateCheckBox = Get-AVWorkstationToolkitSmokeSelectionCheckBox -Item $updateItem
+            Invoke-AVWorkstationToolkitSmokeToggle -CheckBox $updateCheckBox
+            if ($controls.SelectionSummary.Text -ne '2 selected | 1 install | 1 update' -or
+                -not $controls.InstallButton.IsEnabled -or -not $controls.UpdateButton.IsEnabled) {
+                throw 'Combined install/update selection did not keep both action buttons synchronized.'
+            }
+
+            $selectedIdsBeforeRefresh = @($state.Items | Where-Object Selected | ForEach-Object Id | Sort-Object)
+            $sourceUpdatesBeforeRefresh = $sourceUpdateState.Count
+            $controls.PackageGrid.Items.Refresh()
+            $controls.SearchBox.Text = [string]$updateItem.Name
+            $controls.SearchBox.Text = ''
+            Set-AVWorkstationToolkitSort -MemberPath VendorSortKey -Direction Descending
+            $controls.PackageGrid.ItemsSource = $null
+            $controls.PackageGrid.ItemsSource = $state.View
+            $controls.PackageGrid.Items.Refresh()
+            $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
+            $selectedIdsAfterRefresh = @($state.Items | Where-Object Selected | ForEach-Object Id | Sort-Object)
+            if (($selectedIdsAfterRefresh -join '|') -ne ($selectedIdsBeforeRefresh -join '|') -or
+                $sourceUpdateState.Count -ne $sourceUpdatesBeforeRefresh -or $controls.SelectionSummary.Text -ne '2 selected | 1 install | 1 update' -or
+                -not $controls.InstallButton.IsEnabled -or -not $controls.UpdateButton.IsEnabled) {
+                throw 'Refresh, filtering, sorting, or DataGrid rebinding changed selection state or emitted a user-toggle update.'
+            }
+
+            $blockedItem = @($state.Items | Where-Object { -not $_.CanSelect } | Select-Object -First 1)[0]
+            if ($null -eq $blockedItem) { throw 'Smoke test could not locate a non-actionable catalog fixture.' }
+            $blockedItem.Selected = $false
+            $blockedCheckBox = Get-AVWorkstationToolkitSmokeSelectionCheckBox -Item $blockedItem
+            if ($blockedCheckBox.IsEnabled -or [bool]$blockedCheckBox.IsChecked -or [bool]$blockedItem.Selected) {
+                throw 'A non-actionable catalog checkbox was enabled or selected.'
+            }
+            $blockedEventCount = $sourceUpdateState.Count
+            try { Invoke-AVWorkstationToolkitSmokeToggle -CheckBox $blockedCheckBox } catch [System.Windows.Automation.ElementNotEnabledException] {}
+            if ([bool]$blockedItem.Selected -or $sourceUpdateState.Count -ne $blockedEventCount) {
+                throw 'A disabled catalog checkbox changed the selection model.'
+            }
+
+            Clear-AVWorkstationToolkitSelection
+            if ($controls.SelectionSummary.Text -ne 'Nothing selected' -or $controls.InstallButton.IsEnabled -or $controls.UpdateButton.IsEnabled) {
+                throw 'Selection cleanup did not restore the footer and action buttons.'
+            }
+            Write-Output ('UI_SELECTION_FLOW_OK sourceUpdates={0} refresh=stable pendingReboot=lowRiskAllowed actions=shared' -f $sourceUpdateState.Count)
+        }
+        finally {
+            $state.Plan.Reboot = $originalReboot
+            $controls.PackageGrid.RemoveHandler([Windows.Data.Binding]::SourceUpdatedEvent,$sourceUpdateHandler)
+            Clear-AVWorkstationToolkitSelection
+        }
+        Write-Output 'UI_BEHAVIOR_OK sorting=6 quickViews=3 persistence=passed selectionToggle=realGrid'
 
         $progressSmokePath = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-progress-{0}.jsonl' -f [guid]::NewGuid().ToString('N'))
         $cancelSmokePath = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-cancel-{0}.tmp' -f [guid]::NewGuid().ToString('N'))
@@ -1883,6 +2036,7 @@ if ($SmokeTest -or -not [string]::IsNullOrWhiteSpace($RenderPreviewPath)) {
             Remove-Item -LiteralPath $progressSmokePath,$cancelSmokePath -Force -ErrorAction SilentlyContinue
         }
         Write-Output ('SMOKE_OK controls={0} packages={1}' -f $controls.Count,$state.Items.Count)
+        if ([string]::IsNullOrWhiteSpace($RenderPreviewPath)) { $window.Close() }
     }
     if (-not [string]::IsNullOrWhiteSpace($RenderPreviewPath)) {
         Set-AVWorkstationToolkitQuickView -View $RenderQuickView
