@@ -194,7 +194,9 @@ public sealed class CatalogParser
             requirements?.RequiresVendorAccount, requirements?.RequiresDealerAccount, requirements?.RequiresTraining,
             requirements?.RequiresLicense, requirements?.RequiresSubscription, impact?.InstallsDriver, impact?.InstallsService,
             impact?.OpensListener, impact?.FirmwareUtility, metadata.Notes ?? string.Empty,
-            BuildTags(priority, licenses, downloadAccess));
+            BuildTags(priority, licenses, downloadAccess),
+            raw.Detection?.RegistryDisplayNamePattern ?? string.Empty,
+            raw.Detection?.RegistryVersionPattern ?? string.Empty);
     }
 
     private static void ValidateRelationships(IReadOnlyList<PackageDefinition> packages)

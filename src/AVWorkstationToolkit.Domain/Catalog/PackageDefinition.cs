@@ -46,7 +46,9 @@ public sealed record PackageDefinition(
     bool? OpensListener,
     bool? FirmwareUtility,
     string CatalogNotes,
-    IReadOnlyList<string> CatalogTags)
+    IReadOnlyList<string> CatalogTags,
+    string DetectionDisplayNamePattern = "",
+    string DetectionVersionPattern = "")
 {
     public bool HasManagedExecutionAuthority =>
         Authority == CatalogAuthority.ManagedWinGet &&

@@ -1334,6 +1334,32 @@ function ConvertFrom-AVWorkstationToolkitWingetExportJson {
     return @($byId.Values | Sort-Object Id)
 }
 
+function Get-AVWorkstationToolkitWingetStructuredInventoryQuality {
+    [CmdletBinding()]
+    param(
+        [AllowEmptyCollection()][object[]]$InstalledPackages = @(),
+        [AllowEmptyCollection()][object[]]$CatalogPackages = @(),
+        [AllowEmptyString()][string]$DiagnosticText = ''
+    )
+
+    $installedIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($package in @($InstalledPackages)) {
+        if ($null -ne $package -and -not [string]::IsNullOrWhiteSpace([string]$package.Id)) {
+            [void]$installedIds.Add([string]$package.Id)
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($DiagnosticText)) {
+        foreach ($package in @($CatalogPackages)) {
+            if ($null -eq $package -or $installedIds.Contains([string]$package.Id)) { continue }
+            $warningPattern = '(?i)(?:' + [regex]::Escape([string]$package.Id) + '|' + [regex]::Escape([string]$package.Name) + ')'
+            if ([regex]::IsMatch($DiagnosticText,$warningPattern)) {
+                return [pscustomobject]@{ Quality='Partial'; Failure='PartialInventory'; Detail='WinGet reported a catalog package that could not be mapped into structured inventory.' }
+            }
+        }
+    }
+    return [pscustomobject]@{ Quality='Complete'; Failure='None'; Detail='Structured WinGet inventory covers all catalog identities named by diagnostics.' }
+}
+
 function Get-AVWorkstationToolkitWingetInventory {
     [CmdletBinding()]
     param()
@@ -2176,6 +2202,67 @@ function Test-AVWorkstationToolkitInventoryTextReliable {
     return $Text.IndexOf([char]0x2026) -lt 0
 }
 
+function ConvertFrom-AVWorkstationToolkitWingetUpgradeText {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) { throw 'WinGet update output is empty.' }
+    if ($Text.IndexOf([char]0x2026) -ge 0) { throw 'WinGet update output contains a truncation marker.' }
+    $lines = @($Text -split "`r?`n")
+    if (@($lines | Where-Object { $_ -match '(?i)No (?:applicable|available) (?:upgrade|update)s? (?:found|available)|No installed package found matching input criteria' }).Count -gt 0) {
+        return @()
+    }
+    $results = [Collections.Generic.List[object]]::new()
+    $ids = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $columns = $null
+    $foundTable = $false
+    for ($index = 0; $index -lt $lines.Count; $index++) {
+        $line = $lines[$index].TrimEnd()
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        $idColumn = $line.IndexOf('Id', [StringComparison]::Ordinal)
+        $versionColumn = $line.IndexOf('Version', [StringComparison]::Ordinal)
+        $availableColumn = $line.IndexOf('Available', [StringComparison]::Ordinal)
+        $sourceColumn = $line.IndexOf('Source', [StringComparison]::Ordinal)
+        if ($line.StartsWith('Name', [StringComparison]::Ordinal) -and $idColumn -gt 4 -and $versionColumn -gt $idColumn -and $availableColumn -gt $versionColumn) {
+            if ($index + 1 -ge $lines.Count -or $lines[$index + 1].Trim() -notmatch '^-{8,}$') {
+                throw 'WinGet update output contains a table header without a valid separator.'
+            }
+            $columns = [pscustomobject]@{ HasSource=($sourceColumn -gt $availableColumn) }
+            $foundTable = $true
+            $index++
+            continue
+        }
+        if ($line -match '(?i)^\s*\d+\s+upgrades?\s+available\.\s*$' -or
+            $line -match '(?i)^\s*\d+\s+packages?\s+have\s+version\s+numbers?.*$' -or
+            $line -eq 'The following packages have an upgrade available, but require explicit targeting for upgrade:') { continue }
+        if ($null -eq $columns) { continue }
+        $tokens = @($line -split '\s+' | Where-Object { $_ })
+        $minimum = if ($columns.HasSource) { 5 } else { 4 }
+        if ($tokens.Count -lt $minimum) { throw 'WinGet update output contains a malformed package row.' }
+        if ($columns.HasSource) {
+            $id = $tokens[$tokens.Count - 4]
+            $installed = $tokens[$tokens.Count - 3]
+            $available = $tokens[$tokens.Count - 2]
+        }
+        else {
+            $id = $tokens[$tokens.Count - 3]
+            $installed = $tokens[$tokens.Count - 2]
+            $available = $tokens[$tokens.Count - 1]
+        }
+        if ($id -notmatch '^[A-Za-z0-9][A-Za-z0-9+_.-]{1,127}$' -or [string]::IsNullOrEmpty($installed) -or [string]::IsNullOrEmpty($available)) {
+            throw 'WinGet update output contains a malformed package row.'
+        }
+        if ($installed.Length -gt 256 -or $available.Length -gt 256 -or $installed -match '[\x00-\x1F\x7F]' -or $available -match '[\x00-\x1F\x7F]') {
+            throw "WinGet update output contains an invalid version for '$id'."
+        }
+        if ($ids.Add($id)) {
+            $results.Add([pscustomobject]@{ Id=$id; InstalledVersion=$installed; AvailableVersion=$available }) | Out-Null
+        }
+    }
+    if (-not $foundTable) { throw 'WinGet update output does not contain a valid table header.' }
+    return @($results | Sort-Object Id)
+}
+
 function Test-AVWorkstationToolkitIdInText {
     param(
         [AllowEmptyString()][string]$Text,
@@ -2896,15 +2983,9 @@ function Get-AVWorkstationToolkitPlan {
         # to a source. If one of those warnings names an otherwise-absent
         # catalog package, do not interpret the omission as permission to
         # install another copy.
-        if ($structuredInventoryValid -and -not [string]::IsNullOrWhiteSpace($InstalledDiagnosticText)) {
-            foreach ($package in $wingetCatalog) {
-                if ($installedLookup.ContainsKey($package.Id)) { continue }
-                $warningPattern = '(?i)(?:' + [regex]::Escape($package.Id) + '|' + [regex]::Escape($package.Name) + ')'
-                if ([regex]::IsMatch($InstalledDiagnosticText,$warningPattern)) {
-                    $structuredInventoryValid = $false
-                    break
-                }
-            }
+        if ($structuredInventoryValid) {
+            $structuredQuality = Get-AVWorkstationToolkitWingetStructuredInventoryQuality -InstalledPackages @($installedLookup.Values) -CatalogPackages $wingetCatalog -DiagnosticText $InstalledDiagnosticText
+            if ($structuredQuality.Quality -ne 'Complete') { $structuredInventoryValid = $false }
         }
     }
 
@@ -2914,7 +2995,11 @@ function Get-AVWorkstationToolkitPlan {
     else {
         Test-AVWorkstationToolkitInventoryTextReliable -Text $InstalledText
     }
-    $upgradeInventoryAvailable = ($null -eq $upgradeResult -or $upgradeResult.ExitCode -eq 0) -and (Test-AVWorkstationToolkitInventoryTextReliable -Text $UpgradeText)
+    $upgradeInventoryAvailable = ($null -eq $upgradeResult -or $upgradeResult.ExitCode -eq 0)
+    if ($upgradeInventoryAvailable) {
+        try { [void]@(ConvertFrom-AVWorkstationToolkitWingetUpgradeText -Text $UpgradeText) }
+        catch { $upgradeInventoryAvailable = $false }
+    }
     $wingetAvailable = $WingetVersion -ne 'Unavailable' -and $installedInventoryAvailable -and $upgradeInventoryAvailable
 
     & $reportStage 'Reading installed AV software...'
@@ -3537,7 +3622,9 @@ Export-ModuleMember -Function @(
     'Get-AVWorkstationToolkitWingetCommand',
     'Invoke-AVWorkstationToolkitWingetCapture',
     'ConvertFrom-AVWorkstationToolkitWingetExportJson',
+    'Get-AVWorkstationToolkitWingetStructuredInventoryQuality',
     'Get-AVWorkstationToolkitWingetInventory',
+    'ConvertFrom-AVWorkstationToolkitWingetUpgradeText',
     'Test-AVWorkstationToolkitIdInText',
     'Get-AVWorkstationToolkitPlan',
     'Assert-AVWorkstationToolkitRequest',

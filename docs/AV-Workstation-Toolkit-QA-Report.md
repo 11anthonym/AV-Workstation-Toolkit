@@ -1,12 +1,12 @@
 # AV Workstation Toolkit 1.1.1 Packaging QA Report
 
-**Validation date:** 2026-08-27
+**Validation date:** 2026-08-28
 **Target runtime:** Windows 10/11 x64, self-contained .NET 10.0.11 launcher, Windows PowerShell 5.1, WPF, Desktop App Installer/WinGet 1.29
 **Change activity during QA:** No application install, update, uninstall, reboot, service, driver, listener, or security-management change
 
 ## Release result
 
-The v1.1 source and package totals below are refreshed by the final Phase 2 validation run. The non-shipping C# solution now uses MSTest and dual-engine canonical parity for typed versions, catalog validation/authority, composed filters, all package statuses, selection eligibility, and risk-sensitive reboot policy. The launcher, PowerShell-hosted WPF application, providers, worker, vendor bridge, MSI, ZIP, and normal execution path remain unchanged.
+The v1.1 source and package totals below are refreshed by the final Phase 3 validation run. The non-shipping C# solution now covers typed deterministic Domain behavior plus trusted WinGet resolution, bounded read-only WinGet execution, installed/update parsing, source-aware uninstall-registry evidence, generic detector matching, and supported reboot facts. The launcher, PowerShell-hosted WPF application, shipping providers, worker, vendor bridge, MSI, ZIP, and normal execution path remain unchanged.
 
 Interactive release QA runs all sixteen package checks. Hosted CI uses the explicit `-SkipDesktopSmoke` mode because an Actions runner does not provide a reliable interactive WPF desktop; it runs the other fifteen package checks and reports the desktop check as skipped. Launcher and MSI waits are bounded so runner-specific desktop or installer stalls fail with a diagnostic instead of consuming the full job lifetime.
 
@@ -49,7 +49,8 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | Crestron parent provider, SFTP catalog, host trust, credential transport, and packaged libraries | Pass | Seven independently detectable children resolved through one feed; inherited policy, DTD/traversal/incomplete fixtures, scoped trust-store fixtures, static credential audit, and packaged bridge self-test |
 | Offline payload traversal, schema 3 metadata, hash, signer policy, and redistribution gate | Pass | Deterministic payload tests plus a synthetic signed rights-authorized authoring run that preserves schema 3 |
 | Exact package matching, holds, risk acknowledgement, and risk-sensitive reboot enforcement | Pass | Low-risk, driver/service/listener, and mid-run re-plan request-policy tests |
-| C# migration architecture and semantic parity | Pass, non-shipping | Locked .NET 10 solution, 16 MSTest cases, 19 managed planning results, and 36 focused version/catalog/filter/external-status cases compare exactly with the shipping PowerShell implementation |
+| C# migration architecture and semantic parity | Pass, non-shipping | Locked .NET 10 solution, 25 MSTest cases, 19 managed planning results, 36 focused Domain cases, and 37 read-only provider cases compare exactly with shipping PowerShell semantics |
+| C# read-only Windows integration | Pass, non-shipping | Trusted Desktop App Installer WinGet resolved; installed/update inventory, all three uninstall-registry sources, and reboot detection were exercised without workstation mutation |
 | Exact one-package WinGet arguments; no bulk/import/uninstall path | Pass | Argument tests plus PowerShell AST audit |
 | Trusted Microsoft Desktop App Installer resolution and signature | Pass | Live read-only check |
 | Standard-user guards before local module/XAML loading | Pass | Every executable PowerShell entry point plus launcher review |
@@ -88,6 +89,7 @@ Non-shipping C# migration solution and dual-engine parity:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
 ```
 
 Build and package suite:

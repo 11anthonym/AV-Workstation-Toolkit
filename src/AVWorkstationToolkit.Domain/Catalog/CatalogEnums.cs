@@ -42,7 +42,7 @@ public enum PackageStatus
     Awareness, Error
 }
 public enum PackageAction { None, Install, Update, Manual }
-public enum InventoryQuality { Complete, Partial, Unavailable, PackageError }
+public enum InventoryQuality { Complete, Partial, Unavailable, PackageError, NotApplicable }
 public enum QuickView { All, Missing, Updates }
 public enum CatalogDiscipline
 {

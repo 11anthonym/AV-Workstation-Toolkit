@@ -50,9 +50,15 @@ $installedPackages = @($fixture.Winget.Installed | ForEach-Object {
     [pscustomobject]@{ Id=[string]$_.Id; InstalledVersion=[string]$_.Version }
 })
 $upgradeLines = @($fixture.Winget.Upgrades | ForEach-Object {
-    '{0} {1} {2}' -f $_.Id,$_.InstalledVersion,$_.AvailableVersion
+    '{0,-20}{1,-35}{2,-15}{3,-15}{4}' -f 'Fixture',$_.Id,$_.InstalledVersion,$_.AvailableVersion,'winget'
 })
-$upgradeText = if ($upgradeLines.Count -gt 0) { $upgradeLines -join "`r`n" } else { 'No installed package found matching input criteria.' }
+$upgradeText = if ($upgradeLines.Count -gt 0) {
+    @(
+        ('{0,-20}{1,-35}{2,-15}{3,-15}{4}' -f 'Name','Id','Version','Available','Source'),
+        ('-' * 95)
+    ) + $upgradeLines -join "`r`n"
+}
+else { 'No installed package found matching input criteria.' }
 $reboot = [pscustomobject]@{
     Pending = [bool]$fixture.Reboot.Pending
     Reasons = @($fixture.Reboot.Reasons)

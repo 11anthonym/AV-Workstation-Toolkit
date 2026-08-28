@@ -979,7 +979,32 @@ Invoke-Check 'Malformed WinGet export JSON is rejected' {
     Assert-Throws { ConvertFrom-AVWorkstationToolkitWingetExportJson -Json '{"Sources":[{"Packages":[{"PackageIdentifier":"bad id","Version":"1"}]}]}' } 'invalid package identifier' 'Unsafe structured inventory was accepted.'
     Assert-Throws { ConvertFrom-AVWorkstationToolkitWingetExportJson -Json '{"Unexpected":[]}' } 'required Sources' 'Incomplete structured inventory was accepted.'
 }
+Invoke-Check 'Current WinGet update tables parse without a Source column' {
+    $currentOutput = @'
+Name                  Id                     Version  Available
+--------------------------------------------------------------
+Vendor Tool           Vendor.Tool            1.2.3    1.3.0
+1 upgrade available.
+
+The following packages have an upgrade available, but require explicit targeting for upgrade:
+Name                      Id                    Version Available
+-----------------------------------------------------------------
+Explicit Target Tool      Vendor.ExplicitTool   2.0.0   2.1.0
+'@
+    $parsed = @(ConvertFrom-AVWorkstationToolkitWingetUpgradeText -Text $currentOutput)
+    Assert-Equal 2 $parsed.Count 'Current WinGet multi-table update output count differs.'
+    Assert-Contains $parsed.Id 'Vendor.Tool' 'Primary WinGet update table was not parsed.'
+    Assert-Contains $parsed.Id 'Vendor.ExplicitTool' 'Explicit-target WinGet update table was not parsed.'
+}
+Invoke-Check 'Malformed nonempty WinGet update output fails the plan closed' {
+    Assert-Throws { ConvertFrom-AVWorkstationToolkitWingetUpgradeText -Text 'arbitrary nonempty output' } 'valid table header' 'Malformed update output was accepted.'
+    $malformed = Get-AVWorkstationToolkitPlan -CatalogPath $catalogPath -InstalledPackages $structuredPackages -UpgradeText 'arbitrary nonempty output' -ExternalInventory $externalInventoryAbsent -ExternalReleaseInfo $externalReleaseBaseline -RebootState $clearReboot -WingetVersion 'v-test'
+    Assert-Equal $expectedWinGetCount @($malformed.Packages | Where-Object { $_.Provider -eq 'WinGet' -and $_.Status -eq 'Error' }).Count 'Malformed update output did not fail WinGet planning closed.'
+    Assert-Equal 0 $malformed.Summary.Selectable 'Malformed update output left managed packages selectable.'
+}
 Invoke-Check 'Source-unmatched catalog packages fail structured inventory closed' {
+    $quality = Get-AVWorkstationToolkitWingetStructuredInventoryQuality -InstalledPackages $structuredPackages -CatalogPackages $catalog -DiagnosticText 'Installed package is not available from any source: Notepad++'
+    Assert-Equal 'Partial' $quality.Quality 'Source-unmatched structured inventory quality differs.'
     $warningPlan = Get-AVWorkstationToolkitPlan -CatalogPath $catalogPath -InstalledPackages $structuredPackages -InstalledDiagnosticText 'Installed package is not available from any source: Notepad++' -UpgradeText $upgradeText -ExternalInventory $externalInventoryAbsent -ExternalReleaseInfo $externalReleaseBaseline -RebootState $clearReboot -WingetVersion 'v-test'
     Assert-Equal $expectedWinGetCount @($warningPlan.Packages | Where-Object { $_.Provider -eq 'WinGet' -and $_.Status -eq 'Error' }).Count 'A source-unmatched WinGet package did not fail closed.'
     Assert-Equal 0 $warningPlan.Summary.Selectable 'A source-unmatched catalog package left actions selectable.'
@@ -1129,6 +1154,8 @@ Invoke-Check 'C# migration scaffold remains non-shipping, strict, and fixture-ba
     $solution = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx') -Raw
     $appProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj') -Raw
     $domainSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+    $applicationSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+    $infrastructureSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
     $domainTests = Get-Content -LiteralPath (Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Tests\AVWorkstationToolkit.Tests.csproj') -Raw
     $buildSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
     Assert-True ($agents -match 'If the new implementation disagrees with the current implementation' -and
@@ -1145,9 +1172,16 @@ Invoke-Check 'C# migration scaffold remains non-shipping, strict, and fixture-ba
     Assert-True ($buildSource -match 'Test-CSharpMigration\.ps1') 'Authoritative build does not validate migration scaffolding.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
+    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'
     Assert-True ($domainSource -match 'class CatalogParser' -and $domainSource -match 'class PlanningService' -and $domainSource -match 'class SelectionPolicy' -and
         $domainSource -notmatch 'System\.Diagnostics|Microsoft\.Win32|HttpClient|System\.Management\.Automation|powershell\.exe|pwsh\.exe|cmd\.exe') 'Typed Domain ownership or dependency boundary regressed.'
     Assert-True ($domainTests -match 'PackageReference Include="MSTest"' -and $domainTests -match 'TreatWarningsAsErrors>true') 'C# domain tests are not configured as warning-clean MSTest tests.'
+    Assert-True ($applicationSource -match 'interface IInstalledPackageInventory' -and $applicationSource -match 'interface IAvailableUpdateInventory' -and
+        $applicationSource -match 'interface IExternalApplicationInventory' -and $applicationSource -match 'interface IRebootStateProvider' -and
+        $applicationSource -match 'interface IWinGetResolver' -and $applicationSource -match 'interface IWinGetReadOnlyProcessRunner') 'Typed read-only Application ports are incomplete.'
+    Assert-True ($infrastructureSource -match 'class WindowsWinGetResolver' -and $infrastructureSource -match 'class WinGetInstalledPackageInventory' -and
+        $infrastructureSource -match 'class WinGetAvailableUpdateInventory' -and $infrastructureSource -match 'class WindowsUninstallRegistryInventory' -and
+        $infrastructureSource -match 'class WindowsRebootStateProvider' -and $infrastructureSource -match 'class WinGetReadOnlyProcessRunner') 'Phase 3 read-only Windows providers are incomplete.'
 }
 if (-not $CoreOnly) {
     Invoke-Check 'winget resolves to a signed Microsoft Desktop App Installer binary' {

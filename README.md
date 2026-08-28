@@ -136,11 +136,21 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-T
 
 The shipping implementation remains the PowerShell-hosted WPF application.
 The non-shipping .NET migration implementation now contains typed deterministic
-catalog, version, filtering, planning, and policy logic. Its dual-engine parity
-suite is validated separately; the shipping executable still uses PowerShell:
+catalog, version, filtering, planning, and policy logic plus read-only Windows
+providers for trusted WinGet, registry inventory, and reboot facts. Its
+dual-engine parity suite is validated separately; the shipping executable still
+uses PowerShell:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+```
+
+An optional non-mutating host integration check reports which C# sources were
+actually exercised and which were unavailable; workstation package contents are
+not treated as golden test data:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
 ```
 
 The private repository also runs the host-independent safety subset and targeted PSScriptAnalyzer policy on a clean Windows GitHub Actions runner.

@@ -40,13 +40,13 @@
     },
     {
       "Id": "winget",
-      "Initiator": "AV Workstation Toolkit PowerShell runtime",
+      "Initiator": "Shipping PowerShell runtime or non-shipping compiled read-only inventory provider",
       "Executable": "<Microsoft.DesktopAppInstaller-install-location>\\winget.exe",
       "ShellExecute": false,
       "Arguments": [
         "<bounded-inventory-or-one-package-action-vector>"
       ],
-      "Boundary": "The executable must be beneath protected Program Files\\WindowsApps and have a valid Microsoft Authenticode signature. Change actions contain one exact allowlisted package ID."
+      "Boundary": "The executable must be the registered Microsoft Desktop App Installer winget.exe beneath protected Program Files\\WindowsApps with a valid Microsoft Authenticode signature. The compiled Phase 3 provider exposes only fixed version, export, and update-list argument vectors; shipping change actions remain one exact allowlisted package ID."
     },
     {
       "Id": "vendor-bridge-self",

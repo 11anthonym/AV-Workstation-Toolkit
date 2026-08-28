@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -11,5 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Domain\AVWorkstationToolkit.Domain.csproj" />
+    <ProjectReference Include="..\..\src\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />
+    <ProjectReference Include="..\..\src\AVWorkstationToolkit.Infrastructure.Windows\AVWorkstationToolkit.Infrastructure.Windows.csproj" />
   </ItemGroup>
 </Project>

@@ -76,6 +76,9 @@ $coreSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\AVWor
 $vendorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\AVWorkstationToolkit.Vendor.psm1') -Raw
 $uiSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\Start-AVWorkstationToolkit.ps1') -Raw
 $projectSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
+$readOnlyRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetReadOnlyProcessRunner.cs'
+$readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
+$resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
 if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
     throw 'The presentation script regained direct process-launch behavior.'
 }
@@ -97,6 +100,35 @@ if ($projectSource -match '<EnableCompressionInSingleFile>true</EnableCompressio
 if ($launcherSource -match '(?i)GetTempPath|SpecialFolder\.LocalApplicationData[^\r\n]+\.ps1' -or
     $coreSource -match '(?is)powershell(?:\.exe)?.{0,500}GetTempPath') {
     throw 'Packaged PowerShell can be staged or executed from the system temporary directory.'
+}
+$migrationProcessSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File -Filter '*.cs' |
+    Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' -and $_.FullName -notlike '*\AVWorkstationToolkit.Launcher\*' })
+$directMigrationLaunchers = @($migrationProcessSources | Where-Object {
+    $_.FullName -ne $readOnlyRunnerPath -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
+})
+if ($directMigrationLaunchers.Count -ne 0) {
+    throw 'A C# migration component outside the reviewed read-only WinGet runner gained direct process-launch behavior.'
+}
+if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
+    $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or
+    $readOnlyRunnerSource -notmatch 'RedirectStandardError\s*=\s*true' -or
+    $readOnlyRunnerSource -notmatch 'ArgumentList\.Add' -or
+    $readOnlyRunnerSource -notmatch 'Kill\(entireProcessTree:\s*true\)' -or
+    $readOnlyRunnerSource -match '(?i)\b(?:cmd|powershell|pwsh)(?:\.exe)?\b') {
+    throw 'The compiled read-only WinGet process boundary lost reviewed shell, stream, argument, or timeout containment.'
+}
+if ($readOnlyRunnerSource -notmatch 'WinGetReadOnlyOperation\.Version' -or
+    $readOnlyRunnerSource -notmatch 'WinGetReadOnlyOperation\.InstalledInventory' -or
+    $readOnlyRunnerSource -notmatch 'WinGetReadOnlyOperation\.AvailableUpdates' -or
+    $readOnlyRunnerSource -match '(?i)"(?:install|upgrade|uninstall|import)"|"--all"') {
+    throw 'The compiled read-only WinGet policy gained an unreviewed action vector.'
+}
+if ($resolverSource -match '(?i)GetEnvironmentVariable\s*\(\s*["'']PATH["'']|where\.exe|App Paths' -or
+    $resolverSource -notmatch 'Microsoft\.DesktopAppInstaller_' -or
+    $resolverSource -notmatch 'WinGetCandidatePolicy\.Evaluate' -or
+    $resolverSource -notmatch 'IsReparseFree' -or
+    $resolverSource -notmatch 'signatureVerifier\.Verify') {
+    throw 'The compiled WinGet resolver no longer follows the registered-package, protected-path, reparse, and signature trust boundary.'
 }
 
 $defenderStatus = 'not-requested'

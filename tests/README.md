@@ -21,9 +21,23 @@ dual-engine semantic parity fixtures with locked restore:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
 ```
 
-This harness does not invoke WinGet, read live registry inventory, contact a
-vendor, or execute an installer. Active planning and domain-core fixtures are under `tests/parity`; the
-broader staged fixture contracts are documented under `tests/fixtures`.
+The parity harness does not invoke WinGet, read live registry inventory, contact
+a vendor, or execute an installer. Active planning, domain-core, and read-only
+provider fixtures are under `tests/parity`; the broader staged fixture contracts
+are documented under `tests/fixtures`.
+
+After that deterministic suite, optionally exercise the non-shipping C# Windows
+adapters on the current host. The script labels unavailable sources explicitly
+and never treats the workstation software list as expected data:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
+```
+
+This live check resolves only trusted Desktop App Installer WinGet, runs fixed
+read-only export/list vectors, reads HKLM64/HKLM32/HKCU uninstall sources, and
+checks the supported Windows Update/CBS reboot signals. It does not install,
+update, uninstall, enable, disable, or otherwise modify workstation software.
 
 The suite is deliberately non-installing. It uses fixture WinGet output and external-provider fixtures to test package-state parsing; Q-SYS, Biamp, and Crestron version/catalog awareness; bounded vendor-page parsing and fallback; HTTPS host/version constraints; SFTP DTD/traversal/product controls; host trust replacement; signed download-cache tampering; offline payload hash enforcement; selection policy; holds; redistribution gating; risk acknowledgement; reboot rejection; exact WinGet arguments; parser compatibility; XAML loading; launcher configuration; trusted WinGet resolution; standard-user guards; credential redaction; embedded-secret patterns; and strict worker request containment/schema.
 

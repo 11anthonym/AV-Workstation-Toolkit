@@ -6,7 +6,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $solutionPath = Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx'
-$integrationDll = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0\AVWorkstationToolkit.IntegrationTests.dll'
+$integrationDll = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.dll'
 
 if (-not $NoBuild) {
     & dotnet restore $solutionPath --locked-mode --nologo
@@ -55,3 +55,22 @@ foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'core
     Write-Output "CORE_PARITY_PASS fixture=$($fixture.Name) cases=$coreCaseCount"
 }
 Write-Output "CORE_PARITY_OK scenarios=$coreScenarioCount cases=$coreCaseCount"
+
+$providerScenarioCount = 0
+$providerCaseCount = 0
+foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'provider-fixtures') -File -Filter '*.json' | Sort-Object Name)) {
+    $legacy = (& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Invoke-LegacyProviderParityAdapter.ps1') -FixturePath $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Legacy provider adapter failed for $($fixture.Name)." }
+    $compiled = (& dotnet $integrationDll --providers $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "C# provider adapter failed for $($fixture.Name)." }
+    $legacyObject = $legacy | ConvertFrom-Json -ErrorAction Stop
+    $compiledObject = $compiled | ConvertFrom-Json -ErrorAction Stop
+    $legacyCanonical = $legacyObject | ConvertTo-Json -Depth 30 -Compress
+    $compiledCanonical = $compiledObject | ConvertTo-Json -Depth 30 -Compress
+    if ($legacyCanonical -cne $compiledCanonical) { throw "Provider parity mismatch for $($fixture.Name).`r`nLEGACY: $legacyCanonical`r`nCSHARP: $compiledCanonical" }
+    $cases = @($legacyObject.InstalledInventory).Count + @($legacyObject.Updates).Count + @($legacyObject.Registry).Count + @($legacyObject.Reboot).Count + @($legacyObject.Trust).Count
+    $providerScenarioCount++
+    $providerCaseCount += $cases
+    Write-Output "PROVIDER_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
+}
+Write-Output "PROVIDER_PARITY_OK scenarios=$providerScenarioCount cases=$providerCaseCount"

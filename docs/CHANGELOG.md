@@ -1,5 +1,19 @@
 # Change Log
 
+## 2026-08-28 — Read-only C# Windows infrastructure parity
+
+- Added non-shipping typed providers for trusted Desktop App Installer WinGet
+  resolution, bounded read-only process execution, structured installed/update
+  inventory, source-aware uninstall-registry inventory, and supported reboot
+  signals.
+- Added 37 dual-engine provider fixtures plus an optional non-mutating live
+  integration check; endpoint-trust QA now rejects any new generic C# process
+  launcher or action-bearing WinGet vector.
+- Corrected WinGet update parsing to accept current column-aligned output with
+  an optional Source column and explicit-target table while malformed nonempty
+  output fails planning closed. The shipping GUI, action worker, install/update
+  execution, vendor delivery, and package entry point remain unchanged.
+
 ## 2026-08-27 — Typed C# domain/core parity
 
 - Added non-shipping typed C# models and deterministic implementations for

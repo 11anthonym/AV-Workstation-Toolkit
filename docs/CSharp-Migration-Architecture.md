@@ -4,7 +4,7 @@ Status: authoritative migration contract for the incremental move to compiled C#
 
 ## Scope and reference behavior
 
-The shipping AV Workstation Toolkit 1.1.1 implementation remains the behavioral and security reference. Phase 1 added architecture seams and test adapters. Phase 2 adds a non-shipping typed C# implementation of deterministic versions, catalog normalization/validation, query filtering, package planning, selection eligibility, and reboot/risk policy. `AVWorkstationToolkit.exe`, its embedded PowerShell/WPF runtime, MSI, ZIP, request schema, data root, worker, providers, and vendor bridge remain unchanged.
+The shipping AV Workstation Toolkit 1.1.1 implementation remains the behavioral and security reference. Phase 1 added architecture seams and test adapters. Phase 2 added a non-shipping typed C# implementation of deterministic versions, catalog normalization/validation, query filtering, package planning, selection eligibility, and reboot/risk policy. Phase 3 adds non-shipping read-only C# providers for trusted WinGet resolution, installed/update inventory, uninstall-registry inventory, and supported reboot signals. `AVWorkstationToolkit.exe`, its embedded PowerShell/WPF runtime, MSI, ZIP, request schema, data root, worker, shipping providers, and vendor bridge remain unchanged.
 
 When documentation and code disagree, the observed shipping behavior is characterized before any decision. A parity mismatch is evidence to investigate, not permission to relax either implementation.
 
@@ -43,7 +43,7 @@ tests/
   fixtures/
 ```
 
-The Domain project now contains typed deterministic migration implementations. Application, Infrastructure.Windows, and App remain non-shipping seams; folder names shown as future should be created only when the first owned responsibility moves.
+Domain contains typed deterministic migration implementations. Application now owns typed read-only inventory ports and generic external-evidence matching. Infrastructure.Windows implements the non-shipping WinGet, Registry, reboot, Authenticode, and constrained-process adapters. App remains a non-shipping scaffold; folder names shown as future should be created only when the first owned responsibility moves.
 
 ## Dependency direction
 
@@ -113,6 +113,14 @@ Any later trimming proposal requires WPF/reflection-specific evidence and packag
 - Windows Update or CBS pending reboot permits low-risk work but blocks driver-, service-, and listener-bearing changes.
 - Reboot state is reevaluated between packages.
 
+### Non-shipping read-only Windows boundary
+
+- WinGet is resolved only from the current-user registered `Microsoft.DesktopAppInstaller` package location, then checked for protected WindowsApps containment, regular-file/reparse safety, WinTrust validity, and Microsoft publisher identity. PATH, current-directory, `where.exe`, and configurable executable resolution are not used.
+- The compiled process runner accepts a `WinGetReadOnlyOperation` enum, not an executable or command string. It exposes only fixed version, structured export, and update-list vectors with `UseShellExecute=false`, redirected bounded output, timeout/cancellation, and process-tree termination.
+- Registry inventory reads HKLM 64-bit, HKLM 32-bit, and HKCU independently and returns per-source quality. One failed source cannot turn successful evidence into an all-source failure.
+- Reboot infrastructure reports Windows Update and Component Based Servicing facts only. Domain policy, not Infrastructure, decides whether a package operation is allowed.
+- These adapters cannot install, update, uninstall, import, execute installers, invoke PowerShell/cmd, or grant catalog execution authority.
+
 ### Files and providers
 
 - Data and request paths remain contained, bounded, versioned, and reparse-safe; unknown request fields fail.
@@ -135,7 +143,9 @@ Strict fields are IDs, versions, status/detail, reason, risk, selection/action, 
 
 `ReasonCode` is a harness contract introduced to keep future domain logic independent of prose. It is not a production request/result schema change. `CanSelect` records presentation eligibility, while `WorkerEligible` records independent request-policy authorization with risk acknowledgement supplied; their distinction is meaningful.
 
-Phase 2 adds a second canonical fixture schema for strict numeric version behavior, version sort keys, managed/external/awareness catalog acceptance and authority, composed profile/priority/manufacturer/discipline/role/search/Quick View filters, and every current package status. Inventory records and release evidence are fixture inputs; neither adapter contacts WinGet, Registry, HTTP, SFTP, Credential Manager, or a worker. Volatile machine data is absent rather than normalized away. Worker request-file validation and Windows/provider behavior remain legacy-only until their dedicated phases.
+Phase 2 adds a second canonical fixture schema for strict numeric version behavior, version sort keys, managed/external/awareness catalog acceptance and authority, composed profile/priority/manufacturer/discipline/role/search/Quick View filters, and every current package status.
+
+Phase 3 adds a third canonical provider schema covering structured WinGet export parsing, update-table parsing, per-source registry evidence, generic detector matching, supported reboot facts, and trusted-WinGet candidate policy. Both adapters consume the same deterministic records; neither launches a live process during parity. IDs, versions, source quality, failure categories, source counts, detection results, reboot reasons, and trust dispositions compare strictly. Volatile paths and signer details exist only in deterministic fixture form. `Test-CSharpReadOnlyIntegration.ps1` separately exercises the host without using workstation contents as a golden baseline.
 
 ## SignPath parallel workstream
 
@@ -163,11 +173,12 @@ Technical readiness and SignPath Foundation acceptance/configuration are separat
 - Existing endpoint-security documentation calls the current PowerShell retention work “Phase 1.” That predates this C# migration phase; the term is historical context, not evidence of a compiled cutover.
 - The shipping plan's `CanSelect` reflects package state, while pending-reboot risk enforcement occurs independently in request validation. The parity contract preserves both `CanSelect` and `WorkerEligible`; collapsing them would move authorization into presentation.
 - Shipping `StatusDetail` is user-facing prose rather than a stable machine reason. The C# package state pairs it with a stable `ReasonCode`; the legacy adapter maps the same reasons for parity. This is not a production request/result schema change.
+- Current WinGet 1.29 can emit update tables without a `Source` column and can append a second explicit-target table. Phase 3 characterization exposed that the first strict parser draft rejected this legitimate output; both adapters now parse column-aligned tables with or without `Source` and reject nonempty output without a validated table.
 
 ## Current shipping, migration-present, and target states
 
 - **Current shipping architecture:** the .NET launcher starts the embedded Windows PowerShell 5.1 WPF application and isolated PowerShell worker.
-- **Migration implementation present but not active:** typed C# deterministic domain logic and dual-engine tests compile into non-shipping projects. No launcher or package references those assemblies.
+- **Migration implementation present but not active:** typed C# deterministic domain logic, read-only Windows providers, and dual-engine tests compile into non-shipping projects. No launcher or package references those assemblies.
 - **Target architecture:** the compiled WPF App and isolated compiled worker use the proven Domain/Application layers after explicit, responsibility-by-responsibility cutover approval.
 - The current launcher exits after starting the GUI in normal mode, while the worker is independently launched and tracked by request/result files. A compiled App lifecycle needs explicit worker detachment and cooperative-cancellation design before cutover.
 

@@ -157,12 +157,12 @@ For a suspected false positive, a release operator should:
 
 ## Future compiled-runtime candidates
 
-Phase 1 deliberately keeps the PowerShell/WPF architecture. Candidate migrations should be selected for measurable process reduction and inspectability rather than aesthetic rewrites.
+The shipping application deliberately retains the PowerShell/WPF architecture during the controlled migration. Phase 3 now contains non-shipping compiled implementations of the first two candidates below; they are exercised by deterministic parity and optional read-only host checks but are not referenced by the release launcher.
 
 | Candidate | EDR/AV benefit | Process reduction | Implementation risk | Testing complexity | Relative priority |
 |---|---|---:|---|---|---:|
-| Constrained process execution wrapper | High: one compiled argument/policy boundary | Low | Medium | Medium | 1 |
-| Registry and reboot inventory | Medium: fewer PowerShell registry operations | None | Low-medium | Medium | 2 |
+| Constrained read-only WinGet process boundary | High: one compiled enum/argument policy boundary | Low | Implemented, non-shipping | Provider parity + live integration | 1 |
+| Registry and reboot inventory | Medium: fewer PowerShell registry operations | None | Implemented, non-shipping | Source-aware parity + live integration | 2 |
 | Inventory orchestration and diagnostics collection | Medium-high: reduces script surface and produces typed evidence | Medium | Medium-high | High | 3 |
 | WPF frontend/MVVM presentation | Medium: removes the long-lived PowerShell UI host | One process | High | High, especially visual/accessibility QA | 4 |
 | Provider transports | Low-medium because the sensitive HTTPS/SFTP bridge is already compiled | Low | Medium-high | High, including credentials and host trust | 5 |
