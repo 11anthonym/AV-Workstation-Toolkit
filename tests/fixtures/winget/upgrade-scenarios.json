@@ -1,0 +1,11 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "Staged",
+  "Scenarios": [
+    { "Id": "valid-updates", "Input": "../winget-upgrades.txt", "Expected": "Available" },
+    { "Id": "no-updates", "InputKind": "NoUpdatesMessage", "Expected": "Available" },
+    { "Id": "command-failure", "InputKind": "NonZeroExit", "Expected": "Unavailable" },
+    { "Id": "empty-output", "InputKind": "Empty", "Expected": "Unavailable" },
+    { "Id": "malformed-or-truncated", "InputKind": "UnicodeEllipsis", "Expected": "Unavailable" }
+  ]
+}

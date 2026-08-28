@@ -1,0 +1,12 @@
+{
+  "SchemaVersion": 1,
+  "ScenarioId": "windows-update-reboot-risk-policy",
+  "Reboot": { "Pending": true, "Reasons": ["Windows Update"], "Summary": "Windows Update requires a restart" },
+  "Winget": { "Available": true, "Installed": [], "Upgrades": [] },
+  "Packages": [
+    { "Id": "Notepad++.Notepad++", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Allowlisted", "Risk": "None" },
+    { "Id": "Insecure.Nmap", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Allowlisted", "Risk": "Driver" },
+    { "Id": "voidtools.Everything", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Allowlisted", "Risk": "Service" },
+    { "Id": "PJO2.tftpd64", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Hold", "Risk": "Listener" }
+  ]
+}

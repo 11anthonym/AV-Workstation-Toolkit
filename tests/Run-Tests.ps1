@@ -1122,6 +1122,33 @@ Invoke-Check 'Credential-like values are redacted from operational text' {
     Assert-True ($protected -notmatch 'hunter2|abc123|:pass@|Bearer xyz') 'Sensitive values remain in protected operational text.'
     Assert-True ($protected -match '\[REDACTED\]') 'Redaction marker is missing.'
 }
+Invoke-Check 'C# migration scaffold remains non-shipping, strict, and fixture-backed' {
+    $agents = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AGENTS.md') -Raw
+    $architecture = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Architecture.md') -Raw
+    $coverage = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Coverage.md') -Raw
+    $solution = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx') -Raw
+    $appProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj') -Raw
+    $domainSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+    $domainTests = Get-Content -LiteralPath (Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Tests\AVWorkstationToolkit.Tests.csproj') -Raw
+    $buildSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
+    Assert-True ($agents -match 'If the new implementation disagrees with the current implementation' -and
+        $agents -match 'unknown-field-tolerant request parsing' -and $agents -match 'UI-side package authorization') 'Repository migration instructions omit parity or safety rules.'
+    Assert-True ($architecture -match 'Domain must not reference WPF, Registry, Process, HTTP, filesystem, Credential Manager, or PowerShell' -and
+        $architecture -match 'AVWorkstationToolkit\.exe --worker' -and $architecture -match 'does not configure SignPath') 'Migration architecture dependency, mode, or signing boundary is incomplete.'
+    Assert-True ($coverage -match 'WinGet package state' -and $coverage -match 'Worker lifecycle' -and $coverage -match 'Code signing') 'Migration coverage matrix omits required responsibilities.'
+    foreach ($project in @('App','Application','Domain','Infrastructure.Windows')) {
+        Assert-True ($solution -match [regex]::Escape("src/AVWorkstationToolkit.$project/AVWorkstationToolkit.$project.csproj")) "Migration solution omits $project."
+    }
+    Assert-True ($appProject -match '<OutputType>Library</OutputType>' -and $appProject -match '<UseWPF>true</UseWPF>' -and
+        $appProject -match '<SelfContained>true</SelfContained>' -and $appProject -match '<PublishSingleFile>true</PublishSingleFile>' -and
+        $appProject -match '<PublishTrimmed>false</PublishTrimmed>' -and $appProject -notmatch '<ApplicationDefinition') 'Future WPF scaffold can ship accidentally or has unsafe publish policy.'
+    Assert-True ($buildSource -match 'Test-CSharpMigration\.ps1') 'Authoritative build does not validate migration scaffolding.'
+    Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
+    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
+    Assert-True ($domainSource -match 'class CatalogParser' -and $domainSource -match 'class PlanningService' -and $domainSource -match 'class SelectionPolicy' -and
+        $domainSource -notmatch 'System\.Diagnostics|Microsoft\.Win32|HttpClient|System\.Management\.Automation|powershell\.exe|pwsh\.exe|cmd\.exe') 'Typed Domain ownership or dependency boundary regressed.'
+    Assert-True ($domainTests -match 'PackageReference Include="MSTest"' -and $domainTests -match 'TreatWarningsAsErrors>true') 'C# domain tests are not configured as warning-clean MSTest tests.'
+}
 if (-not $CoreOnly) {
     Invoke-Check 'winget resolves to a signed Microsoft Desktop App Installer binary' {
         $wingetPath = Get-AVWorkstationToolkitWingetCommand
@@ -1845,7 +1872,7 @@ Invoke-Check 'Defender investigation keeps historical and current specimens dist
 }
 Invoke-Check 'Publication documentation is present and relative links resolve' {
     $rootMarkdown = @(Get-ChildItem -LiteralPath $repositoryRoot -File | Where-Object Extension -eq '.md')
-    $expectedRootMarkdown = @('CONTRIBUTING.md','PRIVACY.md','README.md','SECURITY.md','THIRD-PARTY-NOTICES.md')
+    $expectedRootMarkdown = @('AGENTS.md','CONTRIBUTING.md','PRIVACY.md','README.md','SECURITY.md','THIRD-PARTY-NOTICES.md')
     Assert-Equal ($expectedRootMarkdown -join '|') (@($rootMarkdown.Name | Sort-Object) -join '|') 'Root publication-document set differs.'
     foreach ($file in @($rootMarkdown + @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'docs') -Recurse -File -Filter '*.md'))) {
         $text = Get-Content -LiteralPath $file.FullName -Raw

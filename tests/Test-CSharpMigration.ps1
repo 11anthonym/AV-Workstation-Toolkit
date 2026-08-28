@@ -1,0 +1,19 @@
+<#[.SYNOPSIS] Builds and tests the non-shipping C# migration scaffolding and parity harness. #>
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$solutionPath = Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx'
+$lockedRestoreOutput = (& dotnet restore $solutionPath --locked-mode --nologo 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0) {
+    throw "The C# migration dependency lock is stale. Run: dotnet restore .\AVWorkstationToolkit.slnx --force-evaluate; review every packages.lock.json change before committing.`r`n$lockedRestoreOutput"
+}
+& dotnet build $solutionPath -c Release --no-restore --nologo
+if ($LASTEXITCODE -ne 0) { throw 'C# migration solution build failed.' }
+& dotnet test $solutionPath -c Release --no-build --no-restore --nologo
+if ($LASTEXITCODE -ne 0) { throw 'C# deterministic domain tests failed.' }
+& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'parity\Invoke-Parity.ps1') -NoBuild
+if ($LASTEXITCODE -ne 0) { throw 'Dual-engine parity validation failed.' }
+Write-Output 'CSHARP_MIGRATION_OK'

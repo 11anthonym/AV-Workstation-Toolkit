@@ -1,0 +1,12 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "Staged",
+  "Sources": ["HKLM64", "HKLM32", "HKCU"],
+  "Scenarios": [
+    { "Id": "all-available", "Available": ["HKLM64", "HKLM32", "HKCU"], "ExpectedQuality": "Complete" },
+    { "Id": "one-unavailable", "Available": ["HKLM64", "HKLM32"], "ExpectedQuality": "Partial" },
+    { "Id": "multiple-unavailable", "Available": ["HKLM64"], "ExpectedQuality": "Partial" },
+    { "Id": "all-unavailable", "Available": [], "ExpectedQuality": "Unavailable" },
+    { "Id": "malformed-matching-version", "Available": ["HKLM64", "HKLM32", "HKCU"], "ExpectedPackageQuality": "PackageError" }
+  ]
+}

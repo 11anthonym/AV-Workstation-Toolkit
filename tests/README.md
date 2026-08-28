@@ -14,6 +14,17 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Run-Tests.
 
 The workflow also installs pinned PSScriptAnalyzer 1.24.0 in the ephemeral runner and applies the targeted root `PSScriptAnalyzerSettings.psd1` policy.
 
+Build and run the non-shipping C# migration projects, MSTest domain checks, and
+dual-engine semantic parity fixtures with locked restore:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+```
+
+This harness does not invoke WinGet, read live registry inventory, contact a
+vendor, or execute an installer. Active planning and domain-core fixtures are under `tests/parity`; the
+broader staged fixture contracts are documented under `tests/fixtures`.
+
 The suite is deliberately non-installing. It uses fixture WinGet output and external-provider fixtures to test package-state parsing; Q-SYS, Biamp, and Crestron version/catalog awareness; bounded vendor-page parsing and fallback; HTTPS host/version constraints; SFTP DTD/traversal/product controls; host trust replacement; signed download-cache tampering; offline payload hash enforcement; selection policy; holds; redistribution gating; risk acknowledgement; reboot rejection; exact WinGet arguments; parser compatibility; XAML loading; launcher configuration; trusted WinGet resolution; standard-user guards; credential redaction; embedded-secret patterns; and strict worker request containment/schema.
 
 The suite also checks the authoritative vendor-source compiler, .NET 10 launcher contract, bounded child-process policy, endpoint-trust static rules, deterministic CycloneDX SBOM generation, explicit signing policy, normalized role/manufacturer overlays, read-only catalog details, domain-aware grid sorting, composable Missing/Updates/All quick views, filter and selection persistence, and responsive layout metrics at 1040x760, 1280x860, 1440x900, and 1920x1080. The exact passing totals are recorded in the current QA report after a release-candidate run.

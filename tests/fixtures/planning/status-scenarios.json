@@ -1,0 +1,9 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "PartiallyActive",
+  "Statuses": [
+    "Current", "Missing", "UpdateAvailable", "Manual", "Held", "Error",
+    "InventoryIncomplete", "InventoryUnavailable", "CheckUnavailable", "Awareness"
+  ],
+  "ActiveParityStatuses": ["Current", "Missing", "UpdateAvailable", "Manual", "Held", "Error"]
+}

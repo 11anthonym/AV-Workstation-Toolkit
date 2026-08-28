@@ -17,6 +17,8 @@ artifacts/
 external-packages/
 src/**/bin/
 src/**/obj/
+tests/**/bin/
+tests/**/obj/
 installer/bin/
 installer/obj/
 

@@ -1,0 +1,15 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "Staged",
+  "Scenarios": [
+    { "Id": "valid-request", "Expected": "Accepted" },
+    { "Id": "wrong-schema", "Expected": "Rejected" },
+    { "Id": "unknown-field", "Expected": "Rejected" },
+    { "Id": "unknown-id", "Expected": "Rejected" },
+    { "Id": "path-traversal", "Expected": "Rejected" },
+    { "Id": "reparse-point", "Expected": "Rejected" },
+    { "Id": "oversize", "Expected": "Rejected" },
+    { "Id": "risk-acknowledgement-missing", "Expected": "Rejected" },
+    { "Id": "stale-live-state", "Expected": "RejectedOrReplanned" }
+  ]
+}

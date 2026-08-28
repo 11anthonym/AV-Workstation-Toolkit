@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0-windows7.0": {
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "IBf7lbovvjGWVWXZX5cJ/cO0WXbId0Zq4BuSeT94mGZuOAP66oMeH9PTBZ9Jpp3Jb6jtK0qm/NyUbPRo1gC/wQ=="
+      },
+      "avworkstationtoolkit.application": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Domain": "[1.0.0, )"
+        }
+      },
+      "avworkstationtoolkit.domain": {
+        "type": "Project"
+      },
+      "avworkstationtoolkit.infrastructure.windows": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Application": "[1.0.0, )",
+          "AVWorkstationToolkit.Domain": "[1.0.0, )"
+        }
+      }
+    },
+    "net10.0-windows7.0/win-x64": {}
+  }
+}

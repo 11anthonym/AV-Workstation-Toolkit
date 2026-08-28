@@ -88,6 +88,41 @@ function Compare-AVWorkstationToolkitVersion {
     return (ConvertTo-AVWorkstationToolkitVersion -Value $Left).CompareTo((ConvertTo-AVWorkstationToolkitVersion -Value $Right))
 }
 
+function ConvertTo-AVWorkstationToolkitVersionSortKey {
+    [CmdletBinding()]
+    param([AllowEmptyString()][string]$Label)
+
+    if ([string]::IsNullOrWhiteSpace($Label)) { return '4|' }
+    $value = $Label.Trim()
+    if ($value.StartsWith('Known: ',[StringComparison]::OrdinalIgnoreCase)) { $value = $value.Substring(7).Trim() }
+    if ($value.Equals('Not installed',[StringComparison]::OrdinalIgnoreCase)) { return '2|' }
+    if ($value.Equals('Not evaluated',[StringComparison]::OrdinalIgnoreCase)) { return '3|' }
+    $match = [regex]::Match($value,'^\s*[vV]?(?<numeric>\d+(?:\.\d+){0,7})(?<suffix>(?:[-+][0-9A-Za-z.-]+)?)\s*$')
+    if (-not $match.Success) { return '1|' + $value.ToUpperInvariant() }
+    $segments = [Collections.Generic.List[string]]::new()
+    $parts = @($match.Groups['numeric'].Value.Split('.'))
+    for ($index = 0; $index -lt 8; $index++) {
+        $part = if ($index -lt $parts.Count) { $parts[$index].TrimStart('0') } else { '' }
+        if ([string]::IsNullOrEmpty($part)) { $part = '0' }
+        $segments.Add(('{0:D3}:{1}' -f $part.Length,$part))
+    }
+    return '0|' + ($segments -join '|') + '|' + $match.Groups['suffix'].Value.ToUpperInvariant()
+}
+
+function Test-AVWorkstationToolkitQuickViewMatch {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][object]$Item,
+        [ValidateSet('All','Missing','Updates')][string]$QuickView = 'All'
+    )
+
+    switch ($QuickView) {
+        'Missing' { return $Item.Status -eq 'Missing' -or (-not $Item.Installed -and $Item.Status -in @('Manual','NotDetected','Held')) }
+        'Updates' { return $Item.Status -in @('UpdateAvailable','ManualUpdate') -or ($Item.Status -eq 'Held' -and $Item.Installed -and -not [string]::IsNullOrWhiteSpace([string]$Item.AvailableVersion)) }
+        default { return $true }
+    }
+}
+
 function Assert-AVWorkstationToolkitHttpsUri {
     param([Parameter(Mandatory)][string]$Value,[Parameter(Mandatory)][string]$Field)
 
@@ -3482,9 +3517,11 @@ Export-ModuleMember -Function @(
     'Get-AVWorkstationToolkitCatalogVendors',
     'Resolve-AVWorkstationToolkitCatalogVendorSelection',
     'Test-AVWorkstationToolkitCatalogFilter',
+    'Test-AVWorkstationToolkitQuickViewMatch',
     'Get-AVWorkstationToolkitMetadataVerificationState',
     'ConvertFrom-AVWorkstationToolkitExternalCatalogJson',
     'Compare-AVWorkstationToolkitVersion',
+    'ConvertTo-AVWorkstationToolkitVersionSortKey',
     'Get-AVWorkstationToolkitExternalInventory',
     'ConvertFrom-AVWorkstationToolkitExternalReleaseContent',
     'ConvertFrom-AVWorkstationToolkitExternalDownloadContent',

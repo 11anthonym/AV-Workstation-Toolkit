@@ -165,24 +165,7 @@ function Get-AVWorkstationToolkitSortRank {
 
 function Get-AVWorkstationToolkitVersionSortKey {
     param([AllowEmptyString()][string]$Label)
-
-    if ([string]::IsNullOrWhiteSpace($Label)) { return '4|' }
-    $value = $Label.Trim()
-    if ($value.StartsWith('Known: ',[StringComparison]::OrdinalIgnoreCase)) { $value = $value.Substring(7).Trim() }
-    if ($value.Equals('Not installed',[StringComparison]::OrdinalIgnoreCase)) { return '2|' }
-    if ($value.Equals('Not evaluated',[StringComparison]::OrdinalIgnoreCase)) { return '3|' }
-
-    $match = [regex]::Match($value,'^\s*[vV]?(?<numeric>\d+(?:\.\d+){0,7})(?<suffix>(?:[-+][0-9A-Za-z.-]+)?)\s*$')
-    if (-not $match.Success) { return '1|' + $value.ToUpperInvariant() }
-
-    $segments = [System.Collections.Generic.List[string]]::new()
-    $parts = @($match.Groups['numeric'].Value.Split('.'))
-    for ($index = 0; $index -lt 8; $index++) {
-        $part = if ($index -lt $parts.Count) { $parts[$index].TrimStart('0') } else { '' }
-        if ([string]::IsNullOrEmpty($part)) { $part = '0' }
-        $segments.Add(('{0:D3}:{1}' -f $part.Length,$part))
-    }
-    return '0|' + ($segments -join '|') + '|' + $match.Groups['suffix'].Value.ToUpperInvariant()
+    return ConvertTo-AVWorkstationToolkitVersionSortKey -Label $Label
 }
 
 function ConvertTo-DisplayItem {
@@ -645,18 +628,7 @@ function Update-AVWorkstationToolkitQuickViewAppearance {
 
 function Test-AVWorkstationToolkitQuickViewFilter {
     param([Parameter(Mandatory)]$Item)
-
-    switch ($state.QuickView) {
-        'Missing' {
-            return $Item.Status -eq 'Missing' -or
-                (-not $Item.Installed -and $Item.Status -in @('Manual','NotDetected','Held'))
-        }
-        'Updates' {
-            return $Item.Status -in @('UpdateAvailable','ManualUpdate') -or
-                ($Item.Status -eq 'Held' -and $Item.Installed -and -not [string]::IsNullOrWhiteSpace([string]$Item.AvailableVersion))
-        }
-        default { return $true }
-    }
+    return Test-AVWorkstationToolkitQuickViewMatch -Item $Item -QuickView $state.QuickView
 }
 
 function Clear-AVWorkstationToolkitSelection {

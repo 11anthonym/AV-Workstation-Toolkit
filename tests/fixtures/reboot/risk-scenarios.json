@@ -1,0 +1,11 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "ActiveSubset",
+  "RebootStates": ["None", "WindowsUpdate", "ComponentBasedServicing"],
+  "Risks": ["None", "Service", "Driver", "Listener"],
+  "Policy": {
+    "NoReboot": "EligibleWithRequiredRiskAcknowledgement",
+    "PendingRebootLowRisk": "Eligible",
+    "PendingRebootRiskBearing": "Blocked"
+  }
+}

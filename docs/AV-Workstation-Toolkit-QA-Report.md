@@ -1,12 +1,12 @@
 # AV Workstation Toolkit 1.1.1 Packaging QA Report
 
-**Validation date:** 2026-08-26
+**Validation date:** 2026-08-27
 **Target runtime:** Windows 10/11 x64, self-contained .NET 10.0.11 launcher, Windows PowerShell 5.1, WPF, Desktop App Installer/WinGet 1.29
 **Change activity during QA:** No application install, update, uninstall, reboot, service, driver, listener, or security-management change
 
 ## Release result
 
-The v1.1 source suite passes **119 of 119** checks; its CI-safe subset passes **113 of 113**. The source UI checks drive checkboxes in actual generated DataGrid rows and require each deliberate toggle to produce exactly one source update while the visible check mark, PowerShell model, footer summary, and Install/Update buttons agree. The flow covers select, deselect, Install only, Update only, both actions, low-risk selection during a Component Based Servicing reboot warning, disabled catalog records, and stability across refresh, filtering, sorting, virtualization, and rebinding. Delivery QA covers the complete bounded action matrix: vendor-page links, bundled verified files, direct HTTPS downloads, authenticated SFTP, cached and uncached parent providers, awareness links, and non-actionable inventory-only records. Release-policy regression now derives the exact eight-asset publication set from the workflow and keeps the maintained release documents synchronized, while the Defender record test prevents the historical and current specimen evidence from being conflated. The package suite passes **16 of 16** checks: it copies the direct-download EXE into an otherwise empty directory, verifies deterministic versioned extraction without rewriting unchanged files, repairs cache drift, checks EXE/MSI identity and byte parity, validates embedded/published third-party notices, validates the license-aware CycloneDX SBOM and schema-v3 release manifest, verifies manifest-inclusive checksums, exercises the packaged HTTPS/SFTP/Credential Manager bridge self-test, rejects an unknown bridge request field, confirms ZIP parity, loads the packaged XAML, runs packaged WPF control/workflow and diagnostics smoke behavior, and administratively extracts the MSI without registering it. The .NET 10 launcher and WiX builds complete with zero compiler or installer warnings. PSScriptAnalyzer 1.24.0 reports zero diagnostics, and `dotnet format --verify-no-changes` passes.
+The v1.1 source and package totals below are refreshed by the final Phase 2 validation run. The non-shipping C# solution now uses MSTest and dual-engine canonical parity for typed versions, catalog validation/authority, composed filters, all package statuses, selection eligibility, and risk-sensitive reboot policy. The launcher, PowerShell-hosted WPF application, providers, worker, vendor bridge, MSI, ZIP, and normal execution path remain unchanged.
 
 Interactive release QA runs all sixteen package checks. Hosted CI uses the explicit `-SkipDesktopSmoke` mode because an Actions runner does not provide a reliable interactive WPF desktop; it runs the other fifteen package checks and reports the desktop check as skipped. Launcher and MSI waits are bounded so runner-specific desktop or installer stalls fail with a diagnostic instead of consuming the full job lifetime.
 
@@ -49,6 +49,7 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | Crestron parent provider, SFTP catalog, host trust, credential transport, and packaged libraries | Pass | Seven independently detectable children resolved through one feed; inherited policy, DTD/traversal/incomplete fixtures, scoped trust-store fixtures, static credential audit, and packaged bridge self-test |
 | Offline payload traversal, schema 3 metadata, hash, signer policy, and redistribution gate | Pass | Deterministic payload tests plus a synthetic signed rights-authorized authoring run that preserves schema 3 |
 | Exact package matching, holds, risk acknowledgement, and risk-sensitive reboot enforcement | Pass | Low-risk, driver/service/listener, and mid-run re-plan request-policy tests |
+| C# migration architecture and semantic parity | Pass, non-shipping | Locked .NET 10 solution, 16 MSTest cases, 19 managed planning results, and 36 focused version/catalog/filter/external-status cases compare exactly with the shipping PowerShell implementation |
 | Exact one-package WinGet arguments; no bulk/import/uninstall path | Pass | Argument tests plus PowerShell AST audit |
 | Trusted Microsoft Desktop App Installer resolution and signature | Pass | Live read-only check |
 | Standard-user guards before local module/XAML loading | Pass | Every executable PowerShell entry point plus launcher review |
@@ -81,6 +82,12 @@ Full and CI-safe source suites:
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-Tests.ps1
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Run-Tests.ps1 -CoreOnly
+```
+
+Non-shipping C# migration solution and dual-engine parity:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
 ```
 
 Build and package suite:

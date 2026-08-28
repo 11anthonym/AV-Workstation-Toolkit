@@ -46,8 +46,8 @@ foreach ($launch in @($policy.Launches)) {
 $productionFiles = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'scripts') -File |
         Where-Object Extension -in @('.ps1','.psm1','.psd1')
-    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher') -File |
-        Where-Object Extension -in @('.cs','.csproj')
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File |
+        Where-Object { $_.Extension -in @('.cs','.csproj') -and $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' }
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'build') -File |
         Where-Object Extension -in @('.ps1','.psm1')
     Get-Item -LiteralPath (Join-Path $repositoryRoot 'Launch-AVWorkstationToolkit.cmd')

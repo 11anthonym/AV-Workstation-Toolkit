@@ -1,0 +1,13 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "Staged",
+  "Scenarios": [
+    { "Id": "valid-catalog", "Expected": "Accepted" },
+    { "Id": "duplicate-ids", "Expected": "Rejected" },
+    { "Id": "unknown-profile", "Expected": "Rejected" },
+    { "Id": "unknown-risk", "Expected": "Rejected" },
+    { "Id": "missing-required-field", "Expected": "Rejected" },
+    { "Id": "forbidden-product-pattern", "Expected": "Rejected" },
+    { "Id": "managed-external-awareness-boundaries", "Expected": "AcceptedWithDistinctAuthority" }
+  ]
+}

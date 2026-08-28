@@ -1,5 +1,31 @@
 # Change Log
 
+## 2026-08-27 — Typed C# domain/core parity
+
+- Added non-shipping typed C# models and deterministic implementations for
+  numeric versions, strict catalog normalization and validation, composed
+  catalog queries, package planning/status, selection eligibility, and
+  risk-sensitive reboot policy.
+- Expanded dual-engine characterization to every current package status plus
+  version, catalog-authority, hostile catalog, filter composition, and reboot
+  policy cases; parity remains independent of live Windows/provider state.
+- Kept the launcher, PowerShell-hosted WPF application, inventory providers,
+  action worker, vendor transports, request schemas, and release packages on
+  the existing production path.
+
+## 2026-08-27 — C# migration harness and architecture contract
+
+- Added a repository contract, target C# dependency architecture, and explicit
+  PowerShell retirement matrix without changing the shipping runtime.
+- Added non-shipping .NET 10 Domain, Application, Windows infrastructure, WPF,
+  unit-test, and integration-test scaffolding with nullable analysis, warnings
+  as errors, deterministic builds, and locked restore.
+- Added strict dual-engine canonical JSON parity for representative WinGet
+  states and risk-sensitive Windows Update/CBS reboot policy, plus staged
+  deterministic fixture contracts for later migration phases.
+- Kept the existing launcher, embedded PowerShell/WPF application, worker,
+  catalog, vendor bridge, MSI identity, and release artifacts unchanged.
+
 ## 2026-08-26 — Selection-state synchronization correction
 
 - Corrected the WPF `SourceUpdated` ordering boundary that could leave a row

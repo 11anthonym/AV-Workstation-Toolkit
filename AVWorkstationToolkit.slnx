@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AVWorkstationToolkit.App/AVWorkstationToolkit.App.csproj" />
+    <Project Path="src/AVWorkstationToolkit.Application/AVWorkstationToolkit.Application.csproj" />
+    <Project Path="src/AVWorkstationToolkit.Domain/AVWorkstationToolkit.Domain.csproj" />
+    <Project Path="src/AVWorkstationToolkit.Infrastructure.Windows/AVWorkstationToolkit.Infrastructure.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AVWorkstationToolkit.IntegrationTests/AVWorkstationToolkit.IntegrationTests.csproj" />
+    <Project Path="tests/AVWorkstationToolkit.Tests/AVWorkstationToolkit.Tests.csproj" />
+  </Folder>
+</Solution>

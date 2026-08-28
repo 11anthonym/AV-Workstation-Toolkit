@@ -31,6 +31,8 @@ and release artifacts.
 - [Third-party notices](THIRD-PARTY-NOTICES.md)
 - [Contributing](CONTRIBUTING.md)
 - [Architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md)
+- [C# migration architecture contract](docs/CSharp-Migration-Architecture.md)
+- [C# migration coverage and retirement matrix](docs/CSharp-Migration-Coverage.md)
 - [Commercial AV catalog model](docs/Commercial-AV-Catalog.md)
 - [Workstation research reconciliation and backlog](docs/Workstation-Research-Backlog.md)
 - [Security audit](docs/AV-Workstation-Toolkit-Security-Audit.md)
@@ -132,6 +134,15 @@ Run the complete non-installing QA suite after any code or catalog edit:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-Tests.ps1
 ```
 
+The shipping implementation remains the PowerShell-hosted WPF application.
+The non-shipping .NET migration implementation now contains typed deterministic
+catalog, version, filtering, planning, and policy logic. Its dual-engine parity
+suite is validated separately; the shipping executable still uses PowerShell:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+```
+
 The private repository also runs the host-independent safety subset and targeted PSScriptAnalyzer policy on a clean Windows GitHub Actions runner.
 
 Build and verify all three distributables:
@@ -151,6 +162,11 @@ The command-line deployment and maintenance scripts remain available for operato
 |---|---|
 | `app/` | WPF interface definition |
 | `src/AVWorkstationToolkit.Launcher/` | Self-contained, argument-constrained Windows launcher |
+| `src/AVWorkstationToolkit.Domain/` | Non-shipping typed catalog, version, filtering, planning, and policy implementation with legacy parity |
+| `src/AVWorkstationToolkit.Application/` | Non-shipping use-case and infrastructure-abstraction seam |
+| `src/AVWorkstationToolkit.Infrastructure.Windows/` | Non-shipping future Windows adapter boundary |
+| `src/AVWorkstationToolkit.App/` | Non-shipping future compiled WPF composition boundary; not the current entry point |
+| `AVWorkstationToolkit.slnx` | Locked, warning-clean .NET 10 migration solution |
 | `installer/` | Pinned WiX x64 MSI project |
 | `build/` | Reproducible staging, signing, packaging, and checksum workflow |
 | `catalog/vendors/` | Authoritative per-manufacturer awareness sources; never loaded directly at runtime |
@@ -165,7 +181,7 @@ The command-line deployment and maintenance scripts remain available for operato
 | `external-packages/` | Local third-party payload depot; always ignored by Git |
 | `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Versioned module manifest plus WinGet and external inventory, release awareness, planning, validation, and exact arguments |
 | `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Revalidating install/update worker and post-action verification |
-| `tests/` | Non-installing safety, parser, policy, and UI smoke tests |
+| `tests/` | Non-installing safety, parser, policy, UI smoke, explicit fixtures, and dual-engine parity tests |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\logs` | Installed/portable execution evidence |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\reports` | Installed/portable exported plans |
 | `logs/`, `reports/` | Source-checkout evidence; ignored by Git |

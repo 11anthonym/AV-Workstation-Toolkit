@@ -1,0 +1,12 @@
+{
+  "SchemaVersion": 1,
+  "ScenarioId": "cbs-reboot-risk-policy",
+  "Reboot": { "Pending": true, "Reasons": ["Component Based Servicing"], "Summary": "Component Based Servicing requires a restart" },
+  "Winget": { "Available": true, "Installed": [], "Upgrades": [] },
+  "Packages": [
+    { "Id": "7zip.7zip", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Allowlisted", "Risk": "None" },
+    { "Id": "Insecure.Nmap", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Allowlisted", "Risk": "Driver" },
+    { "Id": "voidtools.Everything", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Allowlisted", "Risk": "Service" },
+    { "Id": "PJO2.tftpd64", "Provider": "WinGet", "Deployment": "Allowlisted", "Maintenance": "Hold", "Risk": "Listener" }
+  ]
+}

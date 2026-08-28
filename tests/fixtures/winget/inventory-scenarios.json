@@ -1,0 +1,12 @@
+{
+  "SchemaVersion": 1,
+  "HarnessStatus": "Staged",
+  "Scenarios": [
+    { "Id": "valid-export", "Input": "../winget-export.json", "Expected": "Available" },
+    { "Id": "malformed-json", "InputKind": "MalformedJson", "Expected": "Unavailable" },
+    { "Id": "missing-required-fields", "InputKind": "MissingRequiredFields", "Expected": "Unavailable" },
+    { "Id": "duplicate-or-unexpected-data", "InputKind": "DuplicateOrUnknownFields", "Expected": "Unavailable" },
+    { "Id": "source-mapping-problem", "InputKind": "UnmappedCatalogPackageWarning", "Expected": "Unavailable" },
+    { "Id": "command-unavailable", "InputKind": "CommandUnavailable", "Expected": "Unavailable" }
+  ]
+}
