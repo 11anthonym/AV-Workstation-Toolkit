@@ -8,9 +8,15 @@ if (args.Length == 1 && args[0] == "--live-readonly")
     return 0;
 }
 
+if (args.Length == 2 && args[0] == "--worker-process")
+{
+    Console.WriteLine(JsonSerializer.Serialize(await WorkerProcessBoundary.RunAsync(args[1])));
+    return 0;
+}
+
 if (args.Length is < 1 or > 2)
 {
-    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle] <fixture.json> | --live-readonly");
+    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle] <fixture.json> | --live-readonly | --worker-process <worker.exe>");
     return 2;
 }
 

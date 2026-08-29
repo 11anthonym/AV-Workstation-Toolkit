@@ -16,6 +16,8 @@ if ($LASTEXITCODE -ne 0) { throw 'C# migration solution build failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'C# deterministic domain tests failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'parity\Invoke-Parity.ps1') -NoBuild
 if ($LASTEXITCODE -ne 0) { throw 'Dual-engine parity validation failed.' }
+& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-CSharpWorkerProcess.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'Compiled worker process-boundary validation failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File (Join-Path $PSScriptRoot 'Test-CSharpWpfSmoke.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Compiled WPF migration smoke failed.' }
 Write-Output 'CSHARP_MIGRATION_OK'

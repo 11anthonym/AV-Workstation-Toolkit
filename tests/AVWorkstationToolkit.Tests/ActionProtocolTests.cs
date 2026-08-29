@@ -296,6 +296,53 @@ public sealed class ActionProtocolTests
         finally { Directory.Delete(root, true); }
     }
 
+    [TestMethod]
+    public async Task WorkerFileProtocolAppendsProgressAndWritesFinalResultExactlyOnce()
+    {
+        var root = CreateTemporaryRoot();
+        try
+        {
+            var request = Request(["Vendor.One"]);
+            var store = new ActionProtocolStore(root);
+            var paths = await store.PersistRequestAsync(Authorized(request));
+            await using var protocol = new ActionWorkerFileProtocol(root, RequestId);
+            await protocol.InitializeAsync(request);
+            await protocol.AppendProgressAsync(request, ProgressRecord());
+            await protocol.AppendProgressAsync(request, new ActionProgressRecord(Timestamp.AddSeconds(1), ActionProgressLevel.Success, "Verified", "Vendor.One", "Verified install."));
+            var result = new ActionResultCodec().Parse(ResultJson(paths, "Succeeded", 0, PackageJson("Succeeded", 0, true)), request, paths);
+            await protocol.PersistFinalResultAsync(request, result);
+
+            var progress = new ActionProgressCodec().ParseIncremental(
+                await store.ReadArtifactAsync(RequestId, ActionArtifactKind.Progress), request, flush: true);
+            Assert.HasCount(2, progress.Records);
+            Assert.IsEmpty(progress.Issues);
+            Assert.AreEqual(ActionResultStatus.Succeeded,
+                new ActionResultCodec().Parse(await store.ReadArtifactAsync(RequestId, ActionArtifactKind.Result), request, paths).Status);
+            await Assert.ThrowsExactlyAsync<IOException>(() => protocol.PersistFinalResultAsync(request, result).AsTask());
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [TestMethod]
+    public async Task WorkerFileProtocolRejectsStaleOrMismatchedArtifactsBeforeWriting()
+    {
+        var root = CreateTemporaryRoot();
+        try
+        {
+            var request = Request(["Vendor.One"]);
+            var store = new ActionProtocolStore(root);
+            var paths = await store.PersistRequestAsync(Authorized(request));
+            File.WriteAllText(paths.ProgressPath, ProgressJson("stale") + "\n");
+            await using var stale = new ActionWorkerFileProtocol(root, RequestId);
+            await Assert.ThrowsExactlyAsync<IOException>(() => stale.InitializeAsync(request).AsTask());
+
+            File.Delete(paths.ProgressPath);
+            await using var mismatched = new ActionWorkerFileProtocol(root, "request-20260829-142233-deadbeef");
+            await Assert.ThrowsExactlyAsync<ActionProtocolValidationException>(() => mismatched.InitializeAsync(request).AsTask());
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
     private static string ProgressJson(string message) => JsonSerializer.Serialize(new
     {
         Timestamp = Timestamp.ToString("o"),

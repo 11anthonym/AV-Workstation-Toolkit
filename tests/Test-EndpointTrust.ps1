@@ -81,6 +81,9 @@ $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
 $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+$compiledWorkerSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker') -Recurse -File |
+    Where-Object { $_.Extension -in @('.cs','.csproj') -and $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' } |
+    ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 $compiledReadOnlySurfaceSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Details') -File -Filter '*.cs'
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Diagnostics') -File -Filter '*.cs'
@@ -89,10 +92,12 @@ $compiledReadOnlySurfaceSource = @(
 $compiledReadOnlySurfaceSource = $compiledReadOnlySurfaceSource -join "`n"
 $protocolStorePath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionProtocolStore.cs'
 $protocolStoreSource = Get-Content -LiteralPath $protocolStorePath -Raw
+$workerProtocolPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionWorkerFileProtocol.cs'
+$workerProtocolSource = Get-Content -LiteralPath $workerProtocolPath -Raw
 $compiledActionSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Actions') -File -Filter '*.cs'
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files') -File -Filter '*.cs' |
-        Where-Object FullName -ne $protocolStorePath
+        Where-Object { $_.FullName -notin @($protocolStorePath,$workerProtocolPath) }
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $compiledActionSource = $compiledActionSource -join "`n"
 if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
@@ -145,8 +150,37 @@ if ($protocolStoreSource -notmatch 'explicitDataRoot' -or
     $protocolStoreSource -match 'Environment\.GetFolderPath|LocalApplicationData|GetTempPath|FileMode\.(?:Create(?!New)|OpenOrCreate|Append)|ProcessStartInfo|Process\.Start') {
     throw 'The non-shipping action-protocol store lost its explicit-root, create-new, atomic-move, or durable-write boundary.'
 }
+if (($workerProtocolSource -match 'ProcessStartInfo|Process\.Start|HttpClient|WebRequest|WebClient|System\.Management\.Automation|LocalApplicationData|GetTempPath') -or
+    $workerProtocolSource -notmatch 'explicitDataRoot' -or
+    $workerProtocolSource -notmatch 'FileMode\.CreateNew' -or
+    $workerProtocolSource -notmatch 'FileMode\.Append' -or
+    $workerProtocolSource -notmatch 'File\.Move\(temporaryPath, Paths\.ResultPath, overwrite:\s*false\)' -or
+    $workerProtocolSource -notmatch 'RejectStaleArtifact' -or
+    $workerProtocolSource -notmatch 'Flush\(flushToDisk:\s*true\)') {
+    throw 'The fake-worker file protocol lost its explicit-root, append-only progress, stale-artifact, or final-result no-overwrite boundary.'
+}
 if ($compiledAppSource -match 'ActionRequestFactory|ActionRequestFilePolicy|ActionProtocolStore|ActionArtifactPathPolicy|Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker') {
     throw 'The compiled WPF migration app gained action-request persistence or worker-launch authority.'
+}
+if ($compiledWorkerSource -match 'ProcessStartInfo|Process\.Start|System\.Management\.Automation|HttpClient|WebRequest|WebClient|ShellExecute|WindowsIdentity\.Impersonate' -or
+    $compiledWorkerSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(' -or
+    $compiledWorkerSource -match 'LocalApplicationData|GetTempPath|Environment\.GetEnvironmentVariable') {
+    throw 'The non-shipping compiled worker gained process, shell, network, production-root, or mutation behavior.'
+}
+if ($compiledWorkerSource -notmatch '--test-mode' -or
+    $compiledWorkerSource -notmatch 'DeterministicFakePackageExecutor' -or
+    $compiledWorkerSource -notmatch 'ActionWorkerFileProtocol' -or
+    $compiledWorkerSource -notmatch 'ReadFreshPlanAsync' -or
+    $compiledWorkerSource -match 'WinGetReadOnlyProcessRunner|WindowsWinGetResolver') {
+    throw 'The compiled worker is no longer constrained to its explicit-root fake-executor test composition.'
+}
+$shippingCompositionSource = @(
+    Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
+    Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
+    Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
+) -join "`n"
+if ($shippingCompositionSource -match 'AVWorkstationToolkit\.Worker') {
+    throw 'The non-shipping compiled worker entered launcher, installer, or release composition.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or

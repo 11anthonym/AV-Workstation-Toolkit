@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-29 — Compiled worker orchestration parity
+
+- Added a separate non-shipping compiled worker test host that strictly reads one canonical request, reauthorizes the complete request and every package against fresh deterministic plans, and writes correlated progress and final-result artifacts.
+- Added only a deterministic fake executor with success, failure, verification-failure, and bounded-delay outcomes plus focused tests for holds, action/risk/reboot changes, unknown packages, sequencing, cooperative cancellation, and no-overwrite lifecycle behavior.
+- Added four real process-boundary scenarios under isolated temporary roots. The compiled App, shipping launcher, production PowerShell worker, WinGet mutation, installer/elevation behavior, MSI, ZIP, and release composition remain unchanged.
+
 ## 2026-08-29 — Compiled IPC lifecycle parity
 
 - Added non-shipping typed request/progress/result/cancel artifact identity, bounded strict parsers, cooperative-cancellation semantics, and a deterministic action lifecycle model.

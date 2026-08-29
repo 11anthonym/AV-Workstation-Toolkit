@@ -4,6 +4,7 @@
     <Project Path="src/AVWorkstationToolkit.Application/AVWorkstationToolkit.Application.csproj" />
     <Project Path="src/AVWorkstationToolkit.Domain/AVWorkstationToolkit.Domain.csproj" />
     <Project Path="src/AVWorkstationToolkit.Infrastructure.Windows/AVWorkstationToolkit.Infrastructure.Windows.csproj" />
+    <Project Path="src/AVWorkstationToolkit.Worker/AVWorkstationToolkit.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AVWorkstationToolkit.IntegrationTests/AVWorkstationToolkit.IntegrationTests.csproj" />

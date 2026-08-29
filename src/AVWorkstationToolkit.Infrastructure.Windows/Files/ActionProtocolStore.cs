@@ -24,6 +24,12 @@ public sealed class ActionProtocolStore
 
     public ActionArtifactPaths GetPaths(string requestId) => pathPolicy.GetPaths(dataRoot, requestId);
 
+    public async Task<ActionRequest> ReadRequestAsync(string requestId, CancellationToken cancellationToken = default)
+    {
+        var payload = await ReadArtifactAsync(requestId, ActionArtifactKind.Request, cancellationToken).ConfigureAwait(false);
+        return requestCodec.Parse(payload, requestId);
+    }
+
     public async Task<ActionArtifactPaths> PersistRequestAsync(AuthorizedActionRequest authorizedRequest, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(authorizedRequest);

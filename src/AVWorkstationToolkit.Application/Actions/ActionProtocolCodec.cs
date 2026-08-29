@@ -25,6 +25,29 @@ public sealed class ActionProgressCodec
     private static readonly string[] Properties = ["Timestamp", "Level", "Stage", "PackageId", "Message"];
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
+    public byte[] Serialize(ActionProgressRecord record, ActionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        ArgumentNullException.ThrowIfNull(request);
+        ActionRequestRules.Validate(request);
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStartObject();
+            writer.WriteString("Timestamp", record.Timestamp.ToString("o", CultureInfo.InvariantCulture));
+            writer.WriteString("Level", record.Level.ToString());
+            writer.WriteString("Stage", record.Stage);
+            writer.WriteString("PackageId", record.PackageId);
+            writer.WriteString("Message", record.Message);
+            writer.WriteEndObject();
+        }
+
+        var payload = stream.ToArray();
+        _ = ParseRecord(payload, request);
+        return payload;
+    }
+
     public ActionProgressParseBatch ParseIncremental(
         ReadOnlySpan<byte> bytes,
         ActionRequest request,
@@ -165,6 +188,52 @@ public sealed class ActionResultCodec
         ["SchemaVersion", "GeneratedAt", "Computer", "Status", "Message", "ExitCode", "RequestPath", "ProgressPath", "WingetLogPath", "Packages"];
     private static readonly string[] PackageProperties =
         ["Id", "Name", "Action", "Status", "ExitCode", "Verified", "StartedAt", "FinishedAt", "Arguments"];
+
+    public byte[] Serialize(ActionFinalResult result, ActionRequest request, ActionArtifactPaths expectedPaths)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(expectedPaths);
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber("SchemaVersion", result.SchemaVersion);
+            writer.WriteString("GeneratedAt", result.GeneratedAt.ToString("o", CultureInfo.InvariantCulture));
+            writer.WriteString("Computer", result.Computer);
+            writer.WriteString("Status", result.Status.ToString());
+            writer.WriteString("Message", result.Message);
+            writer.WriteNumber("ExitCode", result.ExitCode);
+            writer.WriteString("RequestPath", result.RequestPath);
+            writer.WriteString("ProgressPath", result.ProgressPath);
+            writer.WriteString("WingetLogPath", result.WinGetLogPath);
+            writer.WriteStartArray("Packages");
+            foreach (var package in result.Packages)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("Id", package.Id);
+                writer.WriteString("Name", package.Name);
+                writer.WriteString("Action", package.Action.ToString());
+                writer.WriteString("Status", package.Status.ToString());
+                writer.WriteNumber("ExitCode", package.ExitCode);
+                writer.WriteBoolean("Verified", package.Verified);
+                if (package.StartedAt is null) writer.WriteNull("StartedAt");
+                else writer.WriteString("StartedAt", package.StartedAt.Value.ToString("o", CultureInfo.InvariantCulture));
+                writer.WriteString("FinishedAt", package.FinishedAt.ToString("o", CultureInfo.InvariantCulture));
+                writer.WriteStartArray("Arguments");
+                foreach (var argument in package.Arguments) writer.WriteStringValue(argument);
+                writer.WriteEndArray();
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        var payload = stream.ToArray();
+        _ = Parse(payload, request, expectedPaths);
+        return payload;
+    }
 
     public ActionFinalResult Parse(ReadOnlySpan<byte> payload, ActionRequest request, ActionArtifactPaths expectedPaths)
     {
