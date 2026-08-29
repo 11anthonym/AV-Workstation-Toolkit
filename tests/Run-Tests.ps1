@@ -1147,7 +1147,7 @@ Invoke-Check 'Credential-like values are redacted from operational text' {
     Assert-True ($protected -notmatch 'hunter2|abc123|:pass@|Bearer xyz') 'Sensitive values remain in protected operational text.'
     Assert-True ($protected -match '\[REDACTED\]') 'Redaction marker is missing.'
 }
-Invoke-Check 'C# migration scaffold remains non-shipping, strict, and fixture-backed' {
+Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixture-backed' {
     $agents = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AGENTS.md') -Raw
     $architecture = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Architecture.md') -Raw
     $coverage = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Coverage.md') -Raw
@@ -1166,13 +1166,18 @@ Invoke-Check 'C# migration scaffold remains non-shipping, strict, and fixture-ba
     foreach ($project in @('App','Application','Domain','Infrastructure.Windows')) {
         Assert-True ($solution -match [regex]::Escape("src/AVWorkstationToolkit.$project/AVWorkstationToolkit.$project.csproj")) "Migration solution omits $project."
     }
-    Assert-True ($appProject -match '<OutputType>Library</OutputType>' -and $appProject -match '<UseWPF>true</UseWPF>' -and
+    $compiledAppXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\App.xaml') -Raw
+    $compiledWindowXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
+    $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+    Assert-True ($appProject -match '<OutputType>WinExe</OutputType>' -and $appProject -match '<UseWPF>true</UseWPF>' -and
         $appProject -match '<SelfContained>true</SelfContained>' -and $appProject -match '<PublishSingleFile>true</PublishSingleFile>' -and
-        $appProject -match '<PublishTrimmed>false</PublishTrimmed>' -and $appProject -notmatch '<ApplicationDefinition') 'Future WPF scaffold can ship accidentally or has unsafe publish policy.'
+        $appProject -match '<PublishTrimmed>false</PublishTrimmed>' -and $compiledAppXaml -match 'x:Class="AVWorkstationToolkit\.App\.App"' -and
+        $compiledWindowXaml -match 'x:Class="AVWorkstationToolkit\.App\.MainWindow"' -and $compiledAppSource -notmatch 'XamlReader|System\.Management\.Automation') 'Compiled WPF migration app or publish policy is incomplete.'
     Assert-True ($buildSource -match 'Test-CSharpMigration\.ps1') 'Authoritative build does not validate migration scaffolding.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'
+    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\presentation-fixtures') -File -Filter '*.json').Count 'Active presentation parity fixture count differs.'
     Assert-True ($domainSource -match 'class CatalogParser' -and $domainSource -match 'class PlanningService' -and $domainSource -match 'class SelectionPolicy' -and
         $domainSource -notmatch 'System\.Diagnostics|Microsoft\.Win32|HttpClient|System\.Management\.Automation|powershell\.exe|pwsh\.exe|cmd\.exe') 'Typed Domain ownership or dependency boundary regressed.'
     Assert-True ($domainTests -match 'PackageReference Include="MSTest"' -and $domainTests -match 'TreatWarningsAsErrors>true') 'C# domain tests are not configured as warning-clean MSTest tests.'

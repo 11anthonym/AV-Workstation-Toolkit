@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Non-shipping migration scaffold: it intentionally has no executable entry point or App.xaml. -->
-    <OutputType>Library</OutputType>
+    <!-- Non-shipping compiled presentation. Release packaging still publishes only the legacy launcher. -->
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

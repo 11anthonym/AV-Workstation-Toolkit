@@ -6,7 +6,7 @@
 
 ## Release result
 
-The v1.1 source and package totals below are refreshed by the final Phase 3 validation run. The non-shipping C# solution now covers typed deterministic Domain behavior plus trusted WinGet resolution, bounded read-only WinGet execution, installed/update parsing, source-aware uninstall-registry evidence, generic detector matching, and supported reboot facts. The launcher, PowerShell-hosted WPF application, shipping providers, worker, vendor bridge, MSI, ZIP, and normal execution path remain unchanged.
+The v1.1 source and package totals below are refreshed by the final Phase 4 validation run. The non-shipping C# solution now includes a conventional compiled WPF App using the typed Domain, read-only planning coordinator, and Phase 3 Windows providers. Deterministic ViewModel tests and PowerShell-to-C# presentation parity cover filters, sorting, checkboxes, counts, warnings, asynchronous refresh, stale-result suppression, and explicit mutation refusal. The launcher, PowerShell-hosted shipping WPF application, shipping worker, vendor bridge, MSI, ZIP, and normal execution path remain unchanged.
 
 Interactive release QA runs all sixteen package checks. Hosted CI uses the explicit `-SkipDesktopSmoke` mode because an Actions runner does not provide a reliable interactive WPF desktop; it runs the other fifteen package checks and reports the desktop check as skipped. Launcher and MSI waits are bounded so runner-specific desktop or installer stalls fail with a diagnostic instead of consuming the full job lifetime.
 
@@ -49,8 +49,9 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | Crestron parent provider, SFTP catalog, host trust, credential transport, and packaged libraries | Pass | Seven independently detectable children resolved through one feed; inherited policy, DTD/traversal/incomplete fixtures, scoped trust-store fixtures, static credential audit, and packaged bridge self-test |
 | Offline payload traversal, schema 3 metadata, hash, signer policy, and redistribution gate | Pass | Deterministic payload tests plus a synthetic signed rights-authorized authoring run that preserves schema 3 |
 | Exact package matching, holds, risk acknowledgement, and risk-sensitive reboot enforcement | Pass | Low-risk, driver/service/listener, and mid-run re-plan request-policy tests |
-| C# migration architecture and semantic parity | Pass, non-shipping | Locked .NET 10 solution, 25 MSTest cases, 19 managed planning results, 36 focused Domain cases, and 37 read-only provider cases compare exactly with shipping PowerShell semantics |
+| C# migration architecture and semantic parity | Pass, non-shipping | Locked .NET 10 solution, 40 MSTest cases, 19 managed planning results, 36 focused Domain cases, 37 read-only provider cases, and 4 presentation cases compare with shipping PowerShell semantics |
 | C# read-only Windows integration | Pass, non-shipping | Trusted Desktop App Installer WinGet resolved; installed/update inventory, all three uninstall-registry sources, and reboot detection were exercised without workstation mutation |
+| Compiled C# WPF presentation | Pass, non-shipping | `x:Class` App/MainWindow, MVVM bindings, deterministic compiled-process smoke, profile/priority/manufacturer/discipline/role/search/Quick View composition, sorting, selection retention, warning presentation, and hard read-only action refusal |
 | Exact one-package WinGet arguments; no bulk/import/uninstall path | Pass | Argument tests plus PowerShell AST audit |
 | Trusted Microsoft Desktop App Installer resolution and signature | Pass | Live read-only check |
 | Standard-user guards before local module/XAML loading | Pass | Every executable PowerShell entry point plus launcher review |
@@ -70,7 +71,7 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 
 ## Visual QA
 
-Current automated WPF checks verify 45 named controls, all 335 catalog records, catalog/manufacturer/discipline composition, the File/View/Tools/Help menu and shared command wiring, the cleaned telemetry-free header, dark About identity, six domain-aware sortable columns and visible direction, numeric version ordering, real generated-row checkbox/model/footer/button agreement, Missing/Updates/All quick views, filter/sort/refresh/rebind selection persistence, intentional sidebar scrolling, closed ComboBox selected-value visibility, narrow-window horizontal access, compact purpose/restriction wrapping with full-text access, the read-only detail/safety/diagnostics surfaces including workflow/provenance metadata, and the packaged workflow smoke path. Deterministic layout metrics pass at 1040x760, 1280x860, 1440x900, and 1920x1080 with Missing, Updates, and All states represented.
+Shipping automated WPF checks verify 45 named controls, all 335 catalog records, catalog/manufacturer/discipline composition, the File/View/Tools/Help menu and shared command wiring, the cleaned telemetry-free header, dark About identity, six domain-aware sortable columns and visible direction, numeric version ordering, real generated-row checkbox/model/footer/button agreement, Missing/Updates/All quick views, filter/sort/refresh/rebind selection persistence, intentional sidebar scrolling, closed ComboBox selected-value visibility, narrow-window horizontal access, compact purpose/restriction wrapping with full-text access, the read-only detail/safety/diagnostics surfaces including workflow/provenance metadata, and the packaged workflow smoke path. Deterministic layout metrics pass at 1040x760, 1280x860, 1440x900, and 1920x1080 with Missing, Updates, and All states represented. The compiled migration adds a deterministic executable smoke for critical controls and bindings; it is structural validation, not an interactive visual sign-off.
 
 The deterministic capture path produced four meaningful frames at 1040x760, 1280x860, 1440x900, and 1920x1080. The frames were visually reviewed for the shell, responsive grid, quick-view state, generated checkboxes, selection summary, and enabled/disabled action-button agreement. Automated captures do not exercise open menu popups, hover/focus transitions, tooltip timing, or every per-monitor DPI transition, so those states still require a trustworthy interactive desktop review before production publication.
 
@@ -90,6 +91,8 @@ Non-shipping C# migration solution and dual-engine parity:
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-CSharpWpfSmoke.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-CSharpAppReadOnlyIntegration.ps1
 ```
 
 Build and package suite:

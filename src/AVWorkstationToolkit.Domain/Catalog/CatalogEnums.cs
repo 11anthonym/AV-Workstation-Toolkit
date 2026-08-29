@@ -44,6 +44,11 @@ public enum PackageStatus
 public enum PackageAction { None, Install, Update, Manual }
 public enum InventoryQuality { Complete, Partial, Unavailable, PackageError, NotApplicable }
 public enum QuickView { All, Missing, Updates }
+public enum CatalogPreset
+{
+    All, P1, Onsite, Free, FreePublic, Dealer, Licensed, Drivers, Services,
+    Firmware, Current, Legacy, Unmanaged, InstalledSourceLimited
+}
 public enum CatalogDiscipline
 {
     All, DSP, AudioNetworking, AVoIP, RF, Conferencing, Displays, DvLED, Control,

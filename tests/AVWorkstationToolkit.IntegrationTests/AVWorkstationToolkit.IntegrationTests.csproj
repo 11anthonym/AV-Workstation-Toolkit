@@ -2,6 +2,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -13,5 +16,6 @@
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Domain\AVWorkstationToolkit.Domain.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Infrastructure.Windows\AVWorkstationToolkit.Infrastructure.Windows.csproj" />
+    <ProjectReference Include="..\..\src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj" />
   </ItemGroup>
 </Project>

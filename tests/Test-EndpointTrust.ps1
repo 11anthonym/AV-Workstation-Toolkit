@@ -79,6 +79,8 @@ $projectSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWork
 $readOnlyRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetReadOnlyProcessRunner.cs'
 $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
+$compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' |
+    ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
     throw 'The presentation script regained direct process-launch behavior.'
 }
@@ -108,6 +110,10 @@ $directMigrationLaunchers = @($migrationProcessSources | Where-Object {
 })
 if ($directMigrationLaunchers.Count -ne 0) {
     throw 'A C# migration component outside the reviewed read-only WinGet runner gained direct process-launch behavior.'
+}
+if ($compiledAppSource -match 'System\.Management\.Automation|XamlReader|ProcessStartInfo|Process\.Start|(?i)\b(?:powershell|pwsh|cmd)\.exe\b' -or
+    $compiledAppSource -match 'IActionWorkerBoundary\s+[A-Za-z_]') {
+    throw 'The compiled WPF migration app gained dynamic XAML, shell/process, or action-worker execution behavior.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or

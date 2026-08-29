@@ -74,3 +74,22 @@ foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'prov
     Write-Output "PROVIDER_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
 }
 Write-Output "PROVIDER_PARITY_OK scenarios=$providerScenarioCount cases=$providerCaseCount"
+
+$presentationScenarioCount = 0
+$presentationCaseCount = 0
+foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'presentation-fixtures') -File -Filter '*.json' | Sort-Object Name)) {
+    $legacy = (& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Invoke-LegacyPresentationParityAdapter.ps1') -FixturePath $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Legacy presentation adapter failed for $($fixture.Name)." }
+    $compiled = (& dotnet $integrationDll --presentation $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "C# presentation adapter failed for $($fixture.Name)." }
+    $legacyObject = $legacy | ConvertFrom-Json -ErrorAction Stop
+    $compiledObject = $compiled | ConvertFrom-Json -ErrorAction Stop
+    $legacyCanonical = $legacyObject | ConvertTo-Json -Depth 20 -Compress
+    $compiledCanonical = $compiledObject | ConvertTo-Json -Depth 20 -Compress
+    if ($legacyCanonical -cne $compiledCanonical) { throw "Presentation parity mismatch for $($fixture.Name).`r`nLEGACY: $legacyCanonical`r`nCSHARP: $compiledCanonical" }
+    $cases = @($legacyObject.Cases).Count
+    $presentationScenarioCount++
+    $presentationCaseCount += $cases
+    Write-Output "PRESENTATION_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
+}
+Write-Output "PRESENTATION_PARITY_OK scenarios=$presentationScenarioCount cases=$presentationCaseCount"

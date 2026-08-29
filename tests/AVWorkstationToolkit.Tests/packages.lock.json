@@ -152,6 +152,13 @@
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
+      "avworkstationtoolkit.app": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Application": "[1.0.0, )",
+          "AVWorkstationToolkit.Infrastructure.Windows": "[1.0.0, )"
+        }
+      },
       "avworkstationtoolkit.application": {
         "type": "Project",
         "dependencies": {

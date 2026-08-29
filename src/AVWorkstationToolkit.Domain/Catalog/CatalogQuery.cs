@@ -7,7 +7,8 @@ public sealed record CatalogQuery(
     CatalogDiscipline Discipline,
     IReadOnlySet<PackageRole> Roles,
     string Search,
-    QuickView QuickView)
+    QuickView QuickView,
+    CatalogPreset Preset = CatalogPreset.All)
 {
     public static CatalogQuery All { get; } = new(
         new HashSet<PackageProfile>(Enum.GetValues<PackageProfile>()),
@@ -16,7 +17,8 @@ public sealed record CatalogQuery(
         CatalogDiscipline.All,
         new HashSet<PackageRole>(),
         string.Empty,
-        QuickView.All);
+        QuickView.All,
+        CatalogPreset.All);
 }
 
 public sealed record CatalogQueryItem(PackageDefinition Package, PackageStatus Status, bool Installed, string AvailableVersion);
@@ -40,6 +42,7 @@ public sealed class CatalogQueryService
         if (query.Roles.Count > 0 && !package.Roles.Any(query.Roles.Contains)) return false;
         if (!MatchesDiscipline(package, query.Discipline)) return false;
         if (!MatchesSearch(package, query.Search)) return false;
+        if (!MatchesPreset(item, query.Preset)) return false;
         return MatchesQuickView(item, query.QuickView);
     }
 
@@ -58,6 +61,38 @@ public sealed class CatalogQueryService
             (item.Status == PackageStatus.Held && item.Installed && !string.IsNullOrWhiteSpace(item.AvailableVersion)),
         _ => true
     };
+
+    private static bool MatchesPreset(CatalogQueryItem item, CatalogPreset preset)
+    {
+        var package = item.Package;
+        var gatedAccess = new HashSet<string>(
+            ["EMAIL-FORM", "ACCOUNT", "REGISTERED", "DEALER", "TRAINING", "PORTAL", "CONTACT", "LICENSE-PORTAL"],
+            StringComparer.OrdinalIgnoreCase);
+        return preset switch
+        {
+            CatalogPreset.P1 => package.Priority == PackagePriority.P1,
+            CatalogPreset.Onsite => package.Priority == PackagePriority.P1 &&
+                package.SupportedOperatingSystems.Contains(SupportedOperatingSystem.Windows) &&
+                package.DeploymentClass is not (DeploymentClass.WebOnly or DeploymentClass.ServerOnly or DeploymentClass.Embedded),
+            CatalogPreset.Free => package.LicensingModels.Contains(LicensingModel.Free),
+            CatalogPreset.FreePublic => package.LicensingModels.Contains(LicensingModel.Free) &&
+                package.DownloadAccess.Contains("PUBLIC-DL", StringComparer.OrdinalIgnoreCase) &&
+                !package.DownloadAccess.Any(gatedAccess.Contains) &&
+                package.RequiresVendorAccount != true && package.RequiresDealerAccount != true && package.RequiresTraining != true,
+            CatalogPreset.Dealer => package.RequiresDealerAccount == true ||
+                package.DownloadAccess.Contains("DEALER", StringComparer.OrdinalIgnoreCase),
+            CatalogPreset.Licensed => package.LicensingModels.Any(value => value is
+                LicensingModel.License or LicensingModel.Subscription or LicensingModel.HardwareLicense or LicensingModel.DealerLicense),
+            CatalogPreset.Drivers => package.InstallsDriver == true,
+            CatalogPreset.Services => package.InstallsService == true || package.OpensListener == true,
+            CatalogPreset.Firmware => package.FirmwareUtility == true,
+            CatalogPreset.Current => package.Lifecycle == Lifecycle.Current,
+            CatalogPreset.Legacy => package.Lifecycle is Lifecycle.Legacy or Lifecycle.Transition or Lifecycle.CompatibilityUnverified or Lifecycle.Discontinued,
+            CatalogPreset.Unmanaged => package.Provider == ProviderKind.External && package.DeploymentClass != DeploymentClass.Managed,
+            CatalogPreset.InstalledSourceLimited => item.Installed && package.DownloadAccess.Any(value => value is "NO-DL" or "LEGACY-ARCHIVE" or "UNKNOWN-ACCESS"),
+            _ => true
+        };
+    }
 
     private static bool MatchesSearch(PackageDefinition package, string search)
     {

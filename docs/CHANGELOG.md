@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-28 — Compiled C# WPF presentation parity
+
+- Added a non-shipping, conventionally compiled .NET 10 WPF App with ViewModel-owned read-only refresh, filtering, sorting, selection, status, and warning state.
+- Connected the compiled presentation to the typed Domain/Application layer and Phase 3 read-only Windows providers without adding an install, update, worker, vendor-delivery, or generic process path.
+- Added deterministic ViewModel/coordinator tests, PowerShell-to-C# presentation parity, and a compiled-process WPF smoke test. The shipping launcher, PowerShell UI, worker, MSI, ZIP, and release artifacts remain unchanged.
+
 ## 2026-08-28 — Read-only C# Windows infrastructure parity
 
 - Added non-shipping typed providers for trusted Desktop App Installer WinGet

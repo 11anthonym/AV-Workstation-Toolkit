@@ -1,0 +1,154 @@
+using AVWorkstationToolkit.Domain.Catalog;
+using AVWorkstationToolkit.Domain.Planning;
+using AVWorkstationToolkit.Domain.Versions;
+
+namespace AVWorkstationToolkit.App.ViewModels;
+
+public sealed class PackageRowViewModel : ObservableObject
+{
+    private readonly Action selectionChanged;
+    private bool selected;
+    private bool busy;
+
+    public PackageRowViewModel(PackageState state, int order, Action selectionChanged)
+    {
+        State = state ?? throw new ArgumentNullException(nameof(state));
+        Order = order;
+        this.selectionChanged = selectionChanged ?? throw new ArgumentNullException(nameof(selectionChanged));
+    }
+
+    public PackageState State { get; }
+    public PackageDefinition Package => State.Package;
+    public int Order { get; }
+    public string Id => Package.Id;
+    public string Name => Package.Name;
+    public string Vendor => Package.Vendor;
+    public string Priority => Package.Priority.ToToken();
+    public PackageRisk Risk => Package.Risk;
+    public string RiskLabel => Risk == PackageRisk.None ? "Low" : Risk.ToString();
+    public string RiskForeground => Risk switch
+    {
+        PackageRisk.Driver => "#FFB86B",
+        PackageRisk.Service => "#E6A6FF",
+        PackageRisk.Listener => "#FF9C9C",
+        _ => "#7FCFAF"
+    };
+    public string Note => Package.Note;
+    public PackageStatus Status => State.Status;
+    public string StatusDetail => State.StatusDetail;
+    public string StatusLabel => Status switch
+    {
+        PackageStatus.UpdateAvailable => "Update available",
+        PackageStatus.ManualUpdate => "Manual update",
+        PackageStatus.Inventory => "Detected",
+        PackageStatus.NotDetected => "Not detected",
+        PackageStatus.InventoryIncomplete => "Inventory incomplete",
+        PackageStatus.InventoryUnavailable => "Inventory unavailable",
+        PackageStatus.CheckUnavailable => "Check unavailable",
+        PackageStatus.Awareness => "Catalog only",
+        _ => Status.ToString()
+    };
+    public string StatusBrush => Status switch
+    {
+        PackageStatus.Current => "#11372D",
+        PackageStatus.Missing => "#123454",
+        PackageStatus.UpdateAvailable => "#33215C",
+        PackageStatus.ManualUpdate or PackageStatus.Held or PackageStatus.InventoryIncomplete => "#3B2B13",
+        PackageStatus.Inventory => "#173349",
+        PackageStatus.InventoryUnavailable or PackageStatus.CheckUnavailable => "#2D2B45",
+        PackageStatus.Awareness => "#1D2F45",
+        PackageStatus.Error => "#451A22",
+        _ => "#252D39"
+    };
+    public string StatusBorder => Status switch
+    {
+        PackageStatus.Current => "#226C57",
+        PackageStatus.Missing => "#245B8D",
+        PackageStatus.UpdateAvailable => "#6745A2",
+        PackageStatus.ManualUpdate or PackageStatus.Held or PackageStatus.InventoryIncomplete => "#7A5B20",
+        PackageStatus.Inventory => "#2C617E",
+        PackageStatus.InventoryUnavailable or PackageStatus.CheckUnavailable => "#55517A",
+        PackageStatus.Awareness => "#365A7B",
+        PackageStatus.Error => "#893044",
+        _ => "#485568"
+    };
+    public string StatusForeground => Status switch
+    {
+        PackageStatus.Current => "#66E1B5",
+        PackageStatus.Missing => "#79BEFF",
+        PackageStatus.UpdateAvailable => "#C4A4FF",
+        PackageStatus.ManualUpdate or PackageStatus.Held or PackageStatus.InventoryIncomplete => "#FFD27A",
+        PackageStatus.Inventory => "#8BD2FF",
+        PackageStatus.InventoryUnavailable or PackageStatus.CheckUnavailable => "#C8C3FF",
+        PackageStatus.Awareness => "#9AC7EF",
+        PackageStatus.Error => "#FF9AAA",
+        _ => "#B8C3D2"
+    };
+    public string VersionLabel => Status == PackageStatus.Awareness
+        ? (Package.KnownVersion.Length == 0 ? "Not evaluated" : $"Known: {Package.KnownVersion}")
+        : State.InstalledVersion.Length == 0 ? "Not installed" : State.InstalledVersion;
+    public string AvailableLabel => State.AvailableVersion.Length == 0 ? string.Empty : $"-> {State.AvailableVersion}";
+    public PackageAction Action => State.Action;
+    public bool CanSelect => State.CanSelect && Package.HasManagedExecutionAuthority;
+    public bool SelectionEnabled => CanSelect && !busy;
+    public string SelectionHint => CanSelect
+        ? Action == PackageAction.Update ? "Select this managed application for update." : "Select this managed application for installation."
+        : $"Selection is unavailable because this item has no currently permitted automated action. {StatusDetail}".Trim();
+
+    public bool Selected
+    {
+        get => selected;
+        set
+        {
+            var allowed = value && SelectionEnabled;
+            if (!SetProperty(ref selected, allowed)) return;
+            selectionChanged();
+        }
+    }
+
+    public string StableSortKey => Id.ToUpperInvariant();
+    public string ApplicationSortKey => $"{Name.ToUpperInvariant()}|{StableSortKey}";
+    public string VendorSortKey => $"{Vendor.ToUpperInvariant()}|{StableSortKey}";
+    public int PrioritySortKey => Package.Priority switch { PackagePriority.P1 => 0, PackagePriority.P2 => 1, PackagePriority.Utility => 2, PackagePriority.Dev => 3, _ => 99 };
+    public int StatusSortKey => Status switch
+    {
+        PackageStatus.UpdateAvailable => 0,
+        PackageStatus.Missing => 1,
+        PackageStatus.ManualUpdate => 2,
+        PackageStatus.Held => 3,
+        PackageStatus.Error => 4,
+        PackageStatus.InventoryIncomplete => 5,
+        PackageStatus.InventoryUnavailable => 6,
+        PackageStatus.CheckUnavailable => 7,
+        PackageStatus.Current => 8,
+        PackageStatus.Inventory => 9,
+        PackageStatus.NotDetected => 10,
+        PackageStatus.Manual => 11,
+        PackageStatus.Awareness => 12,
+        _ => 99
+    };
+    public string VersionSortKey
+    {
+        get
+        {
+            var version = VersionLabel.StartsWith("Known: ", StringComparison.Ordinal) ? VersionLabel[7..] : VersionLabel;
+            return AVWorkstationToolkit.Domain.Versions.VersionSortKey.Create(version);
+        }
+    }
+    public int RiskSortKey => Risk switch { PackageRisk.None => 0, PackageRisk.Service => 1, PackageRisk.Listener => 2, PackageRisk.Driver => 3, _ => 99 };
+
+    internal void SetBusy(bool value)
+    {
+        if (busy == value) return;
+        busy = value;
+        OnPropertyChanged(nameof(SelectionEnabled));
+    }
+
+    internal void RestoreSelection()
+    {
+        if (!CanSelect || selected) return;
+        selected = true;
+        OnPropertyChanged(nameof(Selected));
+        selectionChanged();
+    }
+}

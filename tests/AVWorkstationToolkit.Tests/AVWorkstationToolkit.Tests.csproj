@@ -15,6 +15,7 @@
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Domain\AVWorkstationToolkit.Domain.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Infrastructure.Windows\AVWorkstationToolkit.Infrastructure.Windows.csproj" />
+    <ProjectReference Include="..\..\src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
