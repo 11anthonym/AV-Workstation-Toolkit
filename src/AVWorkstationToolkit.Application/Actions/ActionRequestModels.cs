@@ -77,7 +77,8 @@ public sealed record ActionRequestArtifactNames(
     string RequestFileName,
     string ProgressFileName,
     string ResultFileName,
-    string CancelFileName)
+    string CancelFileName,
+    string WingetLogFileName)
 {
     public static ActionRequestArtifactNames FromRequestId(string requestId)
     {
@@ -86,13 +87,22 @@ public sealed record ActionRequestArtifactNames(
             $"{requestId}.json",
             $"{requestId}.progress.jsonl",
             $"{requestId}.result.json",
-            $"{requestId}.cancel");
+            $"{requestId}.cancel",
+            $"{requestId}.winget.log");
     }
 }
 
-public sealed record AuthorizedActionRequest(
-    ActionRequest Request,
-    IReadOnlyList<PackageState> Packages);
+public sealed record AuthorizedActionRequest
+{
+    internal AuthorizedActionRequest(ActionRequest request, IReadOnlyList<PackageState> packages)
+    {
+        Request = request;
+        Packages = Array.AsReadOnly(packages.ToArray());
+    }
+
+    public ActionRequest Request { get; }
+    public IReadOnlyList<PackageState> Packages { get; }
+}
 
 public static partial class ActionRequestRules
 {

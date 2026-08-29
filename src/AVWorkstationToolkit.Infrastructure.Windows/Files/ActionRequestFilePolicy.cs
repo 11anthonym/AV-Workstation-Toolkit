@@ -8,12 +8,10 @@ namespace AVWorkstationToolkit.Infrastructure.Windows.Files;
 /// </summary>
 public sealed class ActionRequestFilePolicy
 {
-    private readonly Func<string, FileAttributes> getAttributes;
-    private readonly Func<string, bool> fileExists;
-    private readonly Func<string, long> getLength;
+    private readonly ActionArtifactPathPolicy pathPolicy;
 
     public ActionRequestFilePolicy()
-        : this(File.GetAttributes, File.Exists, path => new FileInfo(path).Length)
+        : this(new ActionArtifactPathPolicy())
     {
     }
 
@@ -21,53 +19,40 @@ public sealed class ActionRequestFilePolicy
         Func<string, FileAttributes> getAttributes,
         Func<string, bool> fileExists,
         Func<string, long> getLength)
+        : this(new ActionArtifactPathPolicy(getAttributes, fileExists, Directory.Exists, getLength))
     {
-        this.getAttributes = getAttributes ?? throw new ArgumentNullException(nameof(getAttributes));
-        this.fileExists = fileExists ?? throw new ArgumentNullException(nameof(fileExists));
-        this.getLength = getLength ?? throw new ArgumentNullException(nameof(getLength));
+    }
+
+    private ActionRequestFilePolicy(ActionArtifactPathPolicy pathPolicy)
+    {
+        this.pathPolicy = pathPolicy;
     }
 
     public string GetRequestsRoot(string dataRoot)
     {
-        var fullDataRoot = RequireAbsoluteNonRoot(dataRoot, "data root");
-        return Path.GetFullPath(Path.Combine(fullDataRoot, "logs", "requests"));
+        return pathPolicy.GetRequestsRoot(dataRoot);
     }
 
     public string ValidateExistingRequestPath(string dataRoot, string requestPath)
     {
-        var fullDataRoot = RequireAbsoluteNonRoot(dataRoot, "data root");
-        var logsRoot = Path.GetFullPath(Path.Combine(fullDataRoot, "logs"));
-        var requestsRoot = Path.GetFullPath(Path.Combine(logsRoot, "requests"));
-        var fullRequestPath = RequireAbsoluteNonRoot(requestPath, "request path");
-
-        if (!string.Equals(Path.GetDirectoryName(fullRequestPath), requestsRoot, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new ActionRequestValidationException(ActionRequestFailure.InvalidRequestId, "The request file must be a direct child of the application requests directory.");
-        }
-
+        var fullRequestPath = ActionArtifactPathPolicy.RequireAbsoluteNonRoot(requestPath, "request path");
         var fileName = Path.GetFileName(fullRequestPath);
-        if (!string.Equals(Path.GetExtension(fileName), ".json", StringComparison.OrdinalIgnoreCase))
-        {
+        if (!fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
             throw new ActionRequestValidationException(ActionRequestFailure.InvalidRequestId, "The request file must use the .json extension.");
-        }
-        ActionRequestRules.ValidateRequestId(Path.GetFileNameWithoutExtension(fileName));
-
-        if (!fileExists(fullRequestPath))
+        var requestId = fileName[..^5];
+        ActionRequestRules.ValidateRequestId(requestId);
+        try
         {
-            throw new FileNotFoundException("The action request file was not found.", fullRequestPath);
+            return pathPolicy.ValidateExistingArtifactPath(dataRoot, requestId, ActionArtifactKind.Request, fullRequestPath);
         }
-
-        RejectReparsePoint(fullDataRoot, "data root");
-        RejectReparsePoint(logsRoot, "logs root");
-        RejectReparsePoint(requestsRoot, "requests root");
-        RejectReparsePoint(fullRequestPath, "request file");
-
-        var length = getLength(fullRequestPath);
-        if (length > ActionRequestRules.MaximumPayloadBytes)
+        catch (ActionProtocolValidationException exception) when (exception.Failure == ActionProtocolFailure.RequestMismatch)
         {
-            throw new ActionRequestValidationException(ActionRequestFailure.Oversized, "The action request exceeds the maximum permitted size.");
+            throw new ActionRequestValidationException(ActionRequestFailure.InvalidRequestId, exception.Message, exception);
         }
-        return fullRequestPath;
+        catch (ActionProtocolValidationException exception) when (exception.Failure == ActionProtocolFailure.Oversized)
+        {
+            throw new ActionRequestValidationException(ActionRequestFailure.Oversized, exception.Message, exception);
+        }
     }
 
     public async Task<ActionRequest> ReadValidatedAsync(
@@ -108,27 +93,4 @@ public sealed class ActionRequestFilePolicy
         return codec.Parse(buffer.GetBuffer().AsSpan(0, checked((int)buffer.Length)), expectedRequestId);
     }
 
-    private void RejectReparsePoint(string path, string description)
-    {
-        if ((getAttributes(path) & FileAttributes.ReparsePoint) != 0)
-        {
-            throw new IOException($"The action request {description} cannot be a reparse point.");
-        }
-    }
-
-    private static string RequireAbsoluteNonRoot(string? path, string description)
-    {
-        if (string.IsNullOrWhiteSpace(path) || path.Length > 1_024 || path != path.Trim() || path.Any(char.IsControl) || !Path.IsPathFullyQualified(path))
-        {
-            throw new IOException($"The action request {description} must be a bounded absolute path.");
-        }
-
-        var fullPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var volumeRoot = Path.GetPathRoot(fullPath)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (string.IsNullOrWhiteSpace(fullPath) || string.Equals(fullPath, volumeRoot, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new IOException($"The action request {description} cannot be a filesystem root.");
-        }
-        return fullPath;
-    }
 }

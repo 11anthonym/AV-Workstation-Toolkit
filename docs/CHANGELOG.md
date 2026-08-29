@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-29 — Compiled IPC lifecycle parity
+
+- Added non-shipping typed request/progress/result/cancel artifact identity, bounded strict parsers, cooperative-cancellation semantics, and a deterministic action lifecycle model.
+- Added an explicit-root-only request protocol store with create-new, durable same-directory atomic persistence, no overwrite, bounded reads, and reparse/path correlation controls; all tests write only beneath isolated temporary roots.
+- Added 27 PowerShell-to-C# IPC/lifecycle cases and endpoint-trust regression proving the compiled App still cannot persist live requests, launch a worker, or mutate workstation software. Production startup and worker behavior remain unchanged.
+
 ## 2026-08-29 — Compiled action-request parity
 
 - Added a non-shipping typed C# action-request model, deterministic schema-only serializer, strict parser, read-only contained request-file policy, and plan-authority validation.

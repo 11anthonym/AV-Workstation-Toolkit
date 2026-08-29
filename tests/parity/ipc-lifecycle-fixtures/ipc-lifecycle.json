@@ -1,0 +1,33 @@
+{
+  "SchemaVersion": 1,
+  "ScenarioId": "action-ipc-file-lifecycle",
+  "Cases": [
+    { "CaseId": "persist-single", "Kind": "Persistence", "Mutation": "None", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "persist-multiple", "Kind": "Persistence", "Mutation": "None", "PackageIds": [ "Vendor.One", "Vendor.Two" ], "DryRun": false },
+    { "CaseId": "progress-one", "Kind": "Progress", "Mutation": "One", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-multiple", "Kind": "Progress", "Mutation": "Multiple", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-incomplete-then-complete", "Kind": "Progress", "Mutation": "IncompleteThenComplete", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-malformed", "Kind": "Progress", "Mutation": "Malformed", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-wrong-type", "Kind": "Progress", "Mutation": "WrongType", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-unknown-field", "Kind": "Progress", "Mutation": "UnknownField", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-foreign-package", "Kind": "Progress", "Mutation": "ForeignPackage", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "progress-oversized", "Kind": "Progress", "Mutation": "Oversized", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-success", "Kind": "Result", "Mutation": "Success", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-failed", "Kind": "Result", "Mutation": "Failed", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-cancelled", "Kind": "Result", "Mutation": "Cancelled", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-dry-run", "Kind": "Result", "Mutation": "DryRun", "PackageIds": [ "Vendor.One" ], "DryRun": true },
+    { "CaseId": "result-malformed", "Kind": "Result", "Mutation": "Malformed", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-wrong-type", "Kind": "Result", "Mutation": "WrongType", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-unknown-field", "Kind": "Result", "Mutation": "UnknownField", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-mismatched-request", "Kind": "Result", "Mutation": "MismatchedRequest", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "result-oversized", "Kind": "Result", "Mutation": "Oversized", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "lifecycle-cancel-confirmed", "Kind": "Lifecycle", "Mutation": "CancellationConfirmed", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "lifecycle-completed-before-cancel-observed", "Kind": "Lifecycle", "Mutation": "CompletedBeforeCancellationObserved", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "lifecycle-foreign-progress", "Kind": "Lifecycle", "Mutation": "ForeignProgress", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "lifecycle-duplicate-final", "Kind": "Lifecycle", "Mutation": "DuplicateFinal", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "path-wrong-extension", "Kind": "Path", "Mutation": "WrongExtension", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "path-nested", "Kind": "Path", "Mutation": "Nested", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "path-foreign-id", "Kind": "Path", "Mutation": "ForeignId", "PackageIds": [ "Vendor.One" ], "DryRun": false },
+    { "CaseId": "path-reparse", "Kind": "Path", "Mutation": "Reparse", "PackageIds": [ "Vendor.One" ], "DryRun": false }
+  ]
+}

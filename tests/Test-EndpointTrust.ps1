@@ -87,9 +87,12 @@ $compiledReadOnlySurfaceSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Providers') -File -Filter '*.cs'
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $compiledReadOnlySurfaceSource = $compiledReadOnlySurfaceSource -join "`n"
+$protocolStorePath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionProtocolStore.cs'
+$protocolStoreSource = Get-Content -LiteralPath $protocolStorePath -Raw
 $compiledActionSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Actions') -File -Filter '*.cs'
-    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files') -File -Filter '*.cs'
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files') -File -Filter '*.cs' |
+        Where-Object FullName -ne $protocolStorePath
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $compiledActionSource = $compiledActionSource -join "`n"
 if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
@@ -130,12 +133,19 @@ if ($compiledReadOnlySurfaceSource -match 'ProcessStartInfo|Process\.Start|HttpC
     $compiledReadOnlySurfaceSource -match '(?i)\b(?:install|upgrade|uninstall)async\s*\(') {
     throw 'The compiled diagnostics/detail/provider projection gained process, network, worker, or mutation behavior.'
 }
-if ($compiledActionSource -match 'ProcessStartInfo|Process\.Start|HttpClient|WebRequest|WebClient|System\.Management\.Automation' -or
-    $compiledActionSource -match '(?i)\b(?:powershell|pwsh|cmd)\.exe\b|\b(?:winget\s+)?(?:install|upgrade|uninstall|import)async\s*\(' -or
+if (($compiledActionSource + $protocolStoreSource) -match 'ProcessStartInfo|Process\.Start|HttpClient|WebRequest|WebClient|System\.Management\.Automation' -or
+    ($compiledActionSource + $protocolStoreSource) -match '(?i)\b(?:powershell|pwsh|cmd)\.exe\b|\b(?:winget\s+)?(?:install|upgrade|uninstall|import)async\s*\(' -or
     $compiledActionSource -match 'File\.(?:Write|Create|Append)|FileMode\.(?:Create|CreateNew|OpenOrCreate|Append)') {
-    throw 'The compiled action-request boundary gained process, network, worker-launch, mutation, or live-request persistence behavior.'
+    throw 'The compiled action protocol gained an unreviewed process, network, worker-launch, mutation, or persistence behavior.'
 }
-if ($compiledAppSource -match 'ActionRequestFactory|ActionRequestFilePolicy|Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker') {
+if ($protocolStoreSource -notmatch 'explicitDataRoot' -or
+    $protocolStoreSource -notmatch 'FileMode\.CreateNew' -or
+    $protocolStoreSource -notmatch 'File\.Move\(temporaryPath, paths\.RequestPath, overwrite:\s*false\)' -or
+    $protocolStoreSource -notmatch 'Flush\(flushToDisk:\s*true\)' -or
+    $protocolStoreSource -match 'Environment\.GetFolderPath|LocalApplicationData|GetTempPath|FileMode\.(?:Create(?!New)|OpenOrCreate|Append)|ProcessStartInfo|Process\.Start') {
+    throw 'The non-shipping action-protocol store lost its explicit-root, create-new, atomic-move, or durable-write boundary.'
+}
+if ($compiledAppSource -match 'ActionRequestFactory|ActionRequestFilePolicy|ActionProtocolStore|ActionArtifactPathPolicy|Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker') {
     throw 'The compiled WPF migration app gained action-request persistence or worker-launch authority.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
