@@ -1,0 +1,15 @@
+<Window x:Class="AVWorkstationToolkit.App.CatalogDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Application details" Width="760" Height="700" MinWidth="560" MinHeight="460"
+        WindowStartupLocation="CenterOwner" Background="#0A0F1C" Foreground="#E8EEF8"
+        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Read-only application details">
+    <Grid Margin="20">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel><TextBlock x:Name="DetailTitle" Text="{Binding Name}" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="{Binding Subtitle}" Foreground="#94A4BB" Margin="0,5,0,12"/></StackPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="DetailGroups" ItemsSource="{Binding Groups}"><ItemsControl.ItemTemplate><DataTemplate><Border Background="#0C1423" BorderBrush="#30415D" BorderThickness="1" CornerRadius="7" Margin="0,0,0,10" Padding="13"><StackPanel><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" Foreground="#8FB9EC" Margin="0,0,0,8"/><ItemsControl ItemsSource="{Binding Fields}"><ItemsControl.ItemTemplate><DataTemplate><Grid Margin="0,2"><Grid.ColumnDefinitions><ColumnDefinition Width="180"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Label}" Foreground="#94A4BB"/><TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+        </ScrollViewer>
+        <Grid Grid.Row="2" Margin="0,12,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><TextBlock x:Name="IntentStatus" Text="{Binding IntentStatus}" Foreground="#94A4BB" TextWrapping="Wrap"/><StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0"><Button x:Name="ProductIntentButton" Content="Open product page" Command="{Binding ProductIntentCommand}" Padding="12,7" Margin="0,0,8,0" ToolTip="Validates a read-only official URI intent; no browser is launched."/><Button x:Name="DownloadIntentButton" Content="Open download page" Command="{Binding DownloadIntentCommand}" Padding="12,7" Margin="0,0,8,0" ToolTip="Validates a read-only official URI intent; no browser or download is launched."/><Button Content="Close" IsDefault="True" IsCancel="True" Padding="16,7" Click="Close_Click"/></StackPanel></Grid>
+    </Grid>
+</Window>

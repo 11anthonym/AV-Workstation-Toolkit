@@ -81,6 +81,12 @@ $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
 $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+$compiledReadOnlySurfaceSource = @(
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Details') -File -Filter '*.cs'
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Diagnostics') -File -Filter '*.cs'
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Providers') -File -Filter '*.cs'
+) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
+$compiledReadOnlySurfaceSource = $compiledReadOnlySurfaceSource -join "`n"
 if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
     throw 'The presentation script regained direct process-launch behavior.'
 }
@@ -114,6 +120,10 @@ if ($directMigrationLaunchers.Count -ne 0) {
 if ($compiledAppSource -match 'System\.Management\.Automation|XamlReader|ProcessStartInfo|Process\.Start|(?i)\b(?:powershell|pwsh|cmd)\.exe\b' -or
     $compiledAppSource -match 'IActionWorkerBoundary\s+[A-Za-z_]') {
     throw 'The compiled WPF migration app gained dynamic XAML, shell/process, or action-worker execution behavior.'
+}
+if ($compiledReadOnlySurfaceSource -match 'ProcessStartInfo|Process\.Start|HttpClient|WebRequest|WebClient|IActionWorkerBoundary\s+[A-Za-z_]' -or
+    $compiledReadOnlySurfaceSource -match '(?i)\b(?:install|upgrade|uninstall)async\s*\(') {
+    throw 'The compiled diagnostics/detail/provider projection gained process, network, worker, or mutation behavior.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or

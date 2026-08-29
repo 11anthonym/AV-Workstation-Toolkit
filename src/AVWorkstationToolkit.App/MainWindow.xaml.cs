@@ -11,15 +11,24 @@ namespace AVWorkstationToolkit.App;
 public partial class MainWindow : Window
 {
     private readonly bool autoRefresh;
+    private readonly bool allowDialogs;
 
-    public MainWindow(MainWindowViewModel viewModel, bool autoRefresh = true)
+    public MainWindow(MainWindowViewModel viewModel, bool autoRefresh = true, bool allowDialogs = true)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
         InitializeComponent();
         DataContext = viewModel;
         this.autoRefresh = autoRefresh;
+        this.allowDialogs = allowDialogs;
+        viewModel.DetailRequested += ShowDetail;
+        viewModel.DiagnosticsRequested += ShowDiagnostics;
         Loaded += MainWindow_Loaded;
-        Closed += (_, _) => viewModel.Dispose();
+        Closed += (_, _) =>
+        {
+            viewModel.DetailRequested -= ShowDetail;
+            viewModel.DiagnosticsRequested -= ShowDiagnostics;
+            viewModel.Dispose();
+        };
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -85,6 +94,34 @@ public partial class MainWindow : Window
         toggle.Toggle();
         if (selectable.Selected)
             throw new InvalidOperationException("Compiled WPF package deselection did not update the ViewModel.");
+
+        var awareness = viewModel.VisiblePackages.First(item => item.Package.Authority == AVWorkstationToolkit.Domain.Catalog.CatalogAuthority.AwarenessOnly);
+        viewModel.SelectedRow = awareness;
+        viewModel.DetailsCommand.Execute(null);
+        var detail = viewModel.SelectedDetail ?? throw new InvalidOperationException("Compiled WPF smoke did not prepare selected application details.");
+        var detailWindow = new CatalogDetailWindow(detail) { Owner = this };
+        detailWindow.Show();
+        detailWindow.UpdateLayout();
+        detailWindow.VerifySmokeContract(awareness.Id);
+        detail.ProductIntentCommand.Execute(null);
+        if (!detail.IntentStatus.StartsWith("READ-ONLY", StringComparison.Ordinal))
+            throw new InvalidOperationException("Compiled official URI intent did not remain read-only.");
+        detailWindow.Close();
+
+        viewModel.DiagnosticsCommand.Execute(null);
+        var diagnostics = viewModel.Diagnostics ?? throw new InvalidOperationException("Compiled WPF smoke did not prepare diagnostics.");
+        var diagnosticsWindow = new DiagnosticsWindow(diagnostics) { Owner = this };
+        diagnosticsWindow.Show();
+        diagnosticsWindow.UpdateLayout();
+        diagnosticsWindow.VerifySmokeContract();
+        diagnosticsWindow.Close();
+        if (!viewModel.WarningVisible || !RebootBanner.IsVisible)
+            throw new InvalidOperationException("Compiled WPF smoke did not present the deterministic reboot/provider warning.");
+
+        toggle.Toggle();
+        viewModel.InstallCommand.Execute(null);
+        if (viewModel.MutationRefusalCount != 1)
+            throw new InvalidOperationException("Compiled WPF smoke did not preserve the explicit mutation refusal.");
     }
 
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
@@ -97,5 +134,17 @@ public partial class MainWindow : Window
             if (descendant is not null) return descendant;
         }
         return null;
+    }
+
+    private void ShowDetail(CatalogDetailViewModel viewModel)
+    {
+        if (!allowDialogs) return;
+        new CatalogDetailWindow(viewModel) { Owner = this }.ShowDialog();
+    }
+
+    private void ShowDiagnostics(DiagnosticsViewModel viewModel)
+    {
+        if (!allowDialogs) return;
+        new DiagnosticsWindow(viewModel) { Owner = this }.ShowDialog();
     }
 }

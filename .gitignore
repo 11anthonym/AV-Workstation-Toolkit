@@ -7,7 +7,7 @@ logs/
 
 # Exported plans contain workstation-specific state.
 reports/
-diagnostics/
+/diagnostics/
 diagnostic-exports/
 workstation-snapshots/
 vendor-cache/

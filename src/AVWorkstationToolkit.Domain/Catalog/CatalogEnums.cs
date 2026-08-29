@@ -57,3 +57,4 @@ public enum CatalogDiscipline
 }
 public enum PolicyDisposition { Allowed, Blocked, RequiresAcknowledgement, Held, ManualOnly, NotActionable }
 public enum RebootReason { WindowsUpdate, ComponentBasedServicing }
+public enum MetadataVerificationState { Current, ReviewSoon, VerificationRequired, Quarantined }

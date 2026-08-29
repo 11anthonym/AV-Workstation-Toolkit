@@ -48,12 +48,58 @@ public sealed record PackageDefinition(
     string CatalogNotes,
     IReadOnlyList<string> CatalogTags,
     string DetectionDisplayNamePattern = "",
-    string DetectionVersionPattern = "")
+    string DetectionVersionPattern = "",
+    CatalogMetadataDetails? Details = null)
 {
+    public CatalogMetadataDetails MetadataDetails => Details ?? CatalogMetadataDetails.Unknown;
+
     public bool HasManagedExecutionAuthority =>
         Authority == CatalogAuthority.ManagedWinGet &&
         Provider == ProviderKind.WinGet &&
         Deployment == DeploymentPolicy.Allowlisted;
+}
+
+public sealed record CatalogMetadataDetails(
+    string VersionCouplingNotes,
+    string DownloadDifficulty,
+    IReadOnlyList<string> Architectures,
+    string SideBySideSupported,
+    string OfficialDownloadUri,
+    string OfficialProductUri,
+    IReadOnlyList<string> ValidationMethods,
+    string MetadataVerifiedOn,
+    MetadataVerificationState MetadataVerificationState,
+    IReadOnlyList<string> MetadataReviewTriggers,
+    bool MetadataQuarantined,
+    string MetadataQuarantineReason,
+    string AuthoritativeDomain,
+    string ExpectedPublisher,
+    string SignatureValidation,
+    string VendorHashAvailability,
+    string DownloadStrategy,
+    string ReleaseUri,
+    string DeliveryUri)
+{
+    public static CatalogMetadataDetails Unknown { get; } = new(
+        string.Empty,
+        "HARD",
+        ["Unknown"],
+        "Unknown",
+        string.Empty,
+        string.Empty,
+        ["Unknown"],
+        string.Empty,
+        MetadataVerificationState.VerificationRequired,
+        [],
+        false,
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        string.Empty,
+        string.Empty);
 }
 
 public sealed class PackageCatalog

@@ -4,7 +4,7 @@ Status: authoritative migration contract for the incremental move to compiled C#
 
 ## Scope and reference behavior
 
-The shipping AV Workstation Toolkit 1.1.1 implementation remains the behavioral and security reference. Phase 1 added architecture seams and test adapters. Phase 2 added a non-shipping typed C# implementation of deterministic versions, catalog normalization/validation, query filtering, package planning, selection eligibility, and reboot/risk policy. Phase 3 added non-shipping read-only C# providers for trusted WinGet resolution, installed/update inventory, uninstall-registry inventory, and supported reboot signals. Phase 4 adds a non-shipping compiled WPF executable, ViewModels, read-only planning composition, and presentation parity tests. `AVWorkstationToolkit.exe`, its embedded PowerShell/WPF runtime, MSI, ZIP, request schema, data root, worker, shipping providers, and vendor bridge remain unchanged.
+The shipping AV Workstation Toolkit 1.1.1 implementation remains the behavioral and security reference. Phase 1 added architecture seams and test adapters. Phase 2 added a non-shipping typed C# implementation of deterministic versions, catalog normalization/validation, query filtering, package planning, selection eligibility, and reboot/risk policy. Phase 3 added non-shipping read-only C# providers for trusted WinGet resolution, installed/update inventory, uninstall-registry inventory, and supported reboot signals. Phase 4 added a non-shipping compiled WPF executable, ViewModels, read-only planning composition, and presentation parity tests. Phase 5 adds typed sanitized diagnostics, catalog detail/provenance retention, and a read-only external-provider projection without activating transport or mutation. `AVWorkstationToolkit.exe`, its embedded PowerShell/WPF runtime, MSI, ZIP, request schema, data root, worker, shipping providers, and vendor bridge remain unchanged.
 
 When documentation and code disagree, the observed shipping behavior is characterized before any decision. A parity mismatch is evidence to investigate, not permission to relax either implementation.
 
@@ -150,6 +150,8 @@ Phase 3 adds a third canonical provider schema covering structured WinGet export
 
 Phase 4 adds a presentation fixture evaluated through the shipping PowerShell filter/controller semantics and the compiled C# ViewModel. Visible order, selected IDs, install/update counts, button enabled state and labels, selection summary, Quick View, and warning visibility compare strictly. ViewModel unit tests separately cover asynchronous refresh, stale-result suppression, source warnings, provider failure, checkbox selection retention, and the mutation refusal. A compiled-process smoke opens the deterministic WPF window, validates critical bindings and controls, and closes without provider or action execution.
 
+Phase 5 adds a read-only-surface fixture for catalog details and diagnostics. It compares catalog identity, lifecycle, parent relationship, official URI metadata, verification/quarantine state, explicit unknown values, status/inventory quality, catalog counts, supported reboot reasons, and per-registry-source availability/counts. Runtime versions and workstation paths are deliberately supplied as deterministic fixture values or omitted from comparison. Official URI commands create validated intents only; they do not open a browser, download content, or grant delivery authority.
+
 ## SignPath parallel workstream
 
 The migration does not configure SignPath or imply Foundation acceptance. The target production chain remains:
@@ -181,10 +183,10 @@ Technical readiness and SignPath Foundation acceptance/configuration are separat
 ## Current shipping, migration-present, and target states
 
 - **Current shipping architecture:** the .NET launcher starts the embedded Windows PowerShell 5.1 WPF application and isolated PowerShell worker.
-- **Migration implementation present but not active:** typed C# deterministic domain logic, read-only Windows providers, a compiled WPF presentation, and dual-engine tests compile into non-shipping projects. The compiled App can read the source checkout catalogs, collect read-only workstation facts, and display a plan. It has no action-worker dependency and explicitly refuses install/update requests. No launcher or package references these assemblies.
+- **Migration implementation present but not active:** typed C# deterministic domain logic, read-only Windows providers, sanitized diagnostics, catalog/provider detail projections, a compiled WPF presentation, and dual-engine tests compile into non-shipping projects. The compiled App can read the source checkout catalogs, collect read-only workstation facts, display a plan, show read-only details, and present sanitized diagnostics. It has no action-worker or vendor-transport dependency and explicitly refuses install/update requests. No launcher or package references these assemblies.
 - **Target architecture:** the compiled WPF App and isolated compiled worker use the proven Domain/Application layers after explicit, responsibility-by-responsibility cutover approval.
 - The current launcher exits after starting the GUI in normal mode, while the worker is independently launched and tracked by request/result files. A compiled App lifecycle needs explicit worker detachment and cooperative-cancellation design before cutover.
-- Vendor release checks, delivery, detail-link handoffs, diagnostics export, and the independently validating action worker remain shipping-PowerShell responsibilities. The compiled preview uses validated catalog baseline versions and reports unavailable evidence rather than inventing a release result.
+- Vendor release checks, delivery, browser handoffs, diagnostics copy/export, and the independently validating action worker remain shipping-PowerShell responsibilities. The compiled preview uses validated catalog baseline versions, represents official links as non-executing intents, and reports unavailable evidence rather than inventing a release result.
 
 ## Cutover and retirement rule
 

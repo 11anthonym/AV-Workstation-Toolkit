@@ -1,0 +1,12 @@
+<Window x:Class="AVWorkstationToolkit.App.DiagnosticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AV Workstation Toolkit diagnostics" Width="820" Height="720" MinWidth="580" MinHeight="460"
+        WindowStartupLocation="CenterOwner" Background="#0A0F1C" Foreground="#E8EEF8"
+        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Read-only sanitized diagnostics">
+    <Grid Margin="20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel><TextBlock Text="Diagnostics" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Read-only, sanitized runtime and inventory health" Foreground="#94A4BB" Margin="0,5,0,12"/></StackPanel>
+        <TextBox x:Name="DiagnosticsText" Grid.Row="1" Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#0C1423" Foreground="#DDE6F3" BorderBrush="#30415D" Padding="14" FontFamily="Consolas" FontSize="11.5" AutomationProperties.Name="Sanitized diagnostics text"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0"><TextBlock Text="{Binding State}" Foreground="#94A4BB" VerticalAlignment="Center" Margin="0,0,14,0"/><Button Content="Close" IsDefault="True" IsCancel="True" Padding="16,7" Click="Close_Click"/></StackPanel>
+    </Grid>
+</Window>

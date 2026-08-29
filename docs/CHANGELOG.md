@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-29 — Compiled diagnostics and provider detail parity
+
+- Added non-shipping typed, sanitized diagnostics that preserve provider quality, per-registry-source status, reboot reasons, runtime availability, catalog counts, and explicit warnings/errors.
+- Retained validated catalog provenance/detail metadata in the C# domain and added compiled read-only detail/diagnostics windows with non-executing official URI intents.
+- Added focused redaction, provider relationship, detail coherence, hostile URI, and compiled WPF smoke coverage plus PowerShell-to-C# read-only surface parity. No browser, download, vendor transport, install/update, worker, launcher, or package cutover occurred.
+
 ## 2026-08-28 — Compiled C# WPF presentation parity
 
 - Added a non-shipping, conventionally compiled .NET 10 WPF App with ViewModel-owned read-only refresh, filtering, sorting, selection, status, and warning state.

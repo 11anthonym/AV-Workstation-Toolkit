@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using AVWorkstationToolkit.App.Commands;
+using AVWorkstationToolkit.Application.Details;
+using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
@@ -11,12 +13,17 @@ namespace AVWorkstationToolkit.App.ViewModels;
 public sealed class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly IWorkstationPlanningCoordinator coordinator;
+    private readonly IReadOnlyDiagnosticsService diagnosticsService;
+    private readonly CatalogDetailService detailService;
     private readonly CatalogQueryService queryService = new();
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
     private readonly ObservableCollection<PackageRowViewModel> visiblePackages = [];
     private CancellationTokenSource? refreshCancellation;
     private long refreshGeneration;
     private WorkstationPlan? plan;
+    private PackageCatalog? planCatalog;
+    private DiagnosticsViewModel? diagnostics;
+    private CatalogDetailViewModel? selectedDetail;
     private bool isBusy;
     private string searchText = string.Empty;
     private bool standardProfile = true;
@@ -37,9 +44,14 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string statusText = "Loading catalog and workstation state...";
     private int mutationRefusalCount;
 
-    public MainWindowViewModel(IWorkstationPlanningCoordinator coordinator)
+    public MainWindowViewModel(
+        IWorkstationPlanningCoordinator coordinator,
+        IReadOnlyDiagnosticsService? diagnosticsService = null,
+        CatalogDetailService? detailService = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
+        this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
+        this.detailService = detailService ?? new CatalogDetailService();
         PriorityOptions =
         [
             new("All priorities", null), new("P1", PackagePriority.P1), new("P2", PackagePriority.P2),
@@ -91,6 +103,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand DetailsCommand { get; }
     public RelayCommand DiagnosticsCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
+    public event Action<CatalogDetailViewModel>? DetailRequested;
+    public event Action<DiagnosticsViewModel>? DiagnosticsRequested;
 
     public bool IsBusy
     {
@@ -141,8 +155,26 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             if (!SetProperty(ref selectedRow, value)) return;
+            if (selectedDetail is not null && !selectedDetail.Detail.PackageId.Equals(value?.Id, StringComparison.OrdinalIgnoreCase))
+                SelectedDetail = null;
             DetailsCommand.RaiseCanExecuteChanged();
         }
+    }
+
+    public DiagnosticsViewModel? Diagnostics
+    {
+        get => diagnostics;
+        private set
+        {
+            if (!SetProperty(ref diagnostics, value)) return;
+            DiagnosticsCommand.RaiseCanExecuteChanged();
+        }
+    }
+
+    public CatalogDetailViewModel? SelectedDetail
+    {
+        get => selectedDetail;
+        private set => SetProperty(ref selectedDetail, value);
     }
 
     public string ActivityText { get => activityText; private set => SetProperty(ref activityText, value); }
@@ -174,6 +206,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         previous?.Dispose();
         var cancellation = refreshCancellation;
         var selectedIds = packages.Where(item => item.Selected).Select(item => item.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var selectedRowId = SelectedRow?.Id;
         IsBusy = true;
         AppendActivity("Refreshing allowlisted application state.");
         var progress = new Progress<PlanningRefreshStage>(stage =>
@@ -185,8 +218,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         try
         {
             var result = await coordinator.RefreshAsync(progress, cancellation.Token).ConfigureAwait(true);
+            var refreshedDiagnostics = await diagnosticsService.ComposeAsync(result, cancellation.Token).ConfigureAwait(true);
             if (generation != Volatile.Read(ref refreshGeneration)) return;
-            ApplyPlan(result, selectedIds);
+            ApplyPlan(result, selectedIds, selectedRowId);
+            Diagnostics = new DiagnosticsViewModel(refreshedDiagnostics);
             AppendActivity(result.Providers.Warnings.Count == 0 ? "Plan ready." : "Plan ready with inventory warnings.");
         }
         catch (OperationCanceledException) when (generation != Volatile.Read(ref refreshGeneration) || cancellation.IsCancellationRequested)
@@ -233,10 +268,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         refreshCancellation?.Dispose();
     }
 
-    private void ApplyPlan(WorkstationPlan result, IReadOnlySet<string> selectedIds)
+    private void ApplyPlan(WorkstationPlan result, IReadOnlySet<string> selectedIds, string? selectedRowId)
     {
         var retainedManufacturer = SelectedManufacturer.Value;
         plan = result;
+        planCatalog = new PackageCatalog(result.Packages.Select(item => item.Package));
         packages.Clear();
         var order = 0;
         foreach (var state in result.Packages)
@@ -253,6 +289,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         SelectedManufacturer = ManufacturerOptions.FirstOrDefault(item => item.Value.Equals(retainedManufacturer, StringComparison.OrdinalIgnoreCase))
             ?? ManufacturerOptions[0];
         RebuildVisible();
+        SelectedRow = selectedRowId is null
+            ? null
+            : visiblePackages.FirstOrDefault(item => item.Id.Equals(selectedRowId, StringComparison.OrdinalIgnoreCase));
         OnPropertyChanged(nameof(CurrentCount));
         OnPropertyChanged(nameof(ActionCount));
         OnPropertyChanged(nameof(WarningVisible));
@@ -283,6 +322,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         rows = ApplySort(rows);
         visiblePackages.Clear();
         foreach (var row in rows) visiblePackages.Add(row);
+        if (SelectedRow is not null && !visiblePackages.Contains(SelectedRow)) SelectedRow = null;
         UpdateStatusText();
     }
 
@@ -341,14 +381,17 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ShowSelectedDetails()
     {
-        if (SelectedRow is null) return;
+        if (SelectedRow is null || planCatalog is null) return;
+        SelectedDetail = new CatalogDetailViewModel(detailService.Create(SelectedRow.State, planCatalog));
         AppendActivity($"DETAILS {SelectedRow.Name} | {SelectedRow.Vendor} | {SelectedRow.StatusLabel} | {SelectedRow.StatusDetail}");
+        DetailRequested?.Invoke(SelectedDetail);
     }
 
     private void ShowDiagnostics()
     {
-        if (plan is null) return;
-        AppendActivity($"DIAGNOSTICS packages={plan.Summary.Total}; warnings={plan.Providers.Warnings.Count}; rebootPending={plan.Reboot.Pending}; compiledMode=read-only");
+        if (plan is null || Diagnostics is null) return;
+        AppendActivity($"DIAGNOSTICS packages={plan.Summary.Total}; warnings={Diagnostics.WarningCount}; errors={Diagnostics.ErrorCount}; rebootPending={plan.Reboot.Pending}; compiledMode=read-only");
+        DiagnosticsRequested?.Invoke(Diagnostics);
     }
 
     private void UpdateStatusText()
@@ -405,6 +448,21 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         _ => SplitWords(value.ToString())
     };
     private static readonly string[] AllowedSortMembers = ["ApplicationSortKey", "VendorSortKey", "PrioritySortKey", "StatusSortKey", "VersionSortKey", "RiskSortKey"];
+
+    private static IReadOnlyDiagnosticsService CreateUnavailableDiagnosticsService() => new ReadOnlyDiagnosticsService(
+        new UnavailableRuntimeDiagnosticsProvider(),
+        new("Unknown", "Compiled migration test", "Unknown", "Unknown"));
+
+    private sealed class UnavailableRuntimeDiagnosticsProvider : IRuntimeDiagnosticsProvider
+    {
+        public Task<RuntimeDiagnosticFacts> ReadAsync(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var unknown = new DiagnosticValue(DiagnosticEvidenceState.Unknown, "Unknown");
+            return Task.FromResult(new RuntimeDiagnosticFacts(unknown,
+                new(DiagnosticEvidenceState.Unknown, "Not loaded by compiled app"), unknown, unknown, unknown, unknown, unknown));
+        }
+    }
 
     private sealed class ObjectComparer : IComparer<object>
     {

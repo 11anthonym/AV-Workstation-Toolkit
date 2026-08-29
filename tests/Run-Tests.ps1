@@ -1708,7 +1708,7 @@ Invoke-Check 'Publication-sensitive local output is excluded without hiding revi
         -not [string]::IsNullOrWhiteSpace($_) -and -not $_.StartsWith('#')
     })
     foreach ($rule in @(
-        'snapshots/*','logs/','reports/','diagnostics/','diagnostic-exports/','workstation-snapshots/',
+        'snapshots/*','logs/','reports/','/diagnostics/','diagnostic-exports/','workstation-snapshots/',
         'vendor-cache/','artifacts/','external-packages/','src/**/bin/','src/**/obj/','installer/bin/','installer/obj/',
         '*.pfx','*.p12','*.p8','*.pem','*.key','*.snk','signing-material/','credential-exports/',
         '*.credential-export*','.env','.env.*','!.env.example','.vs/','*.user','*.suo'

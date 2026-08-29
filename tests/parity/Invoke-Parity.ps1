@@ -93,3 +93,22 @@ foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'pres
     Write-Output "PRESENTATION_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
 }
 Write-Output "PRESENTATION_PARITY_OK scenarios=$presentationScenarioCount cases=$presentationCaseCount"
+
+$readOnlySurfaceScenarioCount = 0
+$readOnlySurfaceCaseCount = 0
+foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'read-only-surfaces-fixtures') -File -Filter '*.json' | Sort-Object Name)) {
+    $legacy = (& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Invoke-LegacyReadOnlySurfacesParityAdapter.ps1') -FixturePath $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Legacy read-only surface adapter failed for $($fixture.Name)." }
+    $compiled = (& dotnet $integrationDll --read-only-surfaces $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "C# read-only surface adapter failed for $($fixture.Name)." }
+    $legacyObject = $legacy | ConvertFrom-Json -ErrorAction Stop
+    $compiledObject = $compiled | ConvertFrom-Json -ErrorAction Stop
+    $legacyCanonical = $legacyObject | ConvertTo-Json -Depth 20 -Compress
+    $compiledCanonical = $compiledObject | ConvertTo-Json -Depth 20 -Compress
+    if ($legacyCanonical -cne $compiledCanonical) { throw "Read-only surface parity mismatch for $($fixture.Name).`r`nLEGACY: $legacyCanonical`r`nCSHARP: $compiledCanonical" }
+    $cases = @($legacyObject.Details).Count + 1
+    $readOnlySurfaceScenarioCount++
+    $readOnlySurfaceCaseCount += $cases
+    Write-Output "READONLY_SURFACE_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
+}
+Write-Output "READONLY_SURFACE_PARITY_OK scenarios=$readOnlySurfaceScenarioCount cases=$readOnlySurfaceCaseCount"

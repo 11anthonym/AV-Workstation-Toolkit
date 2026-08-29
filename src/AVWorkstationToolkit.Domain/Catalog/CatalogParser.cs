@@ -119,6 +119,7 @@ public sealed class CatalogParser
         var coupling = metadata.VersionCoupling;
         var couplingMode = CatalogTokens.Parse<VersionCouplingMode>(coupling?.Mode ?? "Independent", $"External catalog entry {index} Metadata.VersionCoupling.Mode");
         var couplingTarget = Text(coupling?.PackageId ?? string.Empty, $"External catalog entry {index} Metadata.VersionCoupling.PackageId", 128, true);
+        var couplingNotes = Text(coupling?.Notes ?? string.Empty, $"External catalog entry {index} Metadata.VersionCoupling.Notes", 512, true);
         if (couplingTarget.Length > 0 && !PackageIdPattern.IsMatch(couplingTarget)) throw new CatalogValidationException($"External catalog entry {index} Metadata.VersionCoupling.PackageId is invalid.");
         var lifecycle = CatalogTokens.Parse<Lifecycle>(metadata.CurrentOrLegacy ?? "Unknown", $"External catalog entry {index} Metadata.CurrentOrLegacy");
         var licenses = ParseArray<LicensingModel>(metadata.LicensingModel ?? ["UNKNOWN-COST"], $"External catalog entry {index} Metadata.LicensingModel");
@@ -127,15 +128,18 @@ public sealed class CatalogParser
         var installationForms = ParseArray<InstallationForm>(metadata.InstallationForms ?? [], $"External catalog entry {index} Metadata.InstallationForms", true);
         var supportedOs = ParseArray<SupportedOperatingSystem>(metadata.SupportedOS ?? ["Unknown"], $"External catalog entry {index} Metadata.SupportedOS");
         var workflows = ValidateTokenArray(metadata.WorkflowCategories ?? [], AllowedWorkflowCategories, $"External catalog entry {index} Metadata.WorkflowCategories", true);
-        ValidateToken(metadata.DownloadDifficulty ?? "HARD", AllowedDownloadDifficulty, $"External catalog entry {index} Metadata.DownloadDifficulty");
-        ValidateTokenArray(metadata.Architecture ?? ["Unknown"], AllowedArchitecture, $"External catalog entry {index} Metadata.Architecture");
-        ValidateToken(metadata.SideBySideSupported ?? "Unknown", AllowedTriState, $"External catalog entry {index} Metadata.SideBySideSupported");
-        ValidateTokenArray(metadata.ValidationMethod ?? ["Unknown"], AllowedValidationMethods, $"External catalog entry {index} Metadata.ValidationMethod");
-        ValidateVerification(metadata.Verification, index, verificationAsOf);
-        ValidateProvenance(metadata.Provenance, metadata.OfficialProductUri, metadata.OfficialDownloadUri, index);
+        var downloadDifficulty = metadata.DownloadDifficulty ?? "HARD";
+        ValidateToken(downloadDifficulty, AllowedDownloadDifficulty, $"External catalog entry {index} Metadata.DownloadDifficulty");
+        var architectures = ValidateTokenArray(metadata.Architecture ?? ["Unknown"], AllowedArchitecture, $"External catalog entry {index} Metadata.Architecture");
+        var sideBySide = metadata.SideBySideSupported ?? "Unknown";
+        ValidateToken(sideBySide, AllowedTriState, $"External catalog entry {index} Metadata.SideBySideSupported");
+        var validationMethods = ValidateTokenArray(metadata.ValidationMethod ?? ["Unknown"], AllowedValidationMethods, $"External catalog entry {index} Metadata.ValidationMethod");
+        var verification = ParseVerification(metadata.Verification, index, verificationAsOf);
+        var provenance = ParseProvenance(metadata.Provenance, metadata.OfficialProductUri, metadata.OfficialDownloadUri, index);
         var officialProductUri = HttpsUri(metadata.OfficialProductUri, $"External catalog entry {index} Metadata.OfficialProductUri", schemaVersion < 3);
-        _ = officialProductUri;
-        if (!string.IsNullOrEmpty(metadata.OfficialDownloadUri)) _ = HttpsUri(metadata.OfficialDownloadUri, $"External catalog entry {index} Metadata.OfficialDownloadUri", true);
+        var officialDownloadUri = string.IsNullOrEmpty(metadata.OfficialDownloadUri)
+            ? string.Empty
+            : HttpsUri(metadata.OfficialDownloadUri, $"External catalog entry {index} Metadata.OfficialDownloadUri", true);
 
         var defaultDetectionMode = raw.Detection?.RegistryDisplayNamePattern is not null ? "Registry" : schemaVersion >= 3 ? "None" : "Registry";
         var detectionMode = CatalogTokens.Parse<DetectionMode>(raw.Detection?.Mode ?? defaultDetectionMode, $"External catalog entry {index} Detection.Mode");
@@ -196,7 +200,27 @@ public sealed class CatalogParser
             impact?.OpensListener, impact?.FirmwareUtility, metadata.Notes ?? string.Empty,
             BuildTags(priority, licenses, downloadAccess),
             raw.Detection?.RegistryDisplayNamePattern ?? string.Empty,
-            raw.Detection?.RegistryVersionPattern ?? string.Empty);
+            raw.Detection?.RegistryVersionPattern ?? string.Empty,
+            new CatalogMetadataDetails(
+                couplingNotes,
+                downloadDifficulty,
+                architectures,
+                sideBySide,
+                officialDownloadUri,
+                officialProductUri,
+                validationMethods,
+                verification.VerifiedOn,
+                verification.State,
+                verification.ReviewTriggers,
+                verification.Quarantined,
+                verification.QuarantineReason,
+                provenance.AuthoritativeDomain,
+                provenance.ExpectedPublisher,
+                provenance.SignatureValidation,
+                provenance.VendorHashAvailability,
+                provenance.DownloadStrategy,
+                raw.Release?.Uri is null ? string.Empty : HttpsUri(raw.Release.Uri, $"External catalog entry {index} Release.Uri"),
+                raw.Delivery?.Uri is null ? string.Empty : HttpsUri(raw.Delivery.Uri, $"External catalog entry {index} Delivery.Uri")));
     }
 
     private static void ValidateRelationships(IReadOnlyList<PackageDefinition> packages)
@@ -345,35 +369,54 @@ public sealed class CatalogParser
         if (!allowed.Contains(value)) throw new CatalogValidationException($"{field} contains unsupported value '{value}'.");
     }
 
-    private static void ValidateVerification(VerificationRaw? verification, int index, DateOnly verificationAsOf)
+    private static VerificationDetails ParseVerification(VerificationRaw? verification, int index, DateOnly verificationAsOf)
     {
-        if (verification is null) return;
-        if (!string.IsNullOrEmpty(verification.VerifiedOn) &&
-            (!DateOnly.TryParseExact(verification.VerifiedOn, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out var date) || date > verificationAsOf))
-            throw new CatalogValidationException($"External catalog entry {index} Metadata.Verification.VerifiedOn is invalid or in the future.");
-        ValidateTokenArray(verification.ReviewTriggers ?? [], AllowedReviewTriggers, $"External catalog entry {index} Metadata.Verification.ReviewTriggers", true);
+        if (verification is null)
+            return new(string.Empty, MetadataVerificationState.VerificationRequired, [], false, string.Empty);
+        DateOnly? verifiedDate = null;
+        if (!string.IsNullOrEmpty(verification.VerifiedOn))
+        {
+            if (!DateOnly.TryParseExact(verification.VerifiedOn, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var parsed) || parsed > verificationAsOf)
+                throw new CatalogValidationException($"External catalog entry {index} Metadata.Verification.VerifiedOn is invalid or in the future.");
+            verifiedDate = parsed;
+        }
+        var triggers = ValidateTokenArray(verification.ReviewTriggers ?? [], AllowedReviewTriggers, $"External catalog entry {index} Metadata.Verification.ReviewTriggers", true);
         if (verification.Quarantined == true && string.IsNullOrWhiteSpace(verification.QuarantineReason))
             throw new CatalogValidationException($"External catalog entry {index} quarantined metadata requires a reason.");
-        if (verification.QuarantineReason is not null) _ = Text(verification.QuarantineReason, $"External catalog entry {index} Metadata.Verification.QuarantineReason", 512, true);
+        var quarantineReason = Text(verification.QuarantineReason ?? string.Empty, $"External catalog entry {index} Metadata.Verification.QuarantineReason", 512, true);
+        var state = verification.Quarantined == true
+            ? MetadataVerificationState.Quarantined
+            : verifiedDate is null
+                ? MetadataVerificationState.VerificationRequired
+                : verificationAsOf.DayNumber - verifiedDate.Value.DayNumber < 60
+                    ? MetadataVerificationState.Current
+                    : verificationAsOf.DayNumber - verifiedDate.Value.DayNumber <= 180
+                        ? MetadataVerificationState.ReviewSoon
+                        : MetadataVerificationState.VerificationRequired;
+        return new(verification.VerifiedOn ?? string.Empty, state, triggers, verification.Quarantined == true, quarantineReason);
     }
 
-    private static void ValidateProvenance(ProvenanceRaw? provenance, string? productUri, string? downloadUri, int index)
+    private static ProvenanceDetails ParseProvenance(ProvenanceRaw? provenance, string? productUri, string? downloadUri, int index)
     {
-        if (provenance is null) return;
+        if (provenance is null) return new(string.Empty, string.Empty, "Unknown", "Unknown", "Unknown");
         var domain = Text(provenance.AuthoritativeDomain ?? string.Empty, $"External catalog entry {index} Metadata.Provenance.AuthoritativeDomain", 253, true).ToLowerInvariant();
         if (domain.Length > 0 && !Regex.IsMatch(domain, @"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$"))
             throw new CatalogValidationException($"External catalog entry {index} Metadata.Provenance.AuthoritativeDomain is invalid.");
-        ValidateToken(provenance.SignatureValidation ?? "Unknown", AllowedSignatureValidation, $"External catalog entry {index} Metadata.Provenance.SignatureValidation");
-        ValidateToken(provenance.VendorHashAvailability ?? "Unknown", AllowedHashAvailability, $"External catalog entry {index} Metadata.Provenance.VendorHashAvailability");
-        ValidateToken(provenance.DownloadStrategy ?? "Unknown", AllowedDownloadStrategy, $"External catalog entry {index} Metadata.Provenance.DownloadStrategy");
-        if (provenance.ExpectedPublisher is not null) _ = Text(provenance.ExpectedPublisher, $"External catalog entry {index} Metadata.Provenance.ExpectedPublisher", 256, true);
+        var signature = provenance.SignatureValidation ?? "Unknown";
+        var hash = provenance.VendorHashAvailability ?? "Unknown";
+        var strategy = provenance.DownloadStrategy ?? "Unknown";
+        ValidateToken(signature, AllowedSignatureValidation, $"External catalog entry {index} Metadata.Provenance.SignatureValidation");
+        ValidateToken(hash, AllowedHashAvailability, $"External catalog entry {index} Metadata.Provenance.VendorHashAvailability");
+        ValidateToken(strategy, AllowedDownloadStrategy, $"External catalog entry {index} Metadata.Provenance.DownloadStrategy");
+        var publisher = Text(provenance.ExpectedPublisher ?? string.Empty, $"External catalog entry {index} Metadata.Provenance.ExpectedPublisher", 256, true);
         foreach (var value in new[] { productUri, downloadUri }.Where(value => !string.IsNullOrWhiteSpace(value)))
         {
             var host = new Uri(value!).DnsSafeHost;
             if (domain.Length > 0 && !host.Equals(domain, StringComparison.OrdinalIgnoreCase) && !host.EndsWith('.' + domain, StringComparison.OrdinalIgnoreCase))
                 throw new CatalogValidationException($"External catalog entry {index} official source is outside Metadata.Provenance.AuthoritativeDomain.");
         }
+        return new(domain, publisher, signature, hash, strategy);
     }
 
     private static IReadOnlyList<string> BuildTags(PackagePriority priority, IReadOnlyList<LicensingModel> licensing, IReadOnlyList<string> access) =>
@@ -479,4 +522,6 @@ public sealed class CatalogParser
     private sealed class VerificationRaw { public string? VerifiedOn { get; init; } public List<string>? ReviewTriggers { get; init; } public bool? Quarantined { get; init; } public string? QuarantineReason { get; init; } }
     [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
     private sealed class ProvenanceRaw { public string? AuthoritativeDomain { get; init; } public string? ExpectedPublisher { get; init; } public string? SignatureValidation { get; init; } public string? VendorHashAvailability { get; init; } public string? DownloadStrategy { get; init; } }
+    private sealed record VerificationDetails(string VerifiedOn, MetadataVerificationState State, IReadOnlyList<string> ReviewTriggers, bool Quarantined, string QuarantineReason);
+    private sealed record ProvenanceDetails(string AuthoritativeDomain, string ExpectedPublisher, string SignatureValidation, string VendorHashAvailability, string DownloadStrategy);
 }

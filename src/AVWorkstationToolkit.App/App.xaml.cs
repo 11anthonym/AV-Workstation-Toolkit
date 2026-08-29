@@ -1,5 +1,8 @@
 using System.Security.Principal;
 using System.Windows;
+using AVWorkstationToolkit.Application.Diagnostics;
+using AVWorkstationToolkit.Application.Details;
+using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.App.ViewModels;
 
@@ -23,11 +26,23 @@ public partial class App : System.Windows.Application
                 return;
             }
 
-            var coordinator = smoke
-                ? SmokePlanningCoordinator.Create()
-                : CompiledAppComposition.Create(RepositoryRootLocator.Find());
-            var viewModel = new MainWindowViewModel(coordinator);
-            var window = new MainWindow(viewModel, autoRefresh: !smoke && !readOnlyCheck);
+            IWorkstationPlanningCoordinator coordinator;
+            IReadOnlyDiagnosticsService diagnostics;
+            var details = new CatalogDetailService();
+            if (smoke)
+            {
+                coordinator = SmokePlanningCoordinator.Create();
+                diagnostics = SmokePlanningCoordinator.CreateDiagnostics();
+            }
+            else
+            {
+                var services = CompiledAppComposition.Create(RepositoryRootLocator.Find());
+                coordinator = services.Planning;
+                diagnostics = services.Diagnostics;
+                details = services.Details;
+            }
+            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details);
+            var window = new MainWindow(viewModel, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();
             if (smoke)

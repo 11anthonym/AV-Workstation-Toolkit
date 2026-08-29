@@ -40,7 +40,16 @@ public sealed record ProviderRefreshSummary(
     ProviderQuality WinGetUpdateQuality,
     ProviderQuality ExternalInventoryQuality,
     ProviderQuality RebootQuality,
-    IReadOnlyList<string> Warnings);
+    IReadOnlyList<string> Warnings,
+    ProviderFailureKind WinGetInventoryFailure = ProviderFailureKind.None,
+    ProviderFailureKind WinGetUpdateFailure = ProviderFailureKind.None,
+    ProviderFailureKind ExternalInventoryFailure = ProviderFailureKind.None,
+    ProviderFailureKind RebootFailure = ProviderFailureKind.None,
+    string WinGetInventoryDetail = "",
+    string WinGetUpdateDetail = "",
+    string ExternalInventoryDetail = "",
+    string RebootDetail = "",
+    IReadOnlyList<RegistrySourceStatus>? ExternalSources = null);
 
 public sealed record WorkstationPlan(
     IReadOnlyList<PackageState> Packages,
@@ -111,7 +120,16 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
             updates.Quality,
             external.Quality,
             reboot.Quality,
-            BuildWarnings(installed, updates, external, reboot));
+            BuildWarnings(installed, updates, external, reboot),
+            installed.Failure,
+            updates.Failure,
+            external.Failure,
+            reboot.Failure,
+            installed.Detail,
+            updates.Detail,
+            external.Detail,
+            reboot.Detail,
+            external.Sources);
         var result = new WorkstationPlan(states, Summarize(states), rebootState, providerSummary);
         progress?.Report(PlanningRefreshStage.Ready);
         return result;

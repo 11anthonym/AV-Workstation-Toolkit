@@ -1,0 +1,15 @@
+{
+  "SchemaVersion": 1,
+  "ScenarioId": "compiled-read-only-details-and-diagnostics",
+  "Packages": [
+    { "Id": "QSC.QSYSDesigner.LTS", "Status": "Inventory", "Installed": true, "InstalledVersion": "9.12.0", "AvailableVersion": "", "InventoryQuality": "Complete" },
+    { "Id": "Crestron.Toolbox", "Status": "InventoryIncomplete", "Installed": true, "InstalledVersion": "3.1250.0057", "AvailableVersion": "", "InventoryQuality": "Partial" },
+    { "Id": "NDI.Remote", "Status": "Awareness", "Installed": false, "InstalledVersion": "", "AvailableVersion": "", "InventoryQuality": "NotApplicable" }
+  ],
+  "RegistrySources": [
+    { "Name": "Hklm64", "Available": true, "EntryCount": 8 },
+    { "Name": "Hklm32", "Available": true, "EntryCount": 4 },
+    { "Name": "Hkcu", "Available": false, "EntryCount": 0 }
+  ],
+  "RebootReasons": [ "WindowsUpdate" ]
+}
