@@ -1171,6 +1171,8 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
     $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
     $compiledRequestSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Actions\ActionRequestModels.cs') -Raw
     $compiledRequestPathSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionRequestFilePolicy.cs') -Raw
+    $compiledArtifactPathSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionArtifactPathPolicy.cs') -Raw
+    $compiledProtocolStoreSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionProtocolStore.cs') -Raw
     Assert-True ($appProject -match '<OutputType>WinExe</OutputType>' -and $appProject -match '<UseWPF>true</UseWPF>' -and
         $appProject -match '<SelfContained>true</SelfContained>' -and $appProject -match '<PublishSingleFile>true</PublishSingleFile>' -and
         $appProject -match '<PublishTrimmed>false</PublishTrimmed>' -and $compiledAppXaml -match 'x:Class="AVWorkstationToolkit\.App\.App"' -and
@@ -1178,13 +1180,16 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
     Assert-True ($buildSource -match 'Test-CSharpMigration\.ps1') 'Authoritative build does not validate migration scaffolding.'
     Assert-True ($compiledRequestSource -match 'UnknownField' -and $compiledRequestSource -match 'DuplicateField' -and
         $compiledRequestSource -match 'MaximumPayloadBytes\s*=\s*65_536' -and $compiledRequestSource -match 'ActionRequestAuthorizationService') 'Compiled strict action-request model, parser, or plan-authorization boundary is incomplete.'
-    Assert-True ($compiledRequestPathSource -match 'direct child' -and $compiledRequestPathSource -match 'RejectReparsePoint' -and
+    Assert-True ($compiledRequestPathSource -match 'Read-only validation' -and $compiledArtifactPathSource -match 'canonical direct-child path' -and
+        $compiledArtifactPathSource -match 'RejectReparsePoint' -and $compiledProtocolStoreSource -match 'FileMode\.CreateNew' -and
+        $compiledProtocolStoreSource -match 'overwrite:\s*false' -and
         $compiledRequestPathSource -notmatch 'File\.(?:Write|Create|Append)|FileMode\.(?:Create|CreateNew|OpenOrCreate|Append)') 'Compiled request-file policy is not strictly contained and read-only.'
-    Assert-True ($compiledAppSource -notmatch 'ActionRequestFactory|ActionRequestFilePolicy|Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction') 'Compiled App gained live request or worker authority.'
+    Assert-True ($compiledAppSource -notmatch 'ActionRequestFactory|ActionRequestFilePolicy|ActionProtocolStore|ActionArtifactPathPolicy|Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction') 'Compiled App gained live request or worker authority.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\action-request-fixtures') -File -Filter '*.json').Count 'Active action-request parity fixture count differs.'
+    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\ipc-lifecycle-fixtures') -File -Filter '*.json').Count 'Active IPC lifecycle parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\presentation-fixtures') -File -Filter '*.json').Count 'Active presentation parity fixture count differs.'
     Assert-True ($domainSource -match 'class CatalogParser' -and $domainSource -match 'class PlanningService' -and $domainSource -match 'class SelectionPolicy' -and
         $domainSource -notmatch 'System\.Diagnostics|Microsoft\.Win32|HttpClient|System\.Management\.Automation|powershell\.exe|pwsh\.exe|cmd\.exe') 'Typed Domain ownership or dependency boundary regressed.'
