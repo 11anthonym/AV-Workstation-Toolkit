@@ -171,6 +171,7 @@ if ($compiledWorkerSource -notmatch '--test-mode' -or
     $compiledWorkerSource -notmatch 'DeterministicFakePackageExecutor' -or
     $compiledWorkerSource -notmatch 'ActionWorkerFileProtocol' -or
     $compiledWorkerSource -notmatch 'ReadFreshPlanAsync' -or
+    $compiledWorkerSource -notmatch 'WindowsBuiltInRole\.Administrator' -or
     $compiledWorkerSource -match 'WinGetReadOnlyProcessRunner|WindowsWinGetResolver') {
     throw 'The compiled worker is no longer constrained to its explicit-root fake-executor test composition.'
 }

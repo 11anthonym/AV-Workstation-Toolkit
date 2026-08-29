@@ -5,6 +5,12 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator)
+if ($isElevated) {
+    Write-Output 'CSHARP_WORKER_PROCESS_SKIPPED reason=elevated-host'
+    return
+}
 $integrationDll = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.dll'
 $workerExe = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker\bin\Release\net10.0-windows\AVWorkstationToolkit.Worker.exe'
 foreach ($path in @($integrationDll,$workerExe)) {
