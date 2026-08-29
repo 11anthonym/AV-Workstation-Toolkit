@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-29 — Compiled action-request parity
+
+- Added a non-shipping typed C# action-request model, deterministic schema-only serializer, strict parser, read-only contained request-file policy, and plan-authority validation.
+- Added 26 PowerShell-to-C# request cases plus focused hostile JSON, path, reparse, authority, held, acknowledgement, and pending-reboot tests; documented the stricter compiled duplicate-property and early package-ID rejection boundaries.
+- Kept request persistence, worker launch/lifecycle, live revalidation, progress/results, WinGet mutation, production startup, launcher, and packaging on the unchanged shipping PowerShell path.
+
 ## 2026-08-29 — Compiled diagnostics and provider detail parity
 
 - Added non-shipping typed, sanitized diagnostics that preserve provider quality, per-registry-source status, reboot reasons, runtime availability, catalog counts, and explicit warnings/errors.

@@ -112,3 +112,22 @@ foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'read
     Write-Output "READONLY_SURFACE_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
 }
 Write-Output "READONLY_SURFACE_PARITY_OK scenarios=$readOnlySurfaceScenarioCount cases=$readOnlySurfaceCaseCount"
+
+$actionRequestScenarioCount = 0
+$actionRequestCaseCount = 0
+foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'action-request-fixtures') -File -Filter '*.json' | Sort-Object Name)) {
+    $legacy = (& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Invoke-LegacyActionRequestParityAdapter.ps1') -FixturePath $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Legacy action-request adapter failed for $($fixture.Name)." }
+    $compiled = (& dotnet $integrationDll --action-requests $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "C# action-request adapter failed for $($fixture.Name)." }
+    $legacyObject = $legacy | ConvertFrom-Json -ErrorAction Stop
+    $compiledObject = $compiled | ConvertFrom-Json -ErrorAction Stop
+    $legacyCanonical = $legacyObject | ConvertTo-Json -Depth 20 -Compress
+    $compiledCanonical = $compiledObject | ConvertTo-Json -Depth 20 -Compress
+    if ($legacyCanonical -cne $compiledCanonical) { throw "Action-request parity mismatch for $($fixture.Name).`r`nLEGACY: $legacyCanonical`r`nCSHARP: $compiledCanonical" }
+    $cases = @($legacyObject.Cases).Count
+    $actionRequestScenarioCount++
+    $actionRequestCaseCount += $cases
+    Write-Output "ACTION_REQUEST_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
+}
+Write-Output "ACTION_REQUEST_PARITY_OK scenarios=$actionRequestScenarioCount cases=$actionRequestCaseCount"
