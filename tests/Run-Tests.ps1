@@ -1169,6 +1169,8 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
     $compiledAppXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\App.xaml') -Raw
     $compiledWindowXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
     $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+    $compiledAppStartupSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\App.xaml.cs') -Raw
+    $compiledAppCompositionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\Services\CompiledAppComposition.cs') -Raw
     $compiledRequestSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Actions\ActionRequestModels.cs') -Raw
     $compiledRequestPathSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionRequestFilePolicy.cs') -Raw
     $compiledArtifactPathSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionArtifactPathPolicy.cs') -Raw
@@ -1184,7 +1186,11 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
         $compiledArtifactPathSource -match 'RejectReparsePoint' -and $compiledProtocolStoreSource -match 'FileMode\.CreateNew' -and
         $compiledProtocolStoreSource -match 'overwrite:\s*false' -and
         $compiledRequestPathSource -notmatch 'File\.(?:Write|Create|Append)|FileMode\.(?:Create|CreateNew|OpenOrCreate|Append)') 'Compiled request-file policy is not strictly contained and read-only.'
-    Assert-True ($compiledAppSource -notmatch 'ActionRequestFactory|ActionRequestFilePolicy|ActionProtocolStore|ActionArtifactPathPolicy|Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction') 'Compiled App gained live request or worker authority.'
+    Assert-True ($compiledAppSource -notmatch 'Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction' -and
+        $compiledAppStartupSource -match '--migration-action-test-root' -and
+        $compiledAppCompositionSource -match 'if \(migrationTestRoot is not null\)' -and
+        $compiledAppCompositionSource -match 'new ActionProtocolStore\(migrationTestRoot\)' -and
+        $compiledAppCompositionSource -notmatch 'new ActionProtocolStore\(dataRoot\)') 'Compiled App action integration is not restricted to the explicit isolated migration mode.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'
