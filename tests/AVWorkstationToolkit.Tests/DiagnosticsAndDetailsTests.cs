@@ -1,4 +1,5 @@
 using AVWorkstationToolkit.App.Services;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.App.ViewModels;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Diagnostics;

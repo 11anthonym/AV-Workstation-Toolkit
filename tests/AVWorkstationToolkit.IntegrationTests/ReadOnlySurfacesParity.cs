@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using AVWorkstationToolkit.App.Services;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Inventory;

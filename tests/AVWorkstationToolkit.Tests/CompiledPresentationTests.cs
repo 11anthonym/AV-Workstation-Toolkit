@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using AVWorkstationToolkit.App.Services;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.App.ViewModels;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;

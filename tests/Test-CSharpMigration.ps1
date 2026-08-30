@@ -30,4 +30,6 @@ else {
 }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File (Join-Path $PSScriptRoot 'Test-CSharpWpfSmoke.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Compiled WPF migration smoke failed.' }
+& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-CSharpLiveRehearsal.ps1') -NoBuild
+if ($LASTEXITCODE -ne 0) { throw 'Compiled-stack live rehearsal failed.' }
 Write-Output 'CSHARP_MIGRATION_OK'

@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using AVWorkstationToolkit.Domain.Catalog;
 
-namespace AVWorkstationToolkit.App.Services;
+namespace AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
 /// <summary>Loads the reviewed source catalogs without invoking PowerShell.</summary>
 public sealed partial class RepositoryCatalogLoader

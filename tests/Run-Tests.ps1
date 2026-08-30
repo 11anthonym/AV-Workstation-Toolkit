@@ -1188,8 +1188,10 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
         $compiledRequestPathSource -notmatch 'File\.(?:Write|Create|Append)|FileMode\.(?:Create|CreateNew|OpenOrCreate|Append)') 'Compiled request-file policy is not strictly contained and read-only.'
     Assert-True ($compiledAppSource -notmatch 'Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction' -and
         $compiledAppStartupSource -match '--migration-action-test-root' -and
-        $compiledAppCompositionSource -match 'if \(migrationTestRoot is not null\)' -and
-        $compiledAppCompositionSource -match 'new ActionProtocolStore\(migrationTestRoot\)' -and
+        $compiledAppStartupSource -match '--live-rehearsal-root' -and
+        $compiledAppCompositionSource -match 'CreateLiveRehearsal' -and
+        $compiledAppCompositionSource -match 'if \(actionRoot is not null\)' -and
+        $compiledAppCompositionSource -match 'new ActionProtocolStore\(actionRoot\)' -and
         $compiledAppCompositionSource -notmatch 'new ActionProtocolStore\(dataRoot\)') 'Compiled App action integration is not restricted to the explicit isolated migration mode.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'

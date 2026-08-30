@@ -57,7 +57,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CatalogDetailService? detailService = null,
         CompiledActionCoordinator? actionCoordinator = null,
         IDiagnosticsExportService? diagnosticsExportService = null,
-        IValidatedUserHandoffService? handoffService = null)
+        IValidatedUserHandoffService? handoffService = null,
+        bool liveRehearsalMode = false)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -65,6 +66,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.actionCoordinator = actionCoordinator;
         this.diagnosticsExportService = diagnosticsExportService;
         this.handoffService = handoffService;
+        LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
         [
@@ -137,6 +139,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public bool IsNotBusy => !IsBusy;
     public bool ActionProgressVisible => IsBusy || actionActive;
     public bool MigrationActionMode => actionCoordinator is not null;
+    public bool LiveRehearsalMode { get; }
     public bool CanCancelAction => ActionSnapshot.State == CompiledActionState.Running;
     public bool RiskAcknowledged { get => riskAcknowledged; set => SetProperty(ref riskAcknowledged, value); }
     public CompiledActionSnapshot ActionSnapshot { get => actionSnapshot; private set => SetProperty(ref actionSnapshot, value); }

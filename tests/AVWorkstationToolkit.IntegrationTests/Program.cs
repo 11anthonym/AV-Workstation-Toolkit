@@ -20,9 +20,15 @@ if (args.Length == 2 && args[0] == "--compiled-action-flow")
     return 0;
 }
 
+if (args.Length == 2 && args[0] == "--live-rehearsal")
+{
+    Console.WriteLine(JsonSerializer.Serialize(await LiveRehearsalBoundary.RunAsync(args[1])));
+    return 0;
+}
+
 if (args.Length is < 1 or > 2)
 {
-    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle|--execution] <fixture.json> | --live-readonly | --worker-process <worker.exe> | --compiled-action-flow <repository-root>");
+    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle|--execution] <fixture.json> | --live-readonly | --worker-process <worker.exe> | --compiled-action-flow <repository-root> | --live-rehearsal <repository-root>");
     return 2;
 }
 

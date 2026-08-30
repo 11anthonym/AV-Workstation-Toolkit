@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-30 — Compiled-stack live cutover rehearsal (non-shipping)
+
+- Added an explicit standard-user-only live rehearsal composition under an isolated temporary root, connecting the compiled App coordinator, strict IPC lifecycle, independent compiled worker, real read-only providers, trusted WinGet resolution, and the real exact-ID executor boundary.
+- Proved a correlated dry-run across the real process boundary, including GUI-handle release, fresh-store result recovery, trusted WinGet resolution, and post-completion plan refresh. No package was mutated because the workstation had no clearly safe eligible managed update; unrelated software was not installed merely to satisfy the rehearsal.
+- Kept normal compiled preview, the shipping PowerShell startup/worker, installer and release composition, and vendor payload execution unchanged.
+
 ## 2026-08-30 — Compiled App action-flow integration (non-shipping)
 
 - Integrated typed selection authorization, contained request persistence, the exact fake compiled worker, correlated progress/result display, cooperative cancellation, and post-completion refresh behind an explicit isolated migration-test root.

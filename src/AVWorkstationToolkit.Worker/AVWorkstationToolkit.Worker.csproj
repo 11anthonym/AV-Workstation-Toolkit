@@ -13,8 +13,8 @@
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     <AssemblyName>AVWorkstationToolkit.Worker</AssemblyName>
     <RootNamespace>AVWorkstationToolkit.Worker</RootNamespace>
-    <Product>AV Workstation Toolkit non-shipping migration worker</Product>
-    <Description>Fake-executor-only process host for compiled worker orchestration tests.</Description>
+    <Product>AV Workstation Toolkit non-shipping compiled worker</Product>
+    <Description>Explicit test and developer-rehearsal host for compiled worker orchestration.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />

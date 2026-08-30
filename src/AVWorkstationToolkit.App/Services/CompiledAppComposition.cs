@@ -13,6 +13,7 @@ using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
 using AVWorkstationToolkit.Application.Vendors;
 using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 
 namespace AVWorkstationToolkit.App.Services;
@@ -25,11 +26,18 @@ public sealed record CompiledAppServices(
     CompiledActionCoordinator? Actions,
     IDiagnosticsExportService DiagnosticsExport,
     VendorInteractionCoordinator? Vendors,
-    IValidatedUserHandoffService? Handoffs);
+    IValidatedUserHandoffService? Handoffs,
+    bool IsLiveRehearsal);
 
 public static class CompiledAppComposition
 {
     public static CompiledAppServices Create(string repositoryRoot, string? migrationTestRoot = null)
+        => CreateCore(repositoryRoot, migrationTestRoot, liveRehearsal: false);
+
+    public static CompiledAppServices CreateLiveRehearsal(string repositoryRoot, string explicitRehearsalRoot)
+        => CreateCore(repositoryRoot, explicitRehearsalRoot, liveRehearsal: true);
+
+    private static CompiledAppServices CreateCore(string repositoryRoot, string? actionRoot, bool liveRehearsal)
     {
         var catalog = new RepositoryCatalogLoader().Load(repositoryRoot);
         var resolver = new WindowsWinGetResolver();
@@ -42,7 +50,8 @@ public static class CompiledAppComposition
             new WindowsUninstallRegistryInventory(),
             new WindowsRebootStateProvider(),
             new ExternalInventoryMatcher());
-        var dataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
+        var canonicalDataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
+        var dataRoot = liveRehearsal ? LiveRehearsalRootPolicy.RequireExisting(actionRoot!) : canonicalDataRoot;
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
         var version = File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown";
         var diagnostics = new ReadOnlyDiagnosticsService(
@@ -51,22 +60,25 @@ public static class CompiledAppComposition
         CompiledActionCoordinator? actions = null;
         VendorInteractionCoordinator? vendors = null;
         IValidatedUserHandoffService? handoffs = null;
-        if (migrationTestRoot is not null)
+        if (actionRoot is not null)
         {
+            ICompiledWorkerLauncher workerLauncher = liveRehearsal
+                ? new CompiledLiveRehearsalWorkerLauncher(repositoryRoot, actionRoot)
+                : new CompiledMigrationWorkerLauncher(repositoryRoot, actionRoot);
             actions = new CompiledActionCoordinator(
-                new ActionProtocolStore(migrationTestRoot),
-                new CompiledMigrationWorkerLauncher(repositoryRoot, migrationTestRoot),
+                new ActionProtocolStore(actionRoot),
+                workerLauncher,
                 planning);
             var cachePaths = new VendorCachePathPolicy();
             var verifier = new VendorPayloadVerificationService(cachePaths, new WinTrustAuthenticodeVerifier());
             vendors = new VendorInteractionCoordinator(
-                migrationTestRoot,
+                actionRoot,
                 new VendorHttpsDownloader(cachePaths),
                 new VendorSftpDeliveryService(cachePaths),
                 new WindowsVendorCredentialStore(),
                 verifier);
             handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
         }
-        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs);
+        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, liveRehearsal);
     }
 }
