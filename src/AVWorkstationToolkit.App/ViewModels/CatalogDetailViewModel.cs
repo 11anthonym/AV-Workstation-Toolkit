@@ -7,11 +7,11 @@ public sealed class CatalogDetailViewModel : ObservableObject
 {
     private string intentStatus = "Official links are validated read-only intents; this migration phase does not open a browser.";
 
-    public CatalogDetailViewModel(CatalogDetail detail)
+    public CatalogDetailViewModel(CatalogDetail detail, IValidatedUserHandoffService? handoffs = null)
     {
         Detail = detail ?? throw new ArgumentNullException(nameof(detail));
-        ProductIntentCommand = new RelayCommand(_ => RecordIntent(detail.ProductIntent), _ => detail.ProductIntent is not null);
-        DownloadIntentCommand = new RelayCommand(_ => RecordIntent(detail.DownloadIntent), _ => detail.DownloadIntent is not null);
+        ProductIntentCommand = new RelayCommand(_ => HandleIntent(detail.ProductIntent, handoffs), _ => detail.ProductIntent is not null);
+        DownloadIntentCommand = new RelayCommand(_ => HandleIntent(detail.DownloadIntent, handoffs), _ => detail.DownloadIntent is not null);
     }
 
     public CatalogDetail Detail { get; }
@@ -24,9 +24,22 @@ public sealed class CatalogDetailViewModel : ObservableObject
     public RelayCommand DownloadIntentCommand { get; }
     public string IntentStatus { get => intentStatus; private set => SetProperty(ref intentStatus, value); }
 
-    private void RecordIntent(OpenOfficialUriIntent? intent)
+    private void HandleIntent(OpenOfficialUriIntent? intent, IValidatedUserHandoffService? handoffs)
     {
         if (intent is null) return;
-        IntentStatus = $"READ-ONLY Validated {intent.Kind.ToString().ToLowerInvariant()} URI intent for {intent.PackageId}; no browser or download was started.";
+        if (handoffs is null)
+        {
+            IntentStatus = $"READ-ONLY Validated {intent.Kind.ToString().ToLowerInvariant()} URI intent for {intent.PackageId}; no browser or download was started.";
+            return;
+        }
+        try
+        {
+            handoffs.OpenOfficialUri(intent);
+            IntentStatus = $"Opened the validated official {intent.Kind.ToString().ToLowerInvariant()} page for {intent.PackageId}.";
+        }
+        catch (Exception exception)
+        {
+            IntentStatus = $"Official page handoff failed: {AVWorkstationToolkit.Application.Diagnostics.DiagnosticsRedactor.Sanitize(exception.Message)}";
+        }
     }
 }

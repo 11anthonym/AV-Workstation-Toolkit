@@ -80,6 +80,10 @@ $readOnlyRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infras
 $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
 $mutationRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetMutationProcessRunner.cs'
 $mutationRunnerSource = Get-Content -LiteralPath $mutationRunnerPath -Raw
+$migrationWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\CompiledMigrationWorkerLauncher.cs'
+$migrationWorkerLauncherSource = Get-Content -LiteralPath $migrationWorkerLauncherPath -Raw
+$userHandoffPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WindowsValidatedUserHandoffService.cs'
+$userHandoffSource = Get-Content -LiteralPath $userHandoffPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
 $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -129,7 +133,7 @@ if ($launcherSource -match '(?i)GetTempPath|SpecialFolder\.LocalApplicationData[
 $migrationProcessSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File -Filter '*.cs' |
     Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' -and $_.FullName -notlike '*\AVWorkstationToolkit.Launcher\*' })
 $directMigrationLaunchers = @($migrationProcessSources | Where-Object {
-    $_.FullName -notin @($readOnlyRunnerPath,$mutationRunnerPath) -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
+    $_.FullName -notin @($readOnlyRunnerPath,$mutationRunnerPath,$migrationWorkerLauncherPath,$userHandoffPath) -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
 })
 if ($directMigrationLaunchers.Count -ne 0) {
     throw 'A C# migration component outside the reviewed WinGet boundaries gained direct process-launch behavior.'
@@ -163,8 +167,27 @@ if (($workerProtocolSource -match 'ProcessStartInfo|Process\.Start|HttpClient|We
     $workerProtocolSource -notmatch 'Flush\(flushToDisk:\s*true\)') {
     throw 'The fake-worker file protocol lost its explicit-root, append-only progress, stale-artifact, or final-result no-overwrite boundary.'
 }
-if ($compiledAppSource -match 'ActionRequestFactory|ActionRequestFilePolicy|ActionProtocolStore|ActionArtifactPathPolicy|Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker') {
-    throw 'The compiled WPF migration app gained action-request persistence or worker-launch authority.'
+if ($compiledAppSource -match 'Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker|WinGetMutationProcessRunner|WinGetPackageActionExecutor' -or
+    $compiledAppSource -notmatch '--migration-action-test-root' -or
+    $compiledAppSource -notmatch 'if \(migrationTestRoot is not null\)' -or
+    $compiledAppSource -notmatch 'CompiledMigrationWorkerLauncher\(repositoryRoot, migrationTestRoot\)') {
+    throw 'The compiled WPF migration App lost its explicit fake-worker-only activation boundary or gained real mutation authority.'
+}
+if ($migrationWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.exe"' -or
+    $migrationWorkerLauncherSource -notmatch 'awt-phase11-' -or
+    $migrationWorkerLauncherSource -notmatch 'UseShellExecute\s*=\s*false' -or
+    $migrationWorkerLauncherSource -notmatch 'ArgumentList\.Add\("--test-mode"\)' -or
+    $migrationWorkerLauncherSource -notmatch 'ActionRequestFilePolicy' -or
+    $migrationWorkerLauncherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(|Kill\(') {
+    throw 'The compiled migration worker launcher lost its exact test-host, canonical-request, or independent-lifetime boundary.'
+}
+if ($userHandoffSource -notmatch 'OpenOfficialUriIntent' -or
+    $userHandoffSource -notmatch 'UriSchemeHttps' -or
+    $userHandoffSource -notmatch 'VendorPayloadState\.Verified' -or
+    $userHandoffSource -notmatch 'ResolveCached' -or
+    $userHandoffSource -notmatch 'SpecialFolder\.Windows' -or
+    $userHandoffSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(') {
+    throw 'The compiled browser/Explorer handoff lost validated URI, verified-cache, or exact Windows Explorer containment.'
 }
 if ($compiledWorkerSource -match 'ProcessStartInfo|Process\.Start|System\.Management\.Automation|HttpClient|WebRequest|WebClient|ShellExecute|WindowsIdentity\.Impersonate' -or
     $compiledWorkerSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(' -or
@@ -195,8 +218,9 @@ $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
 ) -join "`n"
-if (($compiledAppSource + $compiledWorkerSource + $shippingCompositionSource) -match 'VendorHttpsDownloader|VendorSftpDeliveryService|WindowsVendorCredentialStore|VendorPayloadVerificationService') {
-    throw 'The non-shipping compiled vendor boundary entered App, worker, launcher, installer, or release composition.'
+if (($compiledWorkerSource + $shippingCompositionSource) -match 'VendorHttpsDownloader|VendorSftpDeliveryService|WindowsVendorCredentialStore|VendorPayloadVerificationService' -or
+    $compiledAppSource -match 'VendorInteractionCoordinator' -and $compiledAppSource -notmatch 'if \(migrationTestRoot is not null\)') {
+    throw 'The compiled vendor boundary entered the worker/shipping composition or lost explicit migration-mode activation.'
 }
 if ($shippingCompositionSource -match 'AVWorkstationToolkit\.Worker|WinGetMutationProcessRunner|WinGetPackageActionExecutor') {
     throw 'The non-shipping compiled worker or WinGet mutation executor entered launcher, installer, or release composition.'

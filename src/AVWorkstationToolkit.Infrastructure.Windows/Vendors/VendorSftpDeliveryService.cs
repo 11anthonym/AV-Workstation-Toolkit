@@ -11,7 +11,7 @@ internal interface IVendorSftpTransport
     Task DownloadAsync(VendorSftpIdentity identity, ReadOnlyMemory<char> secret, string remotePath, Stream destination, long maximumBytes, CancellationToken cancellationToken);
 }
 
-public sealed class VendorSftpDeliveryService
+public sealed class VendorSftpDeliveryService : IVendorSftpDelivery
 {
     private readonly IVendorSftpTransport transport;
     private readonly IVendorCredentialStore credentials;

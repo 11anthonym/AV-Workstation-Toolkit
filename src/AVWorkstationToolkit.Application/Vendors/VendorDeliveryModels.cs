@@ -183,3 +183,74 @@ public interface IVendorCredentialStore
     void Write(VendorSftpIdentity identity, ReadOnlySpan<char> secret);
     bool Delete(VendorSftpIdentity identity);
 }
+
+public interface IVendorHttpsDelivery
+{
+    Task<VendorDownloadResult> DownloadAsync(VendorDeliveryAuthorization authorization, string explicitDataRoot, CancellationToken cancellationToken);
+}
+
+public interface IVendorSftpDelivery
+{
+    Task<VendorDownloadResult> DownloadAsync(
+        VendorDeliveryAuthorization authorization,
+        string explicitDataRoot,
+        VendorCredential? suppliedCredential,
+        bool saveCredential,
+        CancellationToken cancellationToken);
+}
+
+public interface IVendorPayloadVerifier
+{
+    VendorDownloadResult VerifyAndPromote(VendorDeliveryAuthorization authorization, string explicitDataRoot, string temporaryPath);
+    VendorDownloadResult ResolveCached(VendorDeliveryAuthorization authorization, string explicitDataRoot, string payloadPath);
+}
+
+public sealed record VendorCredentialState(bool Present, string Detail);
+
+/// <summary>
+/// Non-shipping vendor interaction coordinator. Catalog authorization remains
+/// mandatory, downloads remain untrusted until verification succeeds, and no
+/// method can execute a downloaded payload.
+/// </summary>
+public sealed class VendorInteractionCoordinator(
+    string explicitDataRoot,
+    IVendorHttpsDelivery https,
+    IVendorSftpDelivery sftp,
+    IVendorCredentialStore credentials,
+    IVendorPayloadVerifier verifier)
+{
+    public async Task<VendorDownloadResult> DownloadHttpsAndVerifyAsync(
+        VendorDeliveryAuthorization authorization,
+        CancellationToken cancellationToken = default)
+    {
+        var downloaded = await https.DownloadAsync(authorization, explicitDataRoot, cancellationToken).ConfigureAwait(false);
+        return downloaded.State == VendorPayloadState.Downloaded
+            ? verifier.VerifyAndPromote(authorization, explicitDataRoot, downloaded.Path)
+            : downloaded;
+    }
+
+    public async Task<VendorDownloadResult> DownloadSftpAndVerifyAsync(
+        VendorDeliveryAuthorization authorization,
+        VendorCredential? suppliedCredential,
+        bool saveCredential,
+        CancellationToken cancellationToken = default)
+    {
+        var downloaded = await sftp.DownloadAsync(authorization, explicitDataRoot, suppliedCredential, saveCredential, cancellationToken).ConfigureAwait(false);
+        return downloaded.State == VendorPayloadState.Downloaded
+            ? verifier.VerifyAndPromote(authorization, explicitDataRoot, downloaded.Path)
+            : downloaded;
+    }
+
+    public VendorCredentialState CredentialState(VendorSftpIdentity identity)
+    {
+        using var credential = credentials.Read(identity);
+        return credential is null
+            ? new(false, "No scoped credential is saved.")
+            : new(true, "A scoped credential is saved in Windows Credential Manager.");
+    }
+
+    public void SaveCredential(VendorSftpIdentity identity, ReadOnlySpan<char> secret) => credentials.Write(identity, secret);
+    public bool DeleteCredential(VendorSftpIdentity identity) => credentials.Delete(identity);
+    public VendorDownloadResult ResolveCached(VendorDeliveryAuthorization authorization, string payloadPath) =>
+        verifier.ResolveCached(authorization, explicitDataRoot, payloadPath);
+}

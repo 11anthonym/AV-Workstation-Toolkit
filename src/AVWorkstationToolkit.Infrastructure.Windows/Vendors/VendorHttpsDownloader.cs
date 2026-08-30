@@ -4,7 +4,7 @@ using AVWorkstationToolkit.Application.Vendors;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 
-public sealed class VendorHttpsDownloader : IDisposable
+public sealed class VendorHttpsDownloader : IVendorHttpsDelivery, IDisposable
 {
     private const int MaximumRedirects = 5;
     private readonly HttpClient client;

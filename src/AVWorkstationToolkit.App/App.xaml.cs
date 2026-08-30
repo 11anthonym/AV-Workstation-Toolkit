@@ -5,6 +5,7 @@ using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.App.ViewModels;
+using AVWorkstationToolkit.Application.Actions;
 
 namespace AVWorkstationToolkit.App;
 
@@ -17,6 +18,7 @@ public partial class App : System.Windows.Application
         {
             var smoke = e.Args.Contains("--smoke-test", StringComparer.Ordinal);
             var readOnlyCheck = e.Args.Contains("--read-only-check", StringComparer.Ordinal);
+            var migrationTestRoot = ParseMigrationTestRoot(e.Args);
             if (!smoke && IsElevated())
             {
                 MessageBox.Show(
@@ -29,6 +31,9 @@ public partial class App : System.Windows.Application
             IWorkstationPlanningCoordinator coordinator;
             IReadOnlyDiagnosticsService diagnostics;
             var details = new CatalogDetailService();
+            CompiledActionCoordinator? actions = null;
+            IDiagnosticsExportService? diagnosticsExport = null;
+            IValidatedUserHandoffService? handoffs = null;
             if (smoke)
             {
                 coordinator = SmokePlanningCoordinator.Create();
@@ -36,12 +41,15 @@ public partial class App : System.Windows.Application
             }
             else
             {
-                var services = CompiledAppComposition.Create(RepositoryRootLocator.Find());
+                var services = CompiledAppComposition.Create(RepositoryRootLocator.Find(), migrationTestRoot);
                 coordinator = services.Planning;
                 diagnostics = services.Diagnostics;
                 details = services.Details;
+                actions = services.Actions;
+                diagnosticsExport = services.DiagnosticsExport;
+                handoffs = services.Handoffs;
             }
-            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details);
+            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs);
             var window = new MainWindow(viewModel, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();
@@ -73,5 +81,16 @@ public partial class App : System.Windows.Application
     {
         using var identity = WindowsIdentity.GetCurrent();
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    private static string? ParseMigrationTestRoot(IReadOnlyList<string> args)
+    {
+        var indexes = args.Select((value, index) => (value, index))
+            .Where(item => item.value == "--migration-action-test-root")
+            .Select(item => item.index).ToArray();
+        if (indexes.Length == 0) return null;
+        if (indexes.Length != 1 || indexes[0] + 1 >= args.Count)
+            throw new ArgumentException("Migration action mode requires exactly one --migration-action-test-root <isolated-temp-root> argument.");
+        return args[indexes[0] + 1];
     }
 }

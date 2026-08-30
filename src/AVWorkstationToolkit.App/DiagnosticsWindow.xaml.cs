@@ -14,6 +14,20 @@ public partial class DiagnosticsWindow : Window
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
+    private void Copy_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not DiagnosticsViewModel viewModel) return;
+        try
+        {
+            Clipboard.SetText(viewModel.Text);
+            viewModel.Status = "Sanitized diagnostics copied to the clipboard.";
+        }
+        catch (Exception exception)
+        {
+            viewModel.Status = $"Copy failed: {AVWorkstationToolkit.Application.Diagnostics.DiagnosticsRedactor.Sanitize(exception.Message)}";
+        }
+    }
+
     internal void VerifySmokeContract()
     {
         if (DataContext is not DiagnosticsViewModel viewModel || viewModel.Snapshot.Catalog.Total != 3 ||

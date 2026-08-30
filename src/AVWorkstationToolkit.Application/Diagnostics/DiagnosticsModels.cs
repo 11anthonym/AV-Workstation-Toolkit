@@ -79,3 +79,8 @@ public interface IReadOnlyDiagnosticsService
 {
     Task<DiagnosticsSnapshot> ComposeAsync(WorkstationPlan plan, CancellationToken cancellationToken = default);
 }
+
+public interface IDiagnosticsExportService
+{
+    string Export(string sanitizedDiagnostics);
+}

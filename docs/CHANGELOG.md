@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-30 — Compiled App action-flow integration (non-shipping)
+
+- Integrated typed selection authorization, contained request persistence, the exact fake compiled worker, correlated progress/result display, cooperative cancellation, and post-completion refresh behind an explicit isolated migration-test root.
+- Connected the compiled migration composition to the existing vendor delivery/credential/cache boundary, validated official browser handoffs, reverified-cache Explorer reveal, and sanitized diagnostics copy/export without adding installer execution.
+- Added focused coordinator, concurrency, cancellation, failure, redaction, handoff, export, and real fake-worker process-boundary coverage. Normal production startup, the shipping PowerShell worker, release packaging, and real WinGet/vendor installer execution remain unchanged.
+
 ## 2026-08-30 — Compiled vendor delivery boundary (non-shipping)
 
 - Added catalog-derived typed authorization for bounded HTTPS and authenticated-SFTP delivery, including explicit redirect host checks and host-key validation before credential lookup.

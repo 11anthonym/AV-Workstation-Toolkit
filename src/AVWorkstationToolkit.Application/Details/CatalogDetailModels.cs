@@ -2,10 +2,17 @@ using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
+using AVWorkstationToolkit.Application.Vendors;
 
 namespace AVWorkstationToolkit.Application.Details;
 
 public enum OfficialUriKind { Product, Download }
+
+public interface IValidatedUserHandoffService
+{
+    void OpenOfficialUri(OpenOfficialUriIntent intent);
+    void RevealVerifiedPayload(VendorDeliveryAuthorization authorization, VendorDownloadResult payload, string explicitDataRoot);
+}
 
 public sealed record OpenOfficialUriIntent
 {

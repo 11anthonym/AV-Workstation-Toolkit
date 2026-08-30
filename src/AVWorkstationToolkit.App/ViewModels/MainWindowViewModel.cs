@@ -5,6 +5,7 @@ using AVWorkstationToolkit.App.Commands;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Planning;
+using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 
@@ -15,7 +16,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IWorkstationPlanningCoordinator coordinator;
     private readonly IReadOnlyDiagnosticsService diagnosticsService;
     private readonly CatalogDetailService detailService;
+    private readonly IDiagnosticsExportService? diagnosticsExportService;
+    private readonly IValidatedUserHandoffService? handoffService;
     private readonly CatalogQueryService queryService = new();
+    private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
     private readonly ObservableCollection<PackageRowViewModel> visiblePackages = [];
     private CancellationTokenSource? refreshCancellation;
@@ -43,15 +47,25 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string activityState = "Ready";
     private string statusText = "Loading catalog and workstation state...";
     private int mutationRefusalCount;
+    private bool actionActive;
+    private bool riskAcknowledged;
+    private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "Migration action mode is idle.", [], null);
 
     public MainWindowViewModel(
         IWorkstationPlanningCoordinator coordinator,
         IReadOnlyDiagnosticsService? diagnosticsService = null,
-        CatalogDetailService? detailService = null)
+        CatalogDetailService? detailService = null,
+        CompiledActionCoordinator? actionCoordinator = null,
+        IDiagnosticsExportService? diagnosticsExportService = null,
+        IValidatedUserHandoffService? handoffService = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
         this.detailService = detailService ?? new CatalogDetailService();
+        this.actionCoordinator = actionCoordinator;
+        this.diagnosticsExportService = diagnosticsExportService;
+        this.handoffService = handoffService;
+        if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
         [
             new("All priorities", null), new("P1", PackagePriority.P1), new("P2", PackagePriority.P2),
@@ -81,8 +95,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsBusy);
         QuickViewCommand = new RelayCommand(value => SetQuickView(ParseQuickView(value)), _ => !IsBusy);
         ClearSelectionCommand = new RelayCommand(_ => ClearSelection(), _ => !IsBusy && packages.Any(item => item.Selected));
-        InstallCommand = new RelayCommand(_ => RefuseMutation(PackageAction.Install), _ => CanInstall);
-        UpdateCommand = new RelayCommand(_ => RefuseMutation(PackageAction.Update), _ => CanUpdate);
+        InstallCommand = new AsyncRelayCommand(() => RunActionAsync(ManagedRequestAction.Install), () => CanInstall);
+        UpdateCommand = new AsyncRelayCommand(() => RunActionAsync(ManagedRequestAction.Update), () => CanUpdate);
+        CancelActionCommand = new AsyncRelayCommand(CancelActionAsync, () => CanCancelAction);
         DetailsCommand = new RelayCommand(_ => ShowSelectedDetails(), _ => SelectedRow is not null);
         DiagnosticsCommand = new RelayCommand(_ => ShowDiagnostics(), _ => plan is not null && !IsBusy);
     }
@@ -98,8 +113,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand RefreshCommand { get; }
     public RelayCommand QuickViewCommand { get; }
     public RelayCommand ClearSelectionCommand { get; }
-    public RelayCommand InstallCommand { get; }
-    public RelayCommand UpdateCommand { get; }
+    public AsyncRelayCommand InstallCommand { get; }
+    public AsyncRelayCommand UpdateCommand { get; }
+    public AsyncRelayCommand CancelActionCommand { get; }
     public RelayCommand DetailsCommand { get; }
     public RelayCommand DiagnosticsCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
@@ -112,14 +128,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         private set
         {
             if (!SetProperty(ref isBusy, value)) return;
-            foreach (var item in packages) item.SetBusy(value);
+            foreach (var item in packages) item.SetBusy(value || actionActive);
             RaiseCommandStates();
             OnPropertyChanged(nameof(IsNotBusy));
             OnPropertyChanged(nameof(ActionProgressVisible));
         }
     }
     public bool IsNotBusy => !IsBusy;
-    public bool ActionProgressVisible => IsBusy;
+    public bool ActionProgressVisible => IsBusy || actionActive;
+    public bool MigrationActionMode => actionCoordinator is not null;
+    public bool CanCancelAction => ActionSnapshot.State == CompiledActionState.Running;
+    public bool RiskAcknowledged { get => riskAcknowledged; set => SetProperty(ref riskAcknowledged, value); }
+    public CompiledActionSnapshot ActionSnapshot { get => actionSnapshot; private set => SetProperty(ref actionSnapshot, value); }
 
     public string SearchText { get => searchText; set { if (SetProperty(ref searchText, value ?? string.Empty)) RebuildVisible(); } }
     public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) RebuildVisible(); } }
@@ -188,8 +208,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public string InstallButtonText => InstallCount == 0 ? "Install selected" : $"Install selected ({InstallCount})";
     public string UpdateButtonText => UpdateCount == 0 ? "Update selected" : $"Update selected ({UpdateCount})";
     public string SelectionSummary => SelectedCount == 0 ? "Nothing selected" : $"{SelectedCount} selected | {InstallCount} install | {UpdateCount} update";
-    public bool CanInstall => !IsBusy && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install);
-    public bool CanUpdate => !IsBusy && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update);
+    public bool CanInstall => !IsBusy && !actionActive && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install);
+    public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update);
     public bool WarningVisible => plan is not null && (plan.Reboot.Pending || plan.Providers.Warnings.Count > 0);
     public string WarningText => plan is null ? string.Empty : plan.Reboot.Pending
         ? "Restart recommended. Windows is waiting for a restart to finish an update. You can still select most apps, but system-level changes remain paused until you restart."
@@ -221,7 +241,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             var refreshedDiagnostics = await diagnosticsService.ComposeAsync(result, cancellation.Token).ConfigureAwait(true);
             if (generation != Volatile.Read(ref refreshGeneration)) return;
             ApplyPlan(result, selectedIds, selectedRowId);
-            Diagnostics = new DiagnosticsViewModel(refreshedDiagnostics);
+            Diagnostics = new DiagnosticsViewModel(refreshedDiagnostics, ActionDiagnosticText(), diagnosticsExportService);
             AppendActivity(result.Providers.Warnings.Count == 0 ? "Plan ready." : "Plan ready with inventory warnings.");
         }
         catch (OperationCanceledException) when (generation != Volatile.Read(ref refreshGeneration) || cancellation.IsCancellationRequested)
@@ -264,6 +284,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        if (actionCoordinator is not null) actionCoordinator.StateChanged -= ActionCoordinator_StateChanged;
         refreshCancellation?.Cancel();
         refreshCancellation?.Dispose();
     }
@@ -379,10 +400,79 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ActivityState = "Read-only migration";
     }
 
+    private async Task RunActionAsync(ManagedRequestAction action)
+    {
+        if (actionCoordinator is null)
+        {
+            RefuseMutation(action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update);
+            return;
+        }
+        if (plan is null) return;
+        var expected = action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update;
+        var selected = packages.Where(item => item.Selected && item.Action == expected).Select(item => item.State).ToArray();
+        try
+        {
+            var completed = await actionCoordinator.StartAsync(action, selected, plan, RiskAcknowledged, dryRun: false).ConfigureAwait(true);
+            ApplyPlan(completed.RefreshedPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), SelectedRow?.Id);
+            Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(completed.RefreshedPlan).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
+            AppendActivity($"ACTION {completed.Result.Status}: {completed.Result.Message}");
+        }
+        catch (Exception exception)
+        {
+            AppendActivity($"ACTION ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+        }
+    }
+
+    private async Task CancelActionAsync()
+    {
+        if (actionCoordinator is null) return;
+        if (await actionCoordinator.RequestCancellationAsync().ConfigureAwait(true))
+            AppendActivity("Cancellation intent recorded. The independent worker will stop between packages.");
+    }
+
+    private void ActionCoordinator_StateChanged(object? sender, CompiledActionSnapshot snapshot)
+    {
+        void Apply()
+        {
+            ActionSnapshot = snapshot;
+            actionActive = snapshot.State is CompiledActionState.Preparing or CompiledActionState.Running or CompiledActionState.CancellationRequested;
+            ActivityState = snapshot.State.ToString();
+            AppendActivity($"ACTION {snapshot.State}: {snapshot.Status}");
+            foreach (var item in packages) item.SetBusy(IsBusy || actionActive);
+            OnPropertyChanged(nameof(ActionProgressVisible));
+            OnPropertyChanged(nameof(CanCancelAction));
+            OnPropertyChanged(nameof(CanInstall));
+            OnPropertyChanged(nameof(CanUpdate));
+            RaiseCommandStates();
+        }
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher is not null && !dispatcher.CheckAccess()) dispatcher.Invoke(Apply);
+        else Apply();
+    }
+
+    private string ActionDiagnosticText()
+    {
+        var snapshot = ActionSnapshot;
+        var lines = new List<string>
+        {
+            "[Compiled migration action]",
+            $"State: {snapshot.State}",
+            $"Request: {snapshot.RequestId}",
+            $"Status: {snapshot.Status}",
+            $"Progress records: {snapshot.Progress.Count}"
+        };
+        if (snapshot.Result is not null)
+        {
+            lines.Add($"Result: {snapshot.Result.Status}");
+            lines.Add($"Packages: {snapshot.Result.Packages.Count}");
+        }
+        return DiagnosticsRedactor.Sanitize(string.Join(Environment.NewLine, lines));
+    }
+
     private void ShowSelectedDetails()
     {
         if (SelectedRow is null || planCatalog is null) return;
-        SelectedDetail = new CatalogDetailViewModel(detailService.Create(SelectedRow.State, planCatalog));
+        SelectedDetail = new CatalogDetailViewModel(detailService.Create(SelectedRow.State, planCatalog), handoffService);
         AppendActivity($"DETAILS {SelectedRow.Name} | {SelectedRow.Vendor} | {SelectedRow.StatusLabel} | {SelectedRow.StatusDetail}");
         DetailRequested?.Invoke(SelectedDetail);
     }
@@ -415,6 +505,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         InstallCommand.RaiseCanExecuteChanged();
         UpdateCommand.RaiseCanExecuteChanged();
         DiagnosticsCommand.RaiseCanExecuteChanged();
+        CancelActionCommand.RaiseCanExecuteChanged();
     }
 
     private static QuickView ParseQuickView(object? value) => Enum.TryParse<QuickView>(value?.ToString(), out var parsed) ? parsed : QuickView.All;
@@ -427,7 +518,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         PlanningRefreshStage.BuildingPlan => "Building workstation plan...",
         _ => "Ready"
     };
-    private static string Sanitize(string value) => new(value.Where(character => !char.IsControl(character) || character is '\r' or '\n' or '\t').Take(4000).ToArray());
+    private static string Sanitize(string value) => new(DiagnosticsRedactor.Sanitize(value).Take(4000).ToArray());
     private static string SplitWords(string value) => System.Text.RegularExpressions.Regex.Replace(value, "(?<!^)([A-Z])", " $1", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
     private static string DisciplineLabel(CatalogDiscipline value) => value switch
     {

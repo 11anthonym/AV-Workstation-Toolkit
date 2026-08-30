@@ -9,6 +9,11 @@ using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 using AVWorkstationToolkit.Infrastructure.Windows.Reboot;
 using AVWorkstationToolkit.Infrastructure.Windows.Registry;
 using AVWorkstationToolkit.Infrastructure.Windows.WinGet;
+using AVWorkstationToolkit.Application.Actions;
+using AVWorkstationToolkit.Infrastructure.Windows.Files;
+using AVWorkstationToolkit.Application.Vendors;
+using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
+using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 
 namespace AVWorkstationToolkit.App.Services;
 
@@ -16,11 +21,15 @@ public sealed record CompiledAppServices(
     PackageCatalog Catalog,
     IWorkstationPlanningCoordinator Planning,
     IReadOnlyDiagnosticsService Diagnostics,
-    CatalogDetailService Details);
+    CatalogDetailService Details,
+    CompiledActionCoordinator? Actions,
+    IDiagnosticsExportService DiagnosticsExport,
+    VendorInteractionCoordinator? Vendors,
+    IValidatedUserHandoffService? Handoffs);
 
 public static class CompiledAppComposition
 {
-    public static CompiledAppServices Create(string repositoryRoot)
+    public static CompiledAppServices Create(string repositoryRoot, string? migrationTestRoot = null)
     {
         var catalog = new RepositoryCatalogLoader().Load(repositoryRoot);
         var resolver = new WindowsWinGetResolver();
@@ -39,6 +48,25 @@ public static class CompiledAppComposition
         var diagnostics = new ReadOnlyDiagnosticsService(
             new WindowsRuntimeDiagnosticsProvider(resolver, runner),
             new ApplicationDiagnosticContext(version, "Source compiled migration", dataRoot, Path.Combine(dataRoot, "logs")));
-        return new(catalog, planning, diagnostics, new CatalogDetailService());
+        CompiledActionCoordinator? actions = null;
+        VendorInteractionCoordinator? vendors = null;
+        IValidatedUserHandoffService? handoffs = null;
+        if (migrationTestRoot is not null)
+        {
+            actions = new CompiledActionCoordinator(
+                new ActionProtocolStore(migrationTestRoot),
+                new CompiledMigrationWorkerLauncher(repositoryRoot, migrationTestRoot),
+                planning);
+            var cachePaths = new VendorCachePathPolicy();
+            var verifier = new VendorPayloadVerificationService(cachePaths, new WinTrustAuthenticodeVerifier());
+            vendors = new VendorInteractionCoordinator(
+                migrationTestRoot,
+                new VendorHttpsDownloader(cachePaths),
+                new VendorSftpDeliveryService(cachePaths),
+                new WindowsVendorCredentialStore(),
+                verifier);
+            handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
+        }
+        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs);
     }
 }

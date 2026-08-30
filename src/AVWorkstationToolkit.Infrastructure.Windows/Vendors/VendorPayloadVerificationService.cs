@@ -7,7 +7,7 @@ using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 
-public sealed class VendorPayloadVerificationService(VendorCachePathPolicy paths, IAuthenticodeSignatureInspector signatures)
+public sealed class VendorPayloadVerificationService(VendorCachePathPolicy paths, IAuthenticodeSignatureInspector signatures) : IVendorPayloadVerifier
 {
     private const int MaximumMetadataBytes = 65_536;
 

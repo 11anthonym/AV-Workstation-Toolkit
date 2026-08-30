@@ -8,7 +8,7 @@ namespace AVWorkstationToolkit.Infrastructure.Windows.Files;
 /// act only beneath the explicit root supplied by its caller. The compiled App
 /// does not compose this type.
 /// </summary>
-public sealed class ActionProtocolStore
+public sealed class ActionProtocolStore : IActionProtocolStore
 {
     private static readonly UTF8Encoding Utf8WithoutBom = new(false, true);
     private readonly string dataRoot;
@@ -117,5 +117,12 @@ public sealed class ActionProtocolStore
             await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
         }
         return output.ToArray();
+    }
+
+    public async Task<byte[]?> TryReadArtifactAsync(string requestId, ActionArtifactKind kind, CancellationToken cancellationToken = default)
+    {
+        var path = pathPolicy.GetPath(dataRoot, requestId, kind);
+        if (!File.Exists(path)) return null;
+        return await ReadArtifactAsync(requestId, kind, cancellationToken).ConfigureAwait(false);
     }
 }

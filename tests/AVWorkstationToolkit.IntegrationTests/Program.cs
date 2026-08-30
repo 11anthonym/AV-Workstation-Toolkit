@@ -14,9 +14,15 @@ if (args.Length == 2 && args[0] == "--worker-process")
     return 0;
 }
 
+if (args.Length == 2 && args[0] == "--compiled-action-flow")
+{
+    Console.WriteLine(JsonSerializer.Serialize(await CompiledActionFlowBoundary.RunAsync(args[1])));
+    return 0;
+}
+
 if (args.Length is < 1 or > 2)
 {
-    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle|--execution] <fixture.json> | --live-readonly | --worker-process <worker.exe>");
+    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle|--execution] <fixture.json> | --live-readonly | --worker-process <worker.exe> | --compiled-action-flow <repository-root>");
     return 2;
 }
 
