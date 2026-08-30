@@ -220,7 +220,22 @@ public sealed class CatalogParser
                 provenance.VendorHashAvailability,
                 provenance.DownloadStrategy,
                 raw.Release?.Uri is null ? string.Empty : HttpsUri(raw.Release.Uri, $"External catalog entry {index} Release.Uri"),
-                raw.Delivery?.Uri is null ? string.Empty : HttpsUri(raw.Delivery.Uri, $"External catalog entry {index} Delivery.Uri")));
+                raw.Delivery?.Uri is null ? string.Empty : HttpsUri(raw.Delivery.Uri, $"External catalog entry {index} Delivery.Uri")),
+            raw.Delivery is null ? null : new CatalogDeliveryPolicy(
+                raw.Delivery.Uri ?? string.Empty,
+                raw.Delivery.DownloadUriPattern ?? string.Empty,
+                raw.Delivery.AllowedHosts ?? [],
+                raw.Delivery.PublisherPattern ?? string.Empty,
+                raw.Delivery.MaxBytes ?? 0,
+                raw.Delivery.Host ?? string.Empty,
+                raw.Delivery.Port ?? 0,
+                raw.Delivery.CatalogUri ?? string.Empty,
+                raw.Delivery.RemoteRoot ?? string.Empty,
+                raw.Delivery.AllowedProductIds ?? [],
+                raw.Delivery.ProductId ?? string.Empty,
+                raw.Delivery.RelativePath ?? string.Empty,
+                raw.Delivery.Sha256 ?? string.Empty,
+                raw.Delivery.PublisherSubject ?? string.Empty));
     }
 
     private static void ValidateRelationships(IReadOnlyList<PackageDefinition> packages)

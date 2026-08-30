@@ -1831,7 +1831,7 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     } | ForEach-Object {
         $_.FullName.Substring($repositoryRoot.Length).TrimStart('\').Replace('\','/')
     } | Sort-Object -Unique)
-    Assert-Equal 'scripts/AVWorkstationToolkit.Core.psm1|src/AVWorkstationToolkit.Launcher/VendorBridge.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
+    Assert-Equal 'scripts/AVWorkstationToolkit.Core.psm1|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs|src/AVWorkstationToolkit.Launcher/VendorBridge.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
     $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
     $bridgeSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\VendorBridge.cs') -Raw
     Assert-True ($coreSource -match 'Assert-AVWorkstationToolkitHttpsUri' -and
@@ -1839,6 +1839,11 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
         $coreSource -match 'redirected to an unapproved host') 'Vendor release requests lost HTTPS or same-host redirect enforcement.'
     Assert-True ([regex]::Matches($bridgeSource,'RequireAllowedHost\(').Count -ge 3 -and
         $bridgeSource -match 'AllowAutoRedirect\s*=\s*false') 'Compiled vendor downloads lost host allowlisting or explicit redirect handling.'
+    $migrationHttps = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorHttpsDownloader.cs') -Raw
+    $migrationSftp = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorSftpDeliveryService.cs') -Raw
+    Assert-True ($migrationHttps -match 'AllowAutoRedirect\s*=\s*false' -and $migrationHttps -match 'AllowedHosts\.Contains' -and
+        $migrationHttps -match 'MaximumRedirects\s*=\s*5' -and $migrationSftp -match 'ProbeHostFingerprintAsync' -and
+        $migrationSftp.IndexOf('ProbeHostFingerprintAsync',[StringComparison]::Ordinal) -lt $migrationSftp.IndexOf('credentials.Read',[StringComparison]::Ordinal)) 'Non-shipping vendor migration lost redirect revalidation or host-key-before-credential ordering.'
 
     $privacy = Get-Content -LiteralPath (Join-Path $repositoryRoot 'PRIVACY.md') -Raw
     Assert-True ($privacy -match 'no\s+telemetry, analytics, advertising, crash-reporting service' -and

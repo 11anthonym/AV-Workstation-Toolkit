@@ -6,13 +6,19 @@ using System.Text.RegularExpressions;
 namespace AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
 
 public sealed record AuthenticodeTrustResult(bool Valid, string SignerSubject, string Detail);
+public sealed record AuthenticodeSignatureResult(bool Valid, string SignerSubject, string Detail);
 
 public interface IAuthenticodeTrustVerifier
 {
     AuthenticodeTrustResult Verify(string path);
 }
 
-public sealed partial class WinTrustAuthenticodeVerifier : IAuthenticodeTrustVerifier
+public interface IAuthenticodeSignatureInspector
+{
+    AuthenticodeSignatureResult Inspect(string path);
+}
+
+public sealed partial class WinTrustAuthenticodeVerifier : IAuthenticodeTrustVerifier, IAuthenticodeSignatureInspector
 {
     private static readonly Guid GenericVerifyV2 = new("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");
 
@@ -20,6 +26,15 @@ public sealed partial class WinTrustAuthenticodeVerifier : IAuthenticodeTrustVer
     private static partial Regex MicrosoftPublisherPattern();
 
     public AuthenticodeTrustResult Verify(string path)
+    {
+        var result = Inspect(path);
+        if (!result.Valid) return new(false, result.SignerSubject, result.Detail);
+        return MicrosoftPublisherPattern().IsMatch(result.SignerSubject)
+            ? new(true, result.SignerSubject, "Authenticode signature and Microsoft publisher identity are valid.")
+            : new(false, result.SignerSubject, "Authenticode signer is not Microsoft Corporation.");
+    }
+
+    public AuthenticodeSignatureResult Inspect(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var pathPointer = Marshal.StringToCoTaskMemUni(path);
@@ -55,9 +70,7 @@ public sealed partial class WinTrustAuthenticodeVerifier : IAuthenticodeTrustVer
 #pragma warning restore SYSLIB0057
             using var certificate = X509CertificateLoader.LoadCertificate(legacy.GetRawCertData());
             var subject = certificate.Subject;
-            return MicrosoftPublisherPattern().IsMatch(subject)
-                ? new(true, subject, "Authenticode signature and Microsoft publisher identity are valid.")
-                : new(false, subject, "Authenticode signer is not Microsoft Corporation.");
+            return new(true, subject, "Authenticode signature is valid.");
         }
         catch (CryptographicException exception)
         {

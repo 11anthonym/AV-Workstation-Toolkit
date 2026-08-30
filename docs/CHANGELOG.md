@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-30 — Compiled vendor delivery boundary (non-shipping)
+
+- Added catalog-derived typed authorization for bounded HTTPS and authenticated-SFTP delivery, including explicit redirect host checks and host-key validation before credential lookup.
+- Added scoped Windows Credential Manager access with legacy read/delete compatibility, contained vendor-cache paths, and separate Downloaded/Verified/Rejected payload states with SHA-256 and Authenticode publisher validation.
+- Added deterministic transport, credential-ordering, cache-corruption, authority, and verification tests. No real vendor system was contacted, no payload was executed, and the compiled services remain outside App, worker, launcher, MSI, and ZIP composition.
+
 ## 2026-08-29 — Compiled WinGet execution parity (non-shipping)
 
 - Added an uncomposed standard-user C# WinGet executor that accepts only typed Install/Update requests, reuses trusted Desktop App Installer resolution, and constructs exact one-package argument vectors internally.

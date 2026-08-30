@@ -49,7 +49,8 @@ public sealed record PackageDefinition(
     IReadOnlyList<string> CatalogTags,
     string DetectionDisplayNamePattern = "",
     string DetectionVersionPattern = "",
-    CatalogMetadataDetails? Details = null)
+    CatalogMetadataDetails? Details = null,
+    CatalogDeliveryPolicy? DeliveryPolicy = null)
 {
     public CatalogMetadataDetails MetadataDetails => Details ?? CatalogMetadataDetails.Unknown;
 
@@ -58,6 +59,22 @@ public sealed record PackageDefinition(
         Provider == ProviderKind.WinGet &&
         Deployment == DeploymentPolicy.Allowlisted;
 }
+
+public sealed record CatalogDeliveryPolicy(
+    string Uri,
+    string DownloadUriPattern,
+    IReadOnlyList<string> AllowedHosts,
+    string PublisherPattern,
+    long MaximumBytes,
+    string Host,
+    int Port,
+    string CatalogUri,
+    string RemoteRoot,
+    IReadOnlyList<string> AllowedProductIds,
+    string ProductId,
+    string RelativePath,
+    string Sha256,
+    string PublisherSubject);
 
 public sealed record CatalogMetadataDetails(
     string VersionCouplingNotes,

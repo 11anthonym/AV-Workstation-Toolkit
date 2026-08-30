@@ -92,6 +92,8 @@ $compiledReadOnlySurfaceSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Providers') -File -Filter '*.cs'
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $compiledReadOnlySurfaceSource = $compiledReadOnlySurfaceSource -join "`n"
+$compiledVendorSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors') -File -Filter '*.cs' |
+    ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 $protocolStorePath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionProtocolStore.cs'
 $protocolStoreSource = Get-Content -LiteralPath $protocolStorePath -Raw
 $workerProtocolPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionWorkerFileProtocol.cs'
@@ -177,11 +179,25 @@ if ($compiledWorkerSource -notmatch '--test-mode' -or
     $compiledWorkerSource -match 'WinGetReadOnlyProcessRunner|WindowsWinGetResolver') {
     throw 'The compiled worker is no longer constrained to its explicit-root fake-executor test composition.'
 }
+if ($compiledVendorSource -match 'ProcessStartInfo|Process\.Start|ShellExecute|System\.Management\.Automation|(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b' -or
+    $compiledVendorSource -match '(?i)\b(?:install|upgrade|uninstall|import)async\s*\(') {
+    throw 'The non-shipping compiled vendor boundary gained process, shell, or package-mutation behavior.'
+}
+if ($compiledVendorSource -notmatch 'AllowAutoRedirect\s*=\s*false' -or
+    $compiledVendorSource -notmatch 'AllowedHosts\.Contains' -or
+    $compiledVendorSource -notmatch 'ProbeHostFingerprintAsync' -or
+    $compiledVendorSource.IndexOf('ProbeHostFingerprintAsync',[StringComparison]::Ordinal) -gt $compiledVendorSource.IndexOf('credentials.Read',[StringComparison]::Ordinal) -or
+    $compiledVendorSource -notmatch 'WinVerifyTrust|IAuthenticodeSignatureInspector') {
+    throw 'The non-shipping compiled vendor boundary lost redirect, host-key-before-credential, or signature-verification controls.'
+}
 $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
 ) -join "`n"
+if (($compiledAppSource + $compiledWorkerSource + $shippingCompositionSource) -match 'VendorHttpsDownloader|VendorSftpDeliveryService|WindowsVendorCredentialStore|VendorPayloadVerificationService') {
+    throw 'The non-shipping compiled vendor boundary entered App, worker, launcher, installer, or release composition.'
+}
 if ($shippingCompositionSource -match 'AVWorkstationToolkit\.Worker|WinGetMutationProcessRunner|WinGetPackageActionExecutor') {
     throw 'The non-shipping compiled worker or WinGet mutation executor entered launcher, installer, or release composition.'
 }
