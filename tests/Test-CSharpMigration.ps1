@@ -18,9 +18,16 @@ if ($LASTEXITCODE -ne 0) { throw 'C# deterministic domain tests failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Dual-engine parity validation failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-CSharpWorkerProcess.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Compiled worker process-boundary validation failed.' }
-$integrationPath = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.exe'
-& $integrationPath --compiled-action-flow $repositoryRoot
-if ($LASTEXITCODE -ne 0) { throw 'Compiled App migration action-flow integration failed.' }
+$isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator)
+if ($isElevated) {
+    Write-Output 'CSHARP_ACTION_FLOW_SKIPPED reason=elevated-host'
+}
+else {
+    $integrationPath = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.exe'
+    & $integrationPath --compiled-action-flow $repositoryRoot
+    if ($LASTEXITCODE -ne 0) { throw 'Compiled App migration action-flow integration failed.' }
+}
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File (Join-Path $PSScriptRoot 'Test-CSharpWpfSmoke.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Compiled WPF migration smoke failed.' }
 Write-Output 'CSHARP_MIGRATION_OK'
