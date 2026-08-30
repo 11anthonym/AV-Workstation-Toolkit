@@ -1361,6 +1361,7 @@ Invoke-Check 'Old product branding is restricted to explicit legacy compatibilit
         [pscustomobject]@{ Path='scripts/AVWorkstationToolkit.Core.psm1'; Pattern='\$payloadName \+ ''\.avinite\.json'''; Purpose='legacy vendor-cache metadata validation' },
         [pscustomobject]@{ Path='scripts/AVWorkstationToolkit.Core.psm1'; Pattern='LegacyProduct = ''AVinite'''; Purpose='migration marker provenance' },
         [pscustomobject]@{ Path='src/AVWorkstationToolkit.Launcher/VendorBridge.cs'; Pattern='LegacyCredentialPrefix = "AVinite:VendorSftp:"'; Purpose='legacy Credential Manager read/delete compatibility' },
+        [pscustomobject]@{ Path='src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/WindowsVendorCredentialStore.cs'; Pattern='LegacyPrefix = "AVinite:VendorSftp:"'; Purpose='compiled legacy Credential Manager read/delete compatibility' },
         [pscustomobject]@{ Path='docs/CHANGELOG.md'; Pattern='Renamed AVinite to AV Workstation Toolkit'; Purpose='historical rename record' },
         [pscustomobject]@{ Path='README.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='legacy data-retention removal guidance' },
         [pscustomobject]@{ Path='PRIVACY.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='legacy data migration privacy disclosure' },
