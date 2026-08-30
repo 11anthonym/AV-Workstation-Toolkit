@@ -16,7 +16,7 @@ if (args.Length == 2 && args[0] == "--worker-process")
 
 if (args.Length is < 1 or > 2)
 {
-    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle] <fixture.json> | --live-readonly | --worker-process <worker.exe>");
+    Console.Error.WriteLine("Usage: AVWorkstationToolkit.IntegrationTests [--core|--providers|--presentation|--read-only-surfaces|--action-requests|--ipc-lifecycle|--execution] <fixture.json> | --live-readonly | --worker-process <worker.exe>");
     return 2;
 }
 
@@ -26,9 +26,12 @@ var presentation = args.Length == 2 && args[0] == "--presentation";
 var readOnlySurfaces = args.Length == 2 && args[0] == "--read-only-surfaces";
 var actionRequests = args.Length == 2 && args[0] == "--action-requests";
 var ipcLifecycle = args.Length == 2 && args[0] == "--ipc-lifecycle";
+var execution = args.Length == 2 && args[0] == "--execution";
 var path = Path.GetFullPath(args[^1]);
 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = false, UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow };
-object result = ipcLifecycle
+object result = execution
+    ? ExecutionParityEvaluator.Evaluate(JsonSerializer.Deserialize<ExecutionParityFixture>(File.ReadAllText(path), options) ?? throw new InvalidDataException("Execution parity fixture is empty."))
+    : ipcLifecycle
     ? await IpcLifecycleParityEvaluator.EvaluateAsync(JsonSerializer.Deserialize<IpcLifecycleFixture>(File.ReadAllText(path), options) ?? throw new InvalidDataException("IPC lifecycle parity fixture is empty."))
     : actionRequests
     ? ActionRequestParityEvaluator.Evaluate(JsonSerializer.Deserialize<ActionRequestFixture>(File.ReadAllText(path), options) ?? throw new InvalidDataException("Action-request parity fixture is empty."))

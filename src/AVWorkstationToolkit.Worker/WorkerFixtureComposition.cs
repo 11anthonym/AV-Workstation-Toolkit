@@ -61,7 +61,7 @@ internal static class WorkerFixtureLoader
         if (fixture.SchemaVersion != 1) throw new InvalidDataException("The worker fixture schema version is unsupported.");
         if (string.IsNullOrWhiteSpace(fixture.Computer) || fixture.Computer.Length > ActionProtocolLimits.MaximumComputerCharacters || fixture.Computer.Any(char.IsControl))
             throw new InvalidDataException("The worker fixture computer label is invalid.");
-        if (fixture.Plans is null || fixture.Plans.Length == 0 || fixture.Plans.Length > 101)
+        if (fixture.Plans is null || fixture.Plans.Length == 0 || fixture.Plans.Length > 201)
             throw new InvalidDataException("The worker fixture must contain a bounded plan sequence.");
         if (fixture.Executions is null || fixture.Executions.Length > 100)
             throw new InvalidDataException("The worker fixture executor sequence is invalid.");

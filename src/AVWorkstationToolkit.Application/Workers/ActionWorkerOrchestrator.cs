@@ -1,4 +1,5 @@
 using AVWorkstationToolkit.Application.Actions;
+using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
@@ -28,23 +29,39 @@ public enum PackageExecutionDisposition
 {
     Succeeded,
     Failed,
-    VerificationFailed
+    VerificationFailed,
+    TimedOut
 }
 
-public sealed record PackageExecutionRequest(
-    string Id,
-    string Name,
-    ManagedRequestAction Action,
-    PackageRisk Risk);
+public sealed record PackageExecutionRequest
+{
+    internal PackageExecutionRequest(string id, string name, ManagedRequestAction action, PackageRisk risk)
+    {
+        Id = id;
+        Name = name;
+        Action = action;
+        Risk = risk;
+    }
 
-public sealed record PackageExecutionResult(PackageExecutionDisposition Disposition, int ExitCode)
+    public string Id { get; }
+    public string Name { get; }
+    public ManagedRequestAction Action { get; }
+    public PackageRisk Risk { get; }
+}
+
+public sealed record PackageExecutionResult(
+    PackageExecutionDisposition Disposition,
+    int ExitCode,
+    string StandardOutput = "",
+    string StandardError = "")
 {
     public static PackageExecutionResult Success { get; } = new(PackageExecutionDisposition.Succeeded, 0);
     public static PackageExecutionResult VerificationFailure { get; } = new(PackageExecutionDisposition.VerificationFailed, 0);
+    public static PackageExecutionResult Timeout { get; } = new(PackageExecutionDisposition.TimedOut, -1);
 
     public static PackageExecutionResult Failure(int exitCode)
     {
-        if (exitCode == 0) throw new ArgumentOutOfRangeException(nameof(exitCode), "A failed fake execution requires a nonzero exit code.");
+        if (exitCode == 0) throw new ArgumentOutOfRangeException(nameof(exitCode), "A failed execution requires a nonzero exit code.");
         return new(PackageExecutionDisposition.Failed, exitCode);
     }
 }
@@ -54,7 +71,8 @@ public sealed record ActionWorkerRunResult(ActionResultStatus Status, int ExitCo
 /// <summary>
 /// Non-shipping worker orchestration. It independently reauthorizes the complete
 /// request and every individual package, but delegates package behavior to an
-/// injected executor. This project intentionally supplies no real executor.
+/// injected executor. The non-shipping worker host intentionally supplies only
+/// its deterministic fake; the real migration executor is not composed there.
 /// </summary>
 public sealed class ActionWorkerOrchestrator
 {
@@ -149,24 +167,42 @@ public sealed class ActionWorkerOrchestrator
             var execution = await executor.ExecuteAsync(
                 new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk),
                 cancellationToken).ConfigureAwait(false);
+            var verified = false;
+            if (execution.Disposition == PackageExecutionDisposition.Succeeded)
+            {
+                try
+                {
+                    var verificationPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
+                    verified = VerifyPostActionState(request.Action, package.Package.Id, verificationPlan);
+                }
+                catch (Exception exception) when (exception is InvalidOperationException or IOException)
+                {
+                    verified = false;
+                }
+            }
             var status = execution.Disposition switch
             {
-                PackageExecutionDisposition.Succeeded => PackageOutcomeStatus.Succeeded,
+                PackageExecutionDisposition.Succeeded when verified => PackageOutcomeStatus.Succeeded,
+                PackageExecutionDisposition.Succeeded => PackageOutcomeStatus.Unverified,
                 PackageExecutionDisposition.Failed => PackageOutcomeStatus.Failed,
                 PackageExecutionDisposition.VerificationFailed => PackageOutcomeStatus.Unverified,
+                PackageExecutionDisposition.TimedOut => PackageOutcomeStatus.Failed,
                 _ => throw new InvalidOperationException("The package executor returned an unknown disposition.")
             };
-            var verified = execution.Disposition == PackageExecutionDisposition.Succeeded;
             if (execution.Disposition == PackageExecutionDisposition.Failed && execution.ExitCode == 0)
                 throw new InvalidOperationException("The package executor returned a failed disposition with a zero exit code.");
-            if (execution.Disposition != PackageExecutionDisposition.Failed && execution.ExitCode != 0)
+            if (execution.Disposition == PackageExecutionDisposition.TimedOut && execution.ExitCode != -1)
+                throw new InvalidOperationException("The package executor returned an invalid timeout exit code.");
+            if (execution.Disposition is PackageExecutionDisposition.Succeeded or PackageExecutionDisposition.VerificationFailed && execution.ExitCode != 0)
                 throw new InvalidOperationException("The package executor returned a non-failed disposition with a nonzero exit code.");
             outcomes.Add(CreateOutcome(package, request.Action, status, execution.ExitCode, verified, startedAt, arguments));
 
             var (level, stage, message) = status switch
             {
                 PackageOutcomeStatus.Succeeded => (ActionProgressLevel.Success, "Verified", $"Verified {request.Action.ToString().ToLowerInvariant()}."),
-                PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "The injected executor reported success, but verification failed."),
+                PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "winget returned success, but post-action verification failed."),
+                PackageOutcomeStatus.Failed when execution.Disposition == PackageExecutionDisposition.TimedOut =>
+                    (ActionProgressLevel.Error, "Failed", "winget execution exceeded the bounded timeout."),
                 _ => (ActionProgressLevel.Error, "Failed", $"The injected executor failed with code {execution.ExitCode}.")
             };
             await ProgressAsync(request, level, stage, package.Package.Id, message, cancellationToken).ConfigureAwait(false);
@@ -235,19 +271,24 @@ public sealed class ActionWorkerOrchestrator
         new(package.Package.Id, package.Package.Name, action, status, exitCode, verified, startedAt,
             timeProvider.GetUtcNow(), Array.AsReadOnly(arguments.ToArray()));
 
-    private static IReadOnlyList<string> ReviewedArgumentEvidence(PackageState package, ManagedRequestAction action)
+    private static IReadOnlyList<string> ReviewedArgumentEvidence(PackageState package, ManagedRequestAction action) =>
+        ManagedWinGetArgumentPolicy.Create(new PackageExecutionRequest(package.Package.Id, package.Package.Name, action, package.Package.Risk));
+
+    private static bool VerifyPostActionState(ManagedRequestAction action, string packageId, WorkstationPlan plan)
     {
-        var verb = action == ManagedRequestAction.Install ? "install" : "upgrade";
-        var arguments = new List<string>
+        var matches = plan.Packages.Where(item => item.Package.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (matches.Length != 1 || matches[0].Package.Authority != CatalogAuthority.ManagedWinGet ||
+            matches[0].Package.Provider != ProviderKind.WinGet ||
+            plan.Providers.WinGetInventoryQuality != ProviderQuality.Complete)
+            return false;
+
+        var package = matches[0];
+        return action switch
         {
-            verb, "--id", package.Package.Id, "--exact", "--source", "winget",
-            "--accept-package-agreements", "--accept-source-agreements"
+            ManagedRequestAction.Install => package.Installed,
+            ManagedRequestAction.Update => package.Installed &&
+                plan.Providers.WinGetUpdateQuality == ProviderQuality.Complete && !package.UpgradeAvailable,
+            _ => false
         };
-        if (package.Package.Risk == PackageRisk.None)
-        {
-            arguments.Add("--silent");
-            arguments.Add("--disable-interactivity");
-        }
-        return arguments.AsReadOnly();
     }
 }

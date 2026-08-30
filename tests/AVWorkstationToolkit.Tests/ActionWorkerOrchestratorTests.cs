@@ -16,26 +16,29 @@ public sealed class ActionWorkerOrchestratorTests
     public async Task SuccessfulPackageIsRevalidatedAndVerified()
     {
         var protocol = new MemoryProtocol(Request());
-        var plans = new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]));
+        var plans = new SequencePlans(
+            Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)]));
         var executor = new FakeExecutor(PackageExecutionResult.Success);
 
         var result = await Worker(plans, executor, protocol).RunAsync(Request());
 
         Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
-        Assert.AreEqual(2, plans.ReadCount);
+        Assert.AreEqual(3, plans.ReadCount);
         Assert.AreEqual(1, executor.CallCount);
         Assert.AreEqual(PackageOutcomeStatus.Succeeded, result.Packages.Single().Status);
         Assert.IsTrue(protocol.Progress.Any(item => item.Stage == "Verified"));
     }
 
     [TestMethod]
-    public async Task FailureAndVerificationFailureContinueButProduceFailedResult()
+    public async Task FailureAndPostActionVerificationFailureContinueButProduceFailedResult()
     {
         var request = Request(ids: ["Vendor.One", "Vendor.Two"]);
         var states = new[] { State("Vendor.One"), State("Vendor.Two") };
         var protocol = new MemoryProtocol(request);
-        var plans = new SequencePlans(Plan(states), Plan(states), Plan(states));
-        var executor = new FakeExecutor(PackageExecutionResult.Failure(17), PackageExecutionResult.VerificationFailure);
+        var plans = new SequencePlans(Plan(states), Plan(states), Plan(states), Plan(states));
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(17), PackageExecutionResult.Success);
 
         var result = await Worker(plans, executor, protocol).RunAsync(request);
 
@@ -44,6 +47,49 @@ public sealed class ActionWorkerOrchestratorTests
             new[] { PackageOutcomeStatus.Failed, PackageOutcomeStatus.Unverified },
             result.Packages.Select(item => item.Status).ToArray());
         Assert.AreEqual(2, executor.CallCount);
+    }
+
+    [TestMethod]
+    public async Task TimeoutFailsWithoutPostActionVerification()
+    {
+        var request = Request();
+        var plans = new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]));
+        var result = await Worker(plans, new FakeExecutor(PackageExecutionResult.Timeout), new MemoryProtocol(request)).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+        Assert.AreEqual(PackageOutcomeStatus.Failed, result.Packages.Single().Status);
+        Assert.AreEqual(-1, result.Packages.Single().ExitCode);
+        Assert.AreEqual(2, plans.ReadCount);
+    }
+
+    [TestMethod]
+    public async Task UpdateSuccessRequiresFreshCompleteNoUpdateEvidence()
+    {
+        var request = Request(action: ManagedRequestAction.Update);
+        var update = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+        var current = State("Vendor.One", PackageAction.None, PackageStatus.Current);
+        var result = await Worker(
+            new SequencePlans(Plan([update]), Plan([update]), Plan([current])),
+            new FakeExecutor(PackageExecutionResult.Success),
+            new MemoryProtocol(request)).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        Assert.AreEqual(PackageOutcomeStatus.Succeeded, result.Packages.Single().Status);
+    }
+
+    [TestMethod]
+    public async Task UpdateExitZeroFailsClosedWhenFreshUpdateEvidenceIsUnavailable()
+    {
+        var request = Request(action: ManagedRequestAction.Update);
+        var update = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+        var apparentlyCurrent = State("Vendor.One", PackageAction.None, PackageStatus.Current);
+        var result = await Worker(
+            new SequencePlans(Plan([update]), Plan([update]), Plan([apparentlyCurrent], updateQuality: ProviderQuality.Unavailable)),
+            new FakeExecutor(PackageExecutionResult.Success),
+            new MemoryProtocol(request)).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+        Assert.AreEqual(PackageOutcomeStatus.Unverified, result.Packages.Single().Status);
     }
 
     [TestMethod]
@@ -111,6 +157,7 @@ public sealed class ActionWorkerOrchestratorTests
         var plans = new SequencePlans(
             Plan(both),
             Plan(both),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current), State("Vendor.Two")]),
             Plan([State("Vendor.One"), State("Vendor.Two", PackageAction.None, PackageStatus.Current)]));
 
         var result = await Worker(plans, executor, protocol).RunAsync(request);
@@ -149,7 +196,10 @@ public sealed class ActionWorkerOrchestratorTests
             AfterCall = _ => protocol.CancellationRequested = true
         };
 
-        var result = await Worker(new SequencePlans(Plan(states), Plan(states)), executor, protocol).RunAsync(request);
+        var result = await Worker(new SequencePlans(
+            Plan(states),
+            Plan(states),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current), State("Vendor.Two")])), executor, protocol).RunAsync(request);
 
         Assert.AreEqual(ActionResultStatus.Cancelled, result.Status);
         Assert.HasCount(1, result.Packages);
@@ -165,8 +215,9 @@ public sealed class ActionWorkerOrchestratorTests
 
     private static ActionRequest Request(
         IReadOnlyList<string>? ids = null,
-        bool riskAcknowledged = false) =>
-        new(1, RequestId, ManagedRequestAction.Install, ids ?? ["Vendor.One"], riskAcknowledged, false);
+        bool riskAcknowledged = false,
+        ManagedRequestAction action = ManagedRequestAction.Install) =>
+        new(1, RequestId, action, ids ?? ["Vendor.One"], riskAcknowledged, false);
 
     private static PackageState State(
         string id,
@@ -186,10 +237,13 @@ public sealed class ActionWorkerOrchestratorTests
             status, status.ToString(), status.ToString(), action, InventoryQuality.Complete);
     }
 
-    private static WorkstationPlan Plan(IReadOnlyList<PackageState> packages, bool pending = false) =>
+    private static WorkstationPlan Plan(
+        IReadOnlyList<PackageState> packages,
+        bool pending = false,
+        ProviderQuality updateQuality = ProviderQuality.Complete) =>
         new(packages, new WorkstationPlanSummary(packages.Count, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             pending ? new RebootState(true, [RebootReason.WindowsUpdate], "Windows Update") : RebootState.Clear,
-            new ProviderRefreshSummary(ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, []));
+            new ProviderRefreshSummary(ProviderQuality.Complete, updateQuality, ProviderQuality.Complete, ProviderQuality.Complete, []));
 
     private sealed class SequencePlans(params WorkstationPlan[] plans) : IActionWorkerPlanProvider
     {

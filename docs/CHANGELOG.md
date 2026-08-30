@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-08-29 — Compiled WinGet execution parity (non-shipping)
+
+- Added an uncomposed standard-user C# WinGet executor that accepts only typed Install/Update requests, reuses trusted Desktop App Installer resolution, and constructs exact one-package argument vectors internally.
+- Added bounded direct-process result handling and fresh post-action plan verification so exit zero cannot become success without reliable installed/current evidence.
+- Added focused dual-engine argument parity, injected process-boundary tests, and endpoint-trust regression coverage. No automated validation executed WinGet mutation, and production startup, worker, MSI, and ZIP composition remain unchanged.
+
 ## 2026-08-29 — Compiled worker orchestration parity
 
 - Added a separate non-shipping compiled worker test host that strictly reads one canonical request, reauthorizes the complete request and every package against fresh deterministic plans, and writes correlated progress and final-result artifacts.

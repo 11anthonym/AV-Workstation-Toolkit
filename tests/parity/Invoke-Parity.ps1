@@ -150,3 +150,22 @@ foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'ipc-
     Write-Output "IPC_LIFECYCLE_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
 }
 Write-Output "IPC_LIFECYCLE_PARITY_OK scenarios=$ipcLifecycleScenarioCount cases=$ipcLifecycleCaseCount"
+
+$executionScenarioCount = 0
+$executionCaseCount = 0
+foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'execution-fixtures') -File -Filter '*.json' | Sort-Object Name)) {
+    $legacy = (& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Invoke-LegacyExecutionParityAdapter.ps1') -FixturePath $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Legacy execution adapter failed for $($fixture.Name)." }
+    $compiled = (& dotnet $integrationDll --execution $fixture.FullName | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "C# execution adapter failed for $($fixture.Name)." }
+    $legacyObject = $legacy | ConvertFrom-Json -ErrorAction Stop
+    $compiledObject = $compiled | ConvertFrom-Json -ErrorAction Stop
+    $legacyCanonical = $legacyObject | ConvertTo-Json -Depth 10 -Compress
+    $compiledCanonical = $compiledObject | ConvertTo-Json -Depth 10 -Compress
+    if ($legacyCanonical -cne $compiledCanonical) { throw "Execution parity mismatch for $($fixture.Name).`r`nLEGACY: $legacyCanonical`r`nCSHARP: $compiledCanonical" }
+    $cases = @($legacyObject.Cases).Count
+    $executionScenarioCount++
+    $executionCaseCount += $cases
+    Write-Output "EXECUTION_PARITY_PASS fixture=$($fixture.Name) cases=$cases"
+}
+Write-Output "EXECUTION_PARITY_OK scenarios=$executionScenarioCount cases=$executionCaseCount"

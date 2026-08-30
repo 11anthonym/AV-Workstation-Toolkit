@@ -21,7 +21,7 @@ internal static class WorkerProcessBoundary
         var results = new List<WorkerProcessScenarioResult>
         {
             await RunScenarioAsync(executable, "success", ["Vendor.One"],
-                [Plan(Package("Vendor.One")), Plan(Package("Vendor.One"))],
+                [Plan(Package("Vendor.One")), Plan(Package("Vendor.One")), Plan(Package("Vendor.One", "None", "Current"))],
                 [Execution("Vendor.One", "Success", 0, 0)], ActionResultStatus.Succeeded),
             await RunScenarioAsync(executable, "failure", ["Vendor.One"],
                 [Plan(Package("Vendor.One")), Plan(Package("Vendor.One"))],
@@ -69,7 +69,9 @@ internal static class WorkerProcessBoundary
             var ids = new[] { "Vendor.One", "Vendor.Two" };
             var (request, store, paths) = await PersistRequestAsync(root, ids);
             var both = new[] { Package("Vendor.One"), Package("Vendor.Two") };
-            WriteFixture(root, [Plan(both), Plan(both)], [Execution("Vendor.One", "Success", 0, 800)]);
+            WriteFixture(root,
+                [Plan(both), Plan(both), Plan(Package("Vendor.One", "None", "Current"), Package("Vendor.Two"))],
+                [Execution("Vendor.One", "Success", 0, 800)]);
 
             using var process = Start(executable, root, paths.RequestPath);
             var deadline = DateTime.UtcNow.AddSeconds(10);

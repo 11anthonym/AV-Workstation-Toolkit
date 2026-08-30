@@ -78,6 +78,8 @@ $uiSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\Start-A
 $projectSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
 $readOnlyRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetReadOnlyProcessRunner.cs'
 $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
+$mutationRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetMutationProcessRunner.cs'
+$mutationRunnerSource = Get-Content -LiteralPath $mutationRunnerPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
 $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -125,10 +127,10 @@ if ($launcherSource -match '(?i)GetTempPath|SpecialFolder\.LocalApplicationData[
 $migrationProcessSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File -Filter '*.cs' |
     Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' -and $_.FullName -notlike '*\AVWorkstationToolkit.Launcher\*' })
 $directMigrationLaunchers = @($migrationProcessSources | Where-Object {
-    $_.FullName -ne $readOnlyRunnerPath -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
+    $_.FullName -notin @($readOnlyRunnerPath,$mutationRunnerPath) -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
 })
 if ($directMigrationLaunchers.Count -ne 0) {
-    throw 'A C# migration component outside the reviewed read-only WinGet runner gained direct process-launch behavior.'
+    throw 'A C# migration component outside the reviewed WinGet boundaries gained direct process-launch behavior.'
 }
 if ($compiledAppSource -match 'System\.Management\.Automation|XamlReader|ProcessStartInfo|Process\.Start|(?i)\b(?:powershell|pwsh|cmd)\.exe\b' -or
     $compiledAppSource -match 'IActionWorkerBoundary\s+[A-Za-z_]') {
@@ -180,8 +182,8 @@ $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
 ) -join "`n"
-if ($shippingCompositionSource -match 'AVWorkstationToolkit\.Worker') {
-    throw 'The non-shipping compiled worker entered launcher, installer, or release composition.'
+if ($shippingCompositionSource -match 'AVWorkstationToolkit\.Worker|WinGetMutationProcessRunner|WinGetPackageActionExecutor') {
+    throw 'The non-shipping compiled worker or WinGet mutation executor entered launcher, installer, or release composition.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or
@@ -196,6 +198,28 @@ if ($readOnlyRunnerSource -notmatch 'WinGetReadOnlyOperation\.Version' -or
     $readOnlyRunnerSource -notmatch 'WinGetReadOnlyOperation\.AvailableUpdates' -or
     $readOnlyRunnerSource -match '(?i)"(?:install|upgrade|uninstall|import)"|"--all"') {
     throw 'The compiled read-only WinGet policy gained an unreviewed action vector.'
+}
+if ($mutationRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
+    $mutationRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or
+    $mutationRunnerSource -notmatch 'RedirectStandardError\s*=\s*true' -or
+    $mutationRunnerSource -notmatch 'ArgumentList\.Add' -or
+    $mutationRunnerSource -notmatch 'WindowsWinGetResolver\.IsExpectedExecutablePath' -or
+    $mutationRunnerSource -notmatch 'ManagedWinGetArgumentPolicy\.Create' -or
+    $mutationRunnerSource -notmatch 'WindowsBuiltInRole\.Administrator' -or
+    $mutationRunnerSource -notmatch 'Kill\(entireProcessTree:\s*true\)' -or
+    $mutationRunnerSource -match '(?i)\b(?:cmd|powershell|pwsh)(?:\.exe)?\b|ShellExecute\s*=\s*true') {
+    throw 'The non-shipping WinGet mutation boundary lost trusted resolution, typed arguments, standard-user enforcement, or bounded direct-process behavior.'
+}
+$argumentPolicySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Workers\ManagedWinGetArgumentPolicy.cs') -Raw
+if ($argumentPolicySource -notmatch '"install"\s*:\s*"upgrade"' -or
+    $argumentPolicySource -notmatch '"--id"' -or
+    $argumentPolicySource -notmatch '"--exact"' -or
+    $argumentPolicySource -notmatch '"--source",\s*"winget"' -or
+    $argumentPolicySource -match '(?i)"(?:uninstall|import)"|"--all"|ProcessStartInfo|Process\.Start') {
+    throw 'The compiled WinGet mutation argument policy is no longer exact-ID Install/Update only.'
+}
+if ($compiledAppSource -match 'WinGetMutationProcessRunner|WinGetPackageActionExecutor|ManagedWinGetArgumentPolicy') {
+    throw 'The compiled WPF migration App gained WinGet mutation authority.'
 }
 if ($resolverSource -match '(?i)GetEnvironmentVariable\s*\(\s*["'']PATH["'']|where\.exe|App Paths' -or
     $resolverSource -notmatch 'Microsoft\.DesktopAppInstaller_' -or
