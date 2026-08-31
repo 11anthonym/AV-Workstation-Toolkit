@@ -135,35 +135,35 @@ internal static class Program
         string dataRoot,
         LaunchOptions options)
     {
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = powershellPath,
-                WorkingDirectory = applicationRoot,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            foreach (var argument in BuildPowerShellArguments(scriptPath, dataRoot, options))
-            {
-                startInfo.ArgumentList.Add(argument);
-            }
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_DATA_ROOT"] = dataRoot;
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_PACKAGED"] = "1";
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_DISTRIBUTION_ROOT"] = Path.GetFullPath(AppContext.BaseDirectory);
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_PATH"] = Environment.ProcessPath
-                ?? throw new InvalidOperationException("The packaged launcher path could not be resolved.");
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_VERSION"] = ProductVersion;
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_RUNTIME"] = RuntimeInformation.FrameworkDescription;
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_RUNTIME_VERSION"] = Environment.Version.ToString();
-            startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_ARCHITECTURE"] = RuntimeInformation.ProcessArchitecture.ToString();
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = powershellPath,
+            WorkingDirectory = applicationRoot,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        foreach (var argument in BuildPowerShellArguments(scriptPath, dataRoot, options))
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_DATA_ROOT"] = dataRoot;
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_PACKAGED"] = "1";
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_DISTRIBUTION_ROOT"] = Path.GetFullPath(AppContext.BaseDirectory);
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_PATH"] = Environment.ProcessPath
+            ?? throw new InvalidOperationException("The packaged launcher path could not be resolved.");
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_VERSION"] = ProductVersion;
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_RUNTIME"] = RuntimeInformation.FrameworkDescription;
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_RUNTIME_VERSION"] = Environment.Version.ToString();
+        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_ARCHITECTURE"] = RuntimeInformation.ProcessArchitecture.ToString();
 
-            using var process = Process.Start(startInfo)
-                ?? throw new InvalidOperationException("Windows did not start the AV Workstation Toolkit frontend process.");
-            if (options.WaitForExit || options.SmokeTest)
-            {
-                process.WaitForExit();
-                return process.ExitCode;
-            }
-            return 0;
+        using var process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("Windows did not start the AV Workstation Toolkit frontend process.");
+        if (options.WaitForExit || options.SmokeTest)
+        {
+            process.WaitForExit();
+            return process.ExitCode;
+        }
+        return 0;
     }
 
     private static IReadOnlyList<string> BuildPowerShellArguments(
