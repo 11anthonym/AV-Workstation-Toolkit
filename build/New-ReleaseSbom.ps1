@@ -13,6 +13,7 @@ param(
     [Parameter(Mandatory)][string]$Version,
     [Parameter(Mandatory)][string]$CommitSha,
     [Parameter(Mandatory)][string]$LauncherSha256,
+    [Parameter(Mandatory)][string]$WorkerSha256,
     [Parameter(Mandatory)][string]$OutputPath
 )
 
@@ -22,6 +23,7 @@ $ErrorActionPreference = 'Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "SBOM version is invalid: $Version" }
 if ($CommitSha -notmatch '^[a-fA-F0-9]{40}$') { throw 'SBOM commit SHA must contain exactly 40 hexadecimal characters.' }
 if ($LauncherSha256 -notmatch '^[a-fA-F0-9]{64}$') { throw 'SBOM launcher SHA-256 is invalid.' }
+if ($WorkerSha256 -notmatch '^[a-fA-F0-9]{64}$') { throw 'SBOM worker SHA-256 is invalid.' }
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $launcherProjectPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj'
@@ -39,7 +41,7 @@ $reviewedPackageMetadata = @{
     }
     'Microsoft.Extensions.DependencyInjection.Abstractions@8.0.2' = [ordered]@{
         License = 'MIT'
-        Distribution = 'trimmed'
+        Distribution = 'embedded'
         LicenseUrl = 'https://github.com/dotnet/runtime/blob/81cabf2857a01351e5ab578947c7403a5b128ad1/LICENSE.TXT'
     }
     'Microsoft.Extensions.Logging.Abstractions@8.0.3' = [ordered]@{
@@ -62,7 +64,7 @@ $reviewedPackageMetadata = @{
 $components = [System.Collections.Generic.List[object]]::new()
 $dependencyRecords = [System.Collections.Generic.List[object]]::new()
 $packageRefs = @{}
-foreach ($property in @($target.PSObject.Properties | Sort-Object Name)) {
+foreach ($property in @($target.PSObject.Properties | Where-Object { $_.Value.PSObject.Properties.Name -contains 'resolved' } | Sort-Object Name)) {
     $name = [string]$property.Name
     $package = $property.Value
     $resolved = [string]$package.resolved
@@ -87,7 +89,7 @@ foreach ($property in @($target.PSObject.Properties | Sort-Object Name)) {
         name = $name
         version = $resolved
         purl = $reference
-        scope = $(if ($reviewedMetadata.Distribution -in @('build-only','trimmed')) { 'excluded' } else { 'required' })
+        scope = $(if ($reviewedMetadata.Distribution -eq 'build-only') { 'excluded' } else { 'required' })
         hashes = $hashes
         licenses = @([ordered]@{ license = [ordered]@{ id = [string]$reviewedMetadata.License } })
         externalReferences = @([ordered]@{ type='license'; url=[string]$reviewedMetadata.LicenseUrl })
@@ -98,7 +100,7 @@ foreach ($property in @($target.PSObject.Properties | Sort-Object Name)) {
     }) | Out-Null
 }
 
-foreach ($property in @($target.PSObject.Properties | Sort-Object Name)) {
+foreach ($property in @($target.PSObject.Properties | Where-Object { $_.Value.PSObject.Properties.Name -contains 'resolved' } | Sort-Object Name)) {
     $dependsOn = @()
     if ($property.Value.PSObject.Properties.Name -contains 'dependencies' -and $null -ne $property.Value.dependencies) {
         $dependsOn = @($property.Value.dependencies.PSObject.Properties.Name | Sort-Object | ForEach-Object { $packageRefs[[string]$_] })
@@ -225,6 +227,8 @@ $document = [ordered]@{
                 [ordered]@{ name='avworkstationtoolkit:target:architecture'; value='win-x64' },
                 [ordered]@{ name='avworkstationtoolkit:target:framework'; value='net10.0-windows' },
                 [ordered]@{ name='avworkstationtoolkit:runtime:version'; value='10.0.11' }
+                [ordered]@{ name='avworkstationtoolkit:runtime:primary'; value='compiled-csharp-wpf' }
+                [ordered]@{ name='avworkstationtoolkit:runtime:worker-sha256'; value=$WorkerSha256.ToUpperInvariant() }
             )
         }
     }

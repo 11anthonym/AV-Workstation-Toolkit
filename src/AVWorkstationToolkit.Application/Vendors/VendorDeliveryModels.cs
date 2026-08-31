@@ -208,7 +208,7 @@ public interface IVendorPayloadVerifier
 public sealed record VendorCredentialState(bool Present, string Detail);
 
 /// <summary>
-/// Non-shipping vendor interaction coordinator. Catalog authorization remains
+/// Catalog-authorized vendor interaction coordinator. Catalog authorization remains
 /// mandatory, downloads remain untrusted until verification succeeds, and no
 /// method can execute a downloaded payload.
 /// </summary>

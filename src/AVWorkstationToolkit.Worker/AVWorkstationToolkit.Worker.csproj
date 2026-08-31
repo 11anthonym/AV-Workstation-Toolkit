@@ -3,7 +3,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>false</SelfContained>
+    <RuntimeFrameworkVersion>10.0.11</RuntimeFrameworkVersion>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>embedded</DebugType>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -13,8 +17,13 @@
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     <AssemblyName>AVWorkstationToolkit.Worker</AssemblyName>
     <RootNamespace>AVWorkstationToolkit.Worker</RootNamespace>
-    <Product>AV Workstation Toolkit non-shipping compiled worker</Product>
-    <Description>Explicit test and developer-rehearsal host for compiled worker orchestration.</Description>
+    <Version>1.1.1</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
+    <Company>AV Workstation Toolkit Project</Company>
+    <Product>AV Workstation Toolkit compiled worker</Product>
+    <Authors>AV Workstation Toolkit contributors</Authors>
+    <Description>Independent exact-ID managed package action worker for AV Workstation Toolkit.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />

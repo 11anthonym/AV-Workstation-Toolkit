@@ -1,23 +1,22 @@
 # C# migration architecture contract
 
-Status: authoritative migration contract for the incremental move to compiled C#/.NET 10/WPF. It does not authorize a production cutover.
+Status: authoritative migration contract and Phase 13 production-cutover record. Phase 14 owns stabilization and evidence-based legacy retirement.
 
 ## Scope and reference behavior
 
-The shipping AV Workstation Toolkit 1.1.1 implementation remains the behavioral and security reference. Phase 1 added architecture seams and test adapters. Phase 2 added a non-shipping typed C# implementation of deterministic versions, catalog normalization/validation, query filtering, package planning, selection eligibility, and reboot/risk policy. Phase 3 added non-shipping read-only C# providers for trusted WinGet resolution, installed/update inventory, uninstall-registry inventory, and supported reboot signals. Phase 4 added a non-shipping compiled WPF executable, ViewModels, read-only planning composition, and presentation parity tests. Phase 5 added typed sanitized diagnostics, catalog detail/provenance retention, and a read-only external-provider projection. Phase 6 added strict compiled action-request creation, parsing, path validation, and plan-authorization parity. Phase 7 added a non-shipping contained persistence primitive, canonical artifact identity, strict progress/result parsing, cooperative-cancellation semantics, and a pure lifecycle model. Phase 8 added a separate non-shipping compiled worker test host, live per-package reauthorization, fake-executor-only orchestration, and real process-boundary tests under isolated roots. Phase 9 added an uncomposed exact-ID WinGet mutation runner/executor and fresh post-action verification. Phase 10 adds uncomposed typed HTTPS/SFTP delivery, scoped Credential Manager, contained cache, and payload-verification services. None of these action or delivery services is composed into the compiled App, test worker host, or shipping launcher. `AVWorkstationToolkit.exe`, its embedded PowerShell/WPF runtime, MSI, ZIP, production request writer, production worker, shipping providers, and vendor bridge remain unchanged.
+Phases 1-12 incrementally characterized and proved the typed Domain/Application core, Windows providers, compiled WPF presentation, request/IPC lifecycle, independent worker, exact-ID WinGet executor, and vendor/credential boundaries. Phase 13 makes that compiled stack the production default. The former PowerShell/WPF implementation remains embedded only as an explicit `--legacy-powershell-recovery` path; compiled startup failure never triggers it automatically. It remains valuable characterization evidence until Phase 14 retirement.
 
 When documentation and code disagree, the observed shipping behavior is characterized before any decision. A parity mismatch is evidence to investigate, not permission to relax either implementation.
 
 ## Current runtime trace
 
-1. The self-contained, single-file `AVWorkstationToolkit.exe` launcher resolves `%LOCALAPPDATA%\AVWorkstationToolkit`, rejects elevated normal startup, validates the embedded payload manifest, and repairs a deterministic version-scoped runtime cache.
-2. Normal launch starts the fixed Windows PowerShell 5.1 executable with bounded arguments and the extracted static `Start-AVWorkstationToolkit.ps1`. PowerShell loads the static XAML and core module.
-3. The core reads the compiled WinGet catalog, operational external catalog, and commercial awareness catalog. It obtains structured WinGet inventory, source-aware uninstall-registry inventory, bounded vendor release information, and reboot state, then builds a read-only plan.
-4. The UI filters and presents the plan. Selection is a presentation property; it does not grant execution authority.
-5. A user-approved managed action creates a strict, versioned JSON request under the contained data-root request directory and starts the fixed PowerShell worker script as a separate standard-user process.
-6. The worker independently validates the request path, schema, unknown fields, IDs, action, acknowledgement, live inventory, holds, and reboot/risk policy. It re-plans between packages, invokes one exact WinGet ID at a time, and verifies resulting state. Cancellation is cooperative between packages.
-7. External records remain outside the worker. Approved vendor handoffs use constrained HTTPS, authenticated SFTP, parent-provider, cached-payload, or awareness behavior. The compiled launcher already hosts the bounded `--vendor-bridge` mode.
-8. The launcher also exposes bounded verification, diagnostics, smoke, and wait modes used by packaging and QA.
+1. The self-contained, single-file `AVWorkstationToolkit.exe` bootstrap resolves the canonical `%LOCALAPPDATA%\AVWorkstationToolkit` root, rejects elevated normal startup, validates embedded resources, and repairs a deterministic version-scoped runtime cache.
+2. Normal launch hosts the compiled C# WPF `App` in-process. The App loads validated catalogs, typed WinGet/registry/reboot evidence, compiled vendor services, and sanitized diagnostics through Application/Domain policy.
+3. Selection stays in the ViewModel; authorization is rebuilt from validated plan state. A confirmed managed action is atomically persisted as a strict request below `logs\requests`.
+4. The App starts only the hash-pinned, product-identified `worker\AVWorkstationToolkit.Worker.exe` from the versioned runtime using fixed production arguments and `UseShellExecute=false`.
+5. The standard-user compiled worker validates path/schema/identity, rebuilds live state before every package, enforces action/hold/risk/reboot policy, invokes one exact managed WinGet ID at a time, and requires fresh post-action verification. Progress, result, cancellation, and logs remain correlated by request identity.
+6. External records remain outside the worker. Compiled HTTPS/SFTP/Credential Manager/cache services supply only catalog-authorized handoffs; downloaded payloads are not execution authority.
+7. Verification, diagnostics, smoke, and explicit recovery modes remain bounded bootstrap operations. `--legacy-powershell-recovery` is deliberate and never an automatic fallback.
 
 The process boundary, not the lifetime of a WPF window, owns an active worker or installer operation. A compiled replacement must not regress that property or substitute process-name polling for explicit request/result ownership.
 
@@ -44,7 +43,7 @@ tests/
   fixtures/
 ```
 
-Domain contains typed deterministic migration implementations. Application owns typed read-only inventory ports, generic external-evidence matching, and read-only workstation-plan coordination. Infrastructure.Windows implements the non-shipping WinGet, Registry, reboot, Authenticode, and constrained-process adapters. App is now a conventional compiled WPF presentation with `x:Class`, ViewModels, commands, and a source-checkout catalog composition root. It is deliberately absent from the launcher and release package.
+Domain contains typed deterministic production logic. Application owns use cases and provider abstractions. Infrastructure.Windows implements production WinGet, Registry, reboot, Authenticode, vendor, file, credential, and constrained-process adapters. App is the conventional compiled WPF presentation/composition root with `x:Class`, ViewModels, and commands. The bootstrap hosts it and embeds the independently published worker.
 
 ## Dependency direction
 
@@ -64,23 +63,24 @@ Application  <---  Infrastructure.Windows
 
 Domain must not reference WPF, Registry, Process, HTTP, filesystem, Credential Manager, or PowerShell. Infrastructure supplies facts; Application and Domain policy grant or reject authority.
 
-## Eventual executable modes
+## Executable modes
 
-The intended single product executable will eventually dispatch explicit modes:
+The shipping bootstrap and packaged worker use these explicit modes:
 
 ```text
 AVWorkstationToolkit.exe                 compiled C# WPF application
-AVWorkstationToolkit.exe --worker ...    isolated compiled action worker
-AVWorkstationToolkit.exe --vendor-bridge constrained vendor bridge
+runtime\<version>\worker\AVWorkstationToolkit.Worker.exe --production ...
+AVWorkstationToolkit.exe --legacy-powershell-recovery explicit temporary recovery
+AVWorkstationToolkit.exe --vendor-bridge legacy recovery bridge only
 AVWorkstationToolkit.exe --verify ...    integrity/package verification
 AVWorkstationToolkit.exe --diagnostics   bounded diagnostics
 ```
 
-The eventual product `--worker` mode is not implemented or wired into shipping composition. Phase 8's separate `AVWorkstationToolkit.Worker.exe --test-mode` host is a fake-executor-only migration harness: it requires an explicit isolated root and canonical request path, has no WinGet/process/network implementation, and is absent from launcher, MSI, ZIP, and release composition. A future product worker must remain an independently validating process boundary, not an in-process service owned by the UI.
+The worker is a separate production process, not an in-process UI service. Its production mode accepts only canonical packaged/data roots and request paths. The fake `--test-mode` and isolated `--live-rehearsal` compositions remain test/developer modes and do not enter release startup.
 
 ## Compiled WPF publishing constraint
 
-The current launcher safely uses trimming because it is not the WPF application. The final compiled WPF application must remain `net10.0-windows`, `win-x64`, self-contained, and single-file, but must not blindly inherit full trimming. The non-shipping compiled App makes the intended baseline explicit:
+The shipping compiled WPF application remains `net10.0-windows`, `win-x64`, self-contained, single-file, and explicitly untrimmed:
 
 ```xml
 <UseWPF>true</UseWPF>
@@ -129,7 +129,7 @@ Any later trimming proposal requires WPF/reflection-specific evidence and packag
 - SFTP validates the pinned host key before credentials. Changed keys fail closed.
 - Credentials remain isolated and redacted; secrets never enter arguments, environment variables, or logs.
 
-### Compiled action-request and IPC boundary (non-shipping)
+### Compiled action-request and IPC boundary
 
 The characterized shipping schema is version 1 with exactly `SchemaVersion`, `RequestId`, `Action`, `PackageIds`, `RiskAcknowledged`, and `DryRun`. Request IDs and direct-child filenames use `request-yyyyMMdd-HHmmss-<8 lowercase hex>.json`; payloads are limited to 65,536 bytes and 100 IDs. Only Install and Update are valid actions. The writer removes blank IDs while preserving the remaining submitted order and duplicates; authorization again removes blanks, deduplicates case-insensitively, sorts, and resolves each ID exactly once against the live validated plan. Request, progress, result, and cancel names share the request ID.
 
@@ -141,11 +141,11 @@ Shipping progress is append-only UTF-8 JSONL with five fields (`Timestamp`, `Lev
 
 Phase 8 composes the same strict request and IPC contracts into a separate test-only process. The Application orchestrator authorizes the complete request, then obtains and authorizes a fresh plan before every package; action changes, holds, unknown packages, risk acknowledgement changes, and pending-reboot risk become correlated Blocked results. The test host still supplies only `DeterministicFakePackageExecutor`, with success, failure, verification-failure, and bounded delay outcomes. The file protocol appends strict progress, writes one atomic no-overwrite final result, and observes cancellation markers cooperatively between packages. All process tests use isolated temporary roots.
 
-Phase 9 implements a separate, non-shipping `WinGetPackageActionExecutor`. It accepts only a typed already-authorized Install/Update package request, resolves WinGet through the existing Desktop App Installer path/signature/publisher policy, constructs the exact one-ID argument vector internally, captures bounded output with a 30-minute ceiling, and maps nonzero/timeout outcomes explicitly. The orchestrator now obtains fresh, complete WinGet evidence after exit zero and reports Unverified unless Install is detected or Update is no longer update-eligible. Deterministic process tests inject a capturing host and never execute WinGet.
+The production `WinGetPackageActionExecutor` accepts only a typed already-authorized Install/Update package request, resolves WinGet through the Desktop App Installer path/signature/publisher policy, constructs the exact one-ID argument vector internally, captures bounded output with a 30-minute ceiling, and maps nonzero/timeout outcomes explicitly. The orchestrator obtains fresh, complete WinGet evidence after exit zero and reports Unverified unless Install is detected or Update is no longer update-eligible. Deterministic process tests inject a capturing host and never execute WinGet.
 
 Phase 10 retains validated delivery fields on the typed catalog definition and requires them to create HTTPS or SFTP authorization. Infrastructure revalidates every HTTPS redirect, probes and compares SFTP host identity before credential lookup, scopes Credential Manager targets by host/port/username with legacy read/delete compatibility, and treats cache files as Downloaded until SHA-256, Authenticode, and publisher policy produce Verified evidence. These services have no installer/process API and are not present in production composition.
 
-No worker launcher exists in production source, the compiled App cannot write live requests, and the fake-only worker host does not compose the real executor. Production request persistence, worker launch/execution, live mutation, progress/result generation, cancellation handling, and post-action verification remain in shipping PowerShell.
+The production App atomically persists only authorized requests beneath the canonical data root and launches only the exact hash-pinned packaged worker. That worker composes the real constrained executor; test mode still composes only the fake executor. Request/progress/result correlation, cooperative cancellation, and fresh verification remain the authority boundary.
 
 ## Dual-engine parity contract
 
@@ -208,16 +208,15 @@ Technical readiness and SignPath Foundation acceptance/configuration are separat
 - The shipping writer drops blank ID values before enforcing its nonempty count. The compiled factory rejects blank IDs immediately so callers cannot mistake discarded selections for a successfully encoded request; the complete valid-request semantics remain equivalent.
 - The shipping request writer uses direct `Set-Content`, while the uncomposed compiled persistence primitive uses a same-directory create-new/flush/atomic-move pattern and refuses overwrite. This is intentional fail-closed hardening; it does not change the production writer in Phase 7.
 - The shipping UI stops waiting after 1,800 seconds but the PowerShell worker does not impose an internal WinGet timeout. The uncomposed compiled mutation runner has a hard per-process ceiling of 30 minutes as required by the migration contract; this stricter behavior requires explicit review at production cutover.
-- The shipping UI displays a malformed complete progress line as raw text and reads only `Level` and `Message`; the compiled parser requires all five exact fields, validates package correlation, and reports malformed complete lines as typed issues. The shipping result reader likewise displays only bounded message/status, while the compiled parser validates the full writer schema, paths, exit codes, package outcomes, and verification semantics. These stricter non-shipping readers prevent evidence from being mistaken for authoritative success and are not normalized away.
+- The retained recovery UI displays a malformed complete progress line as raw text and reads only `Level` and `Message`; the compiled production parser requires all five exact fields, validates package correlation, and reports malformed complete lines as typed issues. The recovery result reader likewise displays only bounded message/status, while the compiled parser validates the full writer schema, paths, exit codes, package outcomes, and verification semantics. These stricter compiled readers prevent evidence from being mistaken for authoritative success and are not normalized away.
 - Shipping result JSON has no `RequestId` field. Correlation therefore uses the canonical result filename plus exact `RequestPath`, `ProgressPath`, and `WingetLogPath` values; adding a new field would be a schema change and was not done.
 
-## Current shipping, migration-present, and target states
+## Current shipping and temporary recovery states
 
-- **Current shipping architecture:** the .NET launcher starts the embedded Windows PowerShell 5.1 WPF application and isolated PowerShell worker.
-- **Migration implementation present but not active:** typed C# deterministic domain logic, read-only Windows providers, sanitized diagnostics, catalog/provider detail projections, strict action-request and IPC contracts, a compiled WPF presentation, a separate fake-executor-only worker process harness, and an uncomposed exact-ID WinGet executor compile into non-shipping projects. The worker harness reauthorizes every package and writes correlated progress/results only beneath an injected test root; it does not compose the real executor. The compiled App still does not compose the request factory, path policy, protocol store, worker, or mutation executor; cannot persist a live request; has no action-worker or vendor-transport dependency; and explicitly refuses install/update requests. No launcher or package references the worker, mutation executor, or migration App.
-- **Target architecture:** the compiled WPF App and isolated compiled worker use the proven Domain/Application layers after explicit, responsibility-by-responsibility cutover approval.
-- The current launcher exits after starting the GUI in normal mode, while the worker is independently launched and tracked by request/result files. A compiled App lifecycle needs explicit worker detachment and cooperative-cancellation design before cutover.
-- Vendor release checks, delivery, browser handoffs, diagnostics copy/export, and the independently validating action worker remain shipping-PowerShell responsibilities. The compiled preview uses validated catalog baseline versions, represents official links as non-executing intents, and reports unavailable evidence rather than inventing a release result.
+- **Current shipping architecture:** the single-file bootstrap hosts the compiled WPF App, which uses typed Domain/Application services and launches the exact independently validating compiled worker for authorized managed actions.
+- **Production provider architecture:** typed WinGet/registry/reboot evidence, compiled vendor transport/Credential Manager/cache verification, diagnostics, browser/Explorer handoffs, request persistence, progress/results, cancellation, and fresh verification are production-composed.
+- **Temporary recovery architecture:** embedded PowerShell/XAML/core/worker/vendor files remain reachable only through explicit `--legacy-powershell-recovery`; compiled startup failure never activates them automatically.
+- **Phase 14 target:** stabilize interactive visual/accessibility and recovery behavior, review one safe live mutation when an eligible update exists, then retire only legacy files whose matrix conditions are satisfied.
 
 ## Cutover and retirement rule
 

@@ -399,8 +399,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void RefuseMutation(PackageAction action)
     {
         mutationRefusalCount++;
-        AppendActivity($"READ-ONLY The compiled migration app did not run {action.ToString().ToLowerInvariant()}. Production actions remain in the independently validating shipping worker.");
-        ActivityState = "Read-only migration";
+        AppendActivity($"READ-ONLY This source preview did not run {action.ToString().ToLowerInvariant()}. Packaged production actions require the independently validating compiled worker.");
+        ActivityState = "Read-only preview";
     }
 
     private async Task RunActionAsync(ManagedRequestAction action)
@@ -458,7 +458,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         var snapshot = ActionSnapshot;
         var lines = new List<string>
         {
-            "[Compiled migration action]",
+            "[Compiled managed action]",
             $"State: {snapshot.State}",
             $"Request: {snapshot.RequestId}",
             $"Status: {snapshot.Status}",
@@ -483,7 +483,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void ShowDiagnostics()
     {
         if (plan is null || Diagnostics is null) return;
-        AppendActivity($"DIAGNOSTICS packages={plan.Summary.Total}; warnings={Diagnostics.WarningCount}; errors={Diagnostics.ErrorCount}; rebootPending={plan.Reboot.Pending}; compiledMode=read-only");
+        AppendActivity($"DIAGNOSTICS packages={plan.Summary.Total}; warnings={Diagnostics.WarningCount}; errors={Diagnostics.ErrorCount}; rebootPending={plan.Reboot.Pending}; compiledActions={(actionCoordinator is null ? "unavailable" : "available")}");
         DiagnosticsRequested?.Invoke(Diagnostics);
     }
 

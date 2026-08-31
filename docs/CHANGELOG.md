@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-08-30 — Production compiled runtime cutover
+
+- Made the compiled C# WPF App, typed production providers/vendor services, canonical data root, and independent compiled worker the default packaged runtime.
+- Embedded and hash-pinned the separately published worker, preserved exact-ID one-package WinGet authority and fresh verification, and recorded the compiled runtime/worker identity in release provenance and the SBOM.
+- Retained PowerShell/WPF only behind explicit `--legacy-powershell-recovery`; no compiled failure silently activates it.
+- Live mutation validation deferred because no safe eligible managed update was available. Executor/process/orchestration behavior remains covered by prior real-process and deterministic validation.
+
 ## 2026-08-30 — Compiled-stack live cutover rehearsal (non-shipping)
 
 - Added an explicit standard-user-only live rehearsal composition under an isolated temporary root, connecting the compiled App coordinator, strict IPC lifecycle, independent compiled worker, real read-only providers, trusted WinGet resolution, and the real exact-ID executor boundary.

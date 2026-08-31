@@ -27,7 +27,8 @@ public sealed record CompiledAppServices(
     IDiagnosticsExportService DiagnosticsExport,
     VendorInteractionCoordinator? Vendors,
     IValidatedUserHandoffService? Handoffs,
-    bool IsLiveRehearsal);
+    bool IsLiveRehearsal,
+    bool IsProduction);
 
 public static class CompiledAppComposition
 {
@@ -35,9 +36,26 @@ public static class CompiledAppComposition
         => CreateCore(repositoryRoot, migrationTestRoot, liveRehearsal: false);
 
     public static CompiledAppServices CreateLiveRehearsal(string repositoryRoot, string explicitRehearsalRoot)
-        => CreateCore(repositoryRoot, explicitRehearsalRoot, liveRehearsal: true);
+        => CreateCore(repositoryRoot, explicitRehearsalRoot, liveRehearsal: true, production: false, null, null);
 
-    private static CompiledAppServices CreateCore(string repositoryRoot, string? actionRoot, bool liveRehearsal)
+    public static CompiledAppServices CreateProduction(
+        string applicationRoot,
+        string dataRoot,
+        string version,
+        string expectedWorkerSha256)
+    {
+        var canonicalRoot = ProductionRuntimePolicy.RequireDataRoot(dataRoot);
+        var runtimeRoot = ProductionRuntimePolicy.RequireApplicationRoot(canonicalRoot, applicationRoot);
+        return CreateCore(runtimeRoot, canonicalRoot, liveRehearsal: false, production: true, version, expectedWorkerSha256);
+    }
+
+    private static CompiledAppServices CreateCore(
+        string repositoryRoot,
+        string? actionRoot,
+        bool liveRehearsal,
+        bool production = false,
+        string? packagedVersion = null,
+        string? expectedWorkerSha256 = null)
     {
         var catalog = new RepositoryCatalogLoader().Load(repositoryRoot);
         var resolver = new WindowsWinGetResolver();
@@ -51,20 +69,23 @@ public static class CompiledAppComposition
             new WindowsRebootStateProvider(),
             new ExternalInventoryMatcher());
         var canonicalDataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
-        var dataRoot = liveRehearsal ? LiveRehearsalRootPolicy.RequireExisting(actionRoot!) : canonicalDataRoot;
+        var dataRoot = liveRehearsal ? LiveRehearsalRootPolicy.RequireExisting(actionRoot!) :
+            production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : canonicalDataRoot;
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
-        var version = File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown";
+        var version = packagedVersion ?? (File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown");
         var diagnostics = new ReadOnlyDiagnosticsService(
             new WindowsRuntimeDiagnosticsProvider(resolver, runner),
-            new ApplicationDiagnosticContext(version, "Source compiled migration", dataRoot, Path.Combine(dataRoot, "logs")));
+            new ApplicationDiagnosticContext(version, production ? "Packaged compiled runtime" : "Source compiled migration", dataRoot, Path.Combine(dataRoot, "logs")));
         CompiledActionCoordinator? actions = null;
         VendorInteractionCoordinator? vendors = null;
         IValidatedUserHandoffService? handoffs = null;
         if (actionRoot is not null)
         {
-            ICompiledWorkerLauncher workerLauncher = liveRehearsal
-                ? new CompiledLiveRehearsalWorkerLauncher(repositoryRoot, actionRoot)
-                : new CompiledMigrationWorkerLauncher(repositoryRoot, actionRoot);
+            ICompiledWorkerLauncher workerLauncher = production
+                ? new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!)
+                : liveRehearsal
+                    ? new CompiledLiveRehearsalWorkerLauncher(repositoryRoot, actionRoot)
+                    : new CompiledMigrationWorkerLauncher(repositoryRoot, actionRoot);
             actions = new CompiledActionCoordinator(
                 new ActionProtocolStore(actionRoot),
                 workerLauncher,
@@ -79,6 +100,6 @@ public static class CompiledAppComposition
                 verifier);
             handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
         }
-        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, liveRehearsal);
+        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, liveRehearsal, production);
     }
 }

@@ -1,6 +1,6 @@
 # AV Workstation Toolkit repository contract
 
-AV Workstation Toolkit is a local Windows application for planning, installing, and maintaining a controlled AV/IT workstation software baseline. The current PowerShell-hosted WPF application is the behavioral and security reference while the runtime is migrated incrementally to compiled C#/.NET 10/WPF.
+AV Workstation Toolkit is a local Windows application for planning, installing, and maintaining a controlled AV/IT workstation software baseline. The compiled C#/.NET 10/WPF App and independent compiled worker are the production runtime. The prior PowerShell/WPF runtime is retained temporarily only behind the explicit `--legacy-powershell-recovery` switch pending Phase 14 stabilization and retirement.
 
 ## Read first
 
@@ -8,9 +8,10 @@ Before changing runtime behavior, read `docs/AV-Workstation-Toolkit-Architecture
 
 ## Source map and dependency rules
 
-- `app/` and `scripts/`: shipping PowerShell/WPF implementation and isolated worker.
-- `src/AVWorkstationToolkit.Launcher/`: current compiled launcher and vendor bridge.
-- `src/AVWorkstationToolkit.App/`: future WPF composition/presentation layer; non-shipping until an approved cutover.
+- `app/` and `scripts/`: temporary explicit legacy recovery runtime plus build/developer automation.
+- `src/AVWorkstationToolkit.Launcher/`: self-contained production bootstrap, embedded-runtime integrity, and temporary legacy vendor bridge.
+- `src/AVWorkstationToolkit.App/`: production compiled WPF composition and presentation.
+- `src/AVWorkstationToolkit.Worker/`: independently validating production worker host.
 - `src/AVWorkstationToolkit.Application/`: use cases and infrastructure abstractions.
 - `src/AVWorkstationToolkit.Domain/`: deterministic catalog, package, version, planning, policy, risk, and result logic.
 - `src/AVWorkstationToolkit.Infrastructure.Windows/`: Windows adapters implementing Application abstractions.
@@ -45,6 +46,6 @@ Use locked restore. Review any `packages.lock.json` change intentionally. Never 
 
 ## Migration discipline and completion report
 
-Move one deterministic responsibility at a time. Add fixture-backed characterization before replacement, run both engines, compare canonical semantic output strictly, and keep the legacy implementation until the coverage matrix's retirement condition is met. A C# type existing is not a cutover.
+Move one deterministic responsibility at a time. Add fixture-backed characterization before replacement, run both engines, compare canonical semantic output strictly, and keep legacy code only until the coverage matrix's retirement condition is met. Phase 13 made the compiled stack production-authoritative; Phase 14 may retire legacy files only after stabilization evidence satisfies those conditions.
 
 Every migration change report must list files, exact validation commands/results, parity scenarios and normalization, remaining coverage gaps, security invariants touched, implementation/documentation disagreements, and the next narrowly scoped migration candidate. Never claim interactive visual validation without an actual desktop review.

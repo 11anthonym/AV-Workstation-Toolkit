@@ -10,13 +10,13 @@ flowchart LR
     V --> R["Extract and hash-verify embedded runtime cache"]
     R --> S["Standard-user launch guard"]
     S --> A["WPF interface"]
-    A -->|"read-only refresh"| B["Shared core module"]
+    A -->|"read-only refresh"| B["Typed Application and Domain core"]
     B --> C["WinGet, operational external, and awareness catalogs"]
     B --> D["validated winget export JSON"]
     B --> X["Windows uninstall registry"]
     B --> Q["bounded HTTPS vendor version pages"]
     A -->|"manual delivery"| J["vendor page, signed cache, or verified bundle"]
-    A -->|"JSON on redirected stdin"| K["packaged vendor bridge"]
+    A -->|"catalog-authorized delivery"| K["compiled vendor services"]
     K --> L["allowlisted HTTPS or host-pinned SFTP"]
     K --> M["Windows Credential Manager"]
     L --> N["per-user vendor cache"]
@@ -32,12 +32,16 @@ flowchart LR
 
 | Component | Responsibility |
 |---|---|
-| `src/AVWorkstationToolkit.Launcher` | Self-contained executable, embedded-runtime extraction and integrity repair, fixed PowerShell launch contract, per-user data-root selection, and the argument-constrained HTTPS/SFTP/Credential Manager bridge |
+| `src/AVWorkstationToolkit.Launcher` | Self-contained compiled-WPF bootstrap, embedded-runtime extraction/integrity repair, canonical per-user data root, embedded-worker identity, and explicit legacy recovery switch |
+| `src/AVWorkstationToolkit.App` | Production WPF presentation, typed refresh/filter/selection state, action coordination, vendor handoffs, and diagnostics |
+| `src/AVWorkstationToolkit.Application` / `Domain` | Production use cases, strict requests/IPC, catalog/planning/authority, and typed policy |
+| `src/AVWorkstationToolkit.Infrastructure.Windows` | Trusted WinGet/registry/reboot/process/file/vendor/credential/Authenticode Windows adapters |
+| `src/AVWorkstationToolkit.Worker` | Independent standard-user worker, per-package reauthorization, exact-ID WinGet execution, progress/results/cancellation, and fresh verification |
 | `installer/` | Per-machine x64 MSI, Program Files deployment, upgrade handling, and Start-menu lifecycle |
 | `Build-AVWorkstationToolkit.cmd` / `build/Build-Release.ps1` | Fresh-clone entry point, version agreement, source QA, locked dependency audit, standalone launcher publish, explicit RFC3161 signing policy, EXE/MSI/ZIP/notices/SBOM/provenance output, optional verified offline bundle/Defender scan, and manifest-covering checksums |
-| `app/AVWorkstationToolkit.xaml` | Presentation and accessibility metadata only |
-| `scripts/Start-AVWorkstationToolkit.ps1` | Read-only refresh, filtering, selection, confirmation, worker lifecycle, and exports |
-| `scripts/AVWorkstationToolkit.Vendor.psm1` | Packaged vendor-bridge client using bounded JSON over redirected standard input |
+| `app/AVWorkstationToolkit.xaml` | Temporary explicit recovery presentation retained through Phase 13 |
+| `scripts/Start-AVWorkstationToolkit.ps1` | Temporary explicit recovery UI/controller |
+| `scripts/AVWorkstationToolkit.Vendor.psm1` | Temporary explicit recovery bridge client |
 | `scripts/AppProfiles.psd1` | Exact-ID WinGet allowlist, profiles, risks, holds, and forbidden-product pattern |
 | `manifests/external-applications.json` | Operational external detection, known versions, bounded vendor release checks, parent relationships, and delivery policy |
 | `catalog/vendors/*.json` | Authoritative per-manufacturer source records for broad awareness metadata |
@@ -45,21 +49,15 @@ flowchart LR
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV metadata for role, discipline, lifecycle, licensing, access, platform, and system impact |
 | `manifests/process-launch-policy.json` | Embedded regression contract for every process category AV Workstation Toolkit intentionally starts; descriptive only and never an execution-authority input |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Explicit redistribution gate plus payload hash and signer capture for authorized offline bundles |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Versioned module metadata plus both provider inventories, catalog validation, release awareness, payload verification, planning, request policy, and exact arguments |
-| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Request containment, live revalidation, sequential execution, cancellation boundary, and verification |
+| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy recovery core and behavioral characterization oracle pending Phase 14 review |
+| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy recovery worker pending Phase 14 review |
 | `tests/Run-Tests.ps1` / `Test-EndpointTrust.ps1` | Dependency-free non-installing regression, process-policy, packaging-pattern, and optional Defender release checks |
 
-## Migration seams
+## Production cutover and recovery seam
 
-WPF remains the appropriate Windows desktop shell. This release does not replace it or move command execution into a web service. The current migration boundary is responsibility-based:
+WPF remains the local Windows desktop shell; no web service or generic command surface was introduced. Phase 13 made compiled Domain/Application policy, WPF presentation, Windows providers, vendor services, request/IPC, and the independent compiled worker production-authoritative. Provider transport supplies facts or a permitted handoff but never grants deployment authority. Vendor source records still compile into one embedded artifact rather than mutable runtime inputs.
 
-- `AVWorkstationToolkit.Core.psm1` owns deterministic catalog normalization, manufacturer discovery, role/manufacturer queries, policy filtering, planning, and validation without references to WPF controls;
-- `Start-AVWorkstationToolkit.ps1` maps normalized results into presentation rows, preserves UI selection, renders the read-only detail surface, and submits only constrained action requests;
-- provider transport supplies inventory, release, or permitted handoff information but never grants deployment authority;
-- `Invoke-AVWorkstationToolkitAction.ps1` remains the isolated, live-revalidating one-package execution boundary; and
-- vendor source records compile into one embedded artifact rather than becoming mutable runtime inputs.
-
-These seams allow catalog models, policy, planning, filtering, compatibility, and provider contracts to move into future C# domain/provider assemblies incrementally. They do not create parallel implementations or expand the present action surface.
+The old PowerShell/WPF runtime remains available only when a developer or recovery operator deliberately supplies `--legacy-powershell-recovery`. There is no automatic fallback. Phase 14 may remove it only after interactive stabilization and the coverage matrix retirement conditions are satisfied.
 
 The normal endpoint process tree, file/registry/network behavior, false-positive response, and ranked future compiled-runtime candidates are documented in [Endpoint-Security-Behavior.md](Endpoint-Security-Behavior.md).
 
@@ -67,9 +65,9 @@ The normal endpoint process tree, file/registry/network behavior, false-positive
 
 1. The UI presents only IDs returned by the validated catalog.
 2. A request contains an action and exact IDs, not arbitrary command-line text.
-3. Every entry point refuses elevation before loading repository modules or XAML.
+3. Production compiled App and worker refuse elevation; explicit recovery also rejects elevated execution before loading scripts/XAML.
 4. `winget.exe` must resolve from the Microsoft Desktop App Installer package beneath protected `Program Files\WindowsApps` storage and pass Microsoft Authenticode verification.
-5. Runtime files are compile-time embedded resources. On every launch, the executable rejects invalid or duplicate resource paths and reparse-point cache paths, restores missing or altered cache files, and verifies extracted SHA-256 hashes before PowerShell starts.
+5. Runtime files are compile-time embedded resources. On every launch, the executable rejects invalid or duplicate resource paths and reparse-point cache paths, restores missing or altered files, and verifies extracted SHA-256 hashes before the compiled App can use the worker/catalogs or recovery can start.
 6. Mutable package requests and evidence are separated from installed files under `%LOCALAPPDATA%\AVWorkstationToolkit`; source checkouts retain repository-local data for development.
 7. Request files must be direct, non-reparse-point children of the resolved `logs\requests`, use the required filename, size, and versioned JSON schema, and contain no unknown fields.
 8. The worker rebuilds a live plan and revalidates every ID; during a multi-package run it refreshes state before every package after the first.

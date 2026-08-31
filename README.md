@@ -73,10 +73,12 @@ until that process is approved and integrated. Authenticode signing does not
 guarantee that SmartScreen or an organization's endpoint policy will accept a
 new binary.
 
-The executable carries both the .NET 10 LTS runtime and the audited PowerShell/WPF
-application. On launch it restores and hash-verifies its versioned runtime cache
-beneath `%LOCALAPPDATA%\AVWorkstationToolkit\runtime`, pins inbox Windows PowerShell 5.1, and
-stores mutable data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`.
+The executable carries the .NET 10 LTS compiled WPF application and an independently
+validating compiled worker. On launch it restores and hash-verifies its versioned
+runtime cache beneath `%LOCALAPPDATA%\AVWorkstationToolkit\runtime` and stores mutable
+data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`. The former PowerShell/WPF runtime is
+temporarily retained only as the explicit `--legacy-powershell-recovery` recovery path;
+normal startup never falls back to it silently.
 
 ## Build from source
 
@@ -134,12 +136,11 @@ Run the complete non-installing QA suite after any code or catalog edit:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-Tests.ps1
 ```
 
-The shipping implementation remains the PowerShell-hosted WPF application.
-The non-shipping .NET migration implementation now contains typed deterministic
-catalog, version, filtering, planning, and policy logic plus read-only Windows
-providers for trusted WinGet, registry inventory, and reboot facts. Its
-dual-engine parity suite is validated separately; the shipping executable still
-uses PowerShell:
+The shipping implementation is the compiled C# WPF App and independent compiled
+worker. Its typed Domain/Application layers own catalog, filtering, planning,
+policy, request/IPC, Windows inventory, vendor delivery, diagnostics, and exact-ID
+worker behavior. The retained parity suite continues to characterize the temporary
+legacy recovery implementation:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
@@ -170,12 +171,13 @@ The command-line deployment and maintenance scripts remain available for operato
 
 | Path | Purpose |
 |---|---|
-| `app/` | WPF interface definition |
-| `src/AVWorkstationToolkit.Launcher/` | Self-contained, argument-constrained Windows launcher |
-| `src/AVWorkstationToolkit.Domain/` | Non-shipping typed catalog, version, filtering, planning, and policy implementation with legacy parity |
-| `src/AVWorkstationToolkit.Application/` | Non-shipping use-case and infrastructure-abstraction seam |
-| `src/AVWorkstationToolkit.Infrastructure.Windows/` | Non-shipping future Windows adapter boundary |
-| `src/AVWorkstationToolkit.App/` | Non-shipping future compiled WPF composition boundary; not the current entry point |
+| `app/` | Temporary PowerShell recovery XAML retained through Phase 13 |
+| `src/AVWorkstationToolkit.Launcher/` | Self-contained compiled WPF bootstrap, embedded-runtime integrity, and explicit legacy recovery boundary |
+| `src/AVWorkstationToolkit.Domain/` | Production typed catalog, version, filtering, planning, and policy implementation |
+| `src/AVWorkstationToolkit.Application/` | Production use-case and infrastructure-abstraction layer |
+| `src/AVWorkstationToolkit.Infrastructure.Windows/` | Production Windows inventory, process, file, vendor, credential, and trust adapters |
+| `src/AVWorkstationToolkit.App/` | Production compiled WPF composition and presentation |
+| `src/AVWorkstationToolkit.Worker/` | Production independent compiled action worker |
 | `AVWorkstationToolkit.slnx` | Locked, warning-clean .NET 10 migration solution |
 | `installer/` | Pinned WiX x64 MSI project |
 | `build/` | Reproducible staging, signing, packaging, and checksum workflow |

@@ -7,9 +7,11 @@ using AVWorkstationToolkit.Worker;
 var testMode = args.Length == 5 && args[0] == "--test-mode" && args[1] == "--root" && args[3] == "--request";
 var liveRehearsal = args.Length == 7 && args[0] == "--live-rehearsal" && args[1] == "--root" &&
     args[3] == "--request" && args[5] == "--repository-root";
-if (!testMode && !liveRehearsal)
+var production = args.Length == 7 && args[0] == "--production" && args[1] == "--root" &&
+    args[3] == "--request" && args[5] == "--application-root";
+if (!testMode && !liveRehearsal && !production)
 {
-    Console.Error.WriteLine("This non-shipping worker accepts only an exact test or live-rehearsal invocation.");
+    Console.Error.WriteLine("The compiled worker accepts only an exact production, test, or live-rehearsal invocation.");
     return 2;
 }
 
@@ -17,9 +19,10 @@ try
 {
     using var identity = WindowsIdentity.GetCurrent();
     if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
-        throw new InvalidOperationException("The non-shipping compiled worker must run as a standard user.");
+        throw new InvalidOperationException("The compiled worker must run as a standard user.");
 
-    var dataRoot = testMode ? Path.GetFullPath(args[2]) : LiveRehearsalRootPolicy.RequireExisting(args[2]);
+    var dataRoot = testMode ? Path.GetFullPath(args[2]) :
+        liveRehearsal ? LiveRehearsalRootPolicy.RequireExisting(args[2]) : ProductionRuntimePolicy.RequireDataRoot(args[2]);
     var requestPath = Path.GetFullPath(args[4]);
     var requestName = Path.GetFileNameWithoutExtension(requestPath);
     var requestPolicy = new ActionRequestFilePolicy();
@@ -40,7 +43,10 @@ try
     }
     else
     {
-        var services = LiveRehearsalWorkerComposition.Create(Path.GetFullPath(args[6]));
+        var applicationRoot = production
+            ? ProductionRuntimePolicy.RequireApplicationRoot(dataRoot, args[6])
+            : Path.GetFullPath(args[6]);
+        var services = LiveRehearsalWorkerComposition.Create(applicationRoot);
         orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName);
     }
     var result = await orchestrator.RunAsync(request);

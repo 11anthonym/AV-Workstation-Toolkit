@@ -27,7 +27,7 @@ if ([int]$policy.SchemaVersion -ne 1 -or [string]$policy.Product -ne 'AV Worksta
     throw 'Process-launch policy identity is invalid.'
 }
 $expectedLaunchIds = @(
-    'frontend-powershell','action-worker-powershell','winget','vendor-bridge-self',
+    'legacy-recovery-powershell','legacy-action-worker-powershell','compiled-action-worker','winget','vendor-bridge-self',
     'explorer-handoff','https-shell-handoff','snapshot-dsregcmd'
 )
 $actualLaunchIds = @($policy.Launches.Id)
@@ -84,6 +84,8 @@ $migrationWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolk
 $migrationWorkerLauncherSource = Get-Content -LiteralPath $migrationWorkerLauncherPath -Raw
 $liveWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\CompiledLiveRehearsalWorkerLauncher.cs'
 $liveWorkerLauncherSource = Get-Content -LiteralPath $liveWorkerLauncherPath -Raw
+$productionWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\ProductionCompiledWorkerLauncher.cs'
+$productionWorkerLauncherSource = Get-Content -LiteralPath $productionWorkerLauncherPath -Raw
 $userHandoffPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WindowsValidatedUserHandoffService.cs'
 $userHandoffSource = Get-Content -LiteralPath $userHandoffPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
@@ -113,11 +115,12 @@ $compiledActionSource = $compiledActionSource -join "`n"
 if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
     throw 'The presentation script regained direct process-launch behavior.'
 }
-if ($launcherSource -notmatch 'UseShellExecute\s*=\s*false' -or
+if ($launcherSource -notmatch 'LegacyPowerShellRecovery' -or
+    $launcherSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $launcherSource -notmatch 'CreateNoWindow\s*=\s*true' -or
     $launcherSource -match 'WindowStyle\s*=\s*ProcessWindowStyle\.Hidden' -or
     $launcherSource -match '"-WindowStyle"') {
-    throw 'Packaged PowerShell launch semantics differ from the reviewed direct-process contract.'
+    throw 'The explicit packaged PowerShell recovery launch differs from the reviewed direct-process contract.'
 }
 if ($coreSource -notmatch 'function Start-AVWorkstationToolkitDirectProcess' -or
     $coreSource -notmatch 'UseShellExecute\s*=\s*\$false' -or
@@ -135,7 +138,7 @@ if ($launcherSource -match '(?i)GetTempPath|SpecialFolder\.LocalApplicationData[
 $migrationProcessSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File -Filter '*.cs' |
     Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' -and $_.FullName -notlike '*\AVWorkstationToolkit.Launcher\*' })
 $directMigrationLaunchers = @($migrationProcessSources | Where-Object {
-    $_.FullName -notin @($readOnlyRunnerPath,$mutationRunnerPath,$migrationWorkerLauncherPath,$liveWorkerLauncherPath,$userHandoffPath) -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
+    $_.FullName -notin @($readOnlyRunnerPath,$mutationRunnerPath,$migrationWorkerLauncherPath,$liveWorkerLauncherPath,$productionWorkerLauncherPath,$userHandoffPath) -and (Get-Content -LiteralPath $_.FullName -Raw) -match 'ProcessStartInfo|Process\.Start'
 })
 if ($directMigrationLaunchers.Count -ne 0) {
     throw 'A C# migration component outside the reviewed WinGet boundaries gained direct process-launch behavior.'
@@ -172,10 +175,12 @@ if (($workerProtocolSource -match 'ProcessStartInfo|Process\.Start|HttpClient|We
 if ($compiledAppSource -match 'Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker|WinGetMutationProcessRunner|WinGetPackageActionExecutor' -or
     $compiledAppSource -notmatch '--migration-action-test-root' -or
     $compiledAppSource -notmatch '--live-rehearsal-root' -or
+    $compiledAppSource -notmatch 'CreateProduction' -or
+    $compiledAppSource -notmatch 'ProductionCompiledWorkerLauncher' -or
     $compiledAppSource -notmatch 'CreateLiveRehearsal' -or
     $compiledAppSource -notmatch 'CompiledMigrationWorkerLauncher\(repositoryRoot, actionRoot\)' -or
     $compiledAppSource -notmatch 'CompiledLiveRehearsalWorkerLauncher\(repositoryRoot, actionRoot\)') {
-    throw 'The compiled WPF App lost an explicit migration/rehearsal activation boundary or gained direct mutation authority.'
+    throw 'The compiled WPF App lost its reviewed production/migration composition boundary or gained direct mutation authority.'
 }
 if ($migrationWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.exe"' -or
     $migrationWorkerLauncherSource -notmatch 'awt-phase11-' -or
@@ -193,6 +198,16 @@ if ($liveWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationTool
     $liveWorkerLauncherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(|Kill\(') {
     throw 'The compiled live-rehearsal launcher lost its exact worker, isolated-root, canonical-request, or independent-lifetime boundary.'
 }
+if ($productionWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.exe"' -or
+    $productionWorkerLauncherSource -notmatch 'ProductionRuntimePolicy\.RequireDataRoot' -or
+    $productionWorkerLauncherSource -notmatch 'ProductionRuntimePolicy\.RequireApplicationRoot' -or
+    $productionWorkerLauncherSource -notmatch 'CryptographicOperations\.FixedTimeEquals' -or
+    $productionWorkerLauncherSource -notmatch 'UseShellExecute\s*=\s*false' -or
+    $productionWorkerLauncherSource -notmatch 'ArgumentList\.Add\("--production"\)' -or
+    $productionWorkerLauncherSource -notmatch 'ActionRequestFilePolicy' -or
+    $productionWorkerLauncherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(|Kill\(') {
+    throw 'The production compiled worker launcher lost its exact path, hash, request, or argument boundary.'
+}
 if ($userHandoffSource -notmatch 'OpenOfficialUriIntent' -or
     $userHandoffSource -notmatch 'UriSchemeHttps' -or
     $userHandoffSource -notmatch 'VendorPayloadState\.Verified' -or
@@ -208,13 +223,14 @@ if ($compiledWorkerSource -match 'ProcessStartInfo|Process\.Start|System\.Manage
 }
 if ($compiledWorkerSource -notmatch '--test-mode' -or
     $compiledWorkerSource -notmatch '--live-rehearsal' -or
+    $compiledWorkerSource -notmatch '--production' -or
     $compiledWorkerSource -notmatch 'DeterministicFakePackageExecutor' -or
     $compiledWorkerSource -notmatch 'WinGetPackageActionExecutor' -or
     $compiledWorkerSource -notmatch 'LiveRehearsalRootPolicy\.RequireExisting' -or
     $compiledWorkerSource -notmatch 'ActionWorkerFileProtocol' -or
     $compiledWorkerSource -notmatch 'ReadFreshPlanAsync' -or
     $compiledWorkerSource -notmatch 'WindowsBuiltInRole\.Administrator') {
-    throw 'The compiled worker lost its explicit test/live-rehearsal modes, standard-user guard, or reviewed executor compositions.'
+    throw 'The compiled worker lost its explicit test/rehearsal/production modes, standard-user guard, or reviewed executor compositions.'
 }
 if ($compiledVendorSource -match 'ProcessStartInfo|Process\.Start|ShellExecute|System\.Management\.Automation|(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b' -or
     $compiledVendorSource -match '(?i)\b(?:install|upgrade|uninstall|import)async\s*\(') {
@@ -232,12 +248,17 @@ $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
 ) -join "`n"
-if (($compiledWorkerSource + $shippingCompositionSource) -match 'VendorHttpsDownloader|VendorSftpDeliveryService|WindowsVendorCredentialStore|VendorPayloadVerificationService' -or
-    $compiledAppSource -match 'VendorInteractionCoordinator' -and $compiledAppSource -notmatch 'if \(actionRoot is not null\)') {
-    throw 'The compiled vendor boundary entered the worker/shipping composition or lost explicit migration-mode activation.'
+if ($compiledWorkerSource -match 'VendorHttpsDownloader|VendorSftpDeliveryService|WindowsVendorCredentialStore|VendorPayloadVerificationService' -or
+    $compiledAppSource -notmatch 'VendorInteractionCoordinator' -or
+    $compiledAppSource -notmatch 'WindowsVendorCredentialStore' -or
+    $compiledAppSource -notmatch 'VendorPayloadVerificationService') {
+    throw 'The compiled vendor boundary is missing from the production App or entered the worker composition.'
 }
-if ($shippingCompositionSource -match 'AVWorkstationToolkit\.Worker|WinGetMutationProcessRunner|WinGetPackageActionExecutor') {
-    throw 'The non-shipping compiled worker or WinGet mutation executor entered launcher, installer, or release composition.'
+if ($shippingCompositionSource -notmatch 'AVWorkstationToolkit\.Worker' -or
+    $shippingCompositionSource -notmatch 'WorkerPayloadPath' -or
+    $launcherSource -notmatch 'PackagedAppStartupContext' -or
+    $launcherSource -notmatch 'LegacyPowerShellRecovery') {
+    throw 'The release composition does not include the compiled App/worker with explicit legacy recovery.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or
@@ -273,7 +294,7 @@ if ($argumentPolicySource -notmatch '"install"\s*:\s*"upgrade"' -or
     throw 'The compiled WinGet mutation argument policy is no longer exact-ID Install/Update only.'
 }
 if ($compiledAppSource -match 'WinGetMutationProcessRunner|WinGetPackageActionExecutor|ManagedWinGetArgumentPolicy') {
-    throw 'The compiled WPF migration App gained WinGet mutation authority.'
+    throw 'The compiled WPF App gained direct WinGet mutation authority instead of delegating to the constrained worker.'
 }
 if ($resolverSource -match '(?i)GetEnvironmentVariable\s*\(\s*["'']PATH["'']|where\.exe|App Paths' -or
     $resolverSource -notmatch 'Microsoft\.DesktopAppInstaller_' -or

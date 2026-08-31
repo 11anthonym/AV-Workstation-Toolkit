@@ -3,8 +3,8 @@
     Builds the standalone AV Workstation Toolkit executable, portable package, x64 Windows Installer, and optional offline package bundle.
 
 .DESCRIPTION
-    Runs non-installing QA, publishes the self-contained launcher with its
-    audited PowerShell/WPF runtime embedded, builds an MSI with pinned WiX
+    Runs non-installing QA, publishes the self-contained compiled WPF runtime
+    with its integrity-pinned compiled worker and explicit legacy recovery runtime embedded, builds an MSI with pinned WiX
     tooling, creates a one-file portable ZIP, and emits SHA-256 checksums. If a
     code-signing certificate thumbprint is supplied, the executable and MSI are
     signed before their hashes are recorded. BuildOfflineBundle additionally
@@ -68,6 +68,7 @@ if ($BuildChannel -eq 'Production' -and $sourceDirty) {
 
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts'))
 $stagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' $Version)))
+$workerStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($Version + '-worker'))))
 $releaseRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'release' $Version)))
 $intermediateRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'obj' $Version)))
 $offlineStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($Version + '-offline-bundle'))))
@@ -202,6 +203,7 @@ if ($sdkListExitCode -ne 0 -or $sdkVersionExitCode -ne 0 -or $dotnetVersionText 
 }
 
 $launcherProject = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj'
+$workerProject = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker\AVWorkstationToolkit.Worker.csproj'
 $projectLicenseSourcePath = Join-Path $repositoryRoot 'LICENSE'
 if (-not (Test-Path -LiteralPath $projectLicenseSourcePath -PathType Leaf)) {
     throw 'LICENSE is required for every release build.'
@@ -216,13 +218,15 @@ try {
     try {
         $ErrorActionPreference = 'Continue'
         & $dotnetPath restore $launcherProject --locked-mode --nologo 2>&1 | Out-String | Out-Null
-        $lockedRestoreExitCode = $LASTEXITCODE
+        $launcherRestoreExitCode = $LASTEXITCODE
+        & $dotnetPath restore $workerProject --locked-mode --nologo 2>&1 | Out-String | Out-Null
+        $workerRestoreExitCode = $LASTEXITCODE
     }
     finally { $ErrorActionPreference = $nativeErrorPreference }
 }
 finally { Pop-Location }
-if ($lockedRestoreExitCode -ne 0) {
-    throw "The locked dependency graph is stale or could not be restored. Run:`r`n  dotnet restore .\src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj --force-evaluate`r`nReview packages.lock.json before committing. Release builds never rewrite the dependency lock."
+if ($launcherRestoreExitCode -ne 0 -or $workerRestoreExitCode -ne 0) {
+    throw "The locked dependency graph is stale or could not be restored. Run:`r`n  dotnet restore .\src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj --force-evaluate`r`n  dotnet restore .\src\AVWorkstationToolkit.Worker\AVWorkstationToolkit.Worker.csproj --force-evaluate`r`nReview packages.lock.json before committing. Release builds never rewrite the dependency lock files."
 }
 
 Push-Location $repositoryRoot
@@ -282,8 +286,21 @@ if ([string]$launcherProperties[0].Company -ne 'AV Workstation Toolkit Project' 
     [string]$launcherProperties[0].Title -ne 'AV Workstation Toolkit' -or [string]$launcherProperties[0].AssemblyTitle -ne 'AV Workstation Toolkit' -or
     [string]::IsNullOrWhiteSpace([string]$launcherProperties[0].Description) -or
     [string]::IsNullOrWhiteSpace([string]$launcherProperties[0].Copyright) -or
-    [string]$launcherProperties[0].EnableCompressionInSingleFile -ne 'false') {
-    throw 'Launcher identity metadata is incomplete or single-file compression was re-enabled.'
+    [string]$launcherProperties[0].EnableCompressionInSingleFile -ne 'false' -or
+    [string]$launcherProperties[0].UseWPF -ne 'true' -or
+    [string]$launcherProperties[0].PublishTrimmed -ne 'false') {
+    throw 'Launcher identity metadata or compiled-WPF single-file policy is incomplete.'
+}
+$workerProjectIdentity = Get-Content -LiteralPath $workerProject -Raw
+$workerProjectXml = [xml]$workerProjectIdentity
+$workerProperties = @($workerProjectXml.Project.PropertyGroup | Where-Object { $null -ne $_.TargetFramework } | Select-Object -First 1)
+if ($workerProperties.Count -ne 1 -or [string]$workerProperties[0].TargetFramework -ne 'net10.0-windows' -or
+    [string]$workerProperties[0].RuntimeFrameworkVersion -ne '10.0.11' -or
+    [string]$workerProperties[0].SelfContained -ne 'true' -or
+    [string]$workerProperties[0].PublishSingleFile -ne 'true' -or
+    [string]$workerProperties[0].PublishTrimmed -ne 'false' -or
+    [string]$workerProperties[0].Product -ne 'AV Workstation Toolkit compiled worker') {
+    throw 'Compiled worker identity or self-contained single-file policy is incomplete.'
 }
 $launcherManifestIdentity = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\app.manifest') -Raw
 if ($launcherProjectIdentity -notmatch ('<Version>' + [regex]::Escape($Version) + '</Version>') -or
@@ -291,7 +308,7 @@ if ($launcherProjectIdentity -notmatch ('<Version>' + [regex]::Escape($Version) 
     throw "Launcher project or application manifest does not match release version $Version."
 }
 
-$releaseSourceRoots = @('app','catalog','scripts','manifests','docs','src\AVWorkstationToolkit.Launcher','installer','build','tests')
+$releaseSourceRoots = @('app','catalog','scripts','manifests','docs','src','installer','build','tests')
 $sourceReparsePoints = @($releaseSourceRoots | ForEach-Object {
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot $_) -Recurse -Force -ErrorAction Stop |
         Where-Object { ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 }
@@ -300,7 +317,7 @@ if ($sourceReparsePoints.Count -gt 0) {
     throw ('Release source contains unsupported reparse points: {0}' -f ($sourceReparsePoints.FullName -join ', '))
 }
 
-foreach ($target in @($stagingRoot,$releaseRoot,$intermediateRoot,$offlineStagingRoot)) {
+foreach ($target in @($stagingRoot,$workerStagingRoot,$releaseRoot,$intermediateRoot,$offlineStagingRoot)) {
     Reset-BuildDirectory -Path $target
 }
 
@@ -309,32 +326,6 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit source QA failed.' }
     & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $repositoryRoot 'tests\Test-CSharpMigration.ps1')
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit C# migration QA failed.' }
-}
-
-$embeddedPayloadFiles = @(
-    Get-Item -LiteralPath (Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml')
-    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'scripts') -File |
-        Where-Object Extension -in @('.ps1','.psd1','.psm1')
-    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File -Filter '*.json'
-)
-if ($embeddedPayloadFiles.Count -lt 10) {
-    throw "The standalone executable would embed too few runtime files: $($embeddedPayloadFiles.Count)"
-}
-
-& $dotnetPath publish $launcherProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
-    -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
-    -p:ContinuousIntegrationBuild=true -o $stagingRoot
-if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit launcher publish failed.' }
-
-$launcherPath = Join-Path $stagingRoot 'AVWorkstationToolkit.exe'
-if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) {
-    throw 'Published AVWorkstationToolkit.exe was not produced.'
-}
-
-$unexpectedPublishFiles = @(Get-ChildItem -LiteralPath $stagingRoot -Recurse -File |
-    Where-Object FullName -ne $launcherPath)
-if ($unexpectedPublishFiles.Count -gt 0) {
-    throw ('Single-file publish produced unexpected files: {0}' -f ($unexpectedPublishFiles.Name -join ', '))
 }
 
 $certificate = $null
@@ -371,6 +362,50 @@ if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
         throw "Certificate $normalizedThumbprint is outside its validity period."
     }
     $resolvedSignToolPath = Resolve-AVWorkstationToolkitSignTool -RequestedPath $SignToolPath
+}
+
+& $dotnetPath publish $workerProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
+    -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
+    -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None -o $workerStagingRoot
+if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit compiled worker publish failed.' }
+$workerPayloadPath = Join-Path $workerStagingRoot 'AVWorkstationToolkit.Worker.exe'
+if (-not (Test-Path -LiteralPath $workerPayloadPath -PathType Leaf) -or
+    @(Get-ChildItem -LiteralPath $workerStagingRoot -File).Count -ne 1) {
+    throw 'The compiled worker publish did not produce exactly one self-contained executable.'
+}
+if ($null -ne $certificate) {
+    Invoke-AVWorkstationToolkitArtifactSigning -Path $workerPayloadPath -Thumbprint $normalizedThumbprint -Store $certificateStoreName -ToolPath $resolvedSignToolPath
+}
+
+$embeddedPayloadFiles = @(
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml')
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'scripts') -File |
+        Where-Object Extension -in @('.ps1','.psd1','.psm1')
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File -Filter '*.json'
+    Get-Item -LiteralPath $workerPayloadPath
+)
+if ($embeddedPayloadFiles.Count -lt 10) {
+    throw "The standalone executable would embed too few runtime files: $($embeddedPayloadFiles.Count)"
+}
+
+& $dotnetPath publish $launcherProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
+    -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
+    -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None `
+    "-p:WorkerPayloadPath=$workerPayloadPath" -o $stagingRoot
+if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit launcher publish failed.' }
+
+$launcherPath = Join-Path $stagingRoot 'AVWorkstationToolkit.exe'
+if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) {
+    throw 'Published AVWorkstationToolkit.exe was not produced.'
+}
+
+$unexpectedPublishFiles = @(Get-ChildItem -LiteralPath $stagingRoot -Recurse -File |
+    Where-Object FullName -ne $launcherPath)
+if ($unexpectedPublishFiles.Count -gt 0) {
+    throw ('Single-file publish produced unexpected files: {0}' -f ($unexpectedPublishFiles.Name -join ', '))
+}
+
+if ($null -ne $certificate) {
     Invoke-AVWorkstationToolkitArtifactSigning -Path $launcherPath -Thumbprint $normalizedThumbprint -Store $certificateStoreName -ToolPath $resolvedSignToolPath
 }
 
@@ -457,8 +492,9 @@ if ($BuildOfflineBundle) {
 }
 
 $launcherSha256 = (Get-FileHash -LiteralPath $standalonePath -Algorithm SHA256).Hash
+$workerPayloadSha256 = (Get-FileHash -LiteralPath $workerPayloadPath -Algorithm SHA256).Hash
 $sbomPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $Version)
-& (Join-Path $repositoryRoot 'build\New-ReleaseSbom.ps1') -Version $Version -CommitSha $commitSha -LauncherSha256 $launcherSha256 -OutputPath $sbomPath
+& (Join-Path $repositoryRoot 'build\New-ReleaseSbom.ps1') -Version $Version -CommitSha $commitSha -LauncherSha256 $launcherSha256 -WorkerSha256 $workerPayloadSha256 -OutputPath $sbomPath
 if (-not (Test-Path -LiteralPath $sbomPath -PathType Leaf)) { throw 'CycloneDX SBOM generation did not produce the expected file.' }
 $artifactFiles.Add($sbomPath)
 
@@ -467,7 +503,7 @@ $checksumPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-SHA256SUMS.t
 $launcherSignature = Get-AVWorkstationToolkitSignatureMetadata -Path $standalonePath
 $sbomHash = (Get-FileHash -LiteralPath $sbomPath -Algorithm SHA256).Hash
 $lockDocument = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\packages.lock.json') -Raw | ConvertFrom-Json
-$nugetPackageCount = @($lockDocument.dependencies.'net10.0-windows7.0'.PSObject.Properties).Count
+$nugetPackageCount = @($lockDocument.dependencies.'net10.0-windows7.0'.PSObject.Properties | Where-Object { $_.Value.PSObject.Properties.Name -contains 'resolved' }).Count
 $artifactEntries = @($artifactFiles | ForEach-Object {
     $item = Get-Item -LiteralPath $_
     $signatureMetadata = if ($item.Extension -in @('.exe','.msi')) {
@@ -538,6 +574,13 @@ $releaseManifest = [ordered]@{
         SignerThumbprint = $launcherSignature.SignerThumbprint
         TimestampStatus = $launcherSignature.TimestampStatus
         TimestampSignerSubject = $launcherSignature.TimestampSignerSubject
+    }
+    CompiledRuntime = [ordered]@{
+        Primary = 'Compiled C# WPF'
+        WorkerName = 'AVWorkstationToolkit.Worker.exe'
+        WorkerSha256 = $workerPayloadSha256
+        WorkerSignatureStatus = (Get-AVWorkstationToolkitSignatureMetadata -Path $workerPayloadPath).Status
+        LegacyFallback = 'Explicit --legacy-powershell-recovery only'
     }
     Artifacts = $artifactEntries
 }

@@ -42,18 +42,10 @@ public sealed class WinGetReadOnlyProcessRunner : IWinGetReadOnlyProcessRunner
             var stopSignal = Task.Delay(Timeout.InfiniteTimeSpan, linked.Token);
             try
             {
-                while (!processExit.IsCompleted)
-                {
-                    var pending = new List<Task> { processExit, stopSignal };
-                    if (!stdout.IsCompleted) pending.Add(stdout);
-                    if (!stderr.IsCompleted) pending.Add(stderr);
-                    var completed = await Task.WhenAny(pending).ConfigureAwait(false);
-                    if (completed == stopSignal) throw new OperationCanceledException(linked.Token);
-                    if (completed == stdout && stdout.IsFaulted) await stdout.ConfigureAwait(false);
-                    if (completed == stderr && stderr.IsFaulted) await stderr.ConfigureAwait(false);
-                }
-                await processExit.ConfigureAwait(false);
-                await Task.WhenAll(stdout, stderr).ConfigureAwait(false);
+                var completion = Task.WhenAll(processExit, stdout, stderr);
+                var completed = await Task.WhenAny(completion, stopSignal).ConfigureAwait(false);
+                if (completed == stopSignal) throw new OperationCanceledException(linked.Token);
+                await completion.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

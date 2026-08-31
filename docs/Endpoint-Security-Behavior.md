@@ -21,12 +21,12 @@ On startup the launcher:
 
 1. rejects elevated execution;
 2. prepares the deterministic `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\<AVWorkstationToolkit-version>` directory;
-3. compares every embedded PowerShell, XAML, and compiled-catalog resource with its embedded SHA-256 value;
+3. compares every embedded compiled worker, catalog, notice, and temporary recovery resource with its embedded SHA-256 value;
 4. leaves matching files untouched and atomically repairs missing or modified files with a non-executable `.tmp` file in the same controlled directory;
 5. rejects traversal and reparse-point paths; and
-6. directly starts `%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe` with `-NoProfile -ExecutionPolicy RemoteSigned -STA -File <verified Start-AVWorkstationToolkit.ps1> -DataRoot <validated root>`.
+6. starts the compiled C# WPF App in-process with the canonical data root and embedded compiled-worker SHA-256.
 
-The launcher uses `UseShellExecute=false` and `CreateNoWindow=true` because the child hosts the visible WPF window and does not need a second console window. It does not pass `-EncodedCommand`, `-Command`, `ExecutionPolicy Bypass`, generated script text, or a script beneath `%TEMP%`. The .NET single-file host can use its framework-defined native-library extraction cache; AV Workstation Toolkit does not use that cache for PowerShell or catalog files. Application-owned runtime content is always the versioned LocalAppData tree above.
+Normal startup does not launch PowerShell. The former PowerShell/WPF implementation remains temporarily available only through the deliberate `--legacy-powershell-recovery` switch; failure of the compiled App never activates it automatically. That recovery launch uses `UseShellExecute=false`, `CreateNoWindow=true`, inbox Windows PowerShell, `RemoteSigned`, and static versioned scripts. It never passes `-EncodedCommand`, `-Command`, `ExecutionPolicy Bypass`, generated script text, or a script beneath `%TEMP%`. Application-owned runtime content is always the versioned LocalAppData tree above.
 
 Read-only inventory can directly start only the Microsoft-signed `winget.exe` resolved from the installed `Microsoft.DesktopAppInstaller` package under protected `Program Files\WindowsApps`. Expected inventory arguments are fixed combinations of `--version`, `export`, `list`, source selection, agreement acceptance, and disabled interactivity. A temporary `AVWorkstationToolkit-winget-export-*.json` data file may be created beneath the current Windows temporary directory and is removed after parsing; it is never executable.
 
@@ -40,9 +40,9 @@ Pending-reboot diagnostics read the Windows Update `RebootRequired` and Componen
 
 ## User-requested install or update
 
-The WPF process writes one constrained JSON request beneath `%LOCALAPPDATA%\AVWorkstationToolkit\logs\requests` and directly starts a second inbox Windows PowerShell process for the static, hash-verified `Invoke-AVWorkstationToolkitAction.ps1` worker. The request path must be a direct child of that exact directory and match AV Workstation Toolkit's request filename and schema. No raw executable, command line, URL, or WinGet argument is accepted from the UI.
+The compiled WPF App atomically writes one constrained JSON request beneath `%LOCALAPPDATA%\AVWorkstationToolkit\logs\requests` and directly starts the exact extracted `worker\AVWorkstationToolkit.Worker.exe`. The worker must be a regular non-reparse file at the expected versioned-runtime location, match the hash supplied by the embedded bootstrap, and carry the reviewed compiled-worker product identity. Its fixed argument vector contains only `--production`, the canonical data/application roots, and the correlated canonical request path. No raw executable, command line, URL, or WinGet argument is accepted from the UI.
 
-The worker remains a standard-user process. It rebuilds live inventory and policy, permits only `Install` or `Update`, revalidates each exact catalogued WinGet package ID, applies reboot/risk policy, and invokes one trusted `winget.exe` package action at a time. AV Workstation Toolkit never requests its own elevation. An individual installer selected and launched by WinGet can request normal Windows/UAC elevation; descendants created by that installer are controlled by WinGet, Windows Installer, and the installer itself, not chosen by a generic AV Workstation Toolkit process API.
+The compiled worker remains a standard-user process. It rebuilds live inventory and policy, permits only `Install` or `Update`, revalidates each exact catalogued WinGet package ID before every package, applies reboot/risk/hold policy, constructs the exact one-ID WinGet vector internally, and post-verifies resulting state. AV Workstation Toolkit never requests its own elevation. An individual installer selected and launched by WinGet can request normal Windows/UAC elevation; descendants created by that installer are controlled by WinGet, Windows Installer, and the installer itself, not chosen by a generic AV Workstation Toolkit process API.
 
 Expected action evidence includes the request JSON, progress JSONL, result JSON, cancellation marker when requested, and a redacted `.winget.log` in `logs\requests`. Output is sanitized before it reaches UI activity text or logs. AV Workstation Toolkit does not implement uninstall or automatic rollback.
 
@@ -52,11 +52,11 @@ Manual and external-provider records never enter the WinGet worker. Explicit ope
 
 - `%SystemRoot%\explorer.exe` opens the logs directory or selects a verified cached/bundled file. AV Workstation Toolkit does not execute that file.
 - The Windows HTTPS association opens a validated absolute HTTPS catalog/vendor page without embedded credentials.
-- `AVWorkstationToolkit.exe --vendor-bridge` runs the current verified launcher as a helper. Strict bounded JSON is sent over redirected standard input, not process arguments or environment variables.
+- Compiled HTTPS/SFTP/Credential Manager services handle catalog-authorized delivery in-process. The old `AVWorkstationToolkit.exe --vendor-bridge` helper remains only for explicit legacy recovery.
 
-The vendor bridge can perform bounded HTTPS or authenticated SFTP information/delivery operations allowed by compiled provider metadata. HTTPS uses explicit allowed hosts, HTTPS-only bounded redirects, response-size limits, timeouts, version extraction rules, and publisher/hash validation. SFTP uses the exact configured host, port, remote root, product IDs, size bounds, and a pinned host-key fingerprint. No generic runtime URL becomes an execution path.
+Compiled vendor services can perform bounded HTTPS or authenticated SFTP information/delivery operations allowed by validated catalog metadata. HTTPS uses explicit allowed hosts, HTTPS-only bounded redirects, response-size limits, timeouts, version extraction rules, and publisher/hash validation. SFTP validates the exact host-key fingerprint before credential lookup, then applies the configured host, port, remote root, product IDs, and size bounds. No generic runtime URL becomes an execution path.
 
-SFTP credentials use Windows Credential Manager generic credentials named `AVWorkstationToolkit:VendorSftp:<host>:<port>:<username>`. Passwords are supplied to the bridge through redirected standard input, cleared from unmanaged memory after Credential Manager calls, and excluded from logs, diagnostics, reports, release metadata, and process arguments. Saving or deleting a credential is an explicit operator action. Trusted SFTP host fingerprints are stored separately in `%LOCALAPPDATA%\AVWorkstationToolkit\trusted-sftp-hosts.json`.
+SFTP credentials use Windows Credential Manager generic credentials named `AVWorkstationToolkit:VendorSftp:<host>:<port>:<username>`. Compiled services scope exact host/port/username lookups, clear unmanaged password memory after Credential Manager calls, and exclude secrets from logs, diagnostics, reports, release metadata, and process arguments. Saving or deleting a credential is an explicit operator action. Trusted SFTP host fingerprints are stored separately in `%LOCALAPPDATA%\AVWorkstationToolkit\trusted-sftp-hosts.json`.
 
 During the rename transition, the bridge may read a matching legacy `AVinite:VendorSftp:` target only after the new target is absent. New saves always use the canonical prefix, and an explicit delete removes both targets. No credential secret is migrated into the filesystem.
 
@@ -66,7 +66,7 @@ Normal packaged operation can create or update only bounded application-owned co
 
 ```text
 %LOCALAPPDATA%\AVWorkstationToolkit
-├── runtime\<version>       verified static PowerShell, XAML, and catalog resources
+├── runtime\<version>       verified worker, catalogs/notices, and temporary recovery resources
 ├── logs
 │   └── requests            constrained requests, progress, result, cancel, and WinGet logs
 ├── reports                 exported plan and sanitized diagnostics JSON
@@ -82,7 +82,7 @@ AV Workstation Toolkit itself does not write application configuration to the re
 
 ## Diagnostics
 
-The in-app Diagnostics view is read-only. It reports sanitized application/runtime identity, Windows and PowerShell versions, process architecture, WinGet path/version/inventory availability, privilege state, reboot signals, each uninstall-registry source, and catalog/status counts. Copy/export uses existing redaction and does not read Credential Manager secrets. The optional snapshot script collects a broader bounded evidence set and deliberately excludes credentials, environment dumps, command history, project files, and application payloads.
+The compiled in-app Diagnostics view is read-only. It reports sanitized application/runtime identity, Windows/process architecture, WinGet path/version/inventory availability, privilege state, reboot signals, each uninstall-registry source, and catalog/status counts. Copy/export uses structured redaction and does not read Credential Manager secrets. PowerShell version is relevant only to the explicit recovery path. The optional snapshot script collects a broader bounded evidence set and deliberately excludes credentials, environment dumps, command history, project files, and application payloads.
 
 ## Network categories
 
@@ -155,16 +155,16 @@ For a suspected false positive, a release operator should:
 7. submit the exact sample through the security vendor's official false-positive process when appropriate; and
 8. never instruct users to disable endpoint protection or add an exclusion.
 
-## Future compiled-runtime candidates
+## Compiled-runtime migration status
 
-The shipping application deliberately retains the PowerShell/WPF architecture during the controlled migration. Phase 3 now contains non-shipping compiled implementations of the first two candidates below; they are exercised by deterministic parity and optional read-only host checks but are not referenced by the release launcher.
+The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the Phase 13 production default. The remaining work is stabilization and evidence-based retirement of the explicitly selected PowerShell recovery runtime; it is not another architecture cutover.
 
 | Candidate | EDR/AV benefit | Process reduction | Implementation risk | Testing complexity | Relative priority |
 |---|---|---:|---|---|---:|
-| Constrained read-only WinGet process boundary | High: one compiled enum/argument policy boundary | Low | Implemented, non-shipping | Provider parity + live integration | 1 |
-| Registry and reboot inventory | Medium: fewer PowerShell registry operations | None | Implemented, non-shipping | Source-aware parity + live integration | 2 |
-| Inventory orchestration and diagnostics collection | Medium-high: reduces script surface and produces typed evidence | Medium | Medium-high | High | 3 |
-| WPF frontend/MVVM presentation | Medium: removes the long-lived PowerShell UI host | One process | High | High, especially visual/accessibility QA | 4 |
-| Provider transports | Low-medium because the sensitive HTTPS/SFTP bridge is already compiled | Low | Medium-high | High, including credentials and host trust | 5 |
+| Constrained WinGet process boundaries | High: compiled enum/argument policy boundaries | Low | Production cutover | Exact-ID/provider/package QA | 1 |
+| Registry and reboot inventory | Medium: no PowerShell inventory host | None | Production cutover | Source-aware parity + live integration | 2 |
+| Inventory orchestration and diagnostics | Medium-high: typed evidence and redaction | Medium | Production cutover | Package smoke + stabilization | 3 |
+| WPF frontend/MVVM presentation | Medium: removes the long-lived PowerShell UI host | One process | Production cutover | Phase 14 manual DPI/accessibility/visual QA | 4 |
+| Provider transports | Medium: in-process constrained HTTPS/SFTP/Credential Manager | Low | Production cutover | Controlled integration + stabilization | 5 |
 
 The isolated one-package action worker should remain independently constrained even if its implementation language changes.

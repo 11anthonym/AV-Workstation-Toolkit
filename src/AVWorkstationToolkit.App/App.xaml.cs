@@ -10,14 +10,28 @@ using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
 namespace AVWorkstationToolkit.App;
 
+public sealed record PackagedAppStartupContext(
+    string ApplicationRoot,
+    string DataRoot,
+    string Version,
+    string WorkerSha256,
+    bool SmokeTest = false);
+
 public partial class App : System.Windows.Application
 {
+    private readonly PackagedAppStartupContext? packagedContext;
+
+    public App() { }
+
+    public App(PackagedAppStartupContext packagedContext) =>
+        this.packagedContext = packagedContext ?? throw new ArgumentNullException(nameof(packagedContext));
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        var smoke = packagedContext?.SmokeTest == true || e.Args.Contains("--smoke-test", StringComparer.Ordinal);
         try
         {
-            var smoke = e.Args.Contains("--smoke-test", StringComparer.Ordinal);
             var readOnlyCheck = e.Args.Contains("--read-only-check", StringComparer.Ordinal);
             var migrationTestRoot = ParseMigrationTestRoot(e.Args);
             var liveRehearsalRoot = ParseLiveRehearsalRoot(e.Args);
@@ -39,7 +53,23 @@ public partial class App : System.Windows.Application
             IDiagnosticsExportService? diagnosticsExport = null;
             IValidatedUserHandoffService? handoffs = null;
             var liveRehearsal = false;
-            if (smoke)
+            if (packagedContext is not null)
+            {
+                if (migrationTestRoot is not null || liveRehearsalRoot is not null)
+                    throw new ArgumentException("Packaged production mode cannot be combined with migration test modes.");
+                var services = CompiledAppComposition.CreateProduction(
+                    packagedContext.ApplicationRoot,
+                    packagedContext.DataRoot,
+                    packagedContext.Version,
+                    packagedContext.WorkerSha256);
+                coordinator = services.Planning;
+                diagnostics = services.Diagnostics;
+                details = services.Details;
+                actions = services.Actions;
+                diagnosticsExport = services.DiagnosticsExport;
+                handoffs = services.Handoffs;
+            }
+            else if (smoke)
             {
                 coordinator = SmokePlanningCoordinator.Create();
                 diagnostics = SmokePlanningCoordinator.CreateDiagnostics();
@@ -65,7 +95,8 @@ public partial class App : System.Windows.Application
             if (smoke)
             {
                 await viewModel.RefreshAsync().ConfigureAwait(true);
-                window.VerifySmokeContract();
+                if (packagedContext is null) window.VerifySmokeContract();
+                else window.VerifyProductionSmokeContract();
                 window.Close();
                 Shutdown(0);
             }
@@ -80,8 +111,10 @@ public partial class App : System.Windows.Application
         }
         catch (Exception exception)
         {
-            if (!e.Args.Contains("--smoke-test", StringComparer.Ordinal))
-                MessageBox.Show(exception.Message, "Compiled migration startup failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (!smoke)
+                MessageBox.Show(exception.Message, "AV Workstation Toolkit startup failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            else
+                Console.Error.WriteLine(exception.Message);
             Shutdown(1);
         }
     }

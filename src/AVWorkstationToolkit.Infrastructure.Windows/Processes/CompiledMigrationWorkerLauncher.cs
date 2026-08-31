@@ -30,7 +30,7 @@ public sealed class CompiledMigrationWorkerLauncher : ICompiledWorkerLauncher
             throw new FileNotFoundException("The exact compiled migration worker has not been built or is unsafe.", workerPath);
         RejectReparseChain(repository, workerPath);
         var metadata = FileVersionInfo.GetVersionInfo(workerPath);
-        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit non-shipping compiled worker", StringComparison.Ordinal))
+        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit compiled worker", StringComparison.Ordinal))
             throw new InvalidDataException("The compiled migration worker identity is not the reviewed test host.");
     }
 

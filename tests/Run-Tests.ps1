@@ -1147,7 +1147,7 @@ Invoke-Check 'Credential-like values are redacted from operational text' {
     Assert-True ($protected -notmatch 'hunter2|abc123|:pass@|Bearer xyz') 'Sensitive values remain in protected operational text.'
     Assert-True ($protected -match '\[REDACTED\]') 'Redaction marker is missing.'
 }
-Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixture-backed' {
+Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-backed' {
     $agents = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AGENTS.md') -Raw
     $architecture = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Architecture.md') -Raw
     $coverage = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Coverage.md') -Raw
@@ -1161,7 +1161,7 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
     Assert-True ($agents -match 'If the new implementation disagrees with the current implementation' -and
         $agents -match 'unknown-field-tolerant request parsing' -and $agents -match 'UI-side package authorization') 'Repository migration instructions omit parity or safety rules.'
     Assert-True ($architecture -match 'Domain must not reference WPF, Registry, Process, HTTP, filesystem, Credential Manager, or PowerShell' -and
-        $architecture -match 'AVWorkstationToolkit\.exe --worker' -and $architecture -match 'does not configure SignPath') 'Migration architecture dependency, mode, or signing boundary is incomplete.'
+        $architecture -match 'AVWorkstationToolkit\.Worker\.exe --production' -and $architecture -match 'does not configure SignPath') 'Migration architecture dependency, mode, or signing boundary is incomplete.'
     Assert-True ($coverage -match 'WinGet package state' -and $coverage -match 'Worker lifecycle' -and $coverage -match 'Code signing') 'Migration coverage matrix omits required responsibilities.'
     foreach ($project in @('App','Application','Domain','Infrastructure.Windows')) {
         Assert-True ($solution -match [regex]::Escape("src/AVWorkstationToolkit.$project/AVWorkstationToolkit.$project.csproj")) "Migration solution omits $project."
@@ -1189,10 +1189,12 @@ Invoke-Check 'C# migration presentation remains non-shipping, strict, and fixtur
     Assert-True ($compiledAppSource -notmatch 'Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction' -and
         $compiledAppStartupSource -match '--migration-action-test-root' -and
         $compiledAppStartupSource -match '--live-rehearsal-root' -and
+        $compiledAppStartupSource -match 'PackagedAppStartupContext' -and
         $compiledAppCompositionSource -match 'CreateLiveRehearsal' -and
+        $compiledAppCompositionSource -match 'CreateProduction' -and
+        $compiledAppCompositionSource -match 'ProductionCompiledWorkerLauncher' -and
         $compiledAppCompositionSource -match 'if \(actionRoot is not null\)' -and
-        $compiledAppCompositionSource -match 'new ActionProtocolStore\(actionRoot\)' -and
-        $compiledAppCompositionSource -notmatch 'new ActionProtocolStore\(dataRoot\)') 'Compiled App action integration is not restricted to the explicit isolated migration mode.'
+        $compiledAppCompositionSource -match 'new ActionProtocolStore\(actionRoot\)') 'Compiled App production and isolated action compositions are incomplete.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'
@@ -1420,13 +1422,18 @@ Invoke-Check 'Maintained source contains no former organization attribution' {
         Assert-True ($content -notmatch [regex]::Escape($forbiddenPublisher)) "Former organization attribution remains in $relativePath"
     }
 }
-Invoke-Check 'Packaged launcher verifies payload and pins the approved PowerShell frontend' {
+Invoke-Check 'Packaged launcher defaults to compiled WPF and retains explicit PowerShell recovery' {
     $source = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
     $project = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
-    Assert-True ($project -match '<EmbeddedResource' -and $project -match 'AVWorkstationToolkit\.Payload\.app/AVWorkstationToolkit\.xaml' -and $project -match 'AVWorkstationToolkit\.Payload\.scripts/') 'Launcher project does not embed the audited runtime.'
+    Assert-True ($project -match '<UseWPF>true</UseWPF>' -and $project -match '<PublishTrimmed>false</PublishTrimmed>' -and
+        $project -match 'ProjectReference Include="\.\.\\AVWorkstationToolkit\.App' -and
+        $project -match 'WorkerPayloadPath' -and $project -match 'AVWorkstationToolkit\.Payload\.worker/AVWorkstationToolkit\.Worker\.exe' -and
+        $project -match '<EmbeddedResource' -and $project -match 'AVWorkstationToolkit\.Payload\.app/AVWorkstationToolkit\.xaml' -and $project -match 'AVWorkstationToolkit\.Payload\.scripts/') 'Launcher project does not embed the compiled App/worker and audited recovery runtime.'
     Assert-True ($source -match 'GetManifestResourceNames' -and $source -match 'GetManifestResourceStream' -and $source -match 'SHA256\.HashData') 'Launcher does not extract and verify its embedded runtime.'
-    Assert-True ($source -match 'WindowsPowerShell.*v1\.0.*powershell\.exe') 'Launcher does not pin inbox Windows PowerShell.'
-    Assert-True ($source -match 'ExecutionPolicy"\s*,\s*"RemoteSigned"' -and $source -match '"-STA"') 'Launcher frontend arguments weakened execution policy or apartment mode.'
+    Assert-True ($source -match 'new PackagedAppStartupContext' -and $source -match 'RunCompiledApp\(new AVWorkstationToolkit\.App\.App\(context\)\)' -and $source -match 'app\.InitializeComponent\(\)') 'Normal launcher startup does not enter the initialized compiled WPF App.'
+    Assert-True ($source -match '--legacy-powershell-recovery' -and $source -match 'LegacyPowerShellRecovery' -and
+        $source -match 'WindowsPowerShell.*v1\.0.*powershell\.exe') 'Explicit recovery no longer pins inbox Windows PowerShell.'
+    Assert-True ($source -match 'ExecutionPolicy"\s*,\s*"RemoteSigned"' -and $source -match '"-STA"') 'Recovery frontend arguments weakened execution policy or apartment mode.'
     Assert-True ($source -match 'AVWORKSTATIONTOOLKIT_DATA_ROOT' -and $source -match 'SpecialFolder\.LocalApplicationData') 'Launcher does not isolate mutable per-user data.'
     Assert-True ($source -match 'AVWORKSTATIONTOOLKIT_DISTRIBUTION_ROOT' -and $source -match 'external-applications\.json' -and $source -match 'commercial-av-catalog\.json') 'Launcher does not expose the verified distribution root or require both catalog manifests.'
     Assert-True ($source -notmatch '(?i)cmd\.exe|ExecutionPolicy"\s*,\s*"Bypass"|"-WindowStyle"|ProcessWindowStyle\.Hidden') 'Launcher contains an unsafe shell, hidden-window argument, or execution-policy path.'
@@ -1465,7 +1472,7 @@ Invoke-Check 'Child-process policy is explicit, bounded, and complete' {
     $policy = Get-Content -LiteralPath $processPolicyPath -Raw | ConvertFrom-Json
     Assert-Equal 1 ([int]$policy.SchemaVersion) 'Process policy schema differs.'
     Assert-Equal 'AV Workstation Toolkit' ([string]$policy.Product) 'Process policy product differs.'
-    $expectedIds = @('frontend-powershell','action-worker-powershell','winget','vendor-bridge-self','explorer-handoff','https-shell-handoff','snapshot-dsregcmd')
+    $expectedIds = @('legacy-recovery-powershell','legacy-action-worker-powershell','compiled-action-worker','winget','vendor-bridge-self','explorer-handoff','https-shell-handoff','snapshot-dsregcmd')
     Assert-Equal ($expectedIds -join '|') (@($policy.Launches.Id) -join '|') 'Allowed child-process categories differ.'
     Assert-Equal @($policy.Launches).Count @($policy.Launches.Id | Sort-Object -Unique).Count 'Process policy contains duplicate IDs.'
     foreach ($launch in @($policy.Launches)) {
@@ -1502,7 +1509,11 @@ Invoke-Check 'Worker launch arguments are deterministic and arbitrary request pa
 }
 Invoke-Check 'Endpoint-trust static QA rejects suspicious production patterns' {
     $output = (& (Join-Path $PSScriptRoot 'Test-EndpointTrust.ps1') | Out-String)
-    Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=7') 'Endpoint-trust QA did not validate the reviewed process contract.'
+    Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=8') 'Endpoint-trust QA did not validate the reviewed process contract.'
+}
+Invoke-Check 'Phase 13 compiled production cutover contract is complete' {
+    $output = (& (Join-Path $PSScriptRoot 'Test-CompiledCutover.ps1') | Out-String)
+    Assert-True ($output -match 'COMPILED_CUTOVER_OK') 'Compiled production cutover contract did not pass.'
 }
 Invoke-Check 'Clone build entry point and tagged-release workflow publish the standalone executable' {
     $buildEntryPath = Join-Path $repositoryRoot 'Build-AVWorkstationToolkit.cmd'
@@ -1576,8 +1587,8 @@ Invoke-Check 'CycloneDX SBOM generation is deterministic and sanitized' {
         $first = Join-Path $temporaryRoot 'first.cdx.json'
         $second = Join-Path $temporaryRoot 'second.cdx.json'
         $generator = Join-Path $repositoryRoot 'build\New-ReleaseSbom.ps1'
-        & $generator -Version '1.1.1' -CommitSha ('a' * 40) -LauncherSha256 ('b' * 64) -OutputPath $first | Out-Null
-        & $generator -Version '1.1.1' -CommitSha ('a' * 40) -LauncherSha256 ('b' * 64) -OutputPath $second | Out-Null
+        & $generator -Version '1.1.1' -CommitSha ('a' * 40) -LauncherSha256 ('b' * 64) -WorkerSha256 ('c' * 64) -OutputPath $first | Out-Null
+        & $generator -Version '1.1.1' -CommitSha ('a' * 40) -LauncherSha256 ('b' * 64) -WorkerSha256 ('c' * 64) -OutputPath $second | Out-Null
         Assert-Equal (Get-FileHash -LiteralPath $first -Algorithm SHA256).Hash (Get-FileHash -LiteralPath $second -Algorithm SHA256).Hash 'Repeated SBOM generation differs.'
         $text = Get-Content -LiteralPath $first -Raw
         $sbom = $text | ConvertFrom-Json
@@ -1613,7 +1624,7 @@ Invoke-Check 'Third-party notices match locked and hosted build dependencies' {
     $lock = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\packages.lock.json') -Raw | ConvertFrom-Json
     $target = $lock.dependencies.'net10.0-windows7.0'
     Assert-True ($null -ne $target) 'The reviewed .NET 10 dependency target is missing from the lock.'
-    foreach ($property in @($target.PSObject.Properties)) {
+    foreach ($property in @($target.PSObject.Properties | Where-Object { $_.Value.PSObject.Properties.Name -contains 'resolved' })) {
         $name = [string]$property.Name
         $version = [string]$property.Value.resolved
         Assert-True (-not [string]::IsNullOrWhiteSpace($version)) "Locked dependency has no resolved version: $name"
@@ -1800,7 +1811,7 @@ Invoke-Check 'Endpoint-security behavior documentation is complete and non-evasi
     $path = Join-Path $repositoryRoot 'docs\Endpoint-Security-Behavior.md'
     Assert-True (Test-Path -LiteralPath $path -PathType Leaf) 'Endpoint-security behavior baseline is missing.'
     $document = Get-Content -LiteralPath $path -Raw
-    foreach ($heading in @('Normal startup and inventory','User-requested install or update','External package handoff','Diagnostics','Build and release behavior','SmartScreen, EDR, and false positives','Future compiled-runtime candidates')) {
+    foreach ($heading in @('Normal startup and inventory','User-requested install or update','External package handoff','Diagnostics','Build and release behavior','SmartScreen, EDR, and false positives','Compiled-runtime migration status')) {
         Assert-True ($document -match [regex]::Escape($heading)) "Endpoint-security documentation section is missing: $heading"
     }
     Assert-True ($document -match 'never instruct users to disable endpoint protection or add an exclusion' -and

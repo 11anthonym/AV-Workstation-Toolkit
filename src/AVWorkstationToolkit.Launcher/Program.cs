@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text.Json;
+using AVWorkstationToolkit.App;
 
 namespace AVWorkstationToolkit.Launcher;
 
@@ -22,6 +23,7 @@ internal static class Program
         "scripts/AVWorkstationToolkit.Vendor.psm1",
         "scripts/AppProfiles.psd1",
         "scripts/Invoke-AVWorkstationToolkitAction.ps1",
+        "worker/AVWorkstationToolkit.Worker.exe",
         "manifests/external-applications.json",
         "manifests/commercial-av-catalog.json",
         "notices/THIRD-PARTY-NOTICES.md",
@@ -63,6 +65,7 @@ internal static class Program
             var integrity = PrepareEmbeddedRuntime(dataRoot);
             var applicationRoot = integrity.ApplicationRoot;
             var scriptPath = Path.Combine(applicationRoot, "scripts", "Start-AVWorkstationToolkit.ps1");
+            var workerPath = Path.Combine(applicationRoot, "worker", "AVWorkstationToolkit.Worker.exe");
 
             if (options.VerificationOutput is not null || options.DiagnosticsOutput is not null)
             {
@@ -72,10 +75,11 @@ internal static class Program
                     integrity,
                     applicationRoot,
                     scriptPath,
+                    workerPath,
                     powershellPath,
                     dataRoot,
                     IsElevated());
-                return integrity.Success && File.Exists(scriptPath) && File.Exists(powershellPath) ? 0 : 1;
+                return integrity.Success && File.Exists(workerPath) ? 0 : 1;
             }
 
             if (!integrity.Success)
@@ -89,18 +93,48 @@ internal static class Program
                     headless: false,
                     dataRoot);
             }
-            if (!File.Exists(scriptPath))
-            {
-                return Fail($"The packaged frontend is missing: {scriptPath}", headless: false, dataRoot);
-            }
-            if (!File.Exists(powershellPath))
-            {
-                return Fail("Windows PowerShell 5.1 is required but was not found in the Windows system directory.", headless: false, dataRoot);
-            }
-
             Directory.CreateDirectory(Path.Combine(dataRoot, "logs", "requests"));
             Directory.CreateDirectory(Path.Combine(dataRoot, "reports"));
+            if (options.LegacyPowerShellRecovery)
+            {
+                if (!File.Exists(scriptPath) || !File.Exists(powershellPath))
+                    return Fail("The explicit legacy recovery runtime is unavailable.", headless: false, dataRoot);
+                return StartLegacyRecovery(powershellPath, applicationRoot, scriptPath, dataRoot, options);
+            }
+            if (options.RenderPreviewPath is not null || options.RenderWidth > 0 || options.RenderHeight > 0)
+                return Fail("Packaged preview rendering is available only with --legacy-powershell-recovery.", headless: false, dataRoot);
+            if (!File.Exists(workerPath))
+                return Fail("The packaged compiled worker is missing.", headless: false, dataRoot);
+            if (options.SmokeTest)
+                return RunCompiledApp(new AVWorkstationToolkit.App.App());
 
+            var context = new PackagedAppStartupContext(
+                applicationRoot,
+                dataRoot,
+                ProductVersion,
+                GetFileHash(workerPath),
+                SmokeTest: options.ProductionSmoke);
+            return RunCompiledApp(new AVWorkstationToolkit.App.App(context));
+        }
+        catch (Exception exception)
+        {
+            return Fail(exception.Message, options.IsHeadless, dataRoot);
+        }
+    }
+
+    private static int RunCompiledApp(AVWorkstationToolkit.App.App app)
+    {
+        app.InitializeComponent();
+        return app.Run();
+    }
+
+    private static int StartLegacyRecovery(
+        string powershellPath,
+        string applicationRoot,
+        string scriptPath,
+        string dataRoot,
+        LaunchOptions options)
+    {
             var startInfo = new ProcessStartInfo
             {
                 FileName = powershellPath,
@@ -130,11 +164,6 @@ internal static class Program
                 return process.ExitCode;
             }
             return 0;
-        }
-        catch (Exception exception)
-        {
-            return Fail(exception.Message, options.IsHeadless, dataRoot);
-        }
     }
 
     private static IReadOnlyList<string> BuildPowerShellArguments(
@@ -293,6 +322,7 @@ internal static class Program
         PayloadIntegrity integrity,
         string applicationRoot,
         string scriptPath,
+        string workerPath,
         string powershellPath,
         string dataRoot,
         bool elevated)
@@ -308,12 +338,17 @@ internal static class Program
         writer.WriteString("RuntimeFramework", RuntimeInformation.FrameworkDescription);
         writer.WriteString("RuntimeVersion", Environment.Version.ToString());
         writer.WriteString("RuntimeArchitecture", RuntimeInformation.ProcessArchitecture.ToString());
-        writer.WriteBoolean("Success", integrity.Success && File.Exists(scriptPath) && File.Exists(powershellPath));
+        writer.WriteBoolean("Success", integrity.Success && File.Exists(workerPath));
         writer.WriteString("IntegrityMessage", integrity.Message);
         writer.WriteNumber("FilesVerified", integrity.FilesVerified);
         writer.WriteString("ApplicationRoot", applicationRoot);
-        writer.WriteString("FrontendPath", scriptPath);
-        writer.WriteBoolean("FrontendPresent", File.Exists(scriptPath));
+        writer.WriteString("FrontendPath", Environment.ProcessPath ?? string.Empty);
+        writer.WriteBoolean("FrontendPresent", true);
+        writer.WriteString("FrontendArchitecture", "Compiled C# WPF");
+        writer.WriteString("WorkerPath", workerPath);
+        writer.WriteBoolean("WorkerPresent", File.Exists(workerPath));
+        writer.WriteString("WorkerSha256", File.Exists(workerPath) ? GetFileHash(workerPath) : string.Empty);
+        writer.WriteBoolean("LegacyRecoveryPresent", File.Exists(scriptPath) && File.Exists(powershellPath));
         writer.WriteString("PowerShellPath", powershellPath);
         writer.WriteBoolean("PowerShellPresent", File.Exists(powershellPath));
         writer.WriteString("DataRoot", dataRoot);
@@ -368,6 +403,8 @@ internal static class Program
     private sealed class LaunchOptions
     {
         public bool SmokeTest { get; private set; }
+        public bool ProductionSmoke { get; private set; }
+        public bool LegacyPowerShellRecovery { get; private set; }
         public bool WaitForExit { get; private set; }
         public string? RenderPreviewPath { get; private set; }
         public int RenderWidth { get; private set; }
@@ -386,6 +423,12 @@ internal static class Program
                 {
                     case "--smoke-test":
                         options.SmokeTest = true;
+                        break;
+                    case "--production-smoke":
+                        options.ProductionSmoke = true;
+                        break;
+                    case "--legacy-powershell-recovery":
+                        options.LegacyPowerShellRecovery = true;
                         break;
                     case "--wait":
                         options.WaitForExit = true;
@@ -417,6 +460,10 @@ internal static class Program
             {
                 throw new ArgumentException("Choose either --verify or --diagnostics, not both.");
             }
+            if (options.SmokeTest && options.ProductionSmoke)
+                throw new ArgumentException("Choose either --smoke-test or --production-smoke, not both.");
+            if (options.LegacyPowerShellRecovery && options.ProductionSmoke)
+                throw new ArgumentException("Production smoke cannot use the legacy recovery runtime.");
             if ((options.RenderPreviewPath is not null || options.RenderWidth > 0 || options.RenderHeight > 0) && !options.SmokeTest)
             {
                 throw new ArgumentException("Preview options require --smoke-test.");
@@ -425,7 +472,7 @@ internal static class Program
             {
                 options.RenderPreviewPath = SafePath.RequireAbsoluteNonRoot(options.RenderPreviewPath, "preview output path");
             }
-            if (options.WaitForExit && !options.SmokeTest)
+            if (options.WaitForExit && !options.SmokeTest && !options.LegacyPowerShellRecovery)
             {
                 throw new ArgumentException("--wait is available only with --smoke-test.");
             }

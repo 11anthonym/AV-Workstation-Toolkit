@@ -71,7 +71,7 @@ public sealed record ActionWorkerRunResult(ActionResultStatus Status, int ExitCo
 /// <summary>
 /// Non-shipping worker orchestration. It independently reauthorizes the complete
 /// request and every individual package, but delegates package behavior to an
-/// injected executor. The non-shipping worker host intentionally supplies only
+/// injected executor. Test-mode worker composition intentionally supplies only
 /// its deterministic fake; the real migration executor is not composed there.
 /// </summary>
 public sealed class ActionWorkerOrchestrator

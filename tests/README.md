@@ -76,6 +76,6 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-Endpo
   -ReleaseRoot .\artifacts\release\1.1.1 -ScanWithDefender
 ```
 
-Package QA copies the direct release EXE into an otherwise empty directory, prepares and verifies its embedded runtime, runs the packaged HTTPS/SFTP/Credential Manager bridge self-test, confirms that unknown bridge request fields fail closed, runs the packaged WPF control/workflow smoke path, repairs deliberately modified cache content, confirms one-file ZIP parity, and administratively extracts the MSI without registering or installing it.
+Package QA copies the direct release EXE into an otherwise empty directory, prepares and verifies its embedded compiled runtime and exact worker, runs the packaged HTTPS/SFTP/Credential Manager bridge self-test, confirms that unknown bridge request fields fail closed, runs both the compiled-production WPF smoke and deliberate legacy-recovery smoke, repairs deliberately modified cache content, confirms one-file ZIP parity, and administratively extracts the MSI without registering or installing it.
 
 Hosted runners use `-SkipDesktopSmoke`, because they do not provide a reliable interactive WPF desktop. That mode still verifies the standalone download, release hashes, embedded-runtime extraction and repair, one-file ZIP parity, and the administratively extracted MSI executable. All launcher and MSI subprocess checks are bounded to 120 seconds by default; use `-ProcessTimeoutSeconds` only when a slower release host requires it.

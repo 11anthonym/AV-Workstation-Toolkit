@@ -35,6 +35,30 @@
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
         }
+      },
+      "avworkstationtoolkit.app": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Application": "[1.0.0, )",
+          "AVWorkstationToolkit.Infrastructure.Windows": "[1.0.0, )"
+        }
+      },
+      "avworkstationtoolkit.application": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Domain": "[1.0.0, )"
+        }
+      },
+      "avworkstationtoolkit.domain": {
+        "type": "Project"
+      },
+      "avworkstationtoolkit.infrastructure.windows": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Application": "[1.0.0, )",
+          "AVWorkstationToolkit.Domain": "[1.0.0, )",
+          "SSH.NET": "[2026.0.0, )"
+        }
       }
     },
     "net10.0-windows7.0/win-x64": {}

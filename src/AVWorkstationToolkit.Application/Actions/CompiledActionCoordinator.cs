@@ -51,8 +51,8 @@ public sealed class CompiledActionSnapshot(
 public sealed record CompiledActionRunResult(ActionFinalResult Result, WorkstationPlan RefreshedPlan);
 
 /// <summary>
-/// Non-shipping compiled UI action coordinator. Authority still comes from the
-/// current typed plan and the independent worker. The coordinator only persists
+/// Compiled UI action coordinator. Authority comes from the current typed plan
+/// and the independent worker. The coordinator only persists
 /// an authorized request, starts the fixed migration worker, observes correlated
 /// artifacts, records cancellation intent, and refreshes read-only state.
 /// </summary>
@@ -102,7 +102,7 @@ public sealed class CompiledActionCoordinator
     public event EventHandler<CompiledActionSnapshot>? StateChanged;
 
     public CompiledActionSnapshot Snapshot { get; private set; } =
-        new(CompiledActionState.Idle, string.Empty, "Migration action mode is idle.", [], null);
+        new(CompiledActionState.Idle, string.Empty, "Managed action worker is idle.", [], null);
 
     public async Task<CompiledActionRunResult> StartAsync(
         ManagedRequestAction action,
@@ -116,7 +116,7 @@ public sealed class CompiledActionCoordinator
         ArgumentNullException.ThrowIfNull(currentPlan);
         lock (gate)
         {
-            if (active) throw new InvalidOperationException("Another compiled migration action is already active.");
+            if (active) throw new InvalidOperationException("Another managed action is already active.");
             active = true;
         }
 
@@ -135,7 +135,7 @@ public sealed class CompiledActionCoordinator
             lifecycle.MarkPersisted();
             lifecycle.MarkAwaitingWorker();
             session = await launcher.LaunchAsync(paths, cancellationToken).ConfigureAwait(false);
-            SetSnapshot(CompiledActionState.Running, request.RequestId, "The isolated migration worker is running.", [], null);
+            SetSnapshot(CompiledActionState.Running, request.RequestId, "The isolated compiled worker is running.", [], null);
 
             var result = await ObserveAsync(request, session, cancellationToken).ConfigureAwait(false);
             var refreshedPlan = await planning.RefreshAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -222,10 +222,10 @@ public sealed class CompiledActionCoordinator
             }
 
             if (session.HasExited)
-                throw new InvalidOperationException($"The migration worker exited with code {session.ExitCode?.ToString() ?? "unknown"} without a correlated final result.");
+                throw new InvalidOperationException($"The compiled worker exited with code {session.ExitCode?.ToString() ?? "unknown"} without a correlated final result.");
             await Task.Delay(pollInterval, timeProvider, cancellationToken).ConfigureAwait(false);
         }
-        throw new TimeoutException("The migration worker did not produce a final result within the bounded observation period.");
+        throw new TimeoutException("The compiled worker did not produce a final result within the bounded observation period.");
     }
 
     private void SetSnapshot(

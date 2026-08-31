@@ -53,7 +53,7 @@ public sealed class ExternalProviderReadModelService
         {
             ReleaseMode.InventoryOnly => "Inventory-only provider; no online version comparison is performed.",
             ReleaseMode.VendorPage => package.KnownVersion.Length > 0
-                ? $"Validated catalog baseline {package.KnownVersion} is available; live vendor metadata was not requested by the compiled migration app."
+                ? $"Validated catalog baseline {package.KnownVersion} is available; live vendor metadata was not requested by the compiled application."
                 : "Vendor metadata was not requested and no validated catalog baseline is available.",
             ReleaseMode.ParentCatalog => "Parent-provider metadata was not requested; any validated catalog baseline remains read-only.",
             _ => "Release evidence is unknown."

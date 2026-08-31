@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Non-shipping compiled presentation. Release packaging still publishes only the legacy launcher. -->
+    <!-- Production compiled presentation; the standalone launcher embeds this project and the exact compiled worker. -->
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>

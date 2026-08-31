@@ -5,7 +5,7 @@ namespace AVWorkstationToolkit.App.ViewModels;
 
 public sealed class CatalogDetailViewModel : ObservableObject
 {
-    private string intentStatus = "Official links are validated read-only intents; this migration phase does not open a browser.";
+    private string intentStatus = "Official links are validated against the catalog before Windows opens them.";
 
     public CatalogDetailViewModel(CatalogDetail detail, IValidatedUserHandoffService? handoffs = null)
     {

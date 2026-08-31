@@ -124,6 +124,26 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke did not preserve the explicit mutation refusal.");
     }
 
+    internal void VerifyProductionSmokeContract()
+    {
+        var required = new[] { "SearchBox", "CatalogPresetFilter", "ManufacturerFilter", "PackageGrid", "ActivityLog", "InstallButton", "UpdateButton", "RefreshButton" };
+        foreach (var name in required)
+        {
+            if (FindName(name) is null) throw new InvalidOperationException($"Compiled production smoke could not find required control '{name}'.");
+        }
+        if (DataContext is not MainWindowViewModel viewModel || viewModel.Packages.Count < 300 || !viewModel.MigrationActionMode)
+            throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");
+        viewModel.SearchText = "Crestron";
+        if (viewModel.VisiblePackages.Count == 0)
+            throw new InvalidOperationException("Compiled production smoke filtering produced no matching catalog rows.");
+        viewModel.SearchText = string.Empty;
+        Measure(new Size(1280, 860));
+        Arrange(new Rect(0, 0, 1280, 860));
+        UpdateLayout();
+        if (!PackageGrid.IsVisible || PackageGrid.ActualWidth <= 0 || PackageGrid.ActualHeight <= 0)
+            throw new InvalidOperationException("Compiled production smoke did not render the application grid.");
+    }
+
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
     {
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
