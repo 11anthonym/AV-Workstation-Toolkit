@@ -45,11 +45,9 @@ The suite also checks the authoritative vendor-source compiler, .NET 10 launcher
 
 Worker security tests use only out-of-scope or intentionally malformed requests. The worker rejects them before reading workstation inventory or calling winget.
 
-After the automated suite passes, render the actual window for visual review:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\scripts\Start-AVWorkstationToolkit.ps1 -SmokeTest -RenderPreviewPath "$env:TEMP\AV-Workstation-Toolkit-preview.png"
-```
+After the automated suite passes, use the packaged production smoke in
+`Test-Package.ps1` and perform an interactive review of the actual compiled
+window when a material presentation change requires human visual evidence.
 
 Run the deterministic multi-viewport geometry and screenshot-quality gate directly when working on layout:
 
@@ -76,6 +74,6 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-Endpo
   -ReleaseRoot .\artifacts\release\1.1.1 -ScanWithDefender
 ```
 
-Package QA copies the direct release EXE into an otherwise empty directory, prepares and verifies its embedded compiled runtime and exact worker, runs the packaged HTTPS/SFTP/Credential Manager bridge self-test, confirms that unknown bridge request fields fail closed, runs both the compiled-production WPF smoke and deliberate legacy-recovery smoke, repairs deliberately modified cache content, confirms one-file ZIP parity, and administratively extracts the MSI without registering or installing it.
+Package QA copies the direct release EXE into an otherwise empty directory, prepares and verifies its PowerShell-free embedded compiled runtime and exact worker, runs the compiled-production WPF smoke twice to exercise reopen behavior, removes recognized stale runtime files, repairs deliberately modified cache content, confirms one-file ZIP parity, and administratively extracts the MSI without registering or installing it.
 
 Hosted runners use `-SkipDesktopSmoke`, because they do not provide a reliable interactive WPF desktop. That mode still verifies the standalone download, release hashes, embedded-runtime extraction and repair, one-file ZIP parity, and the administratively extracted MSI executable. All launcher and MSI subprocess checks are bounded to 120 seconds by default; use `-ProcessTimeoutSeconds` only when a slower release host requires it.

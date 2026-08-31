@@ -35,16 +35,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SSH.NET" Version="2026.0.0" />
     <ProjectReference Include="..\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj"
                       AdditionalProperties="GenerateRuntimeConfigurationFiles=false;GenerateDependencyFile=false;SelfContained=false;PublishSingleFile=false" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\app\AVWorkstationToolkit.xaml" LogicalName="AVWorkstationToolkit.Payload.app/AVWorkstationToolkit.xaml" />
-    <EmbeddedResource Include="..\..\scripts\*.ps1;..\..\scripts\*.psd1;..\..\scripts\*.psm1">
-      <LogicalName>AVWorkstationToolkit.Payload.scripts/%(Filename)%(Extension)</LogicalName>
-    </EmbeddedResource>
     <EmbeddedResource Include="..\..\manifests\*.json">
       <LogicalName>AVWorkstationToolkit.Payload.manifests/%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>

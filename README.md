@@ -42,7 +42,7 @@ and release artifacts.
 - [Reusable snapshot script](scripts/Get-WorkstationSnapshot.ps1)
 - [Allowlisted deployment script](scripts/Invoke-AVWorkstationToolkitDeployment.ps1)
 - [Allowlisted maintenance script](scripts/Invoke-AVWorkstationToolkitMaintenance.ps1)
-- [Shared application catalog](scripts/AppProfiles.psd1)
+- [Managed application catalog](manifests/managed-applications.json)
 - [External application catalog](manifests/external-applications.json)
 - [Commercial AV catalog model and source workflow](docs/Commercial-AV-Catalog.md)
 - [External provider and credential guide](docs/External-Provider-Guide.md)
@@ -76,9 +76,9 @@ new binary.
 The executable carries the .NET 10 LTS compiled WPF application and an independently
 validating compiled worker. On launch it restores and hash-verifies its versioned
 runtime cache beneath `%LOCALAPPDATA%\AVWorkstationToolkit\runtime` and stores mutable
-data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`. The former PowerShell/WPF runtime is
-temporarily retained only as the explicit `--legacy-powershell-recovery` recovery path;
-normal startup never falls back to it silently.
+data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`. PowerShell is not part of the
+packaged application runtime. The bootstrap removes only specifically recognized
+retired runtime files left by earlier versions and never falls back to them.
 
 ## Build from source
 
@@ -92,12 +92,9 @@ Build-AVWorkstationToolkit.cmd
 The standalone result is written to
 `artifacts\release\1.1.1\AV-Workstation-Toolkit-1.1.1-win-x64.exe`. Double-click
 `Launch-AVWorkstationToolkit.cmd` after building to run that compiled executable. Before the
-first build, the same launcher falls back to the source application. The direct
-source command is:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\scripts\Start-AVWorkstationToolkit.ps1
-```
+first build, the launcher starts the compiled App project directly. The PowerShell UI
+source is retained only for deterministic compatibility characterization and is not a
+supported application runtime.
 
 AV Workstation Toolkit combines 29 exact-ID WinGet applications, 25 operational external records, and 281 non-deployable commercial AV awareness records. The resulting 335-record catalog can describe role, discipline, workflow, lifecycle, licensing, distribution policy, installation form, metadata verification, provenance, access restrictions, account/training requirements, workstation impact, supported platform, version policy, and official source without turning catalog knowledge into installation permission.
 
@@ -139,8 +136,8 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-T
 The shipping implementation is the compiled C# WPF App and independent compiled
 worker. Its typed Domain/Application layers own catalog, filtering, planning,
 policy, request/IPC, Windows inventory, vendor delivery, diagnostics, and exact-ID
-worker behavior. The retained parity suite continues to characterize the temporary
-legacy recovery implementation:
+worker behavior. The retained parity suite continues to characterize contractual
+behavior against the legacy reference implementation:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
@@ -171,8 +168,8 @@ The command-line deployment and maintenance scripts remain available for operato
 
 | Path | Purpose |
 |---|---|
-| `app/` | Temporary PowerShell recovery XAML retained through Phase 13 |
-| `src/AVWorkstationToolkit.Launcher/` | Self-contained compiled WPF bootstrap, embedded-runtime integrity, and explicit legacy recovery boundary |
+| `app/` | Legacy WPF characterization source; not packaged or launched in production |
+| `src/AVWorkstationToolkit.Launcher/` | Self-contained compiled WPF bootstrap and embedded-runtime integrity |
 | `src/AVWorkstationToolkit.Domain/` | Production typed catalog, version, filtering, planning, and policy implementation |
 | `src/AVWorkstationToolkit.Application/` | Production use-case and infrastructure-abstraction layer |
 | `src/AVWorkstationToolkit.Infrastructure.Windows/` | Production Windows inventory, process, file, vendor, credential, and trust adapters |
@@ -185,14 +182,15 @@ The command-line deployment and maintenance scripts remain available for operato
 | `Build-AVWorkstationToolkit.cmd` | One-command release build from a fresh clone |
 | `.github/workflows/release.yml` | Tag-validated GitHub release build and asset publication |
 | `docs/` | Operator guidance, architecture, security audit, QA evidence, onboarding playbook, and change log |
-| `scripts/AppProfiles.psd1` | Approved exact-ID WinGet catalog |
+| `scripts/AppProfiles.psd1` | Reviewed managed-catalog authoring and legacy characterization source; source QA requires exact parity with the runtime JSON |
+| `manifests/managed-applications.json` | Production approved exact-ID WinGet catalog |
 | `manifests/external-applications.json` | Operational external detection/version/provider policy |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV awareness metadata |
-| `scripts/AVWorkstationToolkit.Vendor.psm1` | Standard-input-only bridge client for packaged HTTPS, SFTP, and Credential Manager operations |
+| `scripts/AVWorkstationToolkit.Vendor.psm1` | Legacy vendor-behavior characterization source; not packaged |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Rights-gated authoring command for hash-pinned offline payloads |
 | `external-packages/` | Local third-party payload depot; always ignored by Git |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Versioned module manifest plus WinGet and external inventory, release awareness, planning, validation, and exact arguments |
-| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Revalidating install/update worker and post-action verification |
+| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavior characterization plus development/operator tooling; not packaged |
+| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization source; not packaged or launched in production |
 | `tests/` | Non-installing safety, parser, policy, UI smoke, explicit fixtures, and dual-engine parity tests |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\logs` | Installed/portable execution evidence |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\reports` | Installed/portable exported plans |

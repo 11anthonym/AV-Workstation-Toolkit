@@ -113,7 +113,7 @@ Local administrators are outside the enforceable boundary because they can repla
 - structured progress and final results with post-action verification;
 - cooperative cancellation only between packages, avoiding forced installer termination;
 - logs, reports, and raw snapshots excluded from Git;
-- packaged launcher contains its self-contained .NET and PowerShell/WPF application payload, performs only catalogued HTTPS/SFTP client operations, and exposes no inbound HTTP surface, service, driver, listener, or runtime package manager;
+- packaged launcher contains its self-contained compiled .NET WPF App, strict catalogs/notices, and exact compiled worker, performs only catalogued HTTPS/SFTP client operations, and exposes no PowerShell application runtime, inbound HTTP surface, service, driver, listener, or runtime package manager;
 - external rows remain outside request JSON and the action worker;
 - awareness records remain non-selectable even when they expose an official product link or registry evidence;
 - verified offline payloads are hash-pinned, optionally signer-pinned, non-reparse-point files beneath the distribution package root;
@@ -170,9 +170,9 @@ Publication policies and current operating boundaries are maintained in the
 
 ## Verification evidence
 
-- 119 of 119 full automated safety and regression checks passed; the CI-safe subset passed 113 of 113 after release-asset and Defender-record reconciliation. Current results are maintained in the [QA report](AV-Workstation-Toolkit-QA-Report.md).
-- Package QA passed 17 of 17 checks covering a lone EXE copied into an empty download directory, deterministic no-rewrite runtime and compiled-worker extraction/repair, EXE/MSI identity and byte parity, CycloneDX SBOM and schema-v3 release metadata, strict vendor-bridge request rejection, the packaged vendor-bridge self-test, checksums, one-file ZIP parity, compiled-production and explicit recovery WPF smokes, diagnostics, and non-registering MSI extraction.
-- Endpoint-trust QA validates the seven intentional child-process categories and rejects encoded or bypass PowerShell, security-control tampering, proxy-binary abuse, generic shell execution, temporary PowerShell staging, and packer integration in production sources.
+- 123 of 123 full automated safety and regression checks passed after compiled-runtime retirement. The CI-safe subset remains a required hosted check; current results are maintained in the [QA report](AV-Workstation-Toolkit-QA-Report.md) and GitHub Actions.
+- Package QA covers 15 checks for a lone EXE copied into an empty download directory, deterministic PowerShell-free runtime and compiled-worker extraction/repair, stale-runtime cleanup, EXE/MSI identity and byte parity, CycloneDX SBOM and schema-v3 release metadata, checksums, one-file ZIP parity, compiled-production open/reopen smoke, diagnostics, and non-registering MSI extraction.
+- Endpoint-trust QA validates the five intentional child-process categories and rejects encoded or bypass PowerShell, security-control tampering, proxy-binary abuse, generic shell execution, temporary PowerShell staging, and packer integration in production sources.
 - A synthetic non-vendor ZIP exercised the rights assertion, catalog authoring, payload depot, offline build, extraction, hash verification, and packaged WPF smoke path end to end; no third-party software was stored or executed.
 - The self-contained, uncompressed .NET 10.0.11 launcher and WiX MSI compile with zero warnings; production-channel builds require verified RFC3161-timestamped Authenticode signatures while unsigned development builds remain explicit.
 - Deterministic provider tests cover all 335 records, every normalized discipline, licensing/access/distribution composition, 281 commercial awareness holds, representative registry entries, direct-download lookalike/stale URLs, signed-cache tampering, and SFTP XML DTD/traversal/incomplete feeds.

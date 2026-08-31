@@ -27,7 +27,7 @@ if ([int]$policy.SchemaVersion -ne 1 -or [string]$policy.Product -ne 'AV Worksta
     throw 'Process-launch policy identity is invalid.'
 }
 $expectedLaunchIds = @(
-    'legacy-recovery-powershell','legacy-action-worker-powershell','compiled-action-worker','winget','vendor-bridge-self',
+    'compiled-action-worker','winget',
     'explorer-handoff','https-shell-handoff','snapshot-dsregcmd'
 )
 $actualLaunchIds = @($policy.Launches.Id)
@@ -72,9 +72,6 @@ foreach ($file in $productionFiles) {
 }
 
 $launcherSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
-$coreSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\AVWorkstationToolkit.Core.psm1') -Raw
-$vendorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\AVWorkstationToolkit.Vendor.psm1') -Raw
-$uiSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\Start-AVWorkstationToolkit.ps1') -Raw
 $projectSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
 $readOnlyRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetReadOnlyProcessRunner.cs'
 $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
@@ -112,28 +109,15 @@ $compiledActionSource = @(
         Where-Object { $_.FullName -notin @($protocolStorePath,$workerProtocolPath) }
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $compiledActionSource = $compiledActionSource -join "`n"
-if ($uiSource -match '(?i)Start-Process|ProcessStartInfo|Process\.Start') {
-    throw 'The presentation script regained direct process-launch behavior.'
-}
-if ($launcherSource -notmatch 'LegacyPowerShellRecovery' -or
-    $launcherSource -notmatch 'UseShellExecute\s*=\s*false' -or
-    $launcherSource -notmatch 'CreateNoWindow\s*=\s*true' -or
-    $launcherSource -match 'WindowStyle\s*=\s*ProcessWindowStyle\.Hidden' -or
-    $launcherSource -match '"-WindowStyle"') {
-    throw 'The explicit packaged PowerShell recovery launch differs from the reviewed direct-process contract.'
-}
-if ($coreSource -notmatch 'function Start-AVWorkstationToolkitDirectProcess' -or
-    $coreSource -notmatch 'UseShellExecute\s*=\s*\$false' -or
-    $coreSource -notmatch 'direct request JSON child' -or
-    $vendorSource -notmatch "Arguments\s*=\s*'--vendor-bridge'") {
-    throw 'Bounded PowerShell, Explorer, or vendor-bridge launch implementation is incomplete.'
+if ($launcherSource -match '(?i)--legacy-powershell-recovery|--vendor-bridge|powershell\.exe|pwsh\.exe|cmd\.exe|ProcessStartInfo|Process\.Start' -or
+    $projectSource -match 'AVWorkstationToolkit\.Payload\.(?:app|scripts)/') {
+    throw 'The shipping launcher retains a retired PowerShell, vendor-bridge, shell, or legacy payload path.'
 }
 if ($projectSource -match '<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>') {
     throw 'The release launcher re-enabled compressed single-file content.'
 }
-if ($launcherSource -match '(?i)GetTempPath|SpecialFolder\.LocalApplicationData[^\r\n]+\.ps1' -or
-    $coreSource -match '(?is)powershell(?:\.exe)?.{0,500}GetTempPath') {
-    throw 'Packaged PowerShell can be staged or executed from the system temporary directory.'
+if ($launcherSource -match '(?i)GetTempPath|SpecialFolder\.LocalApplicationData[^\r\n]+\.ps1') {
+    throw 'The packaged runtime can stage a script in a temporary or user-data path.'
 }
 $migrationProcessSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File -Filter '*.cs' |
     Where-Object { $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' -and $_.FullName -notlike '*\AVWorkstationToolkit.Launcher\*' })
@@ -219,7 +203,7 @@ if ($userHandoffSource -notmatch 'OpenOfficialUriIntent' -or
 if ($compiledWorkerSource -match 'ProcessStartInfo|Process\.Start|System\.Management\.Automation|HttpClient|WebRequest|WebClient|ShellExecute|WindowsIdentity\.Impersonate' -or
     $compiledWorkerSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(' -or
     $compiledWorkerSource -match 'LocalApplicationData|GetTempPath|Environment\.GetEnvironmentVariable') {
-    throw 'The non-shipping compiled worker gained process, shell, network, production-root, or mutation behavior.'
+    throw 'The compiled worker gained an unreviewed process, shell, network, production-root, or mutation behavior.'
 }
 if ($compiledWorkerSource -notmatch '--test-mode' -or
     $compiledWorkerSource -notmatch '--live-rehearsal' -or
@@ -234,14 +218,14 @@ if ($compiledWorkerSource -notmatch '--test-mode' -or
 }
 if ($compiledVendorSource -match 'ProcessStartInfo|Process\.Start|ShellExecute|System\.Management\.Automation|(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b' -or
     $compiledVendorSource -match '(?i)\b(?:install|upgrade|uninstall|import)async\s*\(') {
-    throw 'The non-shipping compiled vendor boundary gained process, shell, or package-mutation behavior.'
+    throw 'The compiled vendor boundary gained process, shell, or package-mutation behavior.'
 }
 if ($compiledVendorSource -notmatch 'AllowAutoRedirect\s*=\s*false' -or
     $compiledVendorSource -notmatch 'AllowedHosts\.Contains' -or
     $compiledVendorSource -notmatch 'ProbeHostFingerprintAsync' -or
     $compiledVendorSource.IndexOf('ProbeHostFingerprintAsync',[StringComparison]::Ordinal) -gt $compiledVendorSource.IndexOf('credentials.Read',[StringComparison]::Ordinal) -or
     $compiledVendorSource -notmatch 'WinVerifyTrust|IAuthenticodeSignatureInspector') {
-    throw 'The non-shipping compiled vendor boundary lost redirect, host-key-before-credential, or signature-verification controls.'
+    throw 'The compiled vendor boundary lost redirect, host-key-before-credential, or signature-verification controls.'
 }
 $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
@@ -257,8 +241,9 @@ if ($compiledWorkerSource -match 'VendorHttpsDownloader|VendorSftpDeliveryServic
 if ($shippingCompositionSource -notmatch 'AVWorkstationToolkit\.Worker' -or
     $shippingCompositionSource -notmatch 'WorkerPayloadPath' -or
     $launcherSource -notmatch 'PackagedAppStartupContext' -or
-    $launcherSource -notmatch 'LegacyPowerShellRecovery') {
-    throw 'The release composition does not include the compiled App/worker with explicit legacy recovery.'
+    $launcherSource -match '(?i)LegacyPowerShellRecovery|--vendor-bridge|powershell\.exe' -or
+    $projectSource -match 'AVWorkstationToolkit\.Payload\.(?:app|scripts)/') {
+    throw 'The release composition does not contain only the compiled App/worker and reviewed data runtime.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or

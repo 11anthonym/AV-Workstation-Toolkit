@@ -7,6 +7,12 @@ It is generated from the authoritative `scripts/AppProfiles.psd1` catalog. Regen
 .\scripts\Export-AVWorkstationToolkitBaselineManifest.ps1
 ```
 
+`managed-applications.json` is the strict schema-v1 production runtime artifact
+for all 29 managed exact-ID records. The compiled application loads only this
+JSON artifact. Source QA compares every field and the forbidden-product policy
+against `scripts/AppProfiles.psd1`, which remains the reviewed authoring and
+legacy-characterization source, so drift fails before packaging.
+
 It intentionally excludes:
 
 - KeePass until the corporate credential-manager standard is confirmed;

@@ -21,7 +21,7 @@ No earlier state grants a later one. In particular, a catalog record is not an a
 
 | Source | Purpose | Current records | Can enter the WinGet worker |
 |---|---|---:|---|
-| `scripts/AppProfiles.psd1` | Exact-ID, approved WinGet applications | 29 | Yes, subject to profile, risk, hold, reboot, and live-state checks |
+| `manifests/managed-applications.json` | Compiled-runtime exact-ID, approved WinGet applications | 29 | Yes, subject to profile, risk, hold, reboot, and live-state checks |
 | `manifests/external-applications.json` | Operational external detection and reviewed provider behavior | 25 | Never |
 | `catalog/vendors/*.json` | Authoritative, reviewable per-manufacturer awareness sources | 281 | Never |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled and embedded commercial AV awareness artifact | 281 | Never |

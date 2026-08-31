@@ -1,95 +1,117 @@
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AVWorkstationToolkit.Domain.Catalog;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
 /// <summary>Loads the reviewed source catalogs without invoking PowerShell.</summary>
-public sealed partial class RepositoryCatalogLoader
+public sealed class RepositoryCatalogLoader
 {
-    private static readonly HashSet<string> ManagedKeys = new(StringComparer.Ordinal)
+    private static readonly JsonSerializerOptions ManagedCatalogJsonOptions = new()
     {
-        "Profile", "Name", "Id", "Vendor", "Risk", "Note", "Deployment", "Maintenance"
+        PropertyNameCaseInsensitive = false,
+        AllowTrailingCommas = false,
+        ReadCommentHandling = JsonCommentHandling.Disallow,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow
     };
 
     public PackageCatalog Load(string repositoryRoot)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
         var root = Path.GetFullPath(repositoryRoot);
-        var profilesPath = Path.Combine(root, "scripts", "AppProfiles.psd1");
+        var managedPath = Path.Combine(root, "manifests", "managed-applications.json");
         var externalPath = Path.Combine(root, "manifests", "external-applications.json");
         var awarenessPath = Path.Combine(root, "manifests", "commercial-av-catalog.json");
-        foreach (var path in new[] { profilesPath, externalPath, awarenessPath })
+        foreach (var path in new[] { managedPath, externalPath, awarenessPath })
         {
             if (!File.Exists(path)) throw new FileNotFoundException("Required catalog source is unavailable.", path);
         }
 
-        var profileText = File.ReadAllText(profilesPath);
         var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
-        var managed = parser.NormalizeManagedCatalog(ParseManagedPackages(profileText), ParseForbiddenPattern(profileText));
+        var managedDocument = ParseManagedCatalog(File.ReadAllText(managedPath));
+        var managed = parser.NormalizeManagedCatalog(managedDocument.Packages, managedDocument.ForbiddenPattern);
         var external = parser.ParseExternalCatalog(File.ReadAllText(externalPath));
         var awareness = parser.ParseExternalCatalog(File.ReadAllText(awarenessPath), CatalogAuthority.AwarenessOnly);
         return new PackageCatalog(managed.Items.Concat(external.Items).Concat(awareness.Items));
     }
 
-    internal static IReadOnlyList<ManagedPackageInput> ParseManagedPackages(string dataFile)
+    internal static ManagedCatalogData ParseManagedCatalog(string json)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(dataFile);
-        var packagesStart = dataFile.IndexOf("Packages = @(", StringComparison.Ordinal);
-        var forbiddenStart = dataFile.IndexOf("ForbiddenPattern", StringComparison.Ordinal);
-        if (packagesStart < 0 || forbiddenStart <= packagesStart)
-            throw new InvalidDataException("Managed catalog does not contain the expected Packages and ForbiddenPattern sections.");
-
-        var packageSection = dataFile[packagesStart..forbiddenStart];
-        var results = new List<ManagedPackageInput>();
-        foreach (var line in packageSection.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+        try
         {
-            var match = ManagedEntryLine().Match(line);
-            if (!match.Success) continue;
-            var body = match.Groups["body"].Value;
-            var fields = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (Match field in ManagedField().Matches(body))
+            using var parsed = JsonDocument.Parse(json, new JsonDocumentOptions
             {
-                var key = field.Groups["key"].Value;
-                if (!ManagedKeys.Contains(key)) throw new InvalidDataException($"Managed catalog contains unsupported field '{key}'.");
-                if (!fields.TryAdd(key, field.Groups["value"].Value.Replace("''", "'", StringComparison.Ordinal)))
-                    throw new InvalidDataException($"Managed catalog entry repeats field '{key}'.");
-            }
-            var remainder = ManagedField().Replace(body, string.Empty).Replace(";", string.Empty, StringComparison.Ordinal).Trim();
-            if (remainder.Length > 0) throw new InvalidDataException("Managed catalog entry contains syntax outside the supported deterministic data shape.");
-            results.Add(new ManagedPackageInput(
-                Required("Profile"),
-                Optional("Name"),
-                Required("Id"),
-                Optional("Vendor"),
-                Optional("Risk"),
-                Required("Note"),
-                Optional("Deployment"),
-                Optional("Maintenance")));
+                AllowTrailingCommas = false,
+                CommentHandling = JsonCommentHandling.Disallow
+            });
+            RejectDuplicateProperties(parsed.RootElement);
+            var document = JsonSerializer.Deserialize<ManagedCatalogDocument>(json, ManagedCatalogJsonOptions)
+                ?? throw new InvalidDataException("Managed catalog JSON is empty.");
+            if (document.SchemaVersion != 1)
+                throw new InvalidDataException($"Managed catalog schema version is unsupported: {document.SchemaVersion}.");
+            if (string.IsNullOrWhiteSpace(document.ForbiddenPattern))
+                throw new InvalidDataException("Managed catalog ForbiddenPattern is missing.");
+            if (document.Packages is null || document.Packages.Count == 0)
+                throw new InvalidDataException("Managed catalog contains no package entries.");
 
-            string Required(string key) => fields.TryGetValue(key, out var value) && value.Length > 0
-                ? value : throw new InvalidDataException($"Managed catalog entry is missing '{key}'.");
-            string? Optional(string key) => fields.TryGetValue(key, out var value) ? value : null;
+            var packages = document.Packages.Select((item, index) => new ManagedPackageInput(
+                Required(item.Profile, "Profile", index),
+                Optional(item.Name),
+                Required(item.Id, "Id", index),
+                Optional(item.Vendor),
+                Optional(item.Risk),
+                Required(item.Note, "Note", index),
+                Optional(item.Deployment),
+                Optional(item.Maintenance))).ToArray();
+            return new ManagedCatalogData(document.ForbiddenPattern, packages);
         }
-        if (results.Count == 0) throw new InvalidDataException("Managed catalog contains no package entries.");
-        return results;
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException("Managed catalog JSON is malformed or violates its strict schema.", exception);
+        }
     }
 
-    private static string ParseForbiddenPattern(string dataFile)
+    private static string Required(string? value, string field, int index) =>
+        !string.IsNullOrWhiteSpace(value) ? value : throw new InvalidDataException($"Managed catalog package {index} is missing '{field}'.");
+
+    private static string? Optional(string? value) => value is null ? null : value.Trim();
+
+    private static void RejectDuplicateProperties(JsonElement element)
     {
-        var match = ForbiddenPatternLine().Match(dataFile);
-        if (!match.Success) throw new InvalidDataException("Managed catalog ForbiddenPattern is missing or unsupported.");
-        return match.Groups["value"].Value.Replace("''", "'", StringComparison.Ordinal);
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var property in element.EnumerateObject())
+            {
+                if (!names.Add(property.Name))
+                    throw new InvalidDataException($"Managed catalog repeats JSON property '{property.Name}'.");
+                RejectDuplicateProperties(property.Value);
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray()) RejectDuplicateProperties(item);
+        }
     }
 
-    [GeneratedRegex(@"^\s*@\{\s*(?<body>Profile='.*)\}\s*$", RegexOptions.CultureInvariant, 1000)]
-    private static partial Regex ManagedEntryLine();
+    internal sealed record ManagedCatalogData(string ForbiddenPattern, IReadOnlyList<ManagedPackageInput> Packages);
 
-    [GeneratedRegex(@"(?<key>[A-Za-z][A-Za-z0-9]*)='(?<value>(?:''|[^'])*)'", RegexOptions.CultureInvariant, 1000)]
-    private static partial Regex ManagedField();
+    private sealed record ManagedCatalogDocument(
+        int SchemaVersion,
+        string? ForbiddenPattern,
+        IReadOnlyList<ManagedCatalogPackage>? Packages);
 
-    [GeneratedRegex(@"(?m)^\s*ForbiddenPattern\s*=\s*'(?<value>(?:''|[^'])*)'\s*$", RegexOptions.CultureInvariant, 1000)]
-    private static partial Regex ForbiddenPatternLine();
+    private sealed record ManagedCatalogPackage(
+        string? Profile,
+        string? Name,
+        string? Id,
+        string? Vendor,
+        string? Risk,
+        string? Note,
+        string? Deployment,
+        string? Maintenance);
 }
 
 public static class RepositoryRootLocator
@@ -102,7 +124,7 @@ public static class RepositoryRootLocator
             while (current is not null)
             {
                 if (File.Exists(Path.Combine(current.FullName, "VERSION")) &&
-                    File.Exists(Path.Combine(current.FullName, "scripts", "AppProfiles.psd1")) &&
+                    File.Exists(Path.Combine(current.FullName, "manifests", "managed-applications.json")) &&
                     File.Exists(Path.Combine(current.FullName, "manifests", "external-applications.json")))
                     return current.FullName;
                 current = current.Parent;

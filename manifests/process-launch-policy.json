@@ -4,41 +4,6 @@
   "Purpose": "Authoritative regression contract for processes AV Workstation Toolkit directly launches. This file documents boundaries and does not grant execution authority.",
   "Launches": [
     {
-      "Id": "legacy-recovery-powershell",
-      "Initiator": "AVWorkstationToolkit.exe",
-      "Executable": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      "ShellExecute": false,
-      "Arguments": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "RemoteSigned",
-        "-STA",
-        "-File",
-        "<verified-versioned-runtime>\\scripts\\Start-AVWorkstationToolkit.ps1",
-        "-DataRoot",
-        "<validated-data-root>"
-      ],
-      "Boundary": "Explicit --legacy-powershell-recovery only. There is no automatic fallback from the default compiled App; the launcher constructs this fixed argument vector and rejects unsupported arguments."
-    },
-    {
-      "Id": "legacy-action-worker-powershell",
-      "Initiator": "Start-AVWorkstationToolkit.ps1",
-      "Executable": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      "ShellExecute": false,
-      "Arguments": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "RemoteSigned",
-        "-File",
-        "<verified-versioned-runtime>\\scripts\\Invoke-AVWorkstationToolkitAction.ps1",
-        "-RequestPath",
-        "<validated-request-file>",
-        "-DataRoot",
-        "<validated-data-root>"
-      ],
-      "Boundary": "Available only through the explicit Phase 13 legacy recovery runtime. Only a direct request JSON child of AV Workstation Toolkit logs\\requests is accepted; the legacy worker revalidates exact package IDs and policy."
-    },
-    {
       "Id": "compiled-action-worker",
       "Initiator": "Compiled AV Workstation Toolkit WPF App",
       "Executable": "<verified-versioned-runtime>\\worker\\AVWorkstationToolkit.Worker.exe",
@@ -56,7 +21,7 @@
     },
     {
       "Id": "winget",
-      "Initiator": "Compiled read-only inventory provider or compiled production worker; explicit legacy recovery runtime only when requested",
+      "Initiator": "Compiled read-only inventory provider or compiled production worker",
       "Executable": "<Microsoft.DesktopAppInstaller-install-location>\\winget.exe",
       "ShellExecute": false,
       "Arguments": [
@@ -65,18 +30,8 @@
       "Boundary": "The executable must be the registered Microsoft Desktop App Installer winget.exe beneath protected Program Files\\WindowsApps with a valid Microsoft Authenticode signature. Inventory uses fixed read-only vectors. Production change actions are internally constructed Install/Update vectors for one exact reauthorized managed catalog package ID."
     },
     {
-      "Id": "vendor-bridge-self",
-      "Initiator": "Explicit legacy PowerShell recovery runtime",
-      "Executable": "<current-verified-AVWorkstationToolkit.exe>",
-      "ShellExecute": false,
-      "Arguments": [
-        "--vendor-bridge"
-      ],
-      "Boundary": "Temporary recovery compatibility only. The constant bridge argument is the only process argument. Strict bounded JSON travels over redirected standard input; credentials never enter arguments or environment variables."
-    },
-    {
       "Id": "explorer-handoff",
-      "Initiator": "Compiled WPF App or explicit legacy recovery runtime",
+      "Initiator": "Compiled WPF App",
       "Executable": "%SystemRoot%\\explorer.exe",
       "ShellExecute": false,
       "Arguments": [
@@ -86,7 +41,7 @@
     },
     {
       "Id": "https-shell-handoff",
-      "Initiator": "Compiled WPF App or explicit legacy recovery runtime",
+      "Initiator": "Compiled WPF App",
       "Executable": "Windows HTTPS association",
       "ShellExecute": true,
       "Arguments": [

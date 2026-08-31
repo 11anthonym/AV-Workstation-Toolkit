@@ -1,6 +1,6 @@
 # AV Workstation Toolkit repository contract
 
-AV Workstation Toolkit is a local Windows application for planning, installing, and maintaining a controlled AV/IT workstation software baseline. The compiled C#/.NET 10/WPF App and independent compiled worker are the production runtime. The prior PowerShell/WPF runtime is retained temporarily only behind the explicit `--legacy-powershell-recovery` switch pending Phase 14 stabilization and retirement.
+AV Workstation Toolkit is a local Windows application for planning, installing, and maintaining a controlled AV/IT workstation software baseline. The compiled C#/.NET 10/WPF App and independent compiled worker are the production runtime. PowerShell remains repository tooling and characterization evidence; it is not part of the packaged runtime.
 
 ## Read first
 
@@ -8,8 +8,8 @@ Before changing runtime behavior, read `docs/AV-Workstation-Toolkit-Architecture
 
 ## Source map and dependency rules
 
-- `app/` and `scripts/`: temporary explicit legacy recovery runtime plus build/developer automation.
-- `src/AVWorkstationToolkit.Launcher/`: self-contained production bootstrap, embedded-runtime integrity, and temporary legacy vendor bridge.
+- `app/` and `scripts/`: legacy characterization fixtures plus build, maintenance, and developer automation; never packaged as the application runtime.
+- `src/AVWorkstationToolkit.Launcher/`: self-contained production bootstrap and embedded-runtime integrity.
 - `src/AVWorkstationToolkit.App/`: production compiled WPF composition and presentation.
 - `src/AVWorkstationToolkit.Worker/`: independently validating production worker host.
 - `src/AVWorkstationToolkit.Application/`: use cases and infrastructure abstractions.
@@ -46,6 +46,6 @@ Use locked restore. Review any `packages.lock.json` change intentionally. Never 
 
 ## Migration discipline and completion report
 
-Move one deterministic responsibility at a time. Add fixture-backed characterization before replacement, run both engines, compare canonical semantic output strictly, and keep legacy code only until the coverage matrix's retirement condition is met. Phase 13 made the compiled stack production-authoritative; Phase 14 may retire legacy files only after stabilization evidence satisfies those conditions.
+The production migration is complete. Preserve fixture-backed characterization where it protects contractual behavior, and retire characterization code only through an explicit, reviewed cleanup with equivalent compiled coverage. New runtime work belongs in the typed compiled architecture; PowerShell must not return to the packaged application path.
 
 Every migration change report must list files, exact validation commands/results, parity scenarios and normalization, remaining coverage gaps, security invariants touched, implementation/documentation disagreements, and the next narrowly scoped migration candidate. Never claim interactive visual validation without an actual desktop review.

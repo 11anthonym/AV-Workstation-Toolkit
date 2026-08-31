@@ -106,43 +106,6 @@ function Invoke-PackagedLauncher {
     return $exitCode
 }
 
-function Invoke-PackagedVendorBridge {
-    param(
-        [Parameter(Mandatory)][string]$Launcher,
-        [Parameter(Mandatory)]$Request,
-        [switch]$ExpectFailure
-    )
-
-    $startInfo = [Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = $Launcher
-    $startInfo.Arguments = '--vendor-bridge'
-    $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
-    $startInfo.RedirectStandardInput = $true
-    $startInfo.RedirectStandardOutput = $true
-    $startInfo.RedirectStandardError = $true
-    $process = [Diagnostics.Process]::new()
-    $process.StartInfo = $startInfo
-    try {
-        Assert-True $process.Start() 'Packaged vendor bridge did not start.'
-        $process.StandardInput.Write(($Request | ConvertTo-Json -Depth 6 -Compress))
-        $process.StandardInput.Close()
-        $exitCode = Wait-AVWorkstationToolkitProcess -Process $process -Description 'Packaged vendor bridge'
-        $stdout = $process.StandardOutput.ReadToEnd()
-        $stderr = $process.StandardError.ReadToEnd()
-        try { $response = $stdout | ConvertFrom-Json -ErrorAction Stop }
-        catch { throw "Packaged vendor bridge returned malformed JSON: $stdout" }
-        if ($ExpectFailure) {
-            Assert-True (-not [bool]$response.Success -and $exitCode -ne 0) 'Packaged vendor bridge unexpectedly accepted an invalid request.'
-        }
-        else {
-            Assert-True ([bool]$response.Success -and $exitCode -eq 0) "Packaged vendor bridge failed: $($response.Message) $stderr"
-        }
-        return $response
-    }
-    finally { $process.Dispose() }
-}
-
 function Get-MsiProperty {
     param([Parameter(Mandatory)][string]$Path,[Parameter(Mandatory)][string]$Name)
 
@@ -220,7 +183,7 @@ try {
         Assert-Equal 0 ([int]$manifest.NuGetAudit.VulnerablePackages) 'Release reports vulnerable NuGet packages.'
         Assert-Equal 'net10.0-windows' ([string]$manifest.Launcher.TargetFramework) 'Release launcher target framework differs.'
         Assert-Equal '10.0.11' ([string]$manifest.Launcher.RuntimeFrameworkVersion) 'Release launcher runtime patch differs.'
-        Assert-True ([int]$manifest.EmbeddedPayloadFiles -gt 10) 'Release manifest reports too few embedded runtime files.'
+        Assert-Equal 6 ([int]$manifest.EmbeddedPayloadFiles) 'Release manifest embedded payload count differs from five manifests plus the compiled worker.'
         Assert-Equal (Split-Path -Leaf $sbomPath) ([string]$manifest.Sbom.Name) 'Release SBOM filename differs.'
         Assert-Equal (Get-FileHash -LiteralPath $sbomPath -Algorithm SHA256).Hash ([string]$manifest.Sbom.Sha256) 'Release SBOM hash differs.'
         Assert-Equal (Split-Path -Leaf $checksumPath) ([string]$manifest.Checksums.Name) 'Release checksum filename differs.'
@@ -342,16 +305,17 @@ try {
         Assert-Equal 0 $exitCode 'Launcher verification exited unsuccessfully.'
         $diagnostic = Get-Content -LiteralPath $diagnosticPath -Raw | ConvertFrom-Json
         Assert-True ([bool]$diagnostic.Success) "Launcher diagnostic failed: $($diagnostic.IntegrityMessage)"
-        Assert-Equal 2 ([int]$diagnostic.SchemaVersion) 'Launcher diagnostic schema differs.'
+        Assert-Equal 3 ([int]$diagnostic.SchemaVersion) 'Launcher diagnostic schema differs.'
         Assert-Equal $version ([string]$diagnostic.Version) 'Launcher diagnostic version differs.'
         Assert-True (([string]$diagnostic.RuntimeFramework) -match '^\.NET 10\.0\.') 'Launcher is not running its embedded .NET 10 runtime.'
         Assert-True (([version]$diagnostic.RuntimeVersion) -ge [version]'10.0.11') 'Launcher embedded runtime predates the reviewed .NET 10 security baseline.'
         Assert-Equal 'X64' ([string]$diagnostic.RuntimeArchitecture) 'Launcher runtime architecture differs.'
-        Assert-True ([int]$diagnostic.FilesVerified -gt 10) 'Launcher verified too few embedded runtime files.'
+        Assert-True ([int]$diagnostic.FilesVerified -ge 10) 'Launcher verified too few embedded runtime files.'
         Assert-True ([bool]$diagnostic.FrontendPresent) 'Extracted frontend is missing.'
         Assert-Equal 'Compiled C# WPF' ([string]$diagnostic.FrontendArchitecture) 'Packaged default frontend is not compiled WPF.'
         Assert-True ([bool]$diagnostic.WorkerPresent) 'Extracted compiled worker is missing.'
-        Assert-True ([bool]$diagnostic.LegacyRecoveryPresent) 'Explicit legacy recovery runtime is missing.'
+        Assert-True (-not [bool]$diagnostic.LegacyRecoveryPresent) 'Legacy recovery is still present in the packaged runtime.'
+        Assert-True ('PowerShellPath' -notin @($diagnostic.PSObject.Properties.Name) -and 'PowerShellPresent' -notin @($diagnostic.PSObject.Properties.Name)) 'Launcher diagnostics still expose a PowerShell runtime dependency.'
         $expectedRuntimeRoot = [IO.Path]::GetFullPath((Join-Path $dataRoot (Join-Path 'runtime' $version)))
         $actualRuntimeRoot = [IO.Path]::GetFullPath([string]$diagnostic.ApplicationRoot)
         Assert-Equal $expectedRuntimeRoot $actualRuntimeRoot 'Embedded runtime does not use the deterministic versioned location.'
@@ -362,6 +326,7 @@ try {
         Assert-Equal 'Compiled C# WPF' ([string]$releaseManifest.CompiledRuntime.Primary) 'Release manifest primary runtime differs.'
         Assert-Equal 'AVWorkstationToolkit.Worker.exe' ([string]$releaseManifest.CompiledRuntime.WorkerName) 'Release manifest worker identity differs.'
         Assert-Equal ([string]$diagnostic.WorkerSha256) ([string]$releaseManifest.CompiledRuntime.WorkerSha256) 'Release manifest worker hash differs.'
+        Assert-Equal 'Retired from shipping' ([string]$releaseManifest.CompiledRuntime.LegacyFallback) 'Release manifest does not record final legacy retirement.'
         $workerSignature = Get-AuthenticodeSignature -LiteralPath $workerPath
         Assert-Equal ([string]$workerSignature.Status) ([string]$releaseManifest.CompiledRuntime.WorkerSignatureStatus) 'Release manifest worker signature state differs.'
         if ($RequireSignature) { Assert-Equal 'Valid' ([string]$workerSignature.Status) 'Packaged compiled worker signature is not valid.' }
@@ -371,29 +336,23 @@ try {
             Assert-True ((Get-Item -LiteralPath $runtimeNoticePath).Length -gt 500) "Extracted runtime notice is unexpectedly small: $relativeNotice"
         }
         $script:runtimeApplicationRoot = [string]$diagnostic.ApplicationRoot
-        Add-Type -AssemblyName PresentationFramework
-        $packagedXamlPath = Join-Path ([string]$diagnostic.ApplicationRoot) 'app\AVWorkstationToolkit.xaml'
-        [xml]$packagedXaml = Get-Content -LiteralPath $packagedXamlPath -Raw
-        $packagedReader = New-Object System.Xml.XmlNodeReader $packagedXaml
-        $packagedWindow = [Windows.Markup.XamlReader]::Load($packagedReader)
-        try {
-            Assert-True ($null -ne $packagedWindow.FindName('DiagnosticsButton')) 'Packaged XAML omitted the diagnostics view entry point.'
-            Assert-True ($null -ne $packagedWindow.FindName('ManufacturerFilter')) 'Packaged XAML omitted the manufacturer filter.'
-            Assert-True ($null -ne $packagedWindow.FindName('TopMenu')) 'Packaged XAML omitted the conventional application menu.'
-            Assert-True ($null -ne $packagedWindow.FindName('SafetySecurityMenuItem')) 'Packaged XAML omitted the Safety & Security entry point.'
-            Assert-Equal 'Check again' ([string]$packagedWindow.FindName('RecheckButton').Content) 'Packaged XAML retained the technical reboot-check label.'
-            Assert-True ((Get-Content -LiteralPath $packagedXamlPath -Raw) -match '(?s)Header="Purpose / restriction".+?TextWrapping="Wrap".+?ToolTip="\{Binding Note\}"') 'Packaged XAML does not expose full purpose or restriction text.'
-            foreach ($name in @('ModePill','WingetPill','PrivilegePill')) {
-                Assert-True ($null -eq $packagedWindow.FindName($name)) "Packaged header retained telemetry control: $name"
-            }
-            Assert-True ($null -ne $packagedWindow.FindName('AllAppsButton') -and $null -ne $packagedWindow.FindName('QuickViewState')) 'Packaged XAML omitted composable quick-view controls.'
-            $packagedGrid = $packagedWindow.FindName('PackageGrid')
-            Assert-True (-not $packagedGrid.Columns[0].CanUserSort -and -not $packagedGrid.Columns[7].CanUserSort) 'Packaged non-sortable grid columns changed.'
-            Assert-Equal 'ApplicationSortKey|VendorSortKey|PrioritySortKey|StatusSortKey|VersionSortKey|RiskSortKey' (($packagedGrid.Columns[1..6] | ForEach-Object SortMemberPath) -join '|') 'Packaged sortable columns differ from source.'
+        foreach ($retiredPath in @('app\AVWorkstationToolkit.xaml','scripts\Start-AVWorkstationToolkit.ps1','scripts\Invoke-AVWorkstationToolkitAction.ps1')) {
+            Assert-True (-not (Test-Path -LiteralPath (Join-Path $script:runtimeApplicationRoot $retiredPath))) "Retired runtime file is still packaged: $retiredPath"
         }
-        finally { $packagedWindow.Close() }
         Assert-Equal (Get-FileHash -LiteralPath $downloadedExecutable -Algorithm SHA256).Hash ([string]$releaseManifest.Launcher.Sha256) 'Release launcher hash differs.'
         Assert-Equal ([string]$launcherSignature) ([string]$releaseManifest.Launcher.SignatureStatus) 'Release launcher signature state differs.'
+    }
+
+    Invoke-Check 'Launcher removes recognized stale legacy files from an existing versioned runtime' {
+        $retiredScript = Join-Path $script:runtimeApplicationRoot 'scripts\Start-AVWorkstationToolkit.ps1'
+        New-Item -ItemType Directory -Path (Split-Path -Parent $retiredScript) -Force | Out-Null
+        'retired fixture' | Set-Content -LiteralPath $retiredScript -Encoding UTF8
+        $cleanupDiagnosticPath = Join-Path $temporaryRoot 'downloaded-diagnostic-cleanup.json'
+        $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--verify',$cleanupDiagnosticPath,'--data-root',$dataRoot)
+        Assert-Equal 0 $exitCode 'Launcher legacy-runtime cleanup verification failed.'
+        $cleanupDiagnostic = Get-Content -LiteralPath $cleanupDiagnosticPath -Raw | ConvertFrom-Json
+        Assert-Equal 1 ([int]$cleanupDiagnostic.RetiredRuntimeFilesRemoved) 'Launcher did not report the exact retired-file cleanup.'
+        Assert-True (-not (Test-Path -LiteralPath $retiredScript)) 'Launcher left a recognized retired runtime file behind.'
     }
 
     Invoke-Check 'Second launcher verification leaves an unchanged runtime cache untouched' {
@@ -406,7 +365,7 @@ try {
                 LastWriteTimeUtc = $file.LastWriteTimeUtc
             }
         }
-        Assert-True ($before.Count -gt 10) 'Versioned runtime contains too few files for no-rewrite validation.'
+        Assert-True ($before.Count -ge 10) 'Versioned runtime contains too few files for no-rewrite validation.'
         $secondDiagnosticPath = Join-Path $temporaryRoot 'downloaded-diagnostic-second.json'
         $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--verify',$secondDiagnosticPath,'--data-root',$dataRoot)
         Assert-Equal 0 $exitCode 'Second launcher verification failed.'
@@ -434,27 +393,6 @@ try {
         Assert-True ([string]$versionInfo.ProductVersion -like "$version*") 'EXE product version differs from MSI/release identity.'
     }
 
-    Invoke-Check 'Downloaded standalone executable includes the credential and vendor transport bridge' {
-        $operation = if ($SkipDesktopSmoke) { 'SelfTest' } else { 'CredentialRoundTripTest' }
-        $response = Invoke-PackagedVendorBridge -Launcher $downloadedExecutable -Request ([pscustomobject]@{ Operation=$operation })
-        Assert-True ([bool]$response.Success) "Vendor bridge self-test failed: $($response.Message)"
-        Assert-Equal $operation ([string]$response.Operation) 'Vendor bridge self-test operation differs.'
-        if ($SkipDesktopSmoke) {
-            Assert-True ([string]$response.Message -match 'Credential Manager API.*HTTPS.*SFTP') 'CI-safe bridge self-test did not confirm all required libraries.'
-        }
-        else {
-            Assert-True ([string]$response.Message -match 'write, read, and delete') 'Local bridge self-test did not complete the Credential Manager round trip.'
-        }
-    }
-
-    Invoke-Check 'Packaged vendor bridge rejects unknown request properties' {
-        $response = Invoke-PackagedVendorBridge -Launcher $downloadedExecutable -ExpectFailure -Request ([pscustomobject]@{
-            Operation='SelfTest'
-            Unexpected='reject me'
-        })
-        Assert-True ([string]$response.Message -match '(?i)unmapped|unexpected') 'Strict vendor request-schema rejection was not reported.'
-    }
-
     Expand-Archive -LiteralPath $portablePath -DestinationPath $portableExtract
     $portableLauncher = Join-Path $portableExtract 'AVWorkstationToolkit.exe'
     Invoke-Check 'Portable ZIP contains the same single standalone executable' {
@@ -469,14 +407,11 @@ try {
         Write-Host 'SKIP  Packaged WPF control and workflow smoke test requires an interactive Windows desktop.' -ForegroundColor Yellow
     }
     else {
-        Invoke-Check 'Packaged production compiled WPF smoke runs through AVWorkstationToolkit.exe' {
-            $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke')
-            Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke process failed. $script:LastLauncherStdErr"
-        }
-        Invoke-Check 'Explicit legacy PowerShell recovery requires its deliberate switch' {
-            $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @(
-                '--legacy-powershell-recovery','--smoke-test','--wait','--data-root',$dataRoot)
-            Assert-Equal 0 $exitCode 'Explicit packaged legacy recovery smoke process failed.'
+        Invoke-Check 'Packaged production compiled WPF smoke opens and reopens cleanly' {
+            foreach ($attempt in 1..2) {
+                $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke')
+                Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke attempt $attempt failed. $script:LastLauncherStdErr"
+            }
         }
     }
 
@@ -485,18 +420,18 @@ try {
         $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--verify',$diagnosticPath,'--data-root',$dataRoot)
         Assert-Equal 0 $exitCode 'Initial runtime preparation failed.'
         $diagnostic = Get-Content -LiteralPath $diagnosticPath -Raw | ConvertFrom-Json
-        $cachedXaml = Join-Path ([string]$diagnostic.ApplicationRoot) 'app\AVWorkstationToolkit.xaml'
-        $expectedHash = (Get-FileHash -LiteralPath $cachedXaml -Algorithm SHA256).Hash
+        $cachedCatalog = Join-Path ([string]$diagnostic.ApplicationRoot) 'manifests\managed-applications.json'
+        $expectedHash = (Get-FileHash -LiteralPath $cachedCatalog -Algorithm SHA256).Hash
         $cachedWorker = Join-Path ([string]$diagnostic.ApplicationRoot) 'worker\AVWorkstationToolkit.Worker.exe'
         $expectedWorkerHash = (Get-FileHash -LiteralPath $cachedWorker -Algorithm SHA256).Hash
-        Add-Content -LiteralPath $cachedXaml -Value '<!-- tamper test -->' -Encoding UTF8
+        Add-Content -LiteralPath $cachedCatalog -Value 'tamper test' -Encoding UTF8
         Add-Content -LiteralPath $cachedWorker -Value 'tamper test' -Encoding UTF8
-        Assert-True ((Get-FileHash -LiteralPath $cachedXaml -Algorithm SHA256).Hash -ne $expectedHash) 'Runtime cache tamper setup did not alter the file.'
+        Assert-True ((Get-FileHash -LiteralPath $cachedCatalog -Algorithm SHA256).Hash -ne $expectedHash) 'Runtime cache tamper setup did not alter the file.'
         Assert-True ((Get-FileHash -LiteralPath $cachedWorker -Algorithm SHA256).Hash -ne $expectedWorkerHash) 'Compiled worker tamper setup did not alter the file.'
         $repairDiagnosticPath = Join-Path $temporaryRoot 'repair-after.json'
         $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--verify',$repairDiagnosticPath,'--data-root',$dataRoot)
         Assert-Equal 0 $exitCode 'Launcher did not repair the modified runtime cache.'
-        Assert-Equal $expectedHash (Get-FileHash -LiteralPath $cachedXaml -Algorithm SHA256).Hash 'Repaired runtime cache hash differs.'
+        Assert-Equal $expectedHash (Get-FileHash -LiteralPath $cachedCatalog -Algorithm SHA256).Hash 'Repaired runtime cache hash differs.'
         Assert-Equal $expectedWorkerHash (Get-FileHash -LiteralPath $cachedWorker -Algorithm SHA256).Hash 'Repaired compiled worker hash differs.'
     }
 
@@ -547,7 +482,7 @@ try {
         }
         if (-not $SkipDesktopSmoke) {
             $offlineDataRoot = Join-Path $runtimeTestRoot 'offline-data'
-            $exitCode = Invoke-PackagedLauncher -Launcher $offlineLauncher -Arguments @('--smoke-test','--wait','--data-root',$offlineDataRoot)
+            $exitCode = Invoke-PackagedLauncher -Launcher $offlineLauncher -Arguments @('--smoke-test','--data-root',$offlineDataRoot)
             Assert-Equal 0 $exitCode 'Offline bundle WPF smoke process failed.'
         }
     }

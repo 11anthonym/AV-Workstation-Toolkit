@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using AVWorkstationToolkit.App.ViewModels;
 
@@ -126,22 +127,82 @@ public partial class MainWindow : Window
 
     internal void VerifyProductionSmokeContract()
     {
-        var required = new[] { "SearchBox", "CatalogPresetFilter", "ManufacturerFilter", "PackageGrid", "ActivityLog", "InstallButton", "UpdateButton", "RefreshButton" };
+        var required = new[]
+        {
+            "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "ManufacturerFilter", "DisciplineFilter",
+            "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog",
+            "DetailsButton", "DiagnosticsButton", "InstallButton", "UpdateButton", "RefreshButton"
+        };
         foreach (var name in required)
         {
             if (FindName(name) is null) throw new InvalidOperationException($"Compiled production smoke could not find required control '{name}'.");
         }
         if (DataContext is not MainWindowViewModel viewModel || viewModel.Packages.Count < 300 || !viewModel.MigrationActionMode)
             throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");
+
         viewModel.SearchText = "Crestron";
         if (viewModel.VisiblePackages.Count == 0)
             throw new InvalidOperationException("Compiled production smoke filtering produced no matching catalog rows.");
         viewModel.SearchText = string.Empty;
-        Measure(new Size(1280, 860));
-        Arrange(new Rect(0, 0, 1280, 860));
+        viewModel.QuickViewCommand.Execute("Missing");
+        if (!viewModel.IsMissingQuickView)
+            throw new InvalidOperationException("Compiled production smoke could not activate the Missing quick view.");
+        viewModel.QuickViewCommand.Execute("All");
+        viewModel.SetSort("VendorSortKey", ListSortDirection.Descending);
+        var vendorOrder = viewModel.VisiblePackages.Select(item => item.VendorSortKey).ToArray();
+        if (viewModel.SortDirection != ListSortDirection.Descending ||
+            !vendorOrder.SequenceEqual(vendorOrder.OrderByDescending(value => value, StringComparer.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Compiled production smoke could not apply the reviewed sort state.");
+        viewModel.SetSort("ApplicationSortKey", ListSortDirection.Ascending);
+
+        var selectable = viewModel.VisiblePackages.FirstOrDefault(item => item.SelectionEnabled)
+            ?? throw new InvalidOperationException("Compiled production smoke found no safely selectable managed package.");
+        PackageGrid.ScrollIntoView(selectable);
         UpdateLayout();
-        if (!PackageGrid.IsVisible || PackageGrid.ActualWidth <= 0 || PackageGrid.ActualHeight <= 0)
-            throw new InvalidOperationException("Compiled production smoke did not render the application grid.");
+        var row = PackageGrid.ItemContainerGenerator.ContainerFromItem(selectable) as DataGridRow
+            ?? throw new InvalidOperationException("Compiled production smoke could not realize an eligible package row.");
+        var checkBox = FindVisualChild<CheckBox>(row)
+            ?? throw new InvalidOperationException("Compiled production smoke could not find the package selection control.");
+        if (new CheckBoxAutomationPeer(checkBox).GetPattern(PatternInterface.Toggle) is not IToggleProvider toggle)
+            throw new InvalidOperationException("Compiled production selection does not expose keyboard/automation toggle behavior.");
+        toggle.Toggle();
+        if (!selectable.Selected || (!viewModel.CanInstall && !viewModel.CanUpdate))
+            throw new InvalidOperationException("Compiled production selection did not update the authoritative action state.");
+        toggle.Toggle();
+        if (selectable.Selected)
+            throw new InvalidOperationException("Compiled production deselection did not update the authoritative action state.");
+
+        viewModel.SelectedRow = viewModel.VisiblePackages[0];
+        viewModel.DetailsCommand.Execute(null);
+        var detail = viewModel.SelectedDetail ?? throw new InvalidOperationException("Compiled production smoke did not prepare package details.");
+        var detailWindow = new CatalogDetailWindow(detail) { Owner = this };
+        detailWindow.Show();
+        detailWindow.UpdateLayout();
+        detailWindow.VerifySmokeContract(viewModel.SelectedRow.Id);
+        detailWindow.Close();
+
+        viewModel.DiagnosticsCommand.Execute(null);
+        var diagnostics = viewModel.Diagnostics ?? throw new InvalidOperationException("Compiled production smoke did not prepare diagnostics.");
+        var diagnosticsWindow = new DiagnosticsWindow(diagnostics) { Owner = this };
+        diagnosticsWindow.Show();
+        diagnosticsWindow.UpdateLayout();
+        diagnosticsWindow.VerifySmokeContract();
+        diagnosticsWindow.Close();
+
+        if (!SearchBox.Focusable || !PackageGrid.Focusable || !SearchBox.Focus())
+            throw new InvalidOperationException("Compiled production smoke could not place keyboard focus on the search field.");
+        if (!SearchBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)) || Keyboard.FocusedElement is null)
+            throw new InvalidOperationException("Compiled production smoke could not traverse keyboard focus from the search field.");
+
+        foreach (var viewport in new[] { new Size(1040, 760), new Size(1440, 900) })
+        {
+            Measure(viewport);
+            Arrange(new Rect(new Point(), viewport));
+            UpdateLayout();
+            if (!PackageGrid.IsVisible || PackageGrid.ActualWidth <= 0 || PackageGrid.ActualHeight <= 0 ||
+                SidebarScroll.ActualWidth <= 0 || SidebarScroll.ActualHeight <= 0)
+                throw new InvalidOperationException($"Compiled production smoke did not render its common {viewport.Width}x{viewport.Height} layout.");
+        }
     }
 
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject

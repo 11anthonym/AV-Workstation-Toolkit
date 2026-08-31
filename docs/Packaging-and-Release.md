@@ -6,7 +6,7 @@ AV Workstation Toolkit builds a directly downloadable x64 executable, a per-mach
 
 The direct release executable can run from any normal user-writable directory. The MSI installs that executable beneath `%ProgramFiles%\AVWorkstationToolkit` and creates an all-users Start-menu shortcut. The portable ZIP contains only `AVWorkstationToolkit.exe`.
 
-The launcher embeds the .NET 10.0.11 LTS compiled WPF application, the self-contained compiled worker, catalogs/notices, and the temporary audited PowerShell recovery runtime, so target systems do not need a separate .NET installation or adjacent scripts. Desktop App Installer/WinGet is the managed-package prerequisite. Windows PowerShell 5.1 is required only when an operator deliberately selects `--legacy-powershell-recovery`. The launcher:
+The launcher embeds the .NET 10.0.11 LTS compiled WPF application, the self-contained compiled worker, and reviewed catalogs/notices, so target systems do not need a separate .NET installation or adjacent scripts. Desktop App Installer/WinGet is the managed-package prerequisite. PowerShell is not required by the packaged application runtime. The launcher:
 
 1. enumerates its compile-time embedded runtime resources;
 2. restores changed or missing files into `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\1.1.1`, verifies every extracted SHA-256 hash against the embedded bytes, and leaves matching files untouched;
@@ -14,7 +14,7 @@ The launcher embeds the .NET 10.0.11 LTS compiled WPF application, the self-cont
 4. refuses an elevated operator token;
 5. starts the compiled WPF App in-process for normal startup;
 6. gives the App only the exact embedded worker identity/hash and canonical `%LOCALAPPDATA%\AVWorkstationToolkit` root; the App launches the worker with a fixed production argument vector and `UseShellExecute=false`;
-7. resolves inbox Windows PowerShell and the legacy `--vendor-bridge` only for the explicit temporary recovery path; no automatic fallback occurs;
+7. removes only an exact allowlist of stale extracted application-runtime files left by earlier versions, without touching unrelated user data;
 8. restores the Apache-2.0 project license, project third-party notices, and the exact .NET 10.0.11 license and upstream third-party notices under the verified runtime `notices` directory; and
 9. never accepts a package ID, credential, URI, executable, worker path, or arbitrary command argument from its command line.
 
@@ -26,7 +26,6 @@ Installed and portable runs write mutable data beneath `%LOCALAPPDATA%\AVWorksta
 │   ├── worker\AVWorkstationToolkit.Worker.exe
 │   ├── manifests
 │   ├── notices
-│   └── app + scripts (explicit recovery only)
 ├── logs\requests
 ├── reports
 ├── vendor-cache
@@ -40,7 +39,7 @@ MSI uninstall intentionally preserves this evidence. Remove it only through an a
 
 On the first packaged launch, the 1.1.1 runtime checks the historical `%LOCALAPPDATA%\AVinite` root and progressively establishes `%LOCALAPPDATA%\AVWorkstationToolkit`. Migration is intentionally non-destructive and allowlisted: AV Workstation Toolkit can copy a validated SFTP host store, bounded launcher/request logs, and hash-matching vendor-cache payload metadata. It never copies runtime scripts, arbitrary files, reports, or snapshots; rejects reparse-point roots and paths; does not overwrite existing new-state files; writes a completion marker; and leaves the historical directory in place for retention review. Repeated launches read the marker without rewriting migrated files.
 
-New SFTP credentials use the `AVWorkstationToolkit:VendorSftp:` Credential Manager prefix. The vendor bridge can read the historical credential target only as a fallback, and an explicit **Forget saved** action removes both identities. Password material is never copied into files, arguments, logs, or diagnostics.
+New SFTP credentials use the `AVWorkstationToolkit:VendorSftp:` Credential Manager prefix. The compiled credential service can read the historical credential target only as a fallback, and an explicit **Forget saved** action removes both identities. Password material is never copied into files, arguments, logs, or diagnostics.
 
 ## Build
 
@@ -65,7 +64,7 @@ From the repository root, the supported fresh-clone build entry point is:
 Build-AVWorkstationToolkit.cmd
 ```
 
-The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.1`.
+The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.1`.
 
 The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, Apache-2.0 license, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
 

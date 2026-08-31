@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Runs non-installing QA, publishes the self-contained compiled WPF runtime
-    with its integrity-pinned compiled worker and explicit legacy recovery runtime embedded, builds an MSI with pinned WiX
+    with its integrity-pinned compiled worker and reviewed data manifests embedded, builds an MSI with pinned WiX
     tooling, creates a one-file portable ZIP, and emits SHA-256 checksums. If a
     code-signing certificate thumbprint is supplied, the executable and MSI are
     signed before their hashes are recorded. BuildOfflineBundle additionally
@@ -267,14 +267,6 @@ $catalogCompiler = Join-Path $repositoryRoot 'build\Compile-CommercialCatalog.ps
 & $catalogCompiler -Check
 if ($LASTEXITCODE -ne 0) { throw 'Commercial catalog compilation check failed.' }
 
-$moduleManifest = Test-ModuleManifest -Path (Join-Path $repositoryRoot 'scripts\AVWorkstationToolkit.Core.psd1')
-if ([string]$moduleManifest.Version -ne $Version) {
-    throw "PowerShell module version $($moduleManifest.Version) does not match release version $Version."
-}
-$xamlIdentity = Get-Content -LiteralPath (Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml') -Raw
-if ($xamlIdentity -notmatch ('AV Workstation Toolkit ' + [regex]::Escape($Version))) {
-    throw "WPF identity does not contain release version $Version."
-}
 $launcherProjectIdentity = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
 $launcherProjectXml = [xml]$launcherProjectIdentity
 $launcherProperties = @($launcherProjectXml.Project.PropertyGroup | Where-Object { $null -ne $_.TargetFramework } | Select-Object -First 1)
@@ -378,13 +370,10 @@ if ($null -ne $certificate) {
 }
 
 $embeddedPayloadFiles = @(
-    Get-Item -LiteralPath (Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml')
-    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'scripts') -File |
-        Where-Object Extension -in @('.ps1','.psd1','.psm1')
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File -Filter '*.json'
     Get-Item -LiteralPath $workerPayloadPath
 )
-if ($embeddedPayloadFiles.Count -lt 10) {
+if ($embeddedPayloadFiles.Count -lt 6) {
     throw "The standalone executable would embed too few runtime files: $($embeddedPayloadFiles.Count)"
 }
 
@@ -580,7 +569,7 @@ $releaseManifest = [ordered]@{
         WorkerName = 'AVWorkstationToolkit.Worker.exe'
         WorkerSha256 = $workerPayloadSha256
         WorkerSignatureStatus = (Get-AVWorkstationToolkitSignatureMetadata -Path $workerPayloadPath).Status
-        LegacyFallback = 'Explicit --legacy-powershell-recovery only'
+        LegacyFallback = 'Retired from shipping'
     }
     Artifacts = $artifactEntries
 }

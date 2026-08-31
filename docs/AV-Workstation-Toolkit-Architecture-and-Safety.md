@@ -32,32 +32,32 @@ flowchart LR
 
 | Component | Responsibility |
 |---|---|
-| `src/AVWorkstationToolkit.Launcher` | Self-contained compiled-WPF bootstrap, embedded-runtime extraction/integrity repair, canonical per-user data root, embedded-worker identity, and explicit legacy recovery switch |
+| `src/AVWorkstationToolkit.Launcher` | Self-contained compiled-WPF bootstrap, embedded-runtime extraction/integrity repair, canonical per-user data root, embedded-worker identity, and retired-runtime cleanup |
 | `src/AVWorkstationToolkit.App` | Production WPF presentation, typed refresh/filter/selection state, action coordination, vendor handoffs, and diagnostics |
 | `src/AVWorkstationToolkit.Application` / `Domain` | Production use cases, strict requests/IPC, catalog/planning/authority, and typed policy |
 | `src/AVWorkstationToolkit.Infrastructure.Windows` | Trusted WinGet/registry/reboot/process/file/vendor/credential/Authenticode Windows adapters |
 | `src/AVWorkstationToolkit.Worker` | Independent standard-user worker, per-package reauthorization, exact-ID WinGet execution, progress/results/cancellation, and fresh verification |
 | `installer/` | Per-machine x64 MSI, Program Files deployment, upgrade handling, and Start-menu lifecycle |
 | `Build-AVWorkstationToolkit.cmd` / `build/Build-Release.ps1` | Fresh-clone entry point, version agreement, source QA, locked dependency audit, standalone launcher publish, explicit RFC3161 signing policy, EXE/MSI/ZIP/notices/SBOM/provenance output, optional verified offline bundle/Defender scan, and manifest-covering checksums |
-| `app/AVWorkstationToolkit.xaml` | Temporary explicit recovery presentation retained through Phase 13 |
-| `scripts/Start-AVWorkstationToolkit.ps1` | Temporary explicit recovery UI/controller |
-| `scripts/AVWorkstationToolkit.Vendor.psm1` | Temporary explicit recovery bridge client |
-| `scripts/AppProfiles.psd1` | Exact-ID WinGet allowlist, profiles, risks, holds, and forbidden-product pattern |
+| `app/AVWorkstationToolkit.xaml` | Legacy presentation characterization fixture; not packaged |
+| `scripts/Start-AVWorkstationToolkit.ps1` | Legacy UI/controller characterization fixture; not packaged |
+| `scripts/AVWorkstationToolkit.Vendor.psm1` | Legacy vendor-boundary characterization fixture; not packaged |
+| `manifests/managed-applications.json` | Production exact-ID WinGet allowlist, profiles, risks, holds, and forbidden-product pattern |
 | `manifests/external-applications.json` | Operational external detection, known versions, bounded vendor release checks, parent relationships, and delivery policy |
 | `catalog/vendors/*.json` | Authoritative per-manufacturer source records for broad awareness metadata |
 | `build/Compile-CommercialCatalog.ps1` | Strict UTF-8 source compilation, normalization, duplicate checks, policy invariants, and compiled-artifact drift detection |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV metadata for role, discipline, lifecycle, licensing, access, platform, and system impact |
 | `manifests/process-launch-policy.json` | Embedded regression contract for every process category AV Workstation Toolkit intentionally starts; descriptive only and never an execution-authority input |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Explicit redistribution gate plus payload hash and signer capture for authorized offline bundles |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy recovery core and behavioral characterization oracle pending Phase 14 review |
-| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy recovery worker pending Phase 14 review |
+| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavioral characterization oracle and repository tooling; not packaged |
+| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization fixture; not packaged |
 | `tests/Run-Tests.ps1` / `Test-EndpointTrust.ps1` | Dependency-free non-installing regression, process-policy, packaging-pattern, and optional Defender release checks |
 
-## Production cutover and recovery seam
+## Compiled production runtime
 
-WPF remains the local Windows desktop shell; no web service or generic command surface was introduced. Phase 13 made compiled Domain/Application policy, WPF presentation, Windows providers, vendor services, request/IPC, and the independent compiled worker production-authoritative. Provider transport supplies facts or a permitted handoff but never grants deployment authority. Vendor source records still compile into one embedded artifact rather than mutable runtime inputs.
+WPF remains the local Windows desktop shell; no web service or generic command surface was introduced. Compiled Domain/Application policy, WPF presentation, Windows providers, vendor services, request/IPC, and the independent compiled worker are production-authoritative. Provider transport supplies facts or a permitted handoff but never grants deployment authority. Vendor source records still compile into one embedded artifact rather than mutable runtime inputs.
 
-The old PowerShell/WPF runtime remains available only when a developer or recovery operator deliberately supplies `--legacy-powershell-recovery`. There is no automatic fallback. Phase 14 may remove it only after interactive stabilization and the coverage matrix retirement conditions are satisfied.
+The old PowerShell/WPF runtime, PowerShell worker, and launcher vendor bridge are retired from shipping. There is no legacy runtime switch or automatic fallback. On startup the launcher may delete only an exact allowlist of stale extracted runtime files left by a prior version; unrecognized data is never removed.
 
 The normal endpoint process tree, file/registry/network behavior, false-positive response, and ranked future compiled-runtime candidates are documented in [Endpoint-Security-Behavior.md](Endpoint-Security-Behavior.md).
 
@@ -65,9 +65,9 @@ The normal endpoint process tree, file/registry/network behavior, false-positive
 
 1. The UI presents only IDs returned by the validated catalog.
 2. A request contains an action and exact IDs, not arbitrary command-line text.
-3. Production compiled App and worker refuse elevation; explicit recovery also rejects elevated execution before loading scripts/XAML.
+3. Production compiled App and worker refuse elevation.
 4. `winget.exe` must resolve from the Microsoft Desktop App Installer package beneath protected `Program Files\WindowsApps` storage and pass Microsoft Authenticode verification.
-5. Runtime files are compile-time embedded resources. On every launch, the executable rejects invalid or duplicate resource paths and reparse-point cache paths, restores missing or altered files, and verifies extracted SHA-256 hashes before the compiled App can use the worker/catalogs or recovery can start.
+5. Runtime files are compile-time embedded resources. On every launch, the executable rejects invalid or duplicate resource paths and reparse-point cache paths, restores missing or altered files, and verifies extracted SHA-256 hashes before the compiled App can use the worker or catalogs.
 6. Mutable package requests and evidence are separated from installed files under `%LOCALAPPDATA%\AVWorkstationToolkit`; source checkouts retain repository-local data for development.
 7. Request files must be direct, non-reparse-point children of the resolved `logs\requests`, use the required filename, size, and versioned JSON schema, and contain no unknown fields.
 8. The worker rebuilds a live plan and revalidates every ID; during a multi-package run it refreshes state before every package after the first.
@@ -100,7 +100,7 @@ External providers are evaluated independently so a vendor-site outage cannot we
 
 The 281-record compiled awareness manifest is intentionally outside the operational provider boundary. Records may represent Windows tools, built-in Windows capabilities, macOS/mobile software, servers, web services, embedded firmware, or diagnostic interfaces. A record with registry evidence can report `Inventory` or `NotDetected`; a record without a Windows detection mode reports `Awareness`. Both remain non-actionable. The authoritative vendor source files are build inputs only; AV Workstation Toolkit embeds and consumes the single normalized artifact. The full state and metadata design is documented in [Commercial-AV-Catalog.md](Commercial-AV-Catalog.md).
 
-The action worker is a separate standard-user Windows PowerShell process. Closing the UI does not terminate an active installer. Cancellation is cooperative between packages, which avoids leaving an installer half-applied. Installers that require administrator rights request UAC themselves; AV Workstation Toolkit does not preload user-writable repository code into an elevated process.
+The action worker is a separate standard-user compiled .NET process. Closing the UI does not terminate an active installer. Cancellation is cooperative between packages, which avoids leaving an installer half-applied. Installers that require administrator rights request UAC themselves; AV Workstation Toolkit does not preload user-writable repository code into an elevated process.
 
 ## Evidence and privacy
 

@@ -21,12 +21,12 @@ On startup the launcher:
 
 1. rejects elevated execution;
 2. prepares the deterministic `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\<AVWorkstationToolkit-version>` directory;
-3. compares every embedded compiled worker, catalog, notice, and temporary recovery resource with its embedded SHA-256 value;
+3. compares every embedded compiled worker, catalog, and notice with its embedded SHA-256 value;
 4. leaves matching files untouched and atomically repairs missing or modified files with a non-executable `.tmp` file in the same controlled directory;
 5. rejects traversal and reparse-point paths; and
 6. starts the compiled C# WPF App in-process with the canonical data root and embedded compiled-worker SHA-256.
 
-Normal startup does not launch PowerShell. The former PowerShell/WPF implementation remains temporarily available only through the deliberate `--legacy-powershell-recovery` switch; failure of the compiled App never activates it automatically. That recovery launch uses `UseShellExecute=false`, `CreateNoWindow=true`, inbox Windows PowerShell, `RemoteSigned`, and static versioned scripts. It never passes `-EncodedCommand`, `-Command`, `ExecutionPolicy Bypass`, generated script text, or a script beneath `%TEMP%`. Application-owned runtime content is always the versioned LocalAppData tree above.
+Normal startup does not launch PowerShell, and the packaged runtime contains no PowerShell UI, worker, vendor bridge, or recovery switch. The launcher removes only an exact allowlist of obsolete extracted runtime files from earlier versions; it does not execute them or delete unrelated application data. Application-owned runtime content is always the versioned LocalAppData tree above.
 
 Read-only inventory can directly start only the Microsoft-signed `winget.exe` resolved from the installed `Microsoft.DesktopAppInstaller` package under protected `Program Files\WindowsApps`. Expected inventory arguments are fixed combinations of `--version`, `export`, `list`, source selection, agreement acceptance, and disabled interactivity. A temporary `AVWorkstationToolkit-winget-export-*.json` data file may be created beneath the current Windows temporary directory and is removed after parsing; it is never executable.
 
@@ -52,13 +52,13 @@ Manual and external-provider records never enter the WinGet worker. Explicit ope
 
 - `%SystemRoot%\explorer.exe` opens the logs directory or selects a verified cached/bundled file. AV Workstation Toolkit does not execute that file.
 - The Windows HTTPS association opens a validated absolute HTTPS catalog/vendor page without embedded credentials.
-- Compiled HTTPS/SFTP/Credential Manager services handle catalog-authorized delivery in-process. The old `AVWorkstationToolkit.exe --vendor-bridge` helper remains only for explicit legacy recovery.
+- Compiled HTTPS/SFTP/Credential Manager services handle catalog-authorized delivery in-process.
 
 Compiled vendor services can perform bounded HTTPS or authenticated SFTP information/delivery operations allowed by validated catalog metadata. HTTPS uses explicit allowed hosts, HTTPS-only bounded redirects, response-size limits, timeouts, version extraction rules, and publisher/hash validation. SFTP validates the exact host-key fingerprint before credential lookup, then applies the configured host, port, remote root, product IDs, and size bounds. No generic runtime URL becomes an execution path.
 
 SFTP credentials use Windows Credential Manager generic credentials named `AVWorkstationToolkit:VendorSftp:<host>:<port>:<username>`. Compiled services scope exact host/port/username lookups, clear unmanaged password memory after Credential Manager calls, and exclude secrets from logs, diagnostics, reports, release metadata, and process arguments. Saving or deleting a credential is an explicit operator action. Trusted SFTP host fingerprints are stored separately in `%LOCALAPPDATA%\AVWorkstationToolkit\trusted-sftp-hosts.json`.
 
-During the rename transition, the bridge may read a matching legacy `AVinite:VendorSftp:` target only after the new target is absent. New saves always use the canonical prefix, and an explicit delete removes both targets. No credential secret is migrated into the filesystem.
+During the rename transition, the compiled credential service may read a matching legacy `AVinite:VendorSftp:` target only after the new target is absent. New saves always use the canonical prefix, and an explicit delete removes both targets. No credential secret is migrated into the filesystem.
 
 ## Files, reports, and logs
 
@@ -66,7 +66,7 @@ Normal packaged operation can create or update only bounded application-owned co
 
 ```text
 %LOCALAPPDATA%\AVWorkstationToolkit
-├── runtime\<version>       verified worker, catalogs/notices, and temporary recovery resources
+├── runtime\<version>       verified worker, catalogs, and notices
 ├── logs
 │   └── requests            constrained requests, progress, result, cancel, and WinGet logs
 ├── reports                 exported plan and sanitized diagnostics JSON
@@ -82,7 +82,7 @@ AV Workstation Toolkit itself does not write application configuration to the re
 
 ## Diagnostics
 
-The compiled in-app Diagnostics view is read-only. It reports sanitized application/runtime identity, Windows/process architecture, WinGet path/version/inventory availability, privilege state, reboot signals, each uninstall-registry source, and catalog/status counts. Copy/export uses structured redaction and does not read Credential Manager secrets. PowerShell version is relevant only to the explicit recovery path. The optional snapshot script collects a broader bounded evidence set and deliberately excludes credentials, environment dumps, command history, project files, and application payloads.
+The compiled in-app Diagnostics view is read-only. It reports sanitized application/runtime identity, Windows/process architecture, WinGet path/version/inventory availability, privilege state, reboot signals, each uninstall-registry source, and catalog/status counts. Copy/export uses structured redaction and does not read Credential Manager secrets. The optional PowerShell snapshot script is separate operator tooling; it collects a broader bounded evidence set and deliberately excludes credentials, environment dumps, command history, project files, and application payloads.
 
 ## Network categories
 
@@ -157,14 +157,4 @@ For a suspected false positive, a release operator should:
 
 ## Compiled-runtime migration status
 
-The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the Phase 13 production default. The remaining work is stabilization and evidence-based retirement of the explicitly selected PowerShell recovery runtime; it is not another architecture cutover.
-
-| Candidate | EDR/AV benefit | Process reduction | Implementation risk | Testing complexity | Relative priority |
-|---|---|---:|---|---|---:|
-| Constrained WinGet process boundaries | High: compiled enum/argument policy boundaries | Low | Production cutover | Exact-ID/provider/package QA | 1 |
-| Registry and reboot inventory | Medium: no PowerShell inventory host | None | Production cutover | Source-aware parity + live integration | 2 |
-| Inventory orchestration and diagnostics | Medium-high: typed evidence and redaction | Medium | Production cutover | Package smoke + stabilization | 3 |
-| WPF frontend/MVVM presentation | Medium: removes the long-lived PowerShell UI host | One process | Production cutover | Phase 14 manual DPI/accessibility/visual QA | 4 |
-| Provider transports | Medium: in-process constrained HTTPS/SFTP/Credential Manager | Low | Production cutover | Controlled integration + stabilization | 5 |
-
-The isolated one-package action worker should remain independently constrained even if its implementation language changes.
+The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the complete production runtime. The former PowerShell application runtime is retired from packaging and the process-launch contract. PowerShell remains only for build, QA, maintenance, optional snapshot tooling, and legacy behavior characterization. The isolated one-package action worker remains independently constrained.

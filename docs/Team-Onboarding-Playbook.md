@@ -4,7 +4,7 @@ This is the repeatable application-deployment procedure for AV/IT escalation wor
 
 ## Scope
 
-The scripts install and maintain only approved user applications listed in `scripts/AppProfiles.psd1`. The external and commercial AV manifests add inventory, provider, access, and role awareness; they do not expand the automated change boundary.
+The compiled application installs and maintains only approved user applications in `manifests/managed-applications.json`. `scripts/AppProfiles.psd1` remains the reviewed operator-script and characterization mirror, and source QA requires exact field parity. The external and commercial AV manifests add inventory, provider, access, and role awareness; they do not expand the automated change boundary.
 
 The following are permanently outside the managed change scope: BitLocker, antivirus/EDR, device-management agents, SCCM/Intune, VPN/security clients, corporate remote-support agents, Windows components, device firmware execution, base-driver replacement, and vulnerability-management products. AV Workstation Toolkit may catalogue a vendor firmware utility, embedded operating system, or driver-bearing engineering tool so an operator can identify its impact, but it does not flash devices or silently execute external installers. Catalogued network-diagnostic tools are limited to authorized AV/IT networks and retain their driver/listener controls.
 
@@ -111,7 +111,7 @@ First choose the catalog layer:
 
 To propose a managed user application:
 
-1. Add one entry to `scripts/AppProfiles.psd1` with profile, exact winget ID, risk class, and validation note.
+1. Add one entry to `scripts/AppProfiles.psd1` and its strict `manifests/managed-applications.json` runtime mirror with profile, exact winget ID, risk class, and validation note; source QA must prove exact parity.
 2. Record the validation rule in that authoritative catalog entry; do not maintain workstation-specific status in the repository.
 3. Run both scripts in plan-only mode.
 4. Confirm that the package is a user application and not externally managed software.

@@ -2,12 +2,25 @@ using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 using AVWorkstationToolkit.Infrastructure.Windows.WinGet;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
 namespace AVWorkstationToolkit.Tests;
 
 [TestClass]
 public sealed class ProviderInfrastructureTests
 {
+    [TestMethod]
+    public void ManagedCatalogJsonIsStrictAndTyped()
+    {
+        const string valid = """{"SchemaVersion":1,"ForbiddenPattern":"(?i)Forbidden","Packages":[{"Profile":"Standard","Name":"Fixture","Id":"Fixture.Tool","Vendor":"Fixture","Risk":"None","Note":"Fixture"}]}""";
+        var catalog = RepositoryCatalogLoader.ParseManagedCatalog(valid);
+        Assert.HasCount(1, catalog.Packages);
+        Assert.AreEqual("Fixture.Tool", catalog.Packages[0].Id);
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(valid.Replace("\"Packages\"", "\"Unexpected\":true,\"Packages\"", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(valid.Replace("\"Profile\":\"Standard\"", "\"Profile\":\"Standard\",\"Profile\":\"Field\"", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(valid.Replace("\"SchemaVersion\":1", "\"SchemaVersion\":2", StringComparison.Ordinal)));
+    }
+
     [TestMethod]
     public void InstalledParserCombinesDuplicateIdentitiesWithoutLosingVersions()
     {

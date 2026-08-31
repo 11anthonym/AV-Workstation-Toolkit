@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-08-31 — Compiled runtime migration completed
+
+- Retired the PowerShell-hosted WPF application, PowerShell action worker, and launcher vendor bridge from the embedded runtime, command-line surface, process policy, and release package.
+- Added a strict managed-application JSON runtime catalog with exact parity to the reviewed authoring source, plus deterministic cleanup of only recognized stale legacy runtime files.
+- Expanded compiled production smoke coverage for catalog loading, filters, Quick Views, sorting, checkbox selection, details, diagnostics, keyboard focus, viewport sizing, and reopen behavior without mutating workstation software.
+- Preserved AVinite-era data and Credential Manager read/delete compatibility, the MSI upgrade family, standard-user operation, exact-ID WinGet authority, and all vendor/path/signature controls. Live mutation remains deferred until a naturally safe eligible update is available.
+
 ## 2026-08-30 — Production compiled runtime cutover
 
 - Made the compiled C# WPF App, typed production providers/vendor services, canonical data root, and independent compiled worker the default packaged runtime.

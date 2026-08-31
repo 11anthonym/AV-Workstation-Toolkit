@@ -24,6 +24,7 @@ $xamlPath = Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml'
 $fixtureRoot = Join-Path $PSScriptRoot 'fixtures'
 $externalManifestPath = Join-Path $repositoryRoot 'manifests\external-applications.json'
 $awarenessManifestPath = Join-Path $repositoryRoot 'manifests\commercial-av-catalog.json'
+$managedManifestPath = Join-Path $repositoryRoot 'manifests\managed-applications.json'
 $processPolicyPath = Join-Path $repositoryRoot 'manifests\process-launch-policy.json'
 
 $launchIsElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
@@ -86,6 +87,7 @@ function Invoke-Check {
 }
 
 $winGetManifest = Microsoft.PowerShell.Utility\Import-PowerShellDataFile -LiteralPath $catalogPath
+$managedCatalogDocument = Get-Content -LiteralPath $managedManifestPath -Raw | ConvertFrom-Json
 $operationalExternalCatalog = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json (Get-Content -LiteralPath $externalManifestPath -Raw))
 $awarenessExternalCatalog = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json (Get-Content -LiteralPath $awarenessManifestPath -Raw))
 $expectedWinGetCount = @($winGetManifest.Packages).Count
@@ -113,6 +115,20 @@ Invoke-Check 'Catalog aggregates WinGet, operational providers, and commercial A
     Assert-Equal $expectedWinGetCount @($catalog | Where-Object Provider -eq 'WinGet').Count 'WinGet catalog size differs.'
     Assert-Equal ($expectedOperationalExternalCount + $expectedAwarenessCount) $externalCatalog.Count 'External catalog size differs.'
     Assert-True ($catalog.Count -ge 300) 'Commercial AV catalog breadth regressed below the reviewed baseline.'
+}
+Invoke-Check 'Shipping managed JSON catalog matches the retired PowerShell catalog fixture' {
+    Assert-Equal 1 ([int]$managedCatalogDocument.SchemaVersion) 'Managed JSON catalog schema differs.'
+    Assert-Equal ([string]$winGetManifest.ForbiddenPattern) ([string]$managedCatalogDocument.ForbiddenPattern) 'Managed catalog forbidden-product policy differs.'
+    Assert-Equal $expectedWinGetCount @($managedCatalogDocument.Packages).Count 'Managed JSON catalog count differs from the characterized PowerShell fixture.'
+    foreach ($legacy in @($winGetManifest.Packages)) {
+        $current = @($managedCatalogDocument.Packages | Where-Object Id -eq ([string]$legacy.Id))
+        Assert-Equal 1 $current.Count "Managed JSON catalog lost or duplicated $($legacy.Id)."
+        foreach ($field in @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance')) {
+            $legacyValue = if ($legacy.ContainsKey($field)) { [string]$legacy[$field] } else { '' }
+            $currentValue = if ($current[0].PSObject.Properties.Name -contains $field) { [string]$current[0].$field } else { '' }
+            Assert-Equal $legacyValue $currentValue "Managed JSON catalog field differs for $($legacy.Id).$field"
+        }
+    }
 }
 Invoke-Check 'Vendor catalog sources compile deterministically to the only runtime artifact' {
     $compilerPath = Join-Path $repositoryRoot 'build\Compile-CommercialCatalog.ps1'
@@ -1317,14 +1333,11 @@ Invoke-Check 'Every executable entry point rejects elevation before loading repo
         }
     }
 }
-Invoke-Check 'Launcher pins STA mode and the approved frontend entry point' {
+Invoke-Check 'Developer launcher prefers packaged output and otherwise starts only the compiled App' {
     $launcher = Get-Content -LiteralPath (Join-Path $repositoryRoot 'Launch-AVWorkstationToolkit.cmd') -Raw
     Assert-True ($launcher -match '(?i)if exist "%~dp0AVWorkstationToolkit\.exe"') 'Launcher does not prefer the packaged executable.'
-    Assert-True ($launcher -match '(?i)-STA') 'Launcher does not request STA.'
-    Assert-True ($launcher -match 'Start-AVWorkstationToolkit\.ps1') 'Launcher targets an unexpected script.'
-    Assert-True ($launcher -match '(?i)%SystemRoot%\\System32\\WindowsPowerShell\\v1\.0\\powershell\.exe') 'Launcher does not pin the system Windows PowerShell executable.'
-    Assert-True ($launcher -match '(?i)-ExecutionPolicy\s+RemoteSigned') 'Launcher does not use the constrained process execution policy.'
-    Assert-True ($launcher -notmatch '(?i)-ExecutionPolicy\s+Bypass') 'Launcher bypasses PowerShell execution policy.'
+    Assert-True ($launcher -match '(?i)dotnet\.exe run --project "%~dp0src\\AVWorkstationToolkit\.App\\AVWorkstationToolkit\.App\.csproj" --configuration Release') 'Source fallback does not target the compiled App project.'
+    Assert-True ($launcher -notmatch '(?i)powershell|Start-AVWorkstationToolkit\.ps1|cmd\.exe\s+/c') 'Developer launcher retains a shell-hosted application fallback.'
 }
 Invoke-Check 'AV Workstation Toolkit v1.1.1 identity is consistent across source and package projects' {
     $xamlText = Get-Content -LiteralPath $xamlPath -Raw
@@ -1370,8 +1383,8 @@ Invoke-Check 'Old product branding is restricted to explicit legacy compatibilit
         [pscustomobject]@{ Path='scripts/AVWorkstationToolkit.Core.psm1'; Pattern='Filter ''\*\.avinite\.json'''; Purpose='legacy vendor-cache metadata discovery' },
         [pscustomobject]@{ Path='scripts/AVWorkstationToolkit.Core.psm1'; Pattern='\$payloadName \+ ''\.avinite\.json'''; Purpose='legacy vendor-cache metadata validation' },
         [pscustomobject]@{ Path='scripts/AVWorkstationToolkit.Core.psm1'; Pattern='LegacyProduct = ''AVinite'''; Purpose='migration marker provenance' },
-        [pscustomobject]@{ Path='src/AVWorkstationToolkit.Launcher/VendorBridge.cs'; Pattern='LegacyCredentialPrefix = "AVinite:VendorSftp:"'; Purpose='legacy Credential Manager read/delete compatibility' },
         [pscustomobject]@{ Path='src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/WindowsVendorCredentialStore.cs'; Pattern='LegacyPrefix = "AVinite:VendorSftp:"'; Purpose='compiled legacy Credential Manager read/delete compatibility' },
+        [pscustomobject]@{ Path='docs/CHANGELOG.md'; Pattern='Preserved AVinite-era data and Credential Manager read/delete compatibility'; Purpose='Phase 14 compatibility-retention record' },
         [pscustomobject]@{ Path='docs/CHANGELOG.md'; Pattern='Renamed AVinite to AV Workstation Toolkit'; Purpose='historical rename record' },
         [pscustomobject]@{ Path='README.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='legacy data-retention removal guidance' },
         [pscustomobject]@{ Path='PRIVACY.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='legacy data migration privacy disclosure' },
@@ -1422,57 +1435,31 @@ Invoke-Check 'Maintained source contains no former organization attribution' {
         Assert-True ($content -notmatch [regex]::Escape($forbiddenPublisher)) "Former organization attribution remains in $relativePath"
     }
 }
-Invoke-Check 'Packaged launcher defaults to compiled WPF and retains explicit PowerShell recovery' {
+Invoke-Check 'Packaged launcher is compiled-only and retires stale legacy runtime files' {
     $source = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
     $project = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
     Assert-True ($project -match '<UseWPF>true</UseWPF>' -and $project -match '<PublishTrimmed>false</PublishTrimmed>' -and
         $project -match 'ProjectReference Include="\.\.\\AVWorkstationToolkit\.App' -and
         $project -match 'WorkerPayloadPath' -and $project -match 'AVWorkstationToolkit\.Payload\.worker/AVWorkstationToolkit\.Worker\.exe' -and
-        $project -match '<EmbeddedResource' -and $project -match 'AVWorkstationToolkit\.Payload\.app/AVWorkstationToolkit\.xaml' -and $project -match 'AVWorkstationToolkit\.Payload\.scripts/') 'Launcher project does not embed the compiled App/worker and audited recovery runtime.'
+        $project -match '<EmbeddedResource' -and $project -match 'AVWorkstationToolkit\.Payload\.manifests/' -and
+        $project -notmatch 'AVWorkstationToolkit\.Payload\.(?:app|scripts)/') 'Launcher project does not embed only the compiled App/worker and reviewed data resources.'
     Assert-True ($source -match 'GetManifestResourceNames' -and $source -match 'GetManifestResourceStream' -and $source -match 'SHA256\.HashData') 'Launcher does not extract and verify its embedded runtime.'
     Assert-True ($source -match 'new PackagedAppStartupContext' -and $source -match 'RunCompiledApp\(new AVWorkstationToolkit\.App\.App\(context\)\)' -and $source -match 'app\.InitializeComponent\(\)') 'Normal launcher startup does not enter the initialized compiled WPF App.'
-    Assert-True ($source -match '--legacy-powershell-recovery' -and $source -match 'LegacyPowerShellRecovery' -and
-        $source -match 'WindowsPowerShell.*v1\.0.*powershell\.exe') 'Explicit recovery no longer pins inbox Windows PowerShell.'
-    Assert-True ($source -match 'ExecutionPolicy"\s*,\s*"RemoteSigned"' -and $source -match '"-STA"') 'Recovery frontend arguments weakened execution policy or apartment mode.'
-    Assert-True ($source -match 'AVWORKSTATIONTOOLKIT_DATA_ROOT' -and $source -match 'SpecialFolder\.LocalApplicationData') 'Launcher does not isolate mutable per-user data.'
-    Assert-True ($source -match 'AVWORKSTATIONTOOLKIT_DISTRIBUTION_ROOT' -and $source -match 'external-applications\.json' -and $source -match 'commercial-av-catalog\.json') 'Launcher does not expose the verified distribution root or require both catalog manifests.'
-    Assert-True ($source -notmatch '(?i)cmd\.exe|ExecutionPolicy"\s*,\s*"Bypass"|"-WindowStyle"|ProcessWindowStyle\.Hidden') 'Launcher contains an unsafe shell, hidden-window argument, or execution-policy path.'
-}
-Invoke-Check 'Vendor bridge keeps credentials out of process arguments and pins SSH.NET' {
-    $project = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
-    $program = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
-    $bridge = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\VendorBridge.cs') -Raw
-    $credentials = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\WinCredentialStore.cs') -Raw
-    $powershellBridge = Get-Content -LiteralPath (Join-Path $repositoryRoot 'scripts\AVWorkstationToolkit.Vendor.psm1') -Raw
-    Assert-True ($project -match 'PackageReference Include="SSH\.NET" Version="2026\.0\.0"') 'SSH.NET is not pinned to the reviewed version.'
-    Assert-True ($program -match 'args\.Length\s*==\s*1' -and $program -match 'args\[0\]\.Equals\("--vendor-bridge"') 'Launcher vendor bridge is not isolated behind its constant argument.'
-    Assert-True ($powershellBridge -match 'RedirectStandardInput\s*=\s*\$true' -and $powershellBridge -match "Arguments\s*=\s*'--vendor-bridge'") 'PowerShell does not send vendor requests through redirected standard input.'
-    Assert-True ($powershellBridge -notmatch '(?i)Arguments\s*=.*Password|SetEnvironmentVariable\([^\r\n]*Password') 'A vendor password can enter process arguments or environment variables.'
-    Assert-True ($credentials -match 'CredWriteW' -and $credentials -match 'CredReadW' -and $credentials -match 'CredDeleteW' -and $credentials -match 'ZeroMemory') 'Windows Credential Manager bridge is incomplete.'
-    Assert-True ($bridge -match 'CredentialPrefix = "AVWorkstationToolkit:VendorSftp:"' -and
-        $bridge -match 'LegacyCredentialPrefix = "AVinite:VendorSftp:"' -and
-        $bridge -match 'WinCredentialStore\.Read\(target\) \?\?[\s\S]+?GetLegacyCredentialTarget' -and
-        $bridge -match 'Delete\(GetLegacyCredentialTarget' -and
-        $bridge -match 'Write\(parameters\.CredentialTarget') 'Credential rename compatibility does not prefer new writes with legacy read/delete fallback.'
-    Assert-True ($bridge -match 'HostKeyReceived' -and $bridge -match 'ExpectedFingerprint' -and $bridge -match 'SHA256:') 'SFTP host-key pinning is incomplete.'
-    Assert-True ($bridge -match 'DownloadHttps' -and $bridge -match 'DownloadSftp' -and $bridge -notmatch '(?i)Console\.WriteLine\([^\r\n]*Password') 'Vendor bridge delivery operations or credential-log guard differ.'
-    Assert-True ($bridge -match 'isElevated\s+&&\s+!string\.Equals\(request\.Operation,\s*"SelfTest"' -and $bridge -match 'vendor bridge must run as a standard user') 'Elevated bridge access is not limited to the inert self-test.'
-    Assert-True ($bridge -match 'JsonUnmappedMemberHandling\(JsonUnmappedMemberHandling\.Disallow\)') 'Vendor bridge request JSON does not reject unknown properties.'
-    Assert-True ($powershellBridge -match 'StandardOutputEncoding' -and $powershellBridge -match 'StandardErrorEncoding') 'Vendor bridge output decoding is not pinned to UTF-8.'
+    Assert-True ($source -match 'RemoveRetiredRuntimeFiles' -and $source -match 'scripts/Start-AVWorkstationToolkit\.ps1' -and $source -match 'File\.Delete') 'Launcher does not clean the recognized stale recovery payload from its versioned runtime.'
+    Assert-True ($source -match 'SpecialFolder\.LocalApplicationData' -and $source -match 'managed-applications\.json' -and $source -match 'external-applications\.json' -and $source -match 'commercial-av-catalog\.json') 'Launcher does not isolate mutable data or require the compiled catalog manifests.'
+    Assert-True ($source -notmatch '(?i)--legacy-powershell-recovery|--vendor-bridge|powershell\.exe|cmd\.exe|ProcessStartInfo|ExecutionPolicy') 'Launcher retains a retired shell, bridge, or PowerShell runtime surface.'
 }
 Invoke-Check 'Launcher path containment uses one reviewed implementation' {
     $safePath = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\SafePath.cs') -Raw
     $program = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
-    $bridge = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\VendorBridge.cs') -Raw
     Assert-True ($safePath -match 'RequireAbsoluteNonRoot' -and $safePath -match 'IsStrictChild' -and $safePath -match 'ContainsReparsePoint') 'Shared safe-path implementation is incomplete.'
-    Assert-True ($program -match 'SafePath\.' -and $bridge -match 'SafePath\.') 'A launcher security boundary bypasses the shared safe-path implementation.'
-    Assert-True ($program -notmatch 'private static bool IsChildPath' -and $bridge -notmatch 'private static bool IsChildPath') 'Duplicated launcher path-containment logic remains.'
+    Assert-True ($program -match 'SafePath\.' -and $program -notmatch 'private static bool IsChildPath') 'A launcher security boundary bypasses or duplicates the shared safe-path implementation.'
 }
 Invoke-Check 'Child-process policy is explicit, bounded, and complete' {
     $policy = Get-Content -LiteralPath $processPolicyPath -Raw | ConvertFrom-Json
     Assert-Equal 1 ([int]$policy.SchemaVersion) 'Process policy schema differs.'
     Assert-Equal 'AV Workstation Toolkit' ([string]$policy.Product) 'Process policy product differs.'
-    $expectedIds = @('legacy-recovery-powershell','legacy-action-worker-powershell','compiled-action-worker','winget','vendor-bridge-self','explorer-handoff','https-shell-handoff','snapshot-dsregcmd')
+    $expectedIds = @('compiled-action-worker','winget','explorer-handoff','https-shell-handoff','snapshot-dsregcmd')
     Assert-Equal ($expectedIds -join '|') (@($policy.Launches.Id) -join '|') 'Allowed child-process categories differ.'
     Assert-Equal @($policy.Launches).Count @($policy.Launches.Id | Sort-Object -Unique).Count 'Process policy contains duplicate IDs.'
     foreach ($launch in @($policy.Launches)) {
@@ -1509,11 +1496,11 @@ Invoke-Check 'Worker launch arguments are deterministic and arbitrary request pa
 }
 Invoke-Check 'Endpoint-trust static QA rejects suspicious production patterns' {
     $output = (& (Join-Path $PSScriptRoot 'Test-EndpointTrust.ps1') | Out-String)
-    Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=8') 'Endpoint-trust QA did not validate the reviewed process contract.'
+    Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=5') 'Endpoint-trust QA did not validate the reviewed process contract.'
 }
-Invoke-Check 'Phase 13 compiled production cutover contract is complete' {
+Invoke-Check 'Phase 14 compiled runtime retirement contract is complete' {
     $output = (& (Join-Path $PSScriptRoot 'Test-CompiledCutover.ps1') | Out-String)
-    Assert-True ($output -match 'COMPILED_CUTOVER_OK') 'Compiled production cutover contract did not pass.'
+    Assert-True ($output -match 'COMPILED_RETIREMENT_OK') 'Compiled runtime retirement contract did not pass.'
 }
 Invoke-Check 'Clone build entry point and tagged-release workflow publish the standalone executable' {
     $buildEntryPath = Join-Path $repositoryRoot 'Build-AVWorkstationToolkit.cmd'
@@ -1819,7 +1806,6 @@ Invoke-Check 'Endpoint-security behavior documentation is complete and non-evasi
 }
 Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     $productionFiles = @(
-        @(Get-ChildItem -LiteralPath $scriptsRoot -Recurse -File | Where-Object Extension -in @('.ps1','.psd1','.psm1'))
         @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File | Where-Object {
             $_.FullName -notmatch '\\(?:bin|obj)\\' -and $_.Extension -in @('.cs','.csproj')
         })
@@ -1851,19 +1837,12 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     } | ForEach-Object {
         $_.FullName.Substring($repositoryRoot.Length).TrimStart('\').Replace('\','/')
     } | Sort-Object -Unique)
-    Assert-Equal 'scripts/AVWorkstationToolkit.Core.psm1|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs|src/AVWorkstationToolkit.Launcher/VendorBridge.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
-    $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
-    $bridgeSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\VendorBridge.cs') -Raw
-    Assert-True ($coreSource -match 'Assert-AVWorkstationToolkitHttpsUri' -and
-        $coreSource -match 'AllowAutoRedirect\s*=\s*\$false' -and
-        $coreSource -match 'redirected to an unapproved host') 'Vendor release requests lost HTTPS or same-host redirect enforcement.'
-    Assert-True ([regex]::Matches($bridgeSource,'RequireAllowedHost\(').Count -ge 3 -and
-        $bridgeSource -match 'AllowAutoRedirect\s*=\s*false') 'Compiled vendor downloads lost host allowlisting or explicit redirect handling.'
+    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
     $migrationHttps = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorHttpsDownloader.cs') -Raw
     $migrationSftp = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorSftpDeliveryService.cs') -Raw
     Assert-True ($migrationHttps -match 'AllowAutoRedirect\s*=\s*false' -and $migrationHttps -match 'AllowedHosts\.Contains' -and
         $migrationHttps -match 'MaximumRedirects\s*=\s*5' -and $migrationSftp -match 'ProbeHostFingerprintAsync' -and
-        $migrationSftp.IndexOf('ProbeHostFingerprintAsync',[StringComparison]::Ordinal) -lt $migrationSftp.IndexOf('credentials.Read',[StringComparison]::Ordinal)) 'Non-shipping vendor migration lost redirect revalidation or host-key-before-credential ordering.'
+        $migrationSftp.IndexOf('ProbeHostFingerprintAsync',[StringComparison]::Ordinal) -lt $migrationSftp.IndexOf('credentials.Read',[StringComparison]::Ordinal)) 'Compiled vendor runtime lost redirect revalidation or host-key-before-credential ordering.'
 
     $privacy = Get-Content -LiteralPath (Join-Path $repositoryRoot 'PRIVACY.md') -Raw
     Assert-True ($privacy -match 'no\s+telemetry, analytics, advertising, crash-reporting service' -and

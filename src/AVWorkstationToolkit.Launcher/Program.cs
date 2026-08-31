@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -16,20 +15,32 @@ internal static class Program
     private const uint ErrorIcon = 0x00000010;
     private static readonly string[] RequiredRuntimeFiles =
     [
-        "app/AVWorkstationToolkit.xaml",
-        "scripts/Start-AVWorkstationToolkit.ps1",
-        "scripts/AVWorkstationToolkit.Core.psd1",
-        "scripts/AVWorkstationToolkit.Core.psm1",
-        "scripts/AVWorkstationToolkit.Vendor.psm1",
-        "scripts/AppProfiles.psd1",
-        "scripts/Invoke-AVWorkstationToolkitAction.ps1",
         "worker/AVWorkstationToolkit.Worker.exe",
+        "manifests/managed-applications.json",
         "manifests/external-applications.json",
         "manifests/commercial-av-catalog.json",
+        "manifests/process-launch-policy.json",
+        "manifests/winget-team-baseline.json",
         "notices/THIRD-PARTY-NOTICES.md",
         "notices/PROJECT-LICENSE.txt",
         "notices/DOTNET-LICENSE.txt",
         "notices/DOTNET-THIRD-PARTY-NOTICES.txt"
+    ];
+    private static readonly string[] RetiredRuntimeFiles =
+    [
+        "app/AVWorkstationToolkit.xaml",
+        "scripts/Add-AVWorkstationToolkitExternalPackage.ps1",
+        "scripts/AppProfiles.psd1",
+        "scripts/AVWorkstationToolkit.Core.psd1",
+        "scripts/AVWorkstationToolkit.Core.psm1",
+        "scripts/AVWorkstationToolkit.Vendor.psm1",
+        "scripts/Export-AVWorkstationToolkitBaselineManifest.ps1",
+        "scripts/Get-WorkstationSnapshot.ps1",
+        "scripts/Invoke-AVWorkstationToolkitAction.ps1",
+        "scripts/Invoke-AVWorkstationToolkitDeployment.ps1",
+        "scripts/Invoke-AVWorkstationToolkitMaintenance.ps1",
+        "scripts/Start-AVWorkstationToolkit.ps1",
+        "scripts/Test-DeploymentReadiness.ps1"
     ];
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -38,11 +49,6 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        if (args.Length == 1 && args[0].Equals("--vendor-bridge", StringComparison.OrdinalIgnoreCase))
-        {
-            return VendorBridge.Run();
-        }
-
         LaunchOptions options;
         try
         {
@@ -53,9 +59,6 @@ internal static class Program
             return Fail(exception.Message, headless: false, dataRoot: null);
         }
 
-        var powershellPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-            "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
         var dataRoot = options.DataRoot ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DataDirectoryName);
 
@@ -64,7 +67,6 @@ internal static class Program
             dataRoot = SafePath.RequireAbsoluteNonRoot(dataRoot, "data root");
             var integrity = PrepareEmbeddedRuntime(dataRoot);
             var applicationRoot = integrity.ApplicationRoot;
-            var scriptPath = Path.Combine(applicationRoot, "scripts", "Start-AVWorkstationToolkit.ps1");
             var workerPath = Path.Combine(applicationRoot, "worker", "AVWorkstationToolkit.Worker.exe");
 
             if (options.VerificationOutput is not null || options.DiagnosticsOutput is not null)
@@ -74,9 +76,7 @@ internal static class Program
                     outputPath,
                     integrity,
                     applicationRoot,
-                    scriptPath,
                     workerPath,
-                    powershellPath,
                     dataRoot,
                     IsElevated());
                 return integrity.Success && File.Exists(workerPath) ? 0 : 1;
@@ -95,14 +95,6 @@ internal static class Program
             }
             Directory.CreateDirectory(Path.Combine(dataRoot, "logs", "requests"));
             Directory.CreateDirectory(Path.Combine(dataRoot, "reports"));
-            if (options.LegacyPowerShellRecovery)
-            {
-                if (!File.Exists(scriptPath) || !File.Exists(powershellPath))
-                    return Fail("The explicit legacy recovery runtime is unavailable.", headless: false, dataRoot);
-                return StartLegacyRecovery(powershellPath, applicationRoot, scriptPath, dataRoot, options);
-            }
-            if (options.RenderPreviewPath is not null || options.RenderWidth > 0 || options.RenderHeight > 0)
-                return Fail("Packaged preview rendering is available only with --legacy-powershell-recovery.", headless: false, dataRoot);
             if (!File.Exists(workerPath))
                 return Fail("The packaged compiled worker is missing.", headless: false, dataRoot);
             if (options.SmokeTest)
@@ -128,79 +120,6 @@ internal static class Program
         return app.Run();
     }
 
-    private static int StartLegacyRecovery(
-        string powershellPath,
-        string applicationRoot,
-        string scriptPath,
-        string dataRoot,
-        LaunchOptions options)
-    {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = powershellPath,
-            WorkingDirectory = applicationRoot,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        foreach (var argument in BuildPowerShellArguments(scriptPath, dataRoot, options))
-        {
-            startInfo.ArgumentList.Add(argument);
-        }
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_DATA_ROOT"] = dataRoot;
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_PACKAGED"] = "1";
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_DISTRIBUTION_ROOT"] = Path.GetFullPath(AppContext.BaseDirectory);
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_PATH"] = Environment.ProcessPath
-            ?? throw new InvalidOperationException("The packaged launcher path could not be resolved.");
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_VERSION"] = ProductVersion;
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_RUNTIME"] = RuntimeInformation.FrameworkDescription;
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_RUNTIME_VERSION"] = Environment.Version.ToString();
-        startInfo.Environment["AVWORKSTATIONTOOLKIT_LAUNCHER_ARCHITECTURE"] = RuntimeInformation.ProcessArchitecture.ToString();
-
-        using var process = Process.Start(startInfo)
-            ?? throw new InvalidOperationException("Windows did not start the AV Workstation Toolkit frontend process.");
-        if (options.WaitForExit || options.SmokeTest)
-        {
-            process.WaitForExit();
-            return process.ExitCode;
-        }
-        return 0;
-    }
-
-    private static IReadOnlyList<string> BuildPowerShellArguments(
-        string scriptPath,
-        string dataRoot,
-        LaunchOptions options)
-    {
-        var arguments = new List<string>
-        {
-            "-NoProfile",
-            "-ExecutionPolicy", "RemoteSigned",
-            "-STA",
-            "-File", scriptPath,
-            "-DataRoot", dataRoot
-        };
-        if (options.SmokeTest)
-        {
-            arguments.Add("-SmokeTest");
-        }
-        if (options.RenderPreviewPath is not null)
-        {
-            arguments.Add("-RenderPreviewPath");
-            arguments.Add(options.RenderPreviewPath);
-        }
-        if (options.RenderWidth > 0)
-        {
-            arguments.Add("-RenderWidth");
-            arguments.Add(options.RenderWidth.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        }
-        if (options.RenderHeight > 0)
-        {
-            arguments.Add("-RenderHeight");
-            arguments.Add(options.RenderHeight.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        }
-        return arguments;
-    }
-
     private static PayloadIntegrity PrepareEmbeddedRuntime(string dataRoot)
     {
         var applicationRoot = Path.Combine(dataRoot, "runtime", ProductVersion);
@@ -210,7 +129,7 @@ internal static class Program
             Directory.CreateDirectory(applicationRoot);
             if (SafePath.ContainsReparsePoint(dataRoot, applicationRoot))
             {
-                return new(false, "The AV Workstation Toolkit runtime directory is an unsupported reparse point.", verified, applicationRoot);
+                return new(false, "The AV Workstation Toolkit runtime directory is an unsupported reparse point.", verified, 0, applicationRoot);
             }
 
             var assembly = Assembly.GetExecutingAssembly();
@@ -220,7 +139,7 @@ internal static class Program
                 .ToArray();
             if (resourceNames.Length == 0)
             {
-                return new(false, "The AV Workstation Toolkit executable contains no embedded runtime payload.", verified, applicationRoot);
+                return new(false, "The AV Workstation Toolkit executable contains no embedded runtime payload.", verified, 0, applicationRoot);
             }
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -232,13 +151,13 @@ internal static class Program
                         string.IsNullOrWhiteSpace(segment) || segment is "." or ".." || segment.Contains(':')) ||
                     encodedPath.Contains('\\'))
                 {
-                    return new(false, $"The embedded AV Workstation Toolkit payload contains an invalid path: {encodedPath}", verified, applicationRoot);
+                    return new(false, $"The embedded AV Workstation Toolkit payload contains an invalid path: {encodedPath}", verified, 0, applicationRoot);
                 }
 
                 var normalizedPath = string.Join('/', segments);
                 if (!seen.Add(normalizedPath))
                 {
-                    return new(false, $"The embedded AV Workstation Toolkit payload contains a duplicate path: {normalizedPath}", verified, applicationRoot);
+                    return new(false, $"The embedded AV Workstation Toolkit payload contains a duplicate path: {normalizedPath}", verified, 0, applicationRoot);
                 }
 
                 var fullPath = Path.GetFullPath(Path.Combine(
@@ -246,7 +165,7 @@ internal static class Program
                     normalizedPath.Replace('/', Path.DirectorySeparatorChar)));
                 if (!SafePath.IsStrictChild(applicationRoot, fullPath))
                 {
-                    return new(false, $"An embedded AV Workstation Toolkit file resolves outside the runtime directory: {normalizedPath}", verified, applicationRoot);
+                    return new(false, $"An embedded AV Workstation Toolkit file resolves outside the runtime directory: {normalizedPath}", verified, 0, applicationRoot);
                 }
 
                 var parentPath = Path.GetDirectoryName(fullPath)
@@ -255,7 +174,7 @@ internal static class Program
                 if (SafePath.ContainsReparsePoint(dataRoot, parentPath) ||
                     (File.Exists(fullPath) && SafePath.ContainsReparsePoint(dataRoot, fullPath)))
                 {
-                    return new(false, $"An AV Workstation Toolkit runtime path contains an unsupported reparse point: {normalizedPath}", verified, applicationRoot);
+                    return new(false, $"An AV Workstation Toolkit runtime path contains an unsupported reparse point: {normalizedPath}", verified, 0, applicationRoot);
                 }
 
                 using var resourceStream = assembly.GetManifestResourceStream(resourceName)
@@ -289,26 +208,60 @@ internal static class Program
 
                 if (!GetFileHash(fullPath).Equals(expectedHash, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new(false, $"An embedded AV Workstation Toolkit file failed cache verification: {normalizedPath}", verified, applicationRoot);
+                    return new(false, $"An embedded AV Workstation Toolkit file failed cache verification: {normalizedPath}", verified, 0, applicationRoot);
                 }
                 verified++;
             }
+
+            var retiredFilesRemoved = RemoveRetiredRuntimeFiles(dataRoot, applicationRoot);
 
             foreach (var requiredPath in RequiredRuntimeFiles)
             {
                 if (!seen.Contains(requiredPath) ||
                     !File.Exists(Path.Combine(applicationRoot, requiredPath.Replace('/', Path.DirectorySeparatorChar))))
                 {
-                    return new(false, $"The embedded AV Workstation Toolkit runtime is missing a required file: {requiredPath}", verified, applicationRoot);
+                    return new(false, $"The embedded AV Workstation Toolkit runtime is missing a required file: {requiredPath}", verified, retiredFilesRemoved, applicationRoot);
                 }
             }
 
-            return new(true, $"Verified {verified} embedded AV Workstation Toolkit runtime files.", verified, applicationRoot);
+            return new(
+                true,
+                $"Verified {verified} embedded AV Workstation Toolkit runtime files and removed {retiredFilesRemoved} retired runtime files.",
+                verified,
+                retiredFilesRemoved,
+                applicationRoot);
         }
         catch (Exception exception)
         {
-            return new(false, $"The embedded AV Workstation Toolkit runtime could not be prepared: {exception.Message}", verified, applicationRoot);
+            return new(false, $"The embedded AV Workstation Toolkit runtime could not be prepared: {exception.Message}", verified, 0, applicationRoot);
         }
+    }
+
+    private static int RemoveRetiredRuntimeFiles(string dataRoot, string applicationRoot)
+    {
+        var removed = 0;
+        foreach (var relativePath in RetiredRuntimeFiles)
+        {
+            var fullPath = Path.GetFullPath(Path.Combine(applicationRoot, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+            if (!SafePath.IsStrictChild(applicationRoot, fullPath))
+                throw new IOException($"A retired runtime path escaped the application root: {relativePath}");
+            if (!File.Exists(fullPath)) continue;
+            if (SafePath.ContainsReparsePoint(dataRoot, fullPath))
+                throw new IOException($"A retired runtime path contains an unsupported reparse point: {relativePath}");
+            File.Delete(fullPath);
+            removed++;
+        }
+        foreach (var directoryName in new[] { "app", "scripts" })
+        {
+            var directory = Path.Combine(applicationRoot, directoryName);
+            if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
+            {
+                if (SafePath.ContainsReparsePoint(dataRoot, directory))
+                    throw new IOException($"A retired runtime directory contains an unsupported reparse point: {directoryName}");
+                Directory.Delete(directory);
+            }
+        }
+        return removed;
     }
 
     private static string GetFileHash(string path)
@@ -321,9 +274,7 @@ internal static class Program
         string outputPath,
         PayloadIntegrity integrity,
         string applicationRoot,
-        string scriptPath,
         string workerPath,
-        string powershellPath,
         string dataRoot,
         bool elevated)
     {
@@ -332,7 +283,7 @@ internal static class Program
         using var stream = File.Create(outputPath);
         using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
         writer.WriteStartObject();
-        writer.WriteNumber("SchemaVersion", 2);
+        writer.WriteNumber("SchemaVersion", 3);
         writer.WriteString("Product", ProductName);
         writer.WriteString("Version", ProductVersion);
         writer.WriteString("RuntimeFramework", RuntimeInformation.FrameworkDescription);
@@ -341,6 +292,7 @@ internal static class Program
         writer.WriteBoolean("Success", integrity.Success && File.Exists(workerPath));
         writer.WriteString("IntegrityMessage", integrity.Message);
         writer.WriteNumber("FilesVerified", integrity.FilesVerified);
+        writer.WriteNumber("RetiredRuntimeFilesRemoved", integrity.RetiredFilesRemoved);
         writer.WriteString("ApplicationRoot", applicationRoot);
         writer.WriteString("FrontendPath", Environment.ProcessPath ?? string.Empty);
         writer.WriteBoolean("FrontendPresent", true);
@@ -348,9 +300,7 @@ internal static class Program
         writer.WriteString("WorkerPath", workerPath);
         writer.WriteBoolean("WorkerPresent", File.Exists(workerPath));
         writer.WriteString("WorkerSha256", File.Exists(workerPath) ? GetFileHash(workerPath) : string.Empty);
-        writer.WriteBoolean("LegacyRecoveryPresent", File.Exists(scriptPath) && File.Exists(powershellPath));
-        writer.WriteString("PowerShellPath", powershellPath);
-        writer.WriteBoolean("PowerShellPresent", File.Exists(powershellPath));
+        writer.WriteBoolean("LegacyRecoveryPresent", false);
         writer.WriteString("DataRoot", dataRoot);
         writer.WriteBoolean("Elevated", elevated);
         writer.WriteEndObject();
@@ -398,17 +348,13 @@ internal static class Program
         bool Success,
         string Message,
         int FilesVerified,
+        int RetiredFilesRemoved,
         string ApplicationRoot);
 
     private sealed class LaunchOptions
     {
         public bool SmokeTest { get; private set; }
         public bool ProductionSmoke { get; private set; }
-        public bool LegacyPowerShellRecovery { get; private set; }
-        public bool WaitForExit { get; private set; }
-        public string? RenderPreviewPath { get; private set; }
-        public int RenderWidth { get; private set; }
-        public int RenderHeight { get; private set; }
         public string? DataRoot { get; private set; }
         public string? VerificationOutput { get; private set; }
         public string? DiagnosticsOutput { get; private set; }
@@ -426,21 +372,6 @@ internal static class Program
                         break;
                     case "--production-smoke":
                         options.ProductionSmoke = true;
-                        break;
-                    case "--legacy-powershell-recovery":
-                        options.LegacyPowerShellRecovery = true;
-                        break;
-                    case "--wait":
-                        options.WaitForExit = true;
-                        break;
-                    case "--render-preview":
-                        options.RenderPreviewPath = RequireValue(args, ref index, "--render-preview");
-                        break;
-                    case "--render-width":
-                        options.RenderWidth = RequireDimension(args, ref index, "--render-width");
-                        break;
-                    case "--render-height":
-                        options.RenderHeight = RequireDimension(args, ref index, "--render-height");
                         break;
                     case "--data-root":
                         options.DataRoot = RequireValue(args, ref index, "--data-root");
@@ -462,20 +393,6 @@ internal static class Program
             }
             if (options.SmokeTest && options.ProductionSmoke)
                 throw new ArgumentException("Choose either --smoke-test or --production-smoke, not both.");
-            if (options.LegacyPowerShellRecovery && options.ProductionSmoke)
-                throw new ArgumentException("Production smoke cannot use the legacy recovery runtime.");
-            if ((options.RenderPreviewPath is not null || options.RenderWidth > 0 || options.RenderHeight > 0) && !options.SmokeTest)
-            {
-                throw new ArgumentException("Preview options require --smoke-test.");
-            }
-            if (options.RenderPreviewPath is not null)
-            {
-                options.RenderPreviewPath = SafePath.RequireAbsoluteNonRoot(options.RenderPreviewPath, "preview output path");
-            }
-            if (options.WaitForExit && !options.SmokeTest && !options.LegacyPowerShellRecovery)
-            {
-                throw new ArgumentException("--wait is available only with --smoke-test.");
-            }
             if (options.DataRoot is not null && !options.SmokeTest && !options.IsHeadless)
             {
                 throw new ArgumentException("A custom data root is available only for smoke tests and diagnostics.");
@@ -491,16 +408,6 @@ internal static class Program
                 throw new ArgumentException($"{option} requires a value.");
             }
             return args[index];
-        }
-
-        private static int RequireDimension(string[] args, ref int index, string option)
-        {
-            var value = RequireValue(args, ref index, option);
-            if (!int.TryParse(value, out var dimension) || dimension < 600 || dimension > 8192)
-            {
-                throw new ArgumentException($"{option} must be an integer from 600 through 8192.");
-            }
-            return dimension;
         }
     }
 }

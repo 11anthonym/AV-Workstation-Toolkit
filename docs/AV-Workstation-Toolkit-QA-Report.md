@@ -1,14 +1,14 @@
 # AV Workstation Toolkit 1.1.1 Packaging QA Report
 
 **Validation date:** 2026-08-31
-**Target runtime:** Windows 10/11 x64, self-contained .NET 10.0.11 compiled WPF App and worker, Desktop App Installer/WinGet 1.29; Windows PowerShell 5.1 only for explicit temporary recovery
+**Target runtime:** Windows 10/11 x64, self-contained .NET 10.0.11 compiled WPF App and worker, Desktop App Installer/WinGet 1.29; PowerShell is repository build/QA/operator tooling only
 **Change activity during QA:** No application install, update, uninstall, reboot, service, driver, listener, or security-management change
 
 ## Release result
 
-Phase 13 replaces the shipping PowerShell-hosted UI/worker path with the compiled C# WPF App, typed production services, canonical data root, and independently validating compiled worker. Package QA verifies the embedded worker identity/hash, deterministic extraction/no-rewrite/repair, compiled production smoke, explicit legacy-recovery smoke, and unchanged single-file EXE/ZIP/MSI identity. PowerShell/WPF remains only as deliberate recovery pending Phase 14 stabilization; there is no automatic fallback. Validation totals in this report are updated after the authoritative Phase 13 package build.
+Phase 14 completes the compiled-runtime migration. Package QA verifies the embedded worker identity/hash, five strict runtime manifests, deterministic extraction/no-rewrite/repair, recognized stale-runtime cleanup, compiled production open/reopen smoke, and unchanged single-file EXE/ZIP/MSI identity. PowerShell UI, worker, vendor bridge, and recovery switches are absent from the packaged runtime and process policy.
 
-Interactive release QA runs all seventeen package checks. Hosted CI uses the explicit `-SkipDesktopSmoke` mode because an Actions runner does not provide a reliable interactive WPF desktop; it runs the other fifteen package checks and reports the compiled-production and explicit legacy-recovery desktop checks as skipped. Launcher and MSI waits are bounded so runner-specific desktop or installer stalls fail with a diagnostic instead of consuming the full job lifetime.
+Interactive release QA runs all fifteen package checks. Hosted CI uses the explicit `-SkipDesktopSmoke` mode because an Actions runner does not provide a reliable interactive WPF desktop; it runs fourteen checks and reports the compiled-production desktop check as skipped. Launcher and MSI waits are bounded so runner-specific desktop or installer stalls fail with a diagnostic instead of consuming the full job lifetime.
 
 AV Workstation Toolkit is functionally packaged for direct download but remains unsigned. It is preparing an application to SignPath Foundation; it has not been accepted or integrated. Windows may therefore show an unknown-publisher warning, and organization-authenticated distribution still requires an approved code-signing path. Workstation readiness is independent of packaging: explicit Windows Update and Component Based Servicing reboot states are prominent warnings, permit ordinary low-risk applications, and block driver-, service-, and listener-bearing changes. Generic queued file-renames are not treated as reboot states.
 
@@ -31,7 +31,7 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | CycloneDX SBOM | Pass; deterministic schema 1.6 JSON identifies eight reviewed runtime/build components with license and distribution scope, including the actual .NET runtime/apphost, without local paths or usernames |
 | Signing | Supported but not executed; current artifacts are explicitly unsigned, Production remains fail-closed, no approved private key is stored, and no SignPath approval is implied |
 | Optional offline bundle | Supported for locally supplied redistributable payloads; every file is path-constrained and hash/signer verified before ZIP creation |
-| Vendor bridge | Pass; the isolated downloaded EXE confirms Windows Credential Manager, HTTPS, and SSH.NET/SFTP availability without contacting an authenticated vendor |
+| Compiled vendor boundary | Pass; production composition uses typed Credential Manager, HTTPS, and SSH.NET/SFTP services without a launcher bridge; deterministic tests do not contact an authenticated vendor |
 | Build reproducibility | Pass; NuGet dependency content is locked and audited for known vulnerabilities, Actions use immutable commit SHAs, release assets cannot be replaced in place, the manifest is checksum-covered, and a build succeeds while another process holds the release directory as its working directory |
 | Catalog reproducibility | Pass; 113 authoritative vendor files compile to the tracked 281-record runtime artifact, and release preflight rejects source/artifact drift before clearing prior output |
 
@@ -49,17 +49,17 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | Crestron parent provider, SFTP catalog, host trust, credential transport, and packaged libraries | Pass | Seven independently detectable children resolved through one feed; inherited policy, DTD/traversal/incomplete fixtures, scoped trust-store fixtures, static credential audit, and packaged bridge self-test |
 | Offline payload traversal, schema 3 metadata, hash, signer policy, and redistribution gate | Pass | Deterministic payload tests plus a synthetic signed rights-authorized authoring run that preserves schema 3 |
 | Exact package matching, holds, risk acknowledgement, and risk-sensitive reboot enforcement | Pass | Low-risk, driver/service/listener, and mid-run re-plan request-policy tests |
-| C# migration architecture and semantic parity | Pass, production core with parity retained | Locked .NET 10 solution, 116 MSTest cases, 19 managed planning results, 36 focused Domain cases, 37 read-only provider cases, 4 presentation cases, 4 read-only details/diagnostics cases, 26 strict action-request cases, and 27 IPC/file-lifecycle cases compare with the retained PowerShell reference semantics |
+| C# migration architecture and semantic parity | Pass, production core with parity retained | Locked .NET 10 solution, 117 MSTest cases, 19 managed planning results, 36 focused Domain cases, 37 read-only provider cases, 4 presentation cases, 4 read-only details/diagnostics cases, 26 strict action-request cases, and 27 IPC/file-lifecycle cases compare with the retained PowerShell reference semantics |
 | C# read-only Windows integration | Pass, production | Trusted Desktop App Installer WinGet resolved; installed/update inventory, all three uninstall-registry sources, and reboot detection were exercised without workstation mutation |
 | Compiled C# WPF presentation | Pass, production | `x:Class` App/MainWindow plus details/diagnostics windows, MVVM bindings, deterministic compiled-process and packaged-production smokes, composed filters/sorting, selection retention, warning presentation, sanitized diagnostics, provenance detail groups, and validated official-link intents |
 | Exact one-package WinGet arguments; no bulk/import/uninstall path | Pass | Argument tests plus PowerShell AST audit |
 | Trusted Microsoft Desktop App Installer resolution and signature | Pass | Live read-only check |
-| Standard-user guards before local module/XAML loading | Pass | Every executable PowerShell entry point plus launcher review |
+| Standard-user guards | Pass | Compiled App/worker/launcher plus separately maintained operator scripts |
 | Runtime data-root resolution and worker request containment | Pass | Explicit, environment, source, traversal, reparse, size, and schema tests |
 | Credential redaction, terminal-control removal, and embedded-secret scan | Pass | Deterministic and static checks |
-| Windows PowerShell 5.1 parsing and WPF control loading | Pass | Every PowerShell source file, 45 named controls, source and packaged XAML, 335 records, composable policy/manufacturer/discipline/quick-view filters, six domain-aware sortable columns, selected-value ComboBox styling, and build-only details/safety/about/diagnostics dialogs |
-| Embedded compiled frontend/worker and explicit recovery payload | Pass | Static review plus isolated-download diagnostics, exact worker hash verification, deterministic cache-repair, compiled-production smoke, and explicit recovery smoke |
-| Endpoint-trust process and packaging policy | Pass | Eight reviewed direct-launch categories plus static rejection of encoded/bypass, security-tampering, proxy-binary, generic-shell, temporary-script, and packer patterns |
+| Windows PowerShell 5.1 tooling and characterization parsing | Pass | Every retained PowerShell source plus legacy characterization XAML; none is packaged or launched by the application runtime |
+| Embedded compiled frontend/worker | Pass | Static review plus isolated-download diagnostics, exact worker hash verification, strict manifests, deterministic cache repair/stale-file cleanup, and compiled-production open/reopen smoke |
+| Endpoint-trust process and packaging policy | Pass | Five reviewed direct-launch categories plus static rejection of encoded/bypass, security-tampering, proxy-binary, generic-shell, temporary-script, and packer patterns |
 | Runtime cache stability | Pass | A second launcher verification preserves every extracted file hash and timestamp while tampered content is repaired on the next run |
 | Supply-chain metadata | Pass | Locked NuGet vulnerability audit, deterministic license-aware CycloneDX 1.6 SBOM, reviewed notices, schema-v3 release provenance, manifest-inclusive artifact hashes, and explicit signing/timestamp state |
 | Publication privacy and history | Pass for current private source | The fresh source tree passed identifier/path review and Gitleaks 8.30.1; the canonical private GitHub repository begins at the reviewed zero-parent root, has no tags or releases, and current `main` has successful hosted QA |
@@ -77,7 +77,7 @@ Shipping automated WPF checks verify 45 named controls, all 335 catalog records,
 
 The deterministic capture path produced four meaningful frames at 1040x760, 1280x860, 1440x900, and 1920x1080. The frames were visually reviewed for the shell, responsive grid, quick-view state, generated checkboxes, selection summary, and enabled/disabled action-button agreement. Automated captures do not exercise open menu popups, hover/focus transitions, tooltip timing, or every per-monitor DPI transition, so those states still require a trustworthy interactive desktop review before production publication.
 
-The packaged compiled-production WPF smoke and explicit legacy-recovery smoke are automated and passed. They deliberately do not enter credentials, save trust, download vendor software, or launch an installer.
+The packaged compiled-production WPF open/reopen smoke is automated. It exercises catalog loading, search, filters, Quick Views, sorting, checkbox selection, details, diagnostics, keyboard focus, and minimum/normal viewport layouts without entering credentials, saving trust, downloading vendor software, or launching an installer.
 
 ## Commands
 

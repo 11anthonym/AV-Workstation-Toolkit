@@ -66,7 +66,7 @@ public sealed class CompiledLiveRehearsalWorkerLauncher : ICompiledWorkerLaunche
     {
         var root = ActionArtifactPathPolicy.RequireAbsoluteNonRoot(value, "repository root");
         if (!Directory.Exists(root) || !File.Exists(Path.Combine(root, "VERSION")) ||
-            !File.Exists(Path.Combine(root, "scripts", "AppProfiles.psd1")) ||
+            !File.Exists(Path.Combine(root, "manifests", "managed-applications.json")) ||
             (File.GetAttributes(root) & FileAttributes.ReparsePoint) != 0)
             throw new DirectoryNotFoundException("The live rehearsal repository root is missing or unsafe.");
         return root;
