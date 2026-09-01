@@ -1203,14 +1203,13 @@ Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-
         $compiledProtocolStoreSource -match 'overwrite:\s*false' -and
         $compiledRequestPathSource -notmatch 'File\.(?:Write|Create|Append)|FileMode\.(?:Create|CreateNew|OpenOrCreate|Append)') 'Compiled request-file policy is not strictly contained and read-only.'
     Assert-True ($compiledAppSource -notmatch 'Start-AVWorkstationToolkitWorker|Invoke-AVWorkstationToolkitAction' -and
-        $compiledAppStartupSource -match '--migration-action-test-root' -and
-        $compiledAppStartupSource -match '--live-rehearsal-root' -and
+        $compiledAppStartupSource -notmatch '--migration-action-test-root|--live-rehearsal-root' -and
         $compiledAppStartupSource -match 'PackagedAppStartupContext' -and
-        $compiledAppCompositionSource -match 'CreateLiveRehearsal' -and
+        $compiledAppCompositionSource -notmatch 'CreateLiveRehearsal|CompiledMigrationWorkerLauncher|CompiledLiveRehearsalWorkerLauncher' -and
         $compiledAppCompositionSource -match 'CreateProduction' -and
         $compiledAppCompositionSource -match 'ProductionCompiledWorkerLauncher' -and
-        $compiledAppCompositionSource -match 'if \(actionRoot is not null\)' -and
-        $compiledAppCompositionSource -match 'new ActionProtocolStore\(actionRoot\)') 'Compiled App production and isolated action compositions are incomplete.'
+        $compiledAppCompositionSource -match 'if \(production\)' -and
+        $compiledAppCompositionSource -match 'new ActionProtocolStore\(dataRoot\)') 'Compiled App production action composition is incomplete.'
     Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
     Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'

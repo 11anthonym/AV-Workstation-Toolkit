@@ -7,7 +7,7 @@ using AVWorkstationToolkit.Application.Workers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 
-namespace AVWorkstationToolkit.Worker;
+namespace AVWorkstationToolkit.Worker.DevHost;
 
 internal sealed record WorkerFixture(int SchemaVersion, string Computer, WorkerPlanFixture[] Plans, WorkerExecutionFixture[] Executions);
 internal sealed record WorkerPlanFixture(bool RebootPending, string RebootReason, WorkerPackageFixture[] Packages);
@@ -30,15 +30,9 @@ internal static class WorkerFixtureLoader
         var info = new FileInfo(path);
         if (info.Length > MaximumFixtureBytes) throw new InvalidDataException("The worker fixture exceeds its size limit.");
 
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = false,
-            UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow
-        };
         byte[] payload;
         using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan))
         {
-            if (stream.Length > MaximumFixtureBytes) throw new InvalidDataException("The worker fixture exceeds its size limit.");
             using var output = new MemoryStream(checked((int)stream.Length));
             var buffer = new byte[4096];
             while (true)
@@ -50,6 +44,11 @@ internal static class WorkerFixtureLoader
             }
             payload = output.ToArray();
         }
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = false,
+            UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow
+        };
         var fixture = JsonSerializer.Deserialize<WorkerFixture>(payload, options)
             ?? throw new InvalidDataException("The worker fixture is empty.");
         Validate(fixture);
@@ -121,7 +120,7 @@ internal static class WorkerFixtureLoader
         if (!Enum.TryParse<PackageRisk>(fixture.Risk, false, out var risk) || !Enum.IsDefined(risk))
             throw new InvalidDataException("A worker fixture package risk is unsupported.");
         var definition = new PackageDefinition(
-            fixture.Id, fixture.Name, "Fixture", string.Empty, "Phase 8 deterministic fixture", ProviderKind.WinGet,
+            fixture.Id, fixture.Name, "Fixture", string.Empty, "Deterministic worker fixture", ProviderKind.WinGet,
             CatalogAuthority.ManagedWinGet, PackageProfile.Standard, PackagePriority.P2, risk, DeploymentPolicy.Allowlisted,
             MaintenancePolicy.Allowlisted, DeploymentClass.Managed, CatalogMaintenancePolicy.Managed, VersionRule.Latest,
             VersionCouplingMode.Independent, string.Empty, Lifecycle.Current, [], [], [], [LicensingModel.Free], ["PUBLIC-DL"],

@@ -12,7 +12,7 @@ if ($isElevated) {
     return
 }
 $integrationDll = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.dll'
-$workerExe = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker\bin\Release\net10.0-windows\AVWorkstationToolkit.Worker.exe'
+$workerExe = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Worker.DevHost\bin\Release\net10.0-windows\AVWorkstationToolkit.Worker.DevHost.exe'
 foreach ($path in @($integrationDll,$workerExe)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required Phase 8 binary was not built: $path" }
 }

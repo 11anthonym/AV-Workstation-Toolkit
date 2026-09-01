@@ -32,11 +32,8 @@ public sealed record CompiledAppServices(
 
 public static class CompiledAppComposition
 {
-    public static CompiledAppServices Create(string repositoryRoot, string? migrationTestRoot = null)
-        => CreateCore(repositoryRoot, migrationTestRoot, liveRehearsal: false);
-
-    public static CompiledAppServices CreateLiveRehearsal(string repositoryRoot, string explicitRehearsalRoot)
-        => CreateCore(repositoryRoot, explicitRehearsalRoot, liveRehearsal: true, production: false, null, null);
+    public static CompiledAppServices Create(string repositoryRoot)
+        => CreateCore(repositoryRoot, null, production: false);
 
     public static CompiledAppServices CreateProduction(
         string applicationRoot,
@@ -46,13 +43,12 @@ public static class CompiledAppComposition
     {
         var canonicalRoot = ProductionRuntimePolicy.RequireDataRoot(dataRoot);
         var runtimeRoot = ProductionRuntimePolicy.RequireApplicationRoot(canonicalRoot, applicationRoot);
-        return CreateCore(runtimeRoot, canonicalRoot, liveRehearsal: false, production: true, version, expectedWorkerSha256);
+        return CreateCore(runtimeRoot, canonicalRoot, production: true, version, expectedWorkerSha256);
     }
 
     private static CompiledAppServices CreateCore(
         string repositoryRoot,
         string? actionRoot,
-        bool liveRehearsal,
         bool production = false,
         string? packagedVersion = null,
         string? expectedWorkerSha256 = null)
@@ -69,8 +65,7 @@ public static class CompiledAppComposition
             new WindowsRebootStateProvider(),
             new ExternalInventoryMatcher());
         var canonicalDataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
-        var dataRoot = liveRehearsal ? LiveRehearsalRootPolicy.RequireExisting(actionRoot!) :
-            production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : canonicalDataRoot;
+        var dataRoot = production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : canonicalDataRoot;
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
         var version = packagedVersion ?? (File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown");
         var diagnostics = new ReadOnlyDiagnosticsService(
@@ -79,27 +74,23 @@ public static class CompiledAppComposition
         CompiledActionCoordinator? actions = null;
         VendorInteractionCoordinator? vendors = null;
         IValidatedUserHandoffService? handoffs = null;
-        if (actionRoot is not null)
+        if (production)
         {
-            ICompiledWorkerLauncher workerLauncher = production
-                ? new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!)
-                : liveRehearsal
-                    ? new CompiledLiveRehearsalWorkerLauncher(repositoryRoot, actionRoot)
-                    : new CompiledMigrationWorkerLauncher(repositoryRoot, actionRoot);
+            ICompiledWorkerLauncher workerLauncher = new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!);
             actions = new CompiledActionCoordinator(
-                new ActionProtocolStore(actionRoot),
+                new ActionProtocolStore(dataRoot),
                 workerLauncher,
                 planning);
             var cachePaths = new VendorCachePathPolicy();
             var verifier = new VendorPayloadVerificationService(cachePaths, new WinTrustAuthenticodeVerifier());
             vendors = new VendorInteractionCoordinator(
-                actionRoot,
+                dataRoot,
                 new VendorHttpsDownloader(cachePaths),
                 new VendorSftpDeliveryService(cachePaths),
                 new WindowsVendorCredentialStore(),
                 verifier);
             handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
         }
-        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, liveRehearsal, production);
+        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, false, production);
     }
 }

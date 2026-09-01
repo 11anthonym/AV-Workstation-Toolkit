@@ -2,15 +2,15 @@ using System.Diagnostics;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
 
-namespace AVWorkstationToolkit.Infrastructure.Windows.Processes;
+namespace AVWorkstationToolkit.Development;
 
 /// <summary>
-/// Starts only the fixed non-shipping worker test host from its reviewed build
-/// location. Callers cannot provide an executable name or argument vector.
+/// Starts only the fixed non-shipping worker development host from its reviewed
+/// build location. Callers cannot provide an executable name or argument vector.
 /// </summary>
 public sealed class CompiledMigrationWorkerLauncher : ICompiledWorkerLauncher
 {
-    public const string WorkerFileName = "AVWorkstationToolkit.Worker.exe";
+    public const string WorkerFileName = "AVWorkstationToolkit.Worker.DevHost.exe";
     private readonly string dataRoot;
     private readonly string workerPath;
     private readonly ActionRequestFilePolicy requestPolicy = new();
@@ -23,14 +23,14 @@ public sealed class CompiledMigrationWorkerLauncher : ICompiledWorkerLauncher
         if (!dataRoot.StartsWith(temporaryRoot, StringComparison.OrdinalIgnoreCase) ||
             !Path.GetFileName(dataRoot).StartsWith("awt-phase11-", StringComparison.Ordinal))
             throw new IOException("The compiled action flow can use only an isolated Phase 11 temporary root.");
-        workerPath = Path.GetFullPath(Path.Combine(repository, "src", "AVWorkstationToolkit.Worker", "bin", "Release",
+        workerPath = Path.GetFullPath(Path.Combine(repository, "tests", "AVWorkstationToolkit.Worker.DevHost", "bin", "Release",
             "net10.0-windows", WorkerFileName));
         if (!File.Exists(workerPath) || !string.Equals(Path.GetFileName(workerPath), WorkerFileName, StringComparison.Ordinal) ||
             (File.GetAttributes(workerPath) & (FileAttributes.Directory | FileAttributes.ReparsePoint)) != 0)
             throw new FileNotFoundException("The exact compiled migration worker has not been built or is unsafe.", workerPath);
         RejectReparseChain(repository, workerPath);
         var metadata = FileVersionInfo.GetVersionInfo(workerPath);
-        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit compiled worker", StringComparison.Ordinal))
+        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit worker development host", StringComparison.Ordinal))
             throw new InvalidDataException("The compiled migration worker identity is not the reviewed test host.");
     }
 
@@ -59,7 +59,7 @@ public sealed class CompiledMigrationWorkerLauncher : ICompiledWorkerLauncher
 
     private static string RequireDirectory(string value, string label)
     {
-        var full = ActionArtifactPathPolicy.RequireAbsoluteNonRoot(value, label);
+        var full = LiveRehearsalRootPolicy.RequireAbsoluteNonRoot(value, label);
         if (!Directory.Exists(full) || (File.GetAttributes(full) & FileAttributes.ReparsePoint) != 0)
             throw new DirectoryNotFoundException($"The {label} is missing or unsafe.");
         return full;

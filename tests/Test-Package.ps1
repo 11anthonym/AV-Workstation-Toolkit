@@ -106,6 +106,19 @@ function Invoke-PackagedLauncher {
     return $exitCode
 }
 
+function Invoke-ContainedExecutable {
+    param([string]$Executable,[string[]]$Arguments,[string]$Description)
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $Executable @Arguments 2>&1 | Out-String | Out-Null
+        return [int]$LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
+}
+
 function Get-MsiProperty {
     param([Parameter(Mandatory)][string]$Path,[Parameter(Mandatory)][string]$Name)
 
@@ -322,6 +335,15 @@ try {
         $workerPath = [IO.Path]::GetFullPath([string]$diagnostic.WorkerPath)
         Assert-Equal (Join-Path $actualRuntimeRoot 'worker\AVWorkstationToolkit.Worker.exe') $workerPath 'Compiled worker is not at the exact packaged runtime path.'
         Assert-Equal (Get-FileHash -LiteralPath $workerPath -Algorithm SHA256).Hash ([string]$diagnostic.WorkerSha256) 'Compiled worker diagnostic hash differs.'
+        Assert-Equal 0 @(Get-ChildItem -LiteralPath $actualRuntimeRoot -Recurse -File -Filter '*DevHost*').Count 'A worker development host was extracted from the release executable.'
+        $workerBinaryText = Get-Content -LiteralPath $workerPath -Raw -Encoding Unicode
+        Assert-True ($workerBinaryText -notmatch '--test-mode|--live-rehearsal|--repository-root|CompiledMigrationWorkerLauncher|CompiledLiveRehearsalWorkerLauncher|LiveRehearsalRootPolicy|DeterministicFakePackageExecutor') 'The packaged worker bytes contain a developer activation or fake-executor boundary.'
+        $invalidRequestPath = Join-Path $actualRuntimeRoot 'request.json'
+        Assert-Equal 2 (Invoke-ContainedExecutable -Executable $workerPath -Arguments @('--test-mode','--root',$actualRuntimeRoot,'--request',$invalidRequestPath) -Description 'Packaged worker test-mode rejection') 'Packaged worker accepted --test-mode.'
+        Assert-Equal 2 (Invoke-ContainedExecutable -Executable $workerPath -Arguments @('--live-rehearsal','--root',$actualRuntimeRoot,'--request',$invalidRequestPath,'--repository-root',$actualRuntimeRoot) -Description 'Packaged worker rehearsal-mode rejection') 'Packaged worker accepted --live-rehearsal.'
+        Assert-Equal 2 (Invoke-ContainedExecutable -Executable $workerPath -Arguments @('--production','--root',$actualRuntimeRoot,'--request',$invalidRequestPath,'--repository-root',$actualRuntimeRoot) -Description 'Packaged worker repository-root rejection') 'Packaged worker accepted a repository-root activation in place of the application root.'
+        $productionBoundaryExit = Invoke-ContainedExecutable -Executable $workerPath -Arguments @('--production','--root',$actualRuntimeRoot,'--request',$invalidRequestPath,'--application-root',$actualRuntimeRoot) -Description 'Packaged worker production invocation recognition'
+        Assert-True ($productionBoundaryExit -ne 2) 'Packaged worker did not recognize its exact production invocation shape.'
         $releaseManifest = Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json
         Assert-Equal 'Compiled C# WPF' ([string]$releaseManifest.CompiledRuntime.Primary) 'Release manifest primary runtime differs.'
         Assert-Equal 'AVWorkstationToolkit.Worker.exe' ([string]$releaseManifest.CompiledRuntime.WorkerName) 'Release manifest worker identity differs.'
@@ -400,6 +422,7 @@ try {
         Assert-Equal 1 $portableFiles.Count 'Portable ZIP contains unexpected companion files.'
         Assert-True (Test-Path -LiteralPath $portableLauncher -PathType Leaf) 'Portable ZIP is missing AVWorkstationToolkit.exe.'
         Assert-Equal (Get-FileHash -LiteralPath $standalonePath -Algorithm SHA256).Hash (Get-FileHash -LiteralPath $portableLauncher -Algorithm SHA256).Hash 'Portable executable differs from the direct download.'
+        Assert-Equal 0 @(Get-ChildItem -LiteralPath $portableExtract -Recurse -File -Filter '*DevHost*').Count 'Portable ZIP contains a worker development host.'
     }
 
     if ($SkipDesktopSmoke) {
@@ -442,6 +465,7 @@ try {
         Assert-Equal 0 $exitCode 'MSI administrative extraction failed.'
         $extractedLauncher = @(Get-ChildItem -LiteralPath $msiExtract -Recurse -File -Filter 'AVWorkstationToolkit.exe') | Select-Object -First 1
         Assert-True ($null -ne $extractedLauncher) 'MSI did not contain AVWorkstationToolkit.exe.'
+        Assert-Equal 0 @(Get-ChildItem -LiteralPath $msiExtract -Recurse -File -Filter '*DevHost*').Count 'MSI contains a worker development host.'
         Assert-Equal (Get-FileHash -LiteralPath $standalonePath -Algorithm SHA256).Hash (Get-FileHash -LiteralPath $extractedLauncher.FullName -Algorithm SHA256).Hash 'MSI-contained launcher differs from the standalone release executable.'
         $extractedSignature = Get-AuthenticodeSignature -LiteralPath $extractedLauncher.FullName
         if ($RequireSignature) {

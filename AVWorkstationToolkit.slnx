@@ -7,7 +7,9 @@
     <Project Path="src/AVWorkstationToolkit.Worker/AVWorkstationToolkit.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AVWorkstationToolkit.Development/AVWorkstationToolkit.Development.csproj" />
     <Project Path="tests/AVWorkstationToolkit.IntegrationTests/AVWorkstationToolkit.IntegrationTests.csproj" />
     <Project Path="tests/AVWorkstationToolkit.Tests/AVWorkstationToolkit.Tests.csproj" />
+    <Project Path="tests/AVWorkstationToolkit.Worker.DevHost/AVWorkstationToolkit.Worker.DevHost.csproj" />
   </Folder>
 </Solution>

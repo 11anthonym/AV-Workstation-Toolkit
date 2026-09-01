@@ -1,9 +1,9 @@
 using System.Security.Principal;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Application.Planning;
+using AVWorkstationToolkit.Development;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
-using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 using AVWorkstationToolkit.Infrastructure.Windows.WinGet;
 using AVWorkstationToolkit.App.Services;
 
@@ -35,7 +35,7 @@ internal static class LiveRehearsalBoundary
         Directory.CreateDirectory(root);
         try
         {
-            var services = CompiledAppComposition.CreateLiveRehearsal(Path.GetFullPath(repositoryRoot), root);
+            var services = CompiledAppComposition.Create(Path.GetFullPath(repositoryRoot));
             var initialPlan = await services.Planning.RefreshAsync().ConfigureAwait(false);
             var candidate = initialPlan.Packages
                 .Where(item => item.Package.Authority == CatalogAuthority.ManagedWinGet &&

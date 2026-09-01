@@ -7,18 +7,15 @@
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
+    <AssemblyName>AVWorkstationToolkit.Development</AssemblyName>
+    <RootNamespace>AVWorkstationToolkit.Development</RootNamespace>
+    <Company>AV Workstation Toolkit Project</Company>
+    <Product>AV Workstation Toolkit development support</Product>
+    <Authors>AV Workstation Toolkit contributors</Authors>
+    <Description>Non-shipping worker launch and rehearsal support for development validation.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MSTest" Version="4.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AVWorkstationToolkit.Development\AVWorkstationToolkit.Development.csproj" />
-    <ProjectReference Include="..\..\src\AVWorkstationToolkit.Domain\AVWorkstationToolkit.Domain.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Infrastructure.Windows\AVWorkstationToolkit.Infrastructure.Windows.csproj" />
-    <ProjectReference Include="..\..\src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 </Project>

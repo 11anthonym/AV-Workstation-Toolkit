@@ -1,8 +1,8 @@
 using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.Application.Actions;
+using AVWorkstationToolkit.Development;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
-using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -42,7 +42,7 @@ public sealed class LiveRehearsalTests
             var repository = RepositoryRootLocator.Find();
             var start = new CompiledLiveRehearsalWorkerLauncher(repository, root).CreateStartInfo(paths);
 
-            Assert.AreEqual("AVWorkstationToolkit.Worker.exe", Path.GetFileName(start.FileName));
+            Assert.AreEqual("AVWorkstationToolkit.Worker.DevHost.exe", Path.GetFileName(start.FileName));
             Assert.IsFalse(start.UseShellExecute);
             Assert.IsTrue(start.CreateNoWindow);
             CollectionAssert.AreEqual(new[]
@@ -57,24 +57,13 @@ public sealed class LiveRehearsalTests
     }
 
     [TestMethod]
-    public void NormalCompiledCompositionRemainsReadOnlyWhileLiveModeIsExplicit()
+    public void NormalCompiledCompositionRemainsReadOnly()
     {
-        var root = CreateRoot();
-        try
-        {
-            var repository = RepositoryRootLocator.Find();
-            var normal = CompiledAppComposition.Create(repository);
-            var live = CompiledAppComposition.CreateLiveRehearsal(repository, root);
+        var repository = RepositoryRootLocator.Find();
+        var normal = CompiledAppComposition.Create(repository);
 
-            Assert.IsNull(normal.Actions);
-            Assert.IsFalse(normal.IsLiveRehearsal);
-            Assert.IsNotNull(live.Actions);
-            Assert.IsTrue(live.IsLiveRehearsal);
-        }
-        finally
-        {
-            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
-        }
+        Assert.IsNull(normal.Actions);
+        Assert.IsFalse(normal.IsLiveRehearsal);
     }
 
     private static string CreateRoot()

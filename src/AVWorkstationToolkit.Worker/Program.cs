@@ -2,16 +2,13 @@ using System.Security.Principal;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Application.Workers;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
-using AVWorkstationToolkit.Worker;
+using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 
-var testMode = args.Length == 5 && args[0] == "--test-mode" && args[1] == "--root" && args[3] == "--request";
-var liveRehearsal = args.Length == 7 && args[0] == "--live-rehearsal" && args[1] == "--root" &&
-    args[3] == "--request" && args[5] == "--repository-root";
 var production = args.Length == 7 && args[0] == "--production" && args[1] == "--root" &&
     args[3] == "--request" && args[5] == "--application-root";
-if (!testMode && !liveRehearsal && !production)
+if (!production)
 {
-    Console.Error.WriteLine("The compiled worker accepts only an exact production, test, or live-rehearsal invocation.");
+    Console.Error.WriteLine("The compiled worker accepts only the exact production invocation.");
     return 2;
 }
 
@@ -21,8 +18,7 @@ try
     if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
         throw new InvalidOperationException("The compiled worker must run as a standard user.");
 
-    var dataRoot = testMode ? Path.GetFullPath(args[2]) :
-        liveRehearsal ? LiveRehearsalRootPolicy.RequireExisting(args[2]) : ProductionRuntimePolicy.RequireDataRoot(args[2]);
+    var dataRoot = ProductionRuntimePolicy.RequireDataRoot(args[2]);
     var requestPath = Path.GetFullPath(args[4]);
     var requestName = Path.GetFileNameWithoutExtension(requestPath);
     var requestPolicy = new ActionRequestFilePolicy();
@@ -31,24 +27,9 @@ try
     var store = new ActionProtocolStore(dataRoot);
     var request = await store.ReadRequestAsync(requestName);
     await using var protocol = new ActionWorkerFileProtocol(dataRoot, request.RequestId);
-    ActionWorkerOrchestrator orchestrator;
-    if (testMode)
-    {
-        var fixture = WorkerFixtureLoader.Load(dataRoot);
-        orchestrator = new ActionWorkerOrchestrator(
-            new FixtureWorkerPlanProvider(fixture.Plans),
-            new DeterministicFakePackageExecutor(fixture.Executions),
-            protocol,
-            fixture.Computer);
-    }
-    else
-    {
-        var applicationRoot = production
-            ? ProductionRuntimePolicy.RequireApplicationRoot(dataRoot, args[6])
-            : Path.GetFullPath(args[6]);
-        var services = LiveRehearsalWorkerComposition.Create(applicationRoot);
-        orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName);
-    }
+    var applicationRoot = ProductionRuntimePolicy.RequireApplicationRoot(dataRoot, args[6]);
+    var services = ProductionWorkerComposition.Create(applicationRoot);
+    var orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName);
     var result = await orchestrator.RunAsync(request);
     return result.ExitCode;
 }

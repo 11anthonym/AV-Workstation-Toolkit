@@ -2,15 +2,15 @@ using System.Diagnostics;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
 
-namespace AVWorkstationToolkit.Infrastructure.Windows.Processes;
+namespace AVWorkstationToolkit.Development;
 
 /// <summary>
-/// Starts the exact non-shipping compiled worker in an explicit developer-only
-/// live rehearsal mode. The caller cannot supply an executable or argument list.
+/// Starts the exact non-shipping worker development host in an explicit live
+/// rehearsal mode. The caller cannot supply an executable or argument list.
 /// </summary>
 public sealed class CompiledLiveRehearsalWorkerLauncher : ICompiledWorkerLauncher
 {
-    private const string WorkerFileName = "AVWorkstationToolkit.Worker.exe";
+    private const string WorkerFileName = "AVWorkstationToolkit.Worker.DevHost.exe";
     private readonly string repositoryRoot;
     private readonly string dataRoot;
     private readonly string workerPath;
@@ -20,14 +20,14 @@ public sealed class CompiledLiveRehearsalWorkerLauncher : ICompiledWorkerLaunche
     {
         this.repositoryRoot = RequireRepositoryRoot(repositoryRoot);
         dataRoot = LiveRehearsalRootPolicy.RequireExisting(explicitRehearsalRoot);
-        workerPath = Path.GetFullPath(Path.Combine(this.repositoryRoot, "src", "AVWorkstationToolkit.Worker", "bin", "Release",
+        workerPath = Path.GetFullPath(Path.Combine(this.repositoryRoot, "tests", "AVWorkstationToolkit.Worker.DevHost", "bin", "Release",
             "net10.0-windows", WorkerFileName));
         if (!File.Exists(workerPath) || !string.Equals(Path.GetFileName(workerPath), WorkerFileName, StringComparison.Ordinal) ||
             (File.GetAttributes(workerPath) & (FileAttributes.Directory | FileAttributes.ReparsePoint)) != 0)
             throw new FileNotFoundException("The exact compiled rehearsal worker has not been built or is unsafe.", workerPath);
         RejectReparseChain(this.repositoryRoot, workerPath);
         var metadata = FileVersionInfo.GetVersionInfo(workerPath);
-        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit compiled worker", StringComparison.Ordinal))
+        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit worker development host", StringComparison.Ordinal))
             throw new InvalidDataException("The compiled rehearsal worker identity is not the reviewed host.");
     }
 
@@ -64,7 +64,7 @@ public sealed class CompiledLiveRehearsalWorkerLauncher : ICompiledWorkerLaunche
 
     private static string RequireRepositoryRoot(string value)
     {
-        var root = ActionArtifactPathPolicy.RequireAbsoluteNonRoot(value, "repository root");
+        var root = LiveRehearsalRootPolicy.RequireAbsoluteNonRoot(value, "repository root");
         if (!Directory.Exists(root) || !File.Exists(Path.Combine(root, "VERSION")) ||
             !File.Exists(Path.Combine(root, "manifests", "managed-applications.json")) ||
             (File.GetAttributes(root) & FileAttributes.ReparsePoint) != 0)

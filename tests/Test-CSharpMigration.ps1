@@ -14,6 +14,8 @@ if ($LASTEXITCODE -ne 0) {
 if ($LASTEXITCODE -ne 0) { throw 'C# migration solution build failed.' }
 & dotnet test $solutionPath -c Release --no-build --no-restore --nologo
 if ($LASTEXITCODE -ne 0) { throw 'C# deterministic domain tests failed.' }
+& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-ProductionWorkerBoundary.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'Production-only compiled worker boundary validation failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'parity\Invoke-Parity.ps1') -NoBuild
 if ($LASTEXITCODE -ne 0) { throw 'Dual-engine parity validation failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-CSharpWorkerProcess.ps1')

@@ -24,7 +24,7 @@ $catalogLoader = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWork
 $composition = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\Services\CompiledAppComposition.cs') -Raw
 $workerLauncher = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\ProductionCompiledWorkerLauncher.cs') -Raw
 $worker = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker\Program.cs') -Raw
-$workerComposition = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker\LiveRehearsalWorkerComposition.cs') -Raw
+$workerComposition = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\ProductionWorkerComposition.cs') -Raw
 $build = Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
 $policy = Get-Content -LiteralPath (Join-Path $repositoryRoot 'manifests\process-launch-policy.json') -Raw | ConvertFrom-Json
 
@@ -59,6 +59,7 @@ foreach ($boundary in @('ProductionRuntimePolicy.RequireApplicationRoot','Crypto
 Reject-Match $workerLauncher '(?i)\b(?:powershell|pwsh|cmd)\.exe\b|ShellExecute\s*=\s*true|Kill\(' 'Production worker launcher gained a shell, unsafe shell execution, or GUI-owned kill path.'
 Require-Match $worker 'args\[0\] == "--production"' 'Compiled worker lacks its exact production invocation.'
 Require-Match $worker 'ProductionRuntimePolicy\.RequireApplicationRoot' 'Compiled worker does not validate the packaged application root.'
+Reject-Match $worker '--test-mode|--live-rehearsal|--repository-root|DeterministicFakePackageExecutor' 'Shipping worker still exposes a developer or fake-executor activation.'
 Require-Match $workerComposition 'WinGetPackageActionExecutor' 'Production worker composition does not use the constrained real executor.'
 Require-Match $workerComposition 'WorkstationPlanningCoordinator' 'Production worker composition does not obtain fresh planning evidence.'
 

@@ -1,4 +1,4 @@
-namespace AVWorkstationToolkit.Infrastructure.Windows.Files;
+namespace AVWorkstationToolkit.Development;
 
 /// <summary>
 /// Restricts developer-only live rehearsal artifacts to one direct, regular
@@ -10,7 +10,7 @@ public static class LiveRehearsalRootPolicy
 
     public static string RequireExisting(string explicitRoot)
     {
-        var root = ActionArtifactPathPolicy.RequireAbsoluteNonRoot(explicitRoot, "live rehearsal root");
+        var root = RequireAbsoluteNonRoot(explicitRoot, "live rehearsal root");
         var temporaryRoot = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         if (!string.Equals(Path.GetDirectoryName(root), temporaryRoot, StringComparison.OrdinalIgnoreCase) ||
             !Path.GetFileName(root).StartsWith(DirectoryPrefix, StringComparison.Ordinal) ||
@@ -19,6 +19,17 @@ public static class LiveRehearsalRootPolicy
 
         RejectReparse(root);
         return root;
+    }
+
+    internal static string RequireAbsoluteNonRoot(string value, string label)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !Path.IsPathFullyQualified(value))
+            throw new IOException($"The {label} must be an absolute path.");
+        var full = Path.GetFullPath(value).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var pathRoot = Path.GetPathRoot(full)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        if (string.IsNullOrWhiteSpace(full) || string.Equals(full, pathRoot, StringComparison.OrdinalIgnoreCase))
+            throw new IOException($"The {label} cannot be a filesystem root.");
+        return full;
     }
 
     private static void RejectReparse(string root)

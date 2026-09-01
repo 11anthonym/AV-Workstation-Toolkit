@@ -77,12 +77,14 @@ $readOnlyRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infras
 $readOnlyRunnerSource = Get-Content -LiteralPath $readOnlyRunnerPath -Raw
 $mutationRunnerPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WinGetMutationProcessRunner.cs'
 $mutationRunnerSource = Get-Content -LiteralPath $mutationRunnerPath -Raw
-$migrationWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\CompiledMigrationWorkerLauncher.cs'
+$migrationWorkerLauncherPath = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Development\CompiledMigrationWorkerLauncher.cs'
 $migrationWorkerLauncherSource = Get-Content -LiteralPath $migrationWorkerLauncherPath -Raw
-$liveWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\CompiledLiveRehearsalWorkerLauncher.cs'
+$liveWorkerLauncherPath = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Development\CompiledLiveRehearsalWorkerLauncher.cs'
 $liveWorkerLauncherSource = Get-Content -LiteralPath $liveWorkerLauncherPath -Raw
 $productionWorkerLauncherPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\ProductionCompiledWorkerLauncher.cs'
 $productionWorkerLauncherSource = Get-Content -LiteralPath $productionWorkerLauncherPath -Raw
+$productionWorkerCompositionPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\ProductionWorkerComposition.cs'
+$productionWorkerCompositionSource = Get-Content -LiteralPath $productionWorkerCompositionPath -Raw
 $userHandoffPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\WindowsValidatedUserHandoffService.cs'
 $userHandoffSource = Get-Content -LiteralPath $userHandoffPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
@@ -90,6 +92,9 @@ $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'sr
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 $compiledWorkerSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker') -Recurse -File |
     Where-Object { $_.Extension -in @('.cs','.csproj') -and $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' } |
+    ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+$developmentWorkerSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Worker.DevHost') -Recurse -File |
+    Where-Object { $_.Extension -in @('.cs','.csproj') -and $_.FullName -notmatch '[\/](?:bin|obj)[\/]' } |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 $compiledReadOnlySurfaceSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Details') -File -Filter '*.cs'
@@ -157,16 +162,13 @@ if (($workerProtocolSource -match 'ProcessStartInfo|Process\.Start|HttpClient|We
     throw 'The fake-worker file protocol lost its explicit-root, append-only progress, stale-artifact, or final-result no-overwrite boundary.'
 }
 if ($compiledAppSource -match 'Invoke-AVWorkstationToolkitAction|Start-AVWorkstationToolkitWorker|WinGetMutationProcessRunner|WinGetPackageActionExecutor' -or
-    $compiledAppSource -notmatch '--migration-action-test-root' -or
-    $compiledAppSource -notmatch '--live-rehearsal-root' -or
+    $compiledAppSource -match '--migration-action-test-root|--live-rehearsal-root|CreateLiveRehearsal|CompiledMigrationWorkerLauncher|CompiledLiveRehearsalWorkerLauncher' -or
     $compiledAppSource -notmatch 'CreateProduction' -or
     $compiledAppSource -notmatch 'ProductionCompiledWorkerLauncher' -or
-    $compiledAppSource -notmatch 'CreateLiveRehearsal' -or
-    $compiledAppSource -notmatch 'CompiledMigrationWorkerLauncher\(repositoryRoot, actionRoot\)' -or
-    $compiledAppSource -notmatch 'CompiledLiveRehearsalWorkerLauncher\(repositoryRoot, actionRoot\)') {
-    throw 'The compiled WPF App lost its reviewed production/migration composition boundary or gained direct mutation authority.'
+    $compiledAppSource -notmatch 'if \(production\)') {
+    throw 'The compiled WPF App lost its production-only action composition boundary or gained development/mutation authority.'
 }
-if ($migrationWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.exe"' -or
+if ($migrationWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.DevHost\.exe"' -or
     $migrationWorkerLauncherSource -notmatch 'awt-phase11-' -or
     $migrationWorkerLauncherSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $migrationWorkerLauncherSource -notmatch 'ArgumentList\.Add\("--test-mode"\)' -or
@@ -174,7 +176,7 @@ if ($migrationWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstatio
     $migrationWorkerLauncherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall|import)async\s*\(|Kill\(') {
     throw 'The compiled migration worker launcher lost its exact test-host, canonical-request, or independent-lifetime boundary.'
 }
-if ($liveWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.exe"' -or
+if ($liveWorkerLauncherSource -notmatch 'WorkerFileName\s*=\s*"AVWorkstationToolkit\.Worker\.DevHost\.exe"' -or
     $liveWorkerLauncherSource -notmatch 'LiveRehearsalRootPolicy\.RequireExisting' -or
     $liveWorkerLauncherSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $liveWorkerLauncherSource -notmatch 'ArgumentList\.Add\("--live-rehearsal"\)' -or
@@ -205,16 +207,26 @@ if ($compiledWorkerSource -match 'ProcessStartInfo|Process\.Start|System\.Manage
     $compiledWorkerSource -match 'LocalApplicationData|GetTempPath|Environment\.GetEnvironmentVariable') {
     throw 'The compiled worker gained an unreviewed process, shell, network, production-root, or mutation behavior.'
 }
-if ($compiledWorkerSource -notmatch '--test-mode' -or
-    $compiledWorkerSource -notmatch '--live-rehearsal' -or
-    $compiledWorkerSource -notmatch '--production' -or
-    $compiledWorkerSource -notmatch 'DeterministicFakePackageExecutor' -or
-    $compiledWorkerSource -notmatch 'WinGetPackageActionExecutor' -or
-    $compiledWorkerSource -notmatch 'LiveRehearsalRootPolicy\.RequireExisting' -or
+if ($compiledWorkerSource -notmatch '--production' -or
     $compiledWorkerSource -notmatch 'ActionWorkerFileProtocol' -or
-    $compiledWorkerSource -notmatch 'ReadFreshPlanAsync' -or
-    $compiledWorkerSource -notmatch 'WindowsBuiltInRole\.Administrator') {
-    throw 'The compiled worker lost its explicit test/rehearsal/production modes, standard-user guard, or reviewed executor compositions.'
+    $compiledWorkerSource -notmatch 'ProductionRuntimePolicy\.RequireDataRoot' -or
+    $compiledWorkerSource -notmatch 'ProductionRuntimePolicy\.RequireApplicationRoot' -or
+    $compiledWorkerSource -notmatch 'WindowsBuiltInRole\.Administrator' -or
+    $compiledWorkerSource -match '--test-mode|--live-rehearsal|--repository-root|DeterministicFakePackageExecutor|WorkerFixtureLoader|LiveRehearsalRootPolicy') {
+    throw 'The shipping compiled worker lost its production-only activation, standard-user, path, or protocol boundary.'
+}
+if ($productionWorkerCompositionSource -notmatch 'WinGetPackageActionExecutor' -or
+    $productionWorkerCompositionSource -notmatch 'WorkstationPlanningCoordinator' -or
+    $productionWorkerCompositionSource -notmatch 'ReadFreshPlanAsync' -or
+    $productionWorkerCompositionSource -match 'DeterministicFakePackageExecutor|--test-mode|--live-rehearsal') {
+    throw 'The production worker composition lost its real constrained executor/fresh-plan boundary or gained a developer activation.'
+}
+if ($developmentWorkerSource -notmatch '--test-mode' -or
+    $developmentWorkerSource -notmatch '--live-rehearsal' -or
+    $developmentWorkerSource -notmatch 'DeterministicFakePackageExecutor' -or
+    $developmentWorkerSource -notmatch 'AV Workstation Toolkit worker development host' -or
+    $developmentWorkerSource -match '--production') {
+    throw 'The non-shipping worker development host no longer owns the isolated fake/rehearsal activations.'
 }
 if ($compiledVendorSource -match 'ProcessStartInfo|Process\.Start|ShellExecute|System\.Management\.Automation|(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b' -or
     $compiledVendorSource -match '(?i)\b(?:install|upgrade|uninstall|import)async\s*\(') {

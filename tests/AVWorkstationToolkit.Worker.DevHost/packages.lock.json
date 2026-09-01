@@ -29,13 +29,6 @@
           "Microsoft.Extensions.Logging.Abstractions": "8.0.3"
         }
       },
-      "avworkstationtoolkit.app": {
-        "type": "Project",
-        "dependencies": {
-          "AVWorkstationToolkit.Application": "[1.0.0, )",
-          "AVWorkstationToolkit.Infrastructure.Windows": "[1.0.0, )"
-        }
-      },
       "avworkstationtoolkit.application": {
         "type": "Project",
         "dependencies": {

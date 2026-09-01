@@ -33,10 +33,6 @@ public partial class App : System.Windows.Application
         try
         {
             var readOnlyCheck = e.Args.Contains("--read-only-check", StringComparer.Ordinal);
-            var migrationTestRoot = ParseMigrationTestRoot(e.Args);
-            var liveRehearsalRoot = ParseLiveRehearsalRoot(e.Args);
-            if (migrationTestRoot is not null && liveRehearsalRoot is not null)
-                throw new ArgumentException("Fake migration mode and live rehearsal mode cannot be enabled together.");
             if (!smoke && IsElevated())
             {
                 MessageBox.Show(
@@ -52,11 +48,8 @@ public partial class App : System.Windows.Application
             CompiledActionCoordinator? actions = null;
             IDiagnosticsExportService? diagnosticsExport = null;
             IValidatedUserHandoffService? handoffs = null;
-            var liveRehearsal = false;
             if (packagedContext is not null)
             {
-                if (migrationTestRoot is not null || liveRehearsalRoot is not null)
-                    throw new ArgumentException("Packaged production mode cannot be combined with migration test modes.");
                 var services = CompiledAppComposition.CreateProduction(
                     packagedContext.ApplicationRoot,
                     packagedContext.DataRoot,
@@ -77,18 +70,15 @@ public partial class App : System.Windows.Application
             else
             {
                 var repositoryRoot = RepositoryRootLocator.Find();
-                var services = liveRehearsalRoot is null
-                    ? CompiledAppComposition.Create(repositoryRoot, migrationTestRoot)
-                    : CompiledAppComposition.CreateLiveRehearsal(repositoryRoot, liveRehearsalRoot);
+                var services = CompiledAppComposition.Create(repositoryRoot);
                 coordinator = services.Planning;
                 diagnostics = services.Diagnostics;
                 details = services.Details;
                 actions = services.Actions;
                 diagnosticsExport = services.DiagnosticsExport;
                 handoffs = services.Handoffs;
-                liveRehearsal = services.IsLiveRehearsal;
             }
-            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, liveRehearsal);
+            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, liveRehearsalMode: false);
             var window = new MainWindow(viewModel, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();
@@ -125,25 +115,4 @@ public partial class App : System.Windows.Application
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
     }
 
-    private static string? ParseMigrationTestRoot(IReadOnlyList<string> args)
-    {
-        var indexes = args.Select((value, index) => (value, index))
-            .Where(item => item.value == "--migration-action-test-root")
-            .Select(item => item.index).ToArray();
-        if (indexes.Length == 0) return null;
-        if (indexes.Length != 1 || indexes[0] + 1 >= args.Count)
-            throw new ArgumentException("Migration action mode requires exactly one --migration-action-test-root <isolated-temp-root> argument.");
-        return args[indexes[0] + 1];
-    }
-
-    private static string? ParseLiveRehearsalRoot(IReadOnlyList<string> args)
-    {
-        var indexes = args.Select((value, index) => (value, index))
-            .Where(item => item.value == "--live-rehearsal-root")
-            .Select(item => item.index).ToArray();
-        if (indexes.Length == 0) return null;
-        if (indexes.Length != 1 || indexes[0] + 1 >= args.Count)
-            throw new ArgumentException("Live rehearsal mode requires exactly one --live-rehearsal-root <isolated-temp-root> argument.");
-        return args[indexes[0] + 1];
-    }
 }

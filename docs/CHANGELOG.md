@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-08-31 — Production worker release boundary hardened
+
+- Restricted the shipped compiled worker to its exact `--production` invocation and canonical production data/application roots.
+- Moved deterministic fake/live-rehearsal activation and its fixed launch/root policies into separately identified non-shipping development projects while preserving existing process-boundary coverage.
+- Added source, endpoint-trust, and package assertions that reject developer switches in shipping worker bytes and exclude the development host from EXE, MSI, ZIP, and extracted runtime composition.
+- Reconciled the security audit and completed migration matrix with the compiled production architecture. Live mutation remains deferred because no safe eligible managed update was available.
+
 ## 2026-08-31 — Compiled runtime migration completed
 
 - Retired the PowerShell-hosted WPF application, PowerShell action worker, and launcher vendor bridge from the embedded runtime, command-line surface, process policy, and release package.
