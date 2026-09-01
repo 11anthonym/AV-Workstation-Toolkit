@@ -220,6 +220,7 @@ public sealed class CatalogParser
                 provenance.VendorHashAvailability,
                 provenance.DownloadStrategy,
                 raw.Release?.Uri is null ? string.Empty : HttpsUri(raw.Release.Uri, $"External catalog entry {index} Release.Uri"),
+                raw.Release?.VersionPattern ?? string.Empty,
                 raw.Delivery?.Uri is null ? string.Empty : HttpsUri(raw.Delivery.Uri, $"External catalog entry {index} Delivery.Uri")),
             raw.Delivery is null ? null : new CatalogDeliveryPolicy(
                 raw.Delivery.Uri ?? string.Empty,

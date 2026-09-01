@@ -39,6 +39,20 @@ public sealed record OpenOfficialUriIntent
             throw new InvalidDataException("The catalogued official address is not a safe HTTPS URI.");
         return new(kind, uri, package.Id);
     }
+
+    public static OpenOfficialUriIntent FromDeliveryCatalog(PackageDefinition package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        if (package.Provider != ProviderKind.External || package.Authority is not (CatalogAuthority.OperationalExternal or CatalogAuthority.AwarenessOnly))
+            throw new InvalidOperationException("The package does not grant an official delivery handoff.");
+        var value = package.DeliveryPolicy?.Uri;
+        if (string.IsNullOrWhiteSpace(value)) value = package.MetadataDetails.OfficialDownloadUri;
+        if (string.IsNullOrWhiteSpace(value)) value = package.MetadataDetails.OfficialProductUri;
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps ||
+            uri.UserInfo.Length > 0 || uri.DnsSafeHost.Length == 0)
+            throw new InvalidDataException("The catalogued vendor delivery address is not a safe HTTPS URI.");
+        return new(OfficialUriKind.Download, uri, package.Id);
+    }
 }
 
 public sealed record CatalogDetailField(string Label, string Value);
@@ -56,7 +70,7 @@ public sealed class CatalogDetailService(ExternalProviderReadModelService? provi
 {
     private readonly ExternalProviderReadModelService providerService = providerService ?? new ExternalProviderReadModelService();
 
-    public CatalogDetail Create(PackageState state, PackageCatalog catalog)
+    public CatalogDetail Create(PackageState state, PackageCatalog catalog, ExternalReleaseEvidence? releaseEvidence = null)
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -66,7 +80,7 @@ public sealed class CatalogDetailService(ExternalProviderReadModelService? provi
         var coupling = Value(package.VersionCoupling);
         if (package.VersionCouplingTargetId.Length > 0) coupling += $" -> {package.VersionCouplingTargetId}";
         if (metadata.VersionCouplingNotes.Length > 0) coupling += $" ({metadata.VersionCouplingNotes})";
-        var providerState = providerService.Create(state, catalog);
+        var providerState = providerService.Create(state, catalog, releaseEvidence);
         var groups = new[]
         {
             Group("Identity",

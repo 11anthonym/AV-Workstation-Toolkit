@@ -27,6 +27,7 @@ public sealed record CompiledAppServices(
     IDiagnosticsExportService DiagnosticsExport,
     VendorInteractionCoordinator? Vendors,
     IValidatedUserHandoffService? Handoffs,
+    IPackageDeliveryWorkflow? PackageDelivery,
     bool IsLiveRehearsal,
     bool IsProduction);
 
@@ -63,7 +64,8 @@ public static class CompiledAppComposition
             new WinGetAvailableUpdateInventory(runner),
             new WindowsUninstallRegistryInventory(),
             new WindowsRebootStateProvider(),
-            new ExternalInventoryMatcher());
+            new ExternalInventoryMatcher(),
+            externalReleases: new VendorExternalReleaseInventory(catalog));
         var canonicalDataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
         var dataRoot = production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : canonicalDataRoot;
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
@@ -74,6 +76,7 @@ public static class CompiledAppComposition
         CompiledActionCoordinator? actions = null;
         VendorInteractionCoordinator? vendors = null;
         IValidatedUserHandoffService? handoffs = null;
+        IPackageDeliveryWorkflow? packageDelivery = null;
         if (production)
         {
             ICompiledWorkerLauncher workerLauncher = new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!);
@@ -83,14 +86,19 @@ public static class CompiledAppComposition
                 planning);
             var cachePaths = new VendorCachePathPolicy();
             var verifier = new VendorPayloadVerificationService(cachePaths, new WinTrustAuthenticodeVerifier());
+            var credentialStore = new WindowsVendorCredentialStore();
+            var sftp = new VendorSftpDeliveryService(cachePaths);
             vendors = new VendorInteractionCoordinator(
                 dataRoot,
                 new VendorHttpsDownloader(cachePaths),
-                new VendorSftpDeliveryService(cachePaths),
-                new WindowsVendorCredentialStore(),
+                sftp,
+                sftp,
+                new VendorTrustedHostStore(),
+                credentialStore,
                 verifier);
             handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
+            packageDelivery = new PackageDeliveryWorkflow(catalog, vendors, handoffs, cachePaths, dataRoot);
         }
-        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, false, production);
+        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, packageDelivery, false, production);
     }
 }

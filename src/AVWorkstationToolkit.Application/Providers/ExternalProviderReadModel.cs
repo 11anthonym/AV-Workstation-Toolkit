@@ -23,7 +23,7 @@ public sealed record ExternalProviderReadState(
 /// </summary>
 public sealed class ExternalProviderReadModelService
 {
-    public ExternalProviderReadState Create(PackageState state, PackageCatalog catalog)
+    public ExternalProviderReadState Create(PackageState state, PackageCatalog catalog, ExternalReleaseEvidence? releaseEvidence = null)
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -42,14 +42,19 @@ public sealed class ExternalProviderReadModelService
             InventoryQuality.PackageError => DiagnosticEvidenceState.Failed,
             _ => DiagnosticEvidenceState.Unknown
         };
-        var release = package.ReleaseMode switch
+        var release = releaseEvidence switch
         {
-            ReleaseMode.InventoryOnly => DiagnosticEvidenceState.Unknown,
-            ReleaseMode.VendorPage when package.KnownVersion.Length > 0 => DiagnosticEvidenceState.Warning,
-            ReleaseMode.ParentCatalog => DiagnosticEvidenceState.Warning,
-            _ => DiagnosticEvidenceState.Unknown
+            { OnlineAvailable: true } => DiagnosticEvidenceState.Available,
+            { OnlineChecked: true } => DiagnosticEvidenceState.Unavailable,
+            _ => package.ReleaseMode switch
+            {
+                ReleaseMode.InventoryOnly => DiagnosticEvidenceState.Unknown,
+                ReleaseMode.VendorPage when package.KnownVersion.Length > 0 => DiagnosticEvidenceState.Warning,
+                ReleaseMode.ParentCatalog => DiagnosticEvidenceState.Warning,
+                _ => DiagnosticEvidenceState.Unknown
+            }
         };
-        var releaseDetail = package.ReleaseMode switch
+        var releaseDetail = releaseEvidence?.Detail ?? (package.ReleaseMode switch
         {
             ReleaseMode.InventoryOnly => "Inventory-only provider; no online version comparison is performed.",
             ReleaseMode.VendorPage => package.KnownVersion.Length > 0
@@ -57,7 +62,7 @@ public sealed class ExternalProviderReadModelService
                 : "Vendor metadata was not requested and no validated catalog baseline is available.",
             ReleaseMode.ParentCatalog => "Parent-provider metadata was not requested; any validated catalog baseline remains read-only.",
             _ => "Release evidence is unknown."
-        };
+        });
         var details = package.MetadataDetails;
         var parentValid = package.ParentProviderId.Length > 0 && TryGet(catalog, package.ParentProviderId, out var parent) &&
             parent.DeliveryMode == DeliveryMode.AuthenticatedSftp && package.DeliveryMode == DeliveryMode.ParentProvider &&
@@ -66,7 +71,10 @@ public sealed class ExternalProviderReadModelService
         {
             DeliveryMode.VendorPage when SafeHttps(details.DeliveryUri) => DiagnosticEvidenceState.Available,
             DeliveryMode.Awareness when SafeHttps(details.OfficialProductUri) => DiagnosticEvidenceState.Available,
+            DeliveryMode.ParentProvider when parentValid && releaseEvidence?.Products.Count > 0 => DiagnosticEvidenceState.Available,
             DeliveryMode.ParentProvider when parentValid => DiagnosticEvidenceState.Unknown,
+            DeliveryMode.AuthenticatedSftp when releaseEvidence?.Products.Count > 0 => DiagnosticEvidenceState.Available,
+            DeliveryMode.DirectDownload when !string.IsNullOrWhiteSpace(releaseEvidence?.DownloadUri) => DiagnosticEvidenceState.Available,
             DeliveryMode.DirectDownload or DeliveryMode.AuthenticatedSftp or DeliveryMode.Bundled => DiagnosticEvidenceState.Unknown,
             DeliveryMode.InventoryOnly => DiagnosticEvidenceState.Unknown,
             _ => DiagnosticEvidenceState.Unavailable
@@ -82,10 +90,18 @@ public sealed class ExternalProviderReadModelService
                     ? "Validated official product-page metadata is available; the record remains awareness-only."
                     : "No validated official product-page metadata is available.",
                 DeliveryMode.ParentProvider => parentValid
-                    ? "Parent-provider relationship is valid; authenticated availability was not checked."
+                    ? releaseEvidence?.Products.Count > 0
+                        ? "Parent-provider relationship and allowlisted product evidence are valid; credentials have not been accessed."
+                        : releaseEvidence is null
+                            ? "Parent-provider relationship is valid; authenticated availability was not checked."
+                            : "Parent-provider relationship is valid, but current product evidence is unavailable."
                     : "Parent-provider relationship is unavailable.",
-                DeliveryMode.AuthenticatedSftp => "Authenticated provider configuration exists; no host, credential, or catalog operation was attempted.",
-                DeliveryMode.DirectDownload => "Direct-download policy exists; no page, payload, or cache operation was attempted.",
+                DeliveryMode.AuthenticatedSftp => releaseEvidence?.Products.Count > 0
+                    ? $"Authenticated provider configuration and {releaseEvidence.Products.Count} allowlisted catalog product(s) are available; no credential was accessed."
+                    : "Authenticated provider configuration exists; no credential was accessed and current catalog evidence is unavailable.",
+                DeliveryMode.DirectDownload => !string.IsNullOrWhiteSpace(releaseEvidence?.DownloadUri)
+                    ? "The current direct-download URI was derived from catalog-authorized vendor release evidence."
+                    : "Direct-download policy exists, but no current validated payload URI is available; the official page remains available.",
                 DeliveryMode.Bundled => "Bundled delivery policy exists; payload/cache presence was not inspected.",
                 DeliveryMode.InventoryOnly => "Inventory-only provider has no delivery action.",
                 _ => "Delivery evidence is unknown."

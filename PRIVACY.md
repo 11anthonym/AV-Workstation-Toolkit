@@ -57,14 +57,15 @@ application starts a documented inventory refresh.
 
 ## Credentials
 
-Authenticated SFTP credentials are handled by the compiled vendor bridge and
-Windows Credential Manager. The PowerShell UI sends a bounded JSON request to
-the bridge through standard input; passwords do not enter process arguments or
-environment variables. A saved secret remains protected in the current
-Windows user's Credential Manager. During an explicit SFTP authentication,
-the credential is necessarily presented to the configured server through the
-encrypted SSH protocol. It is not sent to AV Workstation Toolkit maintainers,
-GitHub, WinGet, another vendor, logs, diagnostics, or release artifacts.
+Authenticated SFTP credentials are handled by the compiled vendor-delivery
+services and Windows Credential Manager. The compiled UI passes a scoped
+in-memory credential only to the typed SFTP service; passwords do not enter
+process arguments, environment variables, logs, diagnostics, or protocol
+artifacts. A saved secret remains protected in the current Windows user's
+Credential Manager. During an explicit SFTP authentication, the credential is
+necessarily presented to the configured server through the encrypted SSH protocol.
+It is not sent to AV Workstation Toolkit maintainers, GitHub, WinGet,
+another vendor, or release artifacts.
 
 Host-key validation is mandatory. A first-use or changed host identity requires
 an explicit decision and remains scoped to the configured host and port.

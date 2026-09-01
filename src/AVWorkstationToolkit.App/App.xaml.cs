@@ -48,6 +48,7 @@ public partial class App : System.Windows.Application
             CompiledActionCoordinator? actions = null;
             IDiagnosticsExportService? diagnosticsExport = null;
             IValidatedUserHandoffService? handoffs = null;
+            IPackageDeliveryWorkflow? packageDelivery = null;
             if (packagedContext is not null)
             {
                 var services = CompiledAppComposition.CreateProduction(
@@ -61,6 +62,7 @@ public partial class App : System.Windows.Application
                 actions = services.Actions;
                 diagnosticsExport = services.DiagnosticsExport;
                 handoffs = services.Handoffs;
+                packageDelivery = services.PackageDelivery;
             }
             else if (smoke)
             {
@@ -77,8 +79,9 @@ public partial class App : System.Windows.Application
                 actions = services.Actions;
                 diagnosticsExport = services.DiagnosticsExport;
                 handoffs = services.Handoffs;
+                packageDelivery = services.PackageDelivery;
             }
-            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, liveRehearsalMode: false);
+            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery, liveRehearsalMode: false);
             var window = new MainWindow(viewModel, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();

@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Text.RegularExpressions;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Versions;
+using AVWorkstationToolkit.Application.Providers;
 
 namespace AVWorkstationToolkit.Application.Vendors;
 
@@ -93,6 +94,46 @@ public sealed class VendorDeliveryAuthorization
         var path = RequireRemotePath(remotePath, root);
         return new(package.Id, version, DeliveryMode.AuthenticatedSftp, null,
             Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), policy.PublisherPattern, policy.MaximumBytes, policy.Sha256,
+            identity, root, path);
+    }
+
+    public static VendorDeliveryAuthorization ForSftp(
+        PackageDefinition package,
+        PackageDefinition provider,
+        VendorCatalogProduct product,
+        string username,
+        VendorSftpHostTrust trustedHost)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        ArgumentNullException.ThrowIfNull(provider);
+        ArgumentNullException.ThrowIfNull(product);
+        var policy = RequirePolicy(provider, DeliveryMode.AuthenticatedSftp);
+        if (package.Provider != ProviderKind.External || package.Authority != CatalogAuthority.OperationalExternal)
+            throw new InvalidOperationException("The package does not grant vendor delivery authority.");
+        if (package.DeliveryMode == DeliveryMode.ParentProvider)
+        {
+            if (!package.ParentProviderId.Equals(provider.Id, StringComparison.OrdinalIgnoreCase) ||
+                !package.DeliveryProductId.Equals(product.ProductId, StringComparison.Ordinal) ||
+                !policy.AllowedProductIds.Contains(product.ProductId, StringComparer.Ordinal))
+                throw new InvalidOperationException("The child package is not authorized by this parent provider product.");
+        }
+        else if (package.DeliveryMode != DeliveryMode.AuthenticatedSftp || !package.Id.Equals(provider.Id, StringComparison.OrdinalIgnoreCase) ||
+                 !policy.AllowedProductIds.Contains(product.ProductId, StringComparer.Ordinal))
+        {
+            throw new InvalidOperationException("The provider package does not authorize this catalog product.");
+        }
+
+        _ = VersionValue.Parse(product.Version);
+        var endpoint = new VendorEndpoint(RequireDnsHost(policy.Host), RequirePort(policy.Port));
+        if (!endpoint.Equals(trustedHost.Endpoint)) throw new InvalidDataException("The trusted SFTP identity does not match the catalogued endpoint.");
+        var identity = new VendorSftpIdentity(endpoint, RequireText(username, "username", 256), RequireFingerprint(trustedHost.Fingerprint));
+        var root = RequireRemoteRoot(policy.RemoteRoot);
+        var path = RequireRemotePath(product.RemotePath, root);
+        if (!Path.GetFileName(path).Equals(product.FileName, StringComparison.Ordinal) || product.SizeBytes <= 0 || product.SizeBytes > policy.MaximumBytes)
+            throw new InvalidDataException("The parent catalog product metadata violates the provider policy.");
+        var productLimit = checked((long)Math.Min(policy.MaximumBytes, Math.Ceiling(product.SizeBytes * 1.2d + 10 * 1024 * 1024)));
+        return new(package.Id, product.Version, DeliveryMode.AuthenticatedSftp, null,
+            Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), policy.PublisherPattern, productLimit, policy.Sha256,
             identity, root, path);
     }
 
@@ -199,6 +240,17 @@ public interface IVendorSftpDelivery
         CancellationToken cancellationToken);
 }
 
+public interface IVendorSftpHostProbe
+{
+    Task<string> ProbeAsync(VendorEndpoint endpoint, CancellationToken cancellationToken);
+}
+
+public interface IVendorTrustedHostStore
+{
+    VendorSftpHostTrust? Read(string explicitDataRoot, VendorEndpoint endpoint);
+    VendorSftpHostTrust Trust(string explicitDataRoot, VendorEndpoint endpoint, string fingerprint);
+}
+
 public interface IVendorPayloadVerifier
 {
     VendorDownloadResult VerifyAndPromote(VendorDeliveryAuthorization authorization, string explicitDataRoot, string temporaryPath);
@@ -216,6 +268,8 @@ public sealed class VendorInteractionCoordinator(
     string explicitDataRoot,
     IVendorHttpsDelivery https,
     IVendorSftpDelivery sftp,
+    IVendorSftpHostProbe hostProbe,
+    IVendorTrustedHostStore trustedHosts,
     IVendorCredentialStore credentials,
     IVendorPayloadVerifier verifier)
 {
@@ -251,6 +305,10 @@ public sealed class VendorInteractionCoordinator(
 
     public void SaveCredential(VendorSftpIdentity identity, ReadOnlySpan<char> secret) => credentials.Write(identity, secret);
     public bool DeleteCredential(VendorSftpIdentity identity) => credentials.Delete(identity);
+    public Task<string> ProbeSftpHostAsync(VendorEndpoint endpoint, CancellationToken cancellationToken = default) =>
+        hostProbe.ProbeAsync(endpoint, cancellationToken);
+    public VendorSftpHostTrust? ReadTrustedHost(VendorEndpoint endpoint) => trustedHosts.Read(explicitDataRoot, endpoint);
+    public VendorSftpHostTrust TrustHost(VendorEndpoint endpoint, string fingerprint) => trustedHosts.Trust(explicitDataRoot, endpoint, fingerprint);
     public VendorDownloadResult ResolveCached(VendorDeliveryAuthorization authorization, string payloadPath) =>
         verifier.ResolveCached(authorization, explicitDataRoot, payloadPath);
 }

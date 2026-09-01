@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-01 — Compiled vendor workflow integration repaired
+
+- Restored catalog-authorized online release evidence to compiled production planning, including strict Crestron MasterInstaller parent-catalog parsing for its allowlisted child products.
+- Replaced the compiled `Get package` button's details binding with the typed vendor delivery workflow for validated official pages, verified HTTPS downloads, and host-key-first authenticated SFTP retrieval.
+- Preserved manual-only external package authority: downloaded payloads must pass cache, hash, Authenticode, and publisher checks and are only revealed in Explorer; AV Workstation Toolkit does not execute them.
+
 ## 2026-08-31 — Production worker release boundary hardened
 
 - Restricted the shipped compiled worker to its exact `--production` invocation and canonical production data/application roots.

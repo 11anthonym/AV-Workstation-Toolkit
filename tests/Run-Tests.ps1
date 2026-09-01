@@ -1836,7 +1836,7 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     } | ForEach-Object {
         $_.FullName.Substring($repositoryRoot.Length).TrimStart('\').Replace('\','/')
     } | Sort-Object -Unique)
-    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
+    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorExternalReleaseInventory.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
     $migrationHttps = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorHttpsDownloader.cs') -Raw
     $migrationSftp = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorSftpDeliveryService.cs') -Raw
     Assert-True ($migrationHttps -match 'AllowAutoRedirect\s*=\s*false' -and $migrationHttps -match 'AllowedHosts\.Contains' -and

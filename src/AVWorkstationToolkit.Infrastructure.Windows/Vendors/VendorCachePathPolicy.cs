@@ -49,6 +49,15 @@ public sealed class VendorCachePathPolicy
         return full;
     }
 
+    public string GetCachedPayloadPath(string explicitDataRoot, VendorDeliveryAuthorization authorization, string fileName)
+    {
+        var expectedTemporary = GetExpectedTemporaryPayloadPath(explicitDataRoot, authorization, RequireInstallerFileName(fileName));
+        var path = expectedTemporary[..^".download".Length];
+        var root = RequireAbsoluteNonRoot(explicitDataRoot);
+        if (File.Exists(path) || Directory.Exists(Path.GetDirectoryName(path)!)) RejectReparseChain(root, path);
+        return path;
+    }
+
     private static string GetExpectedTemporaryPayloadPath(string explicitDataRoot, VendorDeliveryAuthorization authorization, string fileName)
     {
         var root = RequireAbsoluteNonRoot(explicitDataRoot);

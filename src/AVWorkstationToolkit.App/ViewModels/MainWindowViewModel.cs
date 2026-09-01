@@ -5,9 +5,11 @@ using AVWorkstationToolkit.App.Commands;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Planning;
+using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
+using AVWorkstationToolkit.App.Services;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
@@ -18,6 +20,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly CatalogDetailService detailService;
     private readonly IDiagnosticsExportService? diagnosticsExportService;
     private readonly IValidatedUserHandoffService? handoffService;
+    private readonly IPackageDeliveryWorkflow? packageDeliveryWorkflow;
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
@@ -58,6 +61,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CompiledActionCoordinator? actionCoordinator = null,
         IDiagnosticsExportService? diagnosticsExportService = null,
         IValidatedUserHandoffService? handoffService = null,
+        IPackageDeliveryWorkflow? packageDeliveryWorkflow = null,
         bool liveRehearsalMode = false)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
@@ -66,6 +70,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.actionCoordinator = actionCoordinator;
         this.diagnosticsExportService = diagnosticsExportService;
         this.handoffService = handoffService;
+        this.packageDeliveryWorkflow = packageDeliveryWorkflow;
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -101,6 +106,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         UpdateCommand = new AsyncRelayCommand(() => RunActionAsync(ManagedRequestAction.Update), () => CanUpdate);
         CancelActionCommand = new AsyncRelayCommand(CancelActionAsync, () => CanCancelAction);
         DetailsCommand = new RelayCommand(_ => ShowSelectedDetails(), _ => SelectedRow is not null);
+        GetPackageCommand = new AsyncRelayCommand(GetPackageAsync, CanGetPackage);
         DiagnosticsCommand = new RelayCommand(_ => ShowDiagnostics(), _ => plan is not null && !IsBusy);
     }
 
@@ -119,6 +125,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand UpdateCommand { get; }
     public AsyncRelayCommand CancelActionCommand { get; }
     public RelayCommand DetailsCommand { get; }
+    public AsyncRelayCommand GetPackageCommand { get; }
     public RelayCommand DiagnosticsCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
     public event Action<CatalogDetailViewModel>? DetailRequested;
@@ -181,6 +188,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             if (selectedDetail is not null && !selectedDetail.Detail.PackageId.Equals(value?.Id, StringComparison.OrdinalIgnoreCase))
                 SelectedDetail = null;
             DetailsCommand.RaiseCanExecuteChanged();
+            GetPackageCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -433,6 +441,30 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             AppendActivity("Cancellation intent recorded. The independent worker will stop between packages.");
     }
 
+    private bool CanGetPackage() => !IsBusy && !actionActive && plan is not null && SelectedRow is not null &&
+        packageDeliveryWorkflow?.CanHandle(SelectedRow.State, plan) == true;
+
+    private async Task GetPackageAsync()
+    {
+        if (!CanGetPackage() || packageDeliveryWorkflow is null || SelectedRow is null || plan is null) return;
+        IsBusy = true;
+        ActivityState = "Getting package";
+        try
+        {
+            var outcome = await packageDeliveryWorkflow.DeliverAsync(SelectedRow.State, plan).ConfigureAwait(true);
+            AppendActivity($"PACKAGE {(outcome.Completed ? "READY" : "NOT READY")} {outcome.Detail}");
+        }
+        catch (Exception exception)
+        {
+            AppendActivity($"PACKAGE ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+        }
+        finally
+        {
+            IsBusy = false;
+            ActivityState = "Ready";
+        }
+    }
+
     private void ActionCoordinator_StateChanged(object? sender, CompiledActionSnapshot snapshot)
     {
         void Apply()
@@ -475,7 +507,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void ShowSelectedDetails()
     {
         if (SelectedRow is null || planCatalog is null) return;
-        SelectedDetail = new CatalogDetailViewModel(detailService.Create(SelectedRow.State, planCatalog), handoffService);
+        ExternalReleaseEvidence? release = null;
+        plan?.ExternalReleases?.TryGetValue(SelectedRow.Id, out release);
+        SelectedDetail = new CatalogDetailViewModel(detailService.Create(SelectedRow.State, planCatalog, release), handoffService);
         AppendActivity($"DETAILS {SelectedRow.Name} | {SelectedRow.Vendor} | {SelectedRow.StatusLabel} | {SelectedRow.StatusDetail}");
         DetailRequested?.Invoke(SelectedDetail);
     }
@@ -509,6 +543,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         UpdateCommand.RaiseCanExecuteChanged();
         DiagnosticsCommand.RaiseCanExecuteChanged();
         CancelActionCommand.RaiseCanExecuteChanged();
+        GetPackageCommand.RaiseCanExecuteChanged();
     }
 
     private static QuickView ParseQuickView(object? value) => Enum.TryParse<QuickView>(value?.ToString(), out var parsed) ? parsed : QuickView.All;
@@ -517,6 +552,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         PlanningRefreshStage.ReadingWinGetInventory => "Reading WinGet inventory...",
         PlanningRefreshStage.ReadingWinGetUpdates => "Reading WinGet updates...",
         PlanningRefreshStage.ReadingExternalInventory => "Reading installed AV software...",
+        PlanningRefreshStage.ReadingExternalReleases => "Checking official vendor releases...",
         PlanningRefreshStage.CheckingRebootState => "Checking reboot state...",
         PlanningRefreshStage.BuildingPlan => "Building workstation plan...",
         _ => "Ready"

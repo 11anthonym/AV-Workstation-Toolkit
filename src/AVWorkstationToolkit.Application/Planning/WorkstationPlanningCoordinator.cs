@@ -1,4 +1,5 @@
 using AVWorkstationToolkit.Application.Inventory;
+using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 
@@ -9,6 +10,7 @@ public enum PlanningRefreshStage
     ReadingWinGetInventory,
     ReadingWinGetUpdates,
     ReadingExternalInventory,
+    ReadingExternalReleases,
     CheckingRebootState,
     BuildingPlan,
     Ready
@@ -55,7 +57,8 @@ public sealed record WorkstationPlan(
     IReadOnlyList<PackageState> Packages,
     WorkstationPlanSummary Summary,
     RebootState Reboot,
-    ProviderRefreshSummary Providers);
+    ProviderRefreshSummary Providers,
+    IReadOnlyDictionary<string, ExternalReleaseEvidence>? ExternalReleases = null);
 
 public interface IWorkstationPlanningCoordinator
 {
@@ -74,6 +77,7 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
     private readonly IInstalledPackageInventory installedInventory;
     private readonly IAvailableUpdateInventory availableUpdates;
     private readonly IExternalApplicationInventory externalInventory;
+    private readonly IExternalReleaseInventory externalReleases;
     private readonly IRebootStateProvider rebootProvider;
     private readonly ExternalInventoryMatcher externalMatcher;
     private readonly PlanningService planningService;
@@ -85,12 +89,14 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
         IExternalApplicationInventory externalInventory,
         IRebootStateProvider rebootProvider,
         ExternalInventoryMatcher? externalMatcher = null,
-        PlanningService? planningService = null)
+        PlanningService? planningService = null,
+        IExternalReleaseInventory? externalReleases = null)
     {
         this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         this.installedInventory = installedInventory ?? throw new ArgumentNullException(nameof(installedInventory));
         this.availableUpdates = availableUpdates ?? throw new ArgumentNullException(nameof(availableUpdates));
         this.externalInventory = externalInventory ?? throw new ArgumentNullException(nameof(externalInventory));
+        this.externalReleases = externalReleases ?? new CatalogBaselineExternalReleaseInventory(catalog);
         this.rebootProvider = rebootProvider ?? throw new ArgumentNullException(nameof(rebootProvider));
         this.externalMatcher = externalMatcher ?? new ExternalInventoryMatcher();
         this.planningService = planningService ?? new PlanningService();
@@ -109,11 +115,14 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
         progress?.Report(PlanningRefreshStage.ReadingExternalInventory);
         var external = await externalInventory.ReadAsync(cancellationToken).ConfigureAwait(false);
 
+        progress?.Report(PlanningRefreshStage.ReadingExternalReleases);
+        var releases = await externalReleases.ReadAsync(cancellationToken).ConfigureAwait(false);
+
         progress?.Report(PlanningRefreshStage.CheckingRebootState);
         var reboot = await rebootProvider.ReadAsync(cancellationToken).ConfigureAwait(false);
 
         progress?.Report(PlanningRefreshStage.BuildingPlan);
-        var states = BuildStates(installed, updates, external);
+        var states = BuildStates(installed, updates, external, releases);
         var rebootState = new RebootState(reboot.Pending, reboot.Reasons, reboot.Detail);
         var providerSummary = new ProviderRefreshSummary(
             installed.Quality,
@@ -130,7 +139,8 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
             external.Detail,
             reboot.Detail,
             external.Sources);
-        var result = new WorkstationPlan(states, Summarize(states), rebootState, providerSummary);
+        var releaseMap = releases.Releases.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
+        var result = new WorkstationPlan(states, Summarize(states), rebootState, providerSummary, releaseMap);
         progress?.Report(PlanningRefreshStage.Ready);
         return result;
     }
@@ -138,12 +148,14 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
     private IReadOnlyList<PackageState> BuildStates(
         InstalledPackageInventoryResult installed,
         AvailableUpdateInventoryResult updates,
-        RegistryInventoryResult external)
+        RegistryInventoryResult external,
+        ExternalReleaseInventoryResult releases)
     {
         var installedById = installed.Packages.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
         var updatesById = updates.Updates.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
         var externalById = externalMatcher.Match(catalog.Items, external)
             .ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
+        var releasesById = releases.Releases.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
         var managedSourceAvailable = installed.Quality == ProviderQuality.Complete;
 
         return catalog.Items.Select(package =>
@@ -170,6 +182,7 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
             else
             {
                 var matched = externalById[package.Id];
+                releasesById.TryGetValue(package.Id, out var release);
                 evidence = new PackageEvidence(
                     true,
                     true,
@@ -179,11 +192,11 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
                     matched.InstalledVersion,
                     matched.InstalledVersions,
                     false,
-                    package.KnownVersion,
+                    release?.AvailableVersion ?? package.KnownVersion,
                     matched.Detail,
-                    package.KnownVersion.Length > 0
-                        ? "Using the validated catalog release baseline; online vendor release checks are not part of this migration phase."
-                        : "No validated catalog release version is available.");
+                    release?.Detail ?? (package.KnownVersion.Length > 0
+                        ? "Using the validated catalog release baseline."
+                        : "No validated catalog release version is available."));
             }
 
             return planningService.Evaluate(package, evidence);

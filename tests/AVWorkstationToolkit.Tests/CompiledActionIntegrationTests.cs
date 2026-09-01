@@ -193,7 +193,7 @@ public sealed class CompiledActionIntegrationTests
             string.Empty, [], Details: new CatalogMetadataDetails(
                 string.Empty, "HARD", ["x64"], "Unknown", string.Empty, productUri, ["Fixture"], "2026-08-30",
                 MetadataVerificationState.Current, [], false, string.Empty, "vendor.example", string.Empty,
-                "Unknown", "Unknown", "Unknown", string.Empty, string.Empty));
+                "Unknown", "Unknown", "Unknown", string.Empty, string.Empty, string.Empty));
         return new(definition, installed, string.Empty, [], string.Empty, false, status, status.ToString(), status.ToString(), action, InventoryQuality.Complete);
     }
 

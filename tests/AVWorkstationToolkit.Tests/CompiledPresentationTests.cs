@@ -6,6 +6,7 @@ using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
+using AVWorkstationToolkit.Application.Providers;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -181,6 +182,34 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task GetPackageCommandUsesVendorDeliveryWorkflowInsteadOfDetailsCommand()
+    {
+        var catalog = new RepositoryCatalogLoader().Load(FindRepositoryRoot());
+        var package = catalog.GetRequired("Crestron.Toolbox");
+        var state = State(package, PackageStatus.ManualUpdate, PackageAction.Manual, true, "3.124.0", "3.125.0");
+        var summary = Summarize([state]);
+        var providers = new ProviderRefreshSummary(ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, []);
+        var release = new ExternalReleaseEvidence(package.Id, "3.125.0", "3.125.0", true, true,
+            "https://www.crestron.com/liveupdate/MasterInstallerSFTP.xml", string.Empty, "validated",
+            [new("137", "Crestron Toolbox", "3.125.0", "/software/Toolbox/3.125.0/setup.exe", "setup.exe", 1_048_576, false)]);
+        var plan = new WorkstationPlan([state], summary, RebootState.Clear, providers,
+            new Dictionary<string, ExternalReleaseEvidence>(StringComparer.OrdinalIgnoreCase) { [package.Id] = release });
+        var delivery = new RecordingPackageDeliveryWorkflow();
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(plan), packageDeliveryWorkflow: delivery);
+        await viewModel.RefreshAsync();
+        viewModel.SelectedRow = viewModel.VisiblePackages.Single();
+
+        Assert.IsTrue(viewModel.GetPackageCommand.CanExecute(null));
+        viewModel.GetPackageCommand.Execute(null);
+        for (var attempt = 0; attempt < 20 && delivery.Calls == 0; attempt++) await Task.Delay(10);
+
+        Assert.AreEqual(1, delivery.Calls);
+        Assert.AreEqual(package.Id, delivery.PackageId);
+        Assert.IsNull(viewModel.SelectedDetail);
+        StringAssert.Contains(viewModel.ActivityText, "PACKAGE READY");
+    }
+
+    [TestMethod]
     public void RepositoryCatalogLoaderReadsAllThreeCurrentCatalogClasses()
     {
         var root = FindRepositoryRoot();
@@ -292,5 +321,18 @@ public sealed class CompiledPresentationTests
     private sealed class DelegateCoordinator(Func<IProgress<PlanningRefreshStage>?, CancellationToken, Task<WorkstationPlan>> callback) : IWorkstationPlanningCoordinator
     {
         public Task<WorkstationPlan> RefreshAsync(IProgress<PlanningRefreshStage>? progress = null, CancellationToken cancellationToken = default) => callback(progress, cancellationToken);
+    }
+
+    private sealed class RecordingPackageDeliveryWorkflow : IPackageDeliveryWorkflow
+    {
+        public int Calls { get; private set; }
+        public string PackageId { get; private set; } = string.Empty;
+        public bool CanHandle(PackageState state, WorkstationPlan plan) => state.Package.DeliveryMode == DeliveryMode.ParentProvider;
+        public Task<PackageDeliveryOutcome> DeliverAsync(PackageState state, WorkstationPlan plan, CancellationToken cancellationToken = default)
+        {
+            Calls++;
+            PackageId = state.Package.Id;
+            return Task.FromResult(new PackageDeliveryOutcome(true, "Vendor workflow invoked; no installer executed."));
+        }
     }
 }

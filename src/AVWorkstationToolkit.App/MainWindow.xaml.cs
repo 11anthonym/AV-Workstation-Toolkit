@@ -62,7 +62,7 @@ public partial class MainWindow : Window
         {
             "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
-            "ActivityLog", "SelectionSummary", "InstallButton", "UpdateButton", "RefreshButton"
+            "ActivityLog", "SelectionSummary", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton"
         };
         foreach (var name in required)
         {
@@ -131,7 +131,7 @@ public partial class MainWindow : Window
         {
             "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog",
-            "DetailsButton", "DiagnosticsButton", "InstallButton", "UpdateButton", "RefreshButton"
+            "DetailsButton", "DiagnosticsButton", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton"
         };
         foreach (var name in required)
         {

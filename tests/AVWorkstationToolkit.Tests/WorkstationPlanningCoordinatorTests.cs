@@ -1,6 +1,8 @@
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
+using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Domain.Catalog;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -51,6 +53,34 @@ public sealed class WorkstationPlanningCoordinatorTests
         Assert.HasCount(1, plan.Providers.Warnings);
     }
 
+    [TestMethod]
+    public async Task ParentCatalogEvidencePreventsCrestronChildFromFallingIntoCheckUnavailable()
+    {
+        var catalog = new RepositoryCatalogLoader().Load(RepositoryRoot());
+        var toolbox = catalog.GetRequired("Crestron.Toolbox");
+        var registry = new RegistryInventoryResult(ProviderQuality.Complete, ProviderFailureKind.None,
+            [new(RegistryInventorySource.Hklm64, "Crestron Toolbox", "3.124.0")],
+            [new(RegistryInventorySource.Hklm64, true, 1, "ok"), new(RegistryInventorySource.Hklm32, true, 0, "ok"), new(RegistryInventorySource.Hkcu, true, 0, "ok")], "ok");
+        var release = new ExternalReleaseEvidence(toolbox.Id, "3.125.0", "3.125.0", true, true,
+            "https://www.crestron.com/liveupdate/MasterInstallerSFTP.xml", string.Empty,
+            "Parent provider catalog reports 3.125.0 for product 137.",
+            [new("137", "Crestron Toolbox", "3.125.0", "/software/Toolbox/3.125.0/setup.exe", "setup.exe", 1_048_576, false)]);
+        var coordinator = new WorkstationPlanningCoordinator(catalog,
+            new InstalledProvider(new(ProviderQuality.Complete, ProviderFailureKind.None, [], "ok", string.Empty)),
+            new UpdateProvider(new(ProviderQuality.Complete, ProviderFailureKind.None, [], "ok", string.Empty)),
+            new RegistryProvider(registry),
+            new RebootProvider(new(false, [], ProviderQuality.Complete, ProviderFailureKind.None, "clear")),
+            externalReleases: new ReleaseProvider(new([release], ProviderQuality.Complete, ProviderFailureKind.None, "ok")));
+
+        var plan = await coordinator.RefreshAsync();
+        var state = plan.Packages.Single(item => item.Package.Id == toolbox.Id);
+
+        Assert.AreEqual(PackageStatus.ManualUpdate, state.Status);
+        Assert.AreEqual("3.125.0", state.AvailableVersion);
+        Assert.AreNotEqual(PackageStatus.CheckUnavailable, state.Status);
+        Assert.AreEqual("3.125.0", plan.ExternalReleases![toolbox.Id].ObservedVersion);
+    }
+
     private static RegistryInventoryResult Registry(ProviderQuality quality) => new(
         quality, ProviderFailureKind.None, [],
         [new(RegistryInventorySource.Hklm64, true, 0, "ok"), new(RegistryInventorySource.Hklm32, true, 0, "ok"), new(RegistryInventorySource.Hkcu, true, 0, "ok")], "ok");
@@ -70,5 +100,16 @@ public sealed class WorkstationPlanningCoordinatorTests
     private sealed class RebootProvider(RebootDetectionResult result) : IRebootStateProvider
     {
         public Task<RebootDetectionResult> ReadAsync(CancellationToken cancellationToken = default) => Task.FromResult(result);
+    }
+    private sealed class ReleaseProvider(ExternalReleaseInventoryResult result) : IExternalReleaseInventory
+    {
+        public Task<ExternalReleaseInventoryResult> ReadAsync(CancellationToken cancellationToken = default) => Task.FromResult(result);
+    }
+
+    private static string RepositoryRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "VERSION"))) current = current.Parent;
+        return current?.FullName ?? throw new DirectoryNotFoundException("Repository root was not found.");
     }
 }

@@ -95,6 +95,7 @@ public sealed record CatalogMetadataDetails(
     string VendorHashAvailability,
     string DownloadStrategy,
     string ReleaseUri,
+    string ReleaseVersionPattern,
     string DeliveryUri)
 {
     public static CatalogMetadataDetails Unknown { get; } = new(
@@ -115,6 +116,7 @@ public sealed record CatalogMetadataDetails(
         "Unknown",
         "Unknown",
         "Unknown",
+        string.Empty,
         string.Empty,
         string.Empty);
 }

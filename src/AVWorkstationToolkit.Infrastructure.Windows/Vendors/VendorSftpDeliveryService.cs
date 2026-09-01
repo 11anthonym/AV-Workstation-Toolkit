@@ -11,7 +11,7 @@ internal interface IVendorSftpTransport
     Task DownloadAsync(VendorSftpIdentity identity, ReadOnlyMemory<char> secret, string remotePath, Stream destination, long maximumBytes, CancellationToken cancellationToken);
 }
 
-public sealed class VendorSftpDeliveryService : IVendorSftpDelivery
+public sealed class VendorSftpDeliveryService : IVendorSftpDelivery, IVendorSftpHostProbe
 {
     private readonly IVendorSftpTransport transport;
     private readonly IVendorCredentialStore credentials;
@@ -28,6 +28,9 @@ public sealed class VendorSftpDeliveryService : IVendorSftpDelivery
         this.credentials = credentials ?? throw new ArgumentNullException(nameof(credentials));
         this.paths = paths ?? throw new ArgumentNullException(nameof(paths));
     }
+
+    public Task<string> ProbeAsync(VendorEndpoint endpoint, CancellationToken cancellationToken) =>
+        transport.ProbeHostFingerprintAsync(endpoint, cancellationToken);
 
     public async Task<VendorDownloadResult> DownloadAsync(
         VendorDeliveryAuthorization authorization, string explicitDataRoot, VendorCredential? suppliedCredential, bool saveCredential,
@@ -63,7 +66,7 @@ public sealed class VendorSftpDeliveryService : IVendorSftpDelivery
         }
     }
 
-    internal static bool FixedTimeEquals(string left, string right)
+    public static bool FixedTimeEquals(string left, string right)
     {
         var leftBytes = Encoding.ASCII.GetBytes(left);
         var rightBytes = Encoding.ASCII.GetBytes(right);

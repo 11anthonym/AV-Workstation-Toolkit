@@ -4,7 +4,7 @@ using AVWorkstationToolkit.Application.Vendors;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 
-public sealed class VendorTrustedHostStore
+public sealed class VendorTrustedHostStore : IVendorTrustedHostStore
 {
     private const int MaximumBytes = 65_536;
 

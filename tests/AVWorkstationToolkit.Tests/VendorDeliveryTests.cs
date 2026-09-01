@@ -2,9 +2,11 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using AVWorkstationToolkit.Application.Vendors;
+using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
 using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -23,6 +25,40 @@ public sealed class VendorDeliveryTests
         Assert.IsNotEmpty(direct.DeliveryPolicy.AllowedHosts);
         Assert.IsNotNull(sftp.DeliveryPolicy);
         Assert.HasCount(sftp.AllowedProductIds.Count, sftp.DeliveryPolicy.AllowedProductIds);
+    }
+
+    [TestMethod]
+    public async Task CrestronParentCatalogProducesTypedChildReleaseAndDeliveryEvidence()
+    {
+        var catalog = new RepositoryCatalogLoader().Load(RepositoryRoot());
+        using var inventory = new VendorExternalReleaseInventory(catalog, new FixtureReleaseClient(CrestronCatalogXml));
+
+        var result = await inventory.ReadAsync();
+        var toolbox = result.Releases.Single(item => item.Id == "Crestron.Toolbox");
+
+        Assert.IsTrue(toolbox.OnlineAvailable);
+        Assert.AreEqual("3.125.0", toolbox.AvailableVersion);
+        Assert.AreEqual("137", toolbox.Products.Single().ProductId);
+        Assert.AreEqual("/software/toolbox/3.125.0/toolbox.exe", toolbox.Products.Single().RemotePath);
+    }
+
+    [TestMethod]
+    public void ParentProviderAuthorizationCannotEscapeCatalogRelationship()
+    {
+        var catalog = new RepositoryCatalogLoader().Load(RepositoryRoot());
+        var provider = catalog.GetRequired("Crestron.MasterInstaller");
+        var toolbox = catalog.GetRequired("Crestron.Toolbox");
+        var product = new VendorCatalogProduct("137", "Crestron Toolbox", "3.125.0", "/software/toolbox/3.125.0/toolbox.exe", "toolbox.exe", 1_048_576, false);
+        var endpoint = new VendorEndpoint(provider.DeliveryPolicy!.Host, provider.DeliveryPolicy.Port);
+        var trust = new VendorSftpHostTrust(endpoint, Fingerprint);
+
+        var authorization = VendorDeliveryAuthorization.ForSftp(toolbox, provider, product, "engineer", trust);
+
+        Assert.AreEqual(toolbox.Id, authorization.PackageId);
+        Assert.AreEqual(DeliveryMode.AuthenticatedSftp, authorization.Mode);
+        Assert.Throws<InvalidOperationException>(() => VendorDeliveryAuthorization.ForSftp(
+            toolbox, provider, product with { ProductId = "2" }, "engineer", trust));
+        Assert.IsFalse(toolbox.HasManagedExecutionAuthority);
     }
 
     [TestMethod]
@@ -248,6 +284,14 @@ public sealed class VendorDeliveryTests
         }
     }
 
+    private sealed class FixtureReleaseClient(string parentCatalog) : IVendorReleaseContentClient
+    {
+        public Task<string> ReadAsync(Uri cataloguedUri, CancellationToken cancellationToken) =>
+            cataloguedUri.AbsoluteUri.EndsWith("MasterInstallerSFTP.xml", StringComparison.Ordinal)
+                ? Task.FromResult(parentCatalog)
+                : Task.FromException<string>(new HttpRequestException("Fixture source unavailable."));
+    }
+
     private sealed class UnknownLengthContent(byte[] bytes) : HttpContent
     {
         protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) => stream.WriteAsync(bytes).AsTask();
@@ -292,4 +336,16 @@ public sealed class VendorDeliveryTests
         while (current is not null && !File.Exists(System.IO.Path.Combine(current.FullName, "VERSION"))) current = current.Parent;
         return current?.FullName ?? throw new DirectoryNotFoundException("Repository root was not found.");
     }
+
+    private const string CrestronCatalogXml = """
+        <UpdateInformation>
+          <Product Id="1" Version="1.10.0"><Name>VT Pro-e</Name><Download>/software/vtpro/1.10.0/vtpro.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+          <Product Id="2" Version="4.20.0"><Name>SIMPL Windows</Name><Download>/software/simpl/4.20.0/simpl.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+          <Product Id="9" Version="210.0"><Name>Crestron Database</Name><Download>/software/database/210.0/database.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+          <Product Id="10" Version="120.0"><Name>Device Database</Name><Download>/software/devicedb/120.0/devicedb.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+          <Product Id="137" Version="3.125.0"><Name>Crestron Toolbox</Name><Download>/software/toolbox/3.125.0/toolbox.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+          <Product Id="400" Version="2.18.0"><Name>Smart Graphics</Name><Download>/software/smartgraphics/2.18.0/smartgraphics.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+          <Product Id="406" Version="1.5.0"><Name>DM NVX Tool</Name><Download>/software/dmnvx/1.5.0/dmnvx.exe</Download><Size Units="MB">1</Size><Reboot>0</Reboot></Product>
+        </UpdateInformation>
+        """;
 }

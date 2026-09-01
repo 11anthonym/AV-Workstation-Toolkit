@@ -90,6 +90,7 @@ $userHandoffSource = Get-Content -LiteralPath $userHandoffPath -Raw
 $resolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\WinGet\WindowsWinGetResolver.cs') -Raw
 $compiledAppSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App') -Recurse -File -Filter '*.cs' |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+$compiledMainWindowXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
 $compiledWorkerSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Worker') -Recurse -File |
     Where-Object { $_.Extension -in @('.cs','.csproj') -and $_.FullName -notmatch '[\\/](?:bin|obj)[\\/]' } |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -247,7 +248,11 @@ $shippingCompositionSource = @(
 if ($compiledWorkerSource -match 'VendorHttpsDownloader|VendorSftpDeliveryService|WindowsVendorCredentialStore|VendorPayloadVerificationService' -or
     $compiledAppSource -notmatch 'VendorInteractionCoordinator' -or
     $compiledAppSource -notmatch 'WindowsVendorCredentialStore' -or
-    $compiledAppSource -notmatch 'VendorPayloadVerificationService') {
+    $compiledAppSource -notmatch 'VendorPayloadVerificationService' -or
+    $compiledAppSource -notmatch 'VendorExternalReleaseInventory' -or
+    $compiledAppSource -notmatch 'PackageDeliveryWorkflow' -or
+    $compiledMainWindowXaml -notmatch 'x:Name="GetPackageButton"[^>]+Command="\{Binding GetPackageCommand\}"' -or
+    $compiledMainWindowXaml -match 'Content="Get package"[^>]+Command="\{Binding DetailsCommand\}"') {
     throw 'The compiled vendor boundary is missing from the production App or entered the worker composition.'
 }
 if ($shippingCompositionSource -notmatch 'AVWorkstationToolkit\.Worker' -or
