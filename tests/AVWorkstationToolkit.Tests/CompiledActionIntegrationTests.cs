@@ -18,6 +18,28 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class CompiledActionIntegrationTests
 {
     [TestMethod]
+    public void OpenLogsPathUsesCanonicalContainedLogsDirectory()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"awt-open-logs-{Guid.NewGuid():N}");
+        try
+        {
+            var logs = WindowsValidatedUserHandoffService.PrepareLogsDirectory(root);
+
+            Assert.AreEqual(Path.Combine(Path.GetFullPath(root), "logs"), logs);
+            Assert.IsTrue(Directory.Exists(logs));
+            Assert.Throws<IOException>(() =>
+                WindowsValidatedUserHandoffService.PrepareLogsDirectory(Path.GetPathRoot(root)!));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [TestMethod]
     public async Task ValidSelectionRunsCorrelatedFlowAndRefreshesPlan()
     {
         var current = Plan(State("Vendor.One", PackageStatus.Missing, PackageAction.Install));
@@ -337,6 +359,7 @@ public sealed class CompiledActionIntegrationTests
         public void OpenOfficialUri(OpenOfficialUriIntent intent) => Intent = intent;
         public void RevealVerifiedPayload(VendorDeliveryAuthorization authorization, VendorDownloadResult payload, string explicitDataRoot) =>
             throw new NotSupportedException();
+        public void OpenLogs(string explicitDataRoot) => throw new NotSupportedException();
     }
 
     private sealed class CapturingExport : IDiagnosticsExportService

@@ -252,8 +252,11 @@ if ($compiledWorkerSource -match 'VendorHttpsDownloader|VendorSftpDeliveryServic
     $compiledAppSource -notmatch 'VendorExternalReleaseInventory' -or
     $compiledAppSource -notmatch 'PackageDeliveryWorkflow' -or
     $compiledMainWindowXaml -notmatch 'x:Name="GetPackageButton"[^>]+Command="\{Binding GetPackageCommand\}"' -or
-    $compiledMainWindowXaml -match 'Content="Get package"[^>]+Command="\{Binding DetailsCommand\}"') {
-    throw 'The compiled vendor boundary is missing from the production App or entered the worker composition.'
+    $compiledMainWindowXaml -match 'Content="Get package"[^>]+Command="\{Binding DetailsCommand\}"' -or
+    $compiledMainWindowXaml -notmatch '<KeyBinding Key="F5" Command="\{Binding RefreshCommand\}"' -or
+    $compiledMainWindowXaml -notmatch '<DataTemplate><TextBlock Text="\{Binding Label\}"/></DataTemplate>' -or
+    $compiledMainWindowXaml -match '(?:Header="_(?:Export plan|Safety &amp; Security|About AV Workstation Toolkit)|Header="Open _logs")[^>]+IsEnabled="False"') {
+    throw 'The compiled presentation or vendor boundary is missing from the production App or entered the worker composition.'
 }
 if ($shippingCompositionSource -notmatch 'AVWorkstationToolkit\.Worker' -or
     $shippingCompositionSource -notmatch 'WorkerPayloadPath' -or

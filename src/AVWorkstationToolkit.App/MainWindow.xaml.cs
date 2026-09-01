@@ -13,21 +13,29 @@ public partial class MainWindow : Window
 {
     private readonly bool autoRefresh;
     private readonly bool allowDialogs;
+    private readonly string productVersion;
+    private readonly string executionMode;
 
-    public MainWindow(MainWindowViewModel viewModel, bool autoRefresh = true, bool allowDialogs = true)
+    public MainWindow(MainWindowViewModel viewModel, string productVersion = "Unknown", string executionMode = "Compiled runtime", bool autoRefresh = true, bool allowDialogs = true)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
         InitializeComponent();
         DataContext = viewModel;
         this.autoRefresh = autoRefresh;
         this.allowDialogs = allowDialogs;
+        this.productVersion = productVersion;
+        this.executionMode = executionMode;
         viewModel.DetailRequested += ShowDetail;
         viewModel.DiagnosticsRequested += ShowDiagnostics;
+        viewModel.SafetySecurityRequested += ShowSafetySecurity;
+        viewModel.AboutRequested += ShowAbout;
         Loaded += MainWindow_Loaded;
         Closed += (_, _) =>
         {
             viewModel.DetailRequested -= ShowDetail;
             viewModel.DiagnosticsRequested -= ShowDiagnostics;
+            viewModel.SafetySecurityRequested -= ShowSafetySecurity;
+            viewModel.AboutRequested -= ShowAbout;
             viewModel.Dispose();
         };
     }
@@ -60,9 +68,10 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "ManufacturerFilter",
+            "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
-            "ActivityLog", "SelectionSummary", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton"
+            "ActivityLog", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
+            "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
         {
@@ -77,6 +86,8 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke did not produce a visible package grid.");
         if (viewModel.VisiblePackages.Any(item => item.Package.Authority == AVWorkstationToolkit.Domain.Catalog.CatalogAuthority.AwarenessOnly && item.SelectionEnabled))
             throw new InvalidOperationException("Compiled WPF smoke exposed awareness selection authority.");
+        VerifyClosedComboBoxLabels();
+        VerifyF5Binding(viewModel, invoke: true);
 
         var selectable = viewModel.VisiblePackages.FirstOrDefault(item => item.SelectionEnabled)
             ?? throw new InvalidOperationException("Compiled WPF smoke did not expose an eligible selection fixture.");
@@ -119,6 +130,9 @@ public partial class MainWindow : Window
         if (!viewModel.WarningVisible || !RebootBanner.IsVisible)
             throw new InvalidOperationException("Compiled WPF smoke did not present the deterministic reboot/provider warning.");
 
+        new SafetySecurityWindow().VerifySmokeContract();
+        new AboutWindow(productVersion, executionMode).VerifySmokeContract();
+
         toggle.Toggle();
         viewModel.InstallCommand.Execute(null);
         if (viewModel.MutationRefusalCount != 1)
@@ -129,9 +143,10 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "ManufacturerFilter", "DisciplineFilter",
+            "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog",
-            "DetailsButton", "DiagnosticsButton", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton"
+            "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
+            "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
         {
@@ -139,6 +154,12 @@ public partial class MainWindow : Window
         }
         if (DataContext is not MainWindowViewModel viewModel || viewModel.Packages.Count < 300 || !viewModel.MigrationActionMode)
             throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");
+        VerifyClosedComboBoxLabels();
+        VerifyF5Binding(viewModel, invoke: false);
+        if (!ExportPlanMenuItem.IsEnabled || !OpenLogsMenuItem.IsEnabled || !SafetySecurityMenuItem.IsEnabled || !AboutMenuItem.IsEnabled)
+            throw new InvalidOperationException("Compiled production smoke found a required application menu command disabled.");
+        new SafetySecurityWindow().VerifySmokeContract();
+        new AboutWindow(productVersion, executionMode).VerifySmokeContract();
 
         viewModel.SearchText = "Crestron";
         if (viewModel.VisiblePackages.Count == 0)
@@ -217,6 +238,32 @@ public partial class MainWindow : Window
         return null;
     }
 
+    private void VerifyClosedComboBoxLabels()
+    {
+        foreach (var comboBox in new[] { CatalogPresetFilter, PriorityFilter, ManufacturerFilter, DisciplineFilter, RoleFilter })
+        {
+            comboBox.IsDropDownOpen = false;
+            comboBox.ApplyTemplate();
+            comboBox.UpdateLayout();
+            var expected = comboBox.SelectedItem?.GetType().GetProperty("Label")?.GetValue(comboBox.SelectedItem)?.ToString();
+            var rendered = FindVisualChild<TextBlock>(comboBox)?.Text;
+            if (string.IsNullOrWhiteSpace(expected) || !string.Equals(rendered, expected, StringComparison.Ordinal))
+                throw new InvalidOperationException($"Closed ComboBox '{comboBox.Name}' rendered '{rendered}' instead of its FilterOption label '{expected}'.");
+        }
+    }
+
+    private void VerifyF5Binding(MainWindowViewModel viewModel, bool invoke)
+    {
+        var binding = InputBindings.OfType<KeyBinding>().SingleOrDefault(item => item.Gesture is KeyGesture { Key: Key.F5 });
+        if (binding?.Command != viewModel.RefreshCommand)
+            throw new InvalidOperationException("F5 is not bound to the compiled refresh command.");
+        if (!invoke) return;
+        var before = viewModel.RefreshInvocationCount;
+        binding.Command.Execute(binding.CommandParameter);
+        if (viewModel.RefreshInvocationCount != before + 1)
+            throw new InvalidOperationException("F5 did not invoke the compiled refresh command.");
+    }
+
     private void ShowDetail(CatalogDetailViewModel viewModel)
     {
         if (!allowDialogs) return;
@@ -227,5 +274,17 @@ public partial class MainWindow : Window
     {
         if (!allowDialogs) return;
         new DiagnosticsWindow(viewModel) { Owner = this }.ShowDialog();
+    }
+
+    private void ShowSafetySecurity()
+    {
+        if (!allowDialogs) return;
+        new SafetySecurityWindow { Owner = this }.ShowDialog();
+    }
+
+    private void ShowAbout()
+    {
+        if (!allowDialogs) return;
+        new AboutWindow(productVersion, executionMode) { Owner = this }.ShowDialog();
     }
 }

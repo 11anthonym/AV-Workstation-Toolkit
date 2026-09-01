@@ -49,6 +49,9 @@ public partial class App : System.Windows.Application
             IDiagnosticsExportService? diagnosticsExport = null;
             IValidatedUserHandoffService? handoffs = null;
             IPackageDeliveryWorkflow? packageDelivery = null;
+            IApplicationMenuWorkflow? applicationMenu = null;
+            var productVersion = packagedContext?.Version ?? "Unknown";
+            var executionMode = packagedContext is null ? "Source compiled runtime" : "Packaged compiled runtime";
             if (packagedContext is not null)
             {
                 var services = CompiledAppComposition.CreateProduction(
@@ -63,6 +66,9 @@ public partial class App : System.Windows.Application
                 diagnosticsExport = services.DiagnosticsExport;
                 handoffs = services.Handoffs;
                 packageDelivery = services.PackageDelivery;
+                applicationMenu = services.ApplicationMenu;
+                productVersion = services.Version;
+                executionMode = services.ExecutionMode;
             }
             else if (smoke)
             {
@@ -80,9 +86,13 @@ public partial class App : System.Windows.Application
                 diagnosticsExport = services.DiagnosticsExport;
                 handoffs = services.Handoffs;
                 packageDelivery = services.PackageDelivery;
+                applicationMenu = services.ApplicationMenu;
+                productVersion = services.Version;
+                executionMode = services.ExecutionMode;
             }
-            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery, liveRehearsalMode: false);
-            var window = new MainWindow(viewModel, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
+            var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
+                applicationMenu, liveRehearsalMode: false);
+            var window = new MainWindow(viewModel, productVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();
             if (smoke)

@@ -7,6 +7,7 @@ using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.Application.Providers;
+using System.Text.Json;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -82,10 +83,78 @@ public sealed class CompiledPresentationTests
         Assert.AreEqual("Install selected (1)", viewModel.InstallButtonText);
         Assert.AreEqual("Update selected (1)", viewModel.UpdateButtonText);
         Assert.IsTrue(viewModel.CanInstall);
+        Assert.IsFalse(viewModel.CanUpdate);
+        Assert.IsTrue(viewModel.RiskAcknowledgementRequired);
+        viewModel.RiskAcknowledged = true;
         Assert.IsTrue(viewModel.CanUpdate);
         update.Selected = false;
         Assert.AreEqual(0, viewModel.UpdateCount);
         Assert.IsFalse(viewModel.CanUpdate);
+        Assert.IsFalse(viewModel.RiskAcknowledged);
+    }
+
+    [TestMethod]
+    public async Task RiskAcknowledgementUpdatesCommandStateAndIsConsumedPerRun()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()));
+        await viewModel.RefreshAsync();
+        var update = viewModel.Packages.Single(item => item.Id == "Fixture.Update");
+        var commandChanges = 0;
+        viewModel.UpdateCommand.CanExecuteChanged += (_, _) => commandChanges++;
+        update.Selected = true;
+
+        Assert.IsFalse(viewModel.UpdateCommand.CanExecute(null));
+        viewModel.RiskAcknowledged = true;
+        Assert.IsTrue(viewModel.UpdateCommand.CanExecute(null));
+        Assert.IsGreaterThan(0, commandChanges);
+
+        viewModel.UpdateCommand.Execute(null);
+        for (var attempt = 0; attempt < 20 && viewModel.MutationRefusalCount == 0; attempt++) await Task.Delay(10);
+        Assert.AreEqual(1, viewModel.MutationRefusalCount);
+        Assert.IsFalse(viewModel.RiskAcknowledged);
+        Assert.IsFalse(viewModel.UpdateCommand.CanExecute(null));
+    }
+
+    [TestMethod]
+    public async Task CompiledApplicationMenuCommandsInvokeTypedWorkflowsAndDialogs()
+    {
+        var menu = new RecordingApplicationMenuWorkflow();
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), applicationMenuWorkflow: menu);
+        var safety = 0;
+        var about = 0;
+        viewModel.SafetySecurityRequested += () => safety++;
+        viewModel.AboutRequested += () => about++;
+        await viewModel.RefreshAsync();
+
+        Assert.IsTrue(viewModel.ExportPlanCommand.CanExecute(null));
+        Assert.IsTrue(viewModel.OpenLogsCommand.CanExecute(null));
+        viewModel.ExportPlanCommand.Execute(null);
+        viewModel.OpenLogsCommand.Execute(null);
+        viewModel.SafetySecurityCommand.Execute(null);
+        viewModel.AboutCommand.Execute(null);
+
+        Assert.AreEqual(1, menu.ExportCalls);
+        Assert.AreEqual(1, menu.OpenLogsCalls);
+        Assert.AreEqual(1, safety);
+        Assert.AreEqual(1, about);
+        StringAssert.Contains(viewModel.ActivityText, "Exported application plan");
+        StringAssert.Contains(viewModel.ActivityText, "Opened logs");
+    }
+
+    [TestMethod]
+    public void PlanExportFormatterProducesSchemaThreeSanitizedTypedReport()
+    {
+        var plan = CreatePlan();
+        var compromised = plan.Packages[0] with { StatusDetail = "password=cleartext" };
+        plan = plan with { Packages = [compromised, .. plan.Packages.Skip(1)] };
+
+        var json = PlanExportFormatter.Format(plan, new DateTimeOffset(2026, 9, 1, 12, 0, 0, TimeSpan.Zero));
+        using var document = JsonDocument.Parse(json);
+
+        Assert.AreEqual(3, document.RootElement.GetProperty("SchemaVersion").GetInt32());
+        Assert.AreEqual("Fixture.Current", document.RootElement.GetProperty("Packages")[0].GetProperty("Id").GetString());
+        Assert.AreEqual("password=[REDACTED]", document.RootElement.GetProperty("Packages")[0].GetProperty("StatusDetail").GetString());
+        Assert.DoesNotContain("cleartext", json, StringComparison.Ordinal);
     }
 
     [TestMethod]
@@ -333,6 +402,22 @@ public sealed class CompiledPresentationTests
             Calls++;
             PackageId = state.Package.Id;
             return Task.FromResult(new PackageDeliveryOutcome(true, "Vendor workflow invoked; no installer executed."));
+        }
+    }
+
+    private sealed class RecordingApplicationMenuWorkflow : IApplicationMenuWorkflow
+    {
+        public int ExportCalls { get; private set; }
+        public int OpenLogsCalls { get; private set; }
+        public PlanExportOutcome ExportPlan(WorkstationPlan plan)
+        {
+            ExportCalls++;
+            return new(true, "C:\\fixture\\plan.json", "Exported application plan: C:\\fixture\\plan.json");
+        }
+        public string OpenLogs()
+        {
+            OpenLogsCalls++;
+            return "C:\\fixture\\logs";
         }
     }
 }

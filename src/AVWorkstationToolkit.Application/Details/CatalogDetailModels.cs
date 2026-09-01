@@ -12,6 +12,7 @@ public interface IValidatedUserHandoffService
 {
     void OpenOfficialUri(OpenOfficialUriIntent intent);
     void RevealVerifiedPayload(VendorDeliveryAuthorization authorization, VendorDownloadResult payload, string explicitDataRoot);
+    void OpenLogs(string explicitDataRoot);
 }
 
 public sealed record OpenOfficialUriIntent

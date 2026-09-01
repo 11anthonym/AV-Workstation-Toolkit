@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-01 — Compiled WPF interaction parity restored
+
+- Restored label-only closed filter selections and an actual F5 refresh binding in the compiled WPF surface.
+- Restored per-run risk acknowledgement state and command reevaluation while retaining independent worker authorization.
+- Restored compiled Export plan, Open logs, Safety & Security, and About workflows without reintroducing PowerShell or generic process authority.
+
 ## 2026-09-01 — Compiled vendor workflow integration repaired
 
 - Restored catalog-authorized online release evidence to compiled production planning, including strict Crestron MasterInstaller parent-catalog parsing for its allowlisted child products.

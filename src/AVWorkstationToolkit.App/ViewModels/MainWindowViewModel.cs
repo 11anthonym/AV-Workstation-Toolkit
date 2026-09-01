@@ -21,6 +21,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IDiagnosticsExportService? diagnosticsExportService;
     private readonly IValidatedUserHandoffService? handoffService;
     private readonly IPackageDeliveryWorkflow? packageDeliveryWorkflow;
+    private readonly IApplicationMenuWorkflow? applicationMenuWorkflow;
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
@@ -53,6 +54,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private bool actionActive;
     private bool riskAcknowledged;
     private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "Migration action mode is idle.", [], null);
+    private int refreshInvocationCount;
 
     public MainWindowViewModel(
         IWorkstationPlanningCoordinator coordinator,
@@ -62,6 +64,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IDiagnosticsExportService? diagnosticsExportService = null,
         IValidatedUserHandoffService? handoffService = null,
         IPackageDeliveryWorkflow? packageDeliveryWorkflow = null,
+        IApplicationMenuWorkflow? applicationMenuWorkflow = null,
         bool liveRehearsalMode = false)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
@@ -71,6 +74,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.diagnosticsExportService = diagnosticsExportService;
         this.handoffService = handoffService;
         this.packageDeliveryWorkflow = packageDeliveryWorkflow;
+        this.applicationMenuWorkflow = applicationMenuWorkflow;
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -108,6 +112,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         DetailsCommand = new RelayCommand(_ => ShowSelectedDetails(), _ => SelectedRow is not null);
         GetPackageCommand = new AsyncRelayCommand(GetPackageAsync, CanGetPackage);
         DiagnosticsCommand = new RelayCommand(_ => ShowDiagnostics(), _ => plan is not null && !IsBusy);
+        ExportPlanCommand = new RelayCommand(_ => ExportPlan(), _ => plan is not null && !IsBusy && applicationMenuWorkflow is not null);
+        OpenLogsCommand = new RelayCommand(_ => OpenLogs(), _ => !IsBusy && applicationMenuWorkflow is not null);
+        SafetySecurityCommand = new RelayCommand(_ => SafetySecurityRequested?.Invoke());
+        AboutCommand = new RelayCommand(_ => AboutRequested?.Invoke());
     }
 
     public ReadOnlyObservableCollection<PackageRowViewModel> Packages => new(packages);
@@ -127,9 +135,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand DetailsCommand { get; }
     public AsyncRelayCommand GetPackageCommand { get; }
     public RelayCommand DiagnosticsCommand { get; }
+    public RelayCommand ExportPlanCommand { get; }
+    public RelayCommand OpenLogsCommand { get; }
+    public RelayCommand SafetySecurityCommand { get; }
+    public RelayCommand AboutCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
     public event Action<CatalogDetailViewModel>? DetailRequested;
     public event Action<DiagnosticsViewModel>? DiagnosticsRequested;
+    public event Action? SafetySecurityRequested;
+    public event Action? AboutRequested;
 
     public bool IsBusy
     {
@@ -148,7 +162,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public bool MigrationActionMode => actionCoordinator is not null;
     public bool LiveRehearsalMode { get; }
     public bool CanCancelAction => ActionSnapshot.State == CompiledActionState.Running;
-    public bool RiskAcknowledged { get => riskAcknowledged; set => SetProperty(ref riskAcknowledged, value); }
+    public bool RiskAcknowledged
+    {
+        get => riskAcknowledged;
+        set
+        {
+            if (!SetProperty(ref riskAcknowledged, value)) return;
+            OnPropertyChanged(nameof(CanInstall));
+            OnPropertyChanged(nameof(CanUpdate));
+            InstallCommand.RaiseCanExecuteChanged();
+            UpdateCommand.RaiseCanExecuteChanged();
+        }
+    }
     public CompiledActionSnapshot ActionSnapshot { get => actionSnapshot; private set => SetProperty(ref actionSnapshot, value); }
 
     public string SearchText { get => searchText; set { if (SetProperty(ref searchText, value ?? string.Empty)) RebuildVisible(); } }
@@ -219,18 +244,22 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public string InstallButtonText => InstallCount == 0 ? "Install selected" : $"Install selected ({InstallCount})";
     public string UpdateButtonText => UpdateCount == 0 ? "Update selected" : $"Update selected ({UpdateCount})";
     public string SelectionSummary => SelectedCount == 0 ? "Nothing selected" : $"{SelectedCount} selected | {InstallCount} install | {UpdateCount} update";
-    public bool CanInstall => !IsBusy && !actionActive && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install);
-    public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update);
+    public bool CanInstall => !IsBusy && !actionActive && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install) && !SelectedRiskNeedsAcknowledgement(PackageAction.Install);
+    public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update) && !SelectedRiskNeedsAcknowledgement(PackageAction.Update);
+    public bool RiskAcknowledgementRequired => packages.Any(item => item.Selected && item.Risk != PackageRisk.None);
+    public bool RiskAcknowledgementVisible => MigrationActionMode && RiskAcknowledgementRequired;
     public bool WarningVisible => plan is not null && (plan.Reboot.Pending || plan.Providers.Warnings.Count > 0);
     public string WarningText => plan is null ? string.Empty : plan.Reboot.Pending
         ? "Restart recommended. Windows is waiting for a restart to finish an update. You can still select most apps, but system-level changes remain paused until you restart."
         : $"Workstation inventory completed with warnings. {plan.Providers.Warnings.Count} subsystem warning(s) may make some states incomplete.";
     public int MutationRefusalCount => mutationRefusalCount;
+    internal int RefreshInvocationCount => refreshInvocationCount;
     public string SortMemberPath => sortMemberPath;
     public ListSortDirection? SortDirection => sortDirection;
 
     public async Task RefreshAsync()
     {
+        refreshInvocationCount++;
         var generation = Interlocked.Increment(ref refreshGeneration);
         var previous = Interlocked.Exchange(ref refreshCancellation, new CancellationTokenSource());
         previous?.Cancel();
@@ -302,6 +331,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ApplyPlan(WorkstationPlan result, IReadOnlySet<string> selectedIds, string? selectedRowId)
     {
+        RiskAcknowledged = false;
         var retainedManufacturer = SelectedManufacturer.Value;
         plan = result;
         planCatalog = new PackageCatalog(result.Packages.Select(item => item.Package));
@@ -390,6 +420,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void UpdateSelectionState()
     {
+        RiskAcknowledged = false;
         OnPropertyChanged(nameof(InstallCount));
         OnPropertyChanged(nameof(UpdateCount));
         OnPropertyChanged(nameof(SelectedCount));
@@ -398,10 +429,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectionSummary));
         OnPropertyChanged(nameof(CanInstall));
         OnPropertyChanged(nameof(CanUpdate));
+        OnPropertyChanged(nameof(RiskAcknowledgementRequired));
+        OnPropertyChanged(nameof(RiskAcknowledgementVisible));
         RaiseCommandStates();
     }
 
     private bool SelectedRiskBlocked(PackageAction action) => plan?.Reboot.Pending == true &&
+        packages.Any(item => item.Selected && item.Action == action && item.Risk != PackageRisk.None);
+
+    private bool SelectedRiskNeedsAcknowledgement(PackageAction action) => !RiskAcknowledged &&
         packages.Any(item => item.Selected && item.Action == action && item.Risk != PackageRisk.None);
 
     private void RefuseMutation(PackageAction action)
@@ -413,6 +449,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private async Task RunActionAsync(ManagedRequestAction action)
     {
+        var riskAcknowledgedForThisRun = RiskAcknowledged;
+        RiskAcknowledged = false;
         if (actionCoordinator is null)
         {
             RefuseMutation(action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update);
@@ -423,7 +461,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         var selected = packages.Where(item => item.Selected && item.Action == expected).Select(item => item.State).ToArray();
         try
         {
-            var completed = await actionCoordinator.StartAsync(action, selected, plan, RiskAcknowledged, dryRun: false).ConfigureAwait(true);
+            var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledgedForThisRun, dryRun: false).ConfigureAwait(true);
             ApplyPlan(completed.RefreshedPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), SelectedRow?.Id);
             Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(completed.RefreshedPlan).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
             AppendActivity($"ACTION {completed.Result.Status}: {completed.Result.Message}");
@@ -521,6 +559,33 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         DiagnosticsRequested?.Invoke(Diagnostics);
     }
 
+    private void ExportPlan()
+    {
+        if (plan is null || applicationMenuWorkflow is null) return;
+        try
+        {
+            var result = applicationMenuWorkflow.ExportPlan(plan);
+            AppendActivity(result.Detail);
+        }
+        catch (Exception exception)
+        {
+            AppendActivity($"PLAN EXPORT ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+        }
+    }
+
+    private void OpenLogs()
+    {
+        if (applicationMenuWorkflow is null) return;
+        try
+        {
+            AppendActivity($"Opened logs: {applicationMenuWorkflow.OpenLogs()}");
+        }
+        catch (Exception exception)
+        {
+            AppendActivity($"OPEN LOGS ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+        }
+    }
+
     private void UpdateStatusText()
     {
         if (plan is null) return;
@@ -542,6 +607,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         InstallCommand.RaiseCanExecuteChanged();
         UpdateCommand.RaiseCanExecuteChanged();
         DiagnosticsCommand.RaiseCanExecuteChanged();
+        ExportPlanCommand.RaiseCanExecuteChanged();
+        OpenLogsCommand.RaiseCanExecuteChanged();
         CancelActionCommand.RaiseCanExecuteChanged();
         GetPackageCommand.RaiseCanExecuteChanged();
     }

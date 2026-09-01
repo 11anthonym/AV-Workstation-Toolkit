@@ -28,6 +28,9 @@ public sealed record CompiledAppServices(
     VendorInteractionCoordinator? Vendors,
     IValidatedUserHandoffService? Handoffs,
     IPackageDeliveryWorkflow? PackageDelivery,
+    IApplicationMenuWorkflow ApplicationMenu,
+    string Version,
+    string ExecutionMode,
     bool IsLiveRehearsal,
     bool IsProduction);
 
@@ -75,8 +78,11 @@ public static class CompiledAppComposition
             new ApplicationDiagnosticContext(version, production ? "Packaged compiled runtime" : "Source compiled migration", dataRoot, Path.Combine(dataRoot, "logs")));
         CompiledActionCoordinator? actions = null;
         VendorInteractionCoordinator? vendors = null;
-        IValidatedUserHandoffService? handoffs = null;
         IPackageDeliveryWorkflow? packageDelivery = null;
+        var cachePaths = new VendorCachePathPolicy();
+        var verifier = new VendorPayloadVerificationService(cachePaths, new WinTrustAuthenticodeVerifier());
+        IValidatedUserHandoffService handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
+        IApplicationMenuWorkflow applicationMenu = new ApplicationMenuWorkflow(dataRoot, handoffs);
         if (production)
         {
             ICompiledWorkerLauncher workerLauncher = new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!);
@@ -84,8 +90,6 @@ public static class CompiledAppComposition
                 new ActionProtocolStore(dataRoot),
                 workerLauncher,
                 planning);
-            var cachePaths = new VendorCachePathPolicy();
-            var verifier = new VendorPayloadVerificationService(cachePaths, new WinTrustAuthenticodeVerifier());
             var credentialStore = new WindowsVendorCredentialStore();
             var sftp = new VendorSftpDeliveryService(cachePaths);
             vendors = new VendorInteractionCoordinator(
@@ -96,9 +100,10 @@ public static class CompiledAppComposition
                 new VendorTrustedHostStore(),
                 credentialStore,
                 verifier);
-            handoffs = new WindowsValidatedUserHandoffService(cachePaths, verifier);
             packageDelivery = new PackageDeliveryWorkflow(catalog, vendors, handoffs, cachePaths, dataRoot);
         }
-        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors, handoffs, packageDelivery, false, production);
+        var executionMode = production ? "Packaged compiled runtime" : "Source compiled runtime";
+        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
+            handoffs, packageDelivery, applicationMenu, version, executionMode, false, production);
     }
 }

@@ -59,6 +59,11 @@ public static class PresentationParityEvaluator
                 var row = viewModel.Packages.Single(item => item.Id == id);
                 row.Selected = true;
             }
+            // The legacy presentation oracle records command state after its per-run
+            // risk-confirmation prompt is accepted. Exercise the equivalent compiled
+            // acknowledgement state without changing worker-side authorization.
+            if (viewModel.RiskAcknowledgementRequired)
+                viewModel.RiskAcknowledged = true;
             if (presentationCase.SortMember.Length > 0)
                 viewModel.SetSort(presentationCase.SortMember, Enum.Parse<ListSortDirection>(presentationCase.SortDirection, false));
             results.Add(new(
