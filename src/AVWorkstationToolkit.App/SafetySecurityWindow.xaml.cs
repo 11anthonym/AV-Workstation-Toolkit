@@ -9,7 +9,7 @@ public partial class SafetySecurityWindow : Window
     internal void VerifySmokeContract()
     {
         var body = string.Concat(SafetyBody.Inlines.OfType<System.Windows.Documents.Run>().Select(run => run.Text));
-        if (Title != "Safety & Security - AV Workstation Toolkit" || SafetyHeading.Text != "Safety & Security" ||
+        if (Icon is null || Title != "Safety & Security - AV Workstation Toolkit" || SafetyHeading.Text != "Safety & Security" ||
             !body.Contains("independent compiled worker", StringComparison.Ordinal) ||
             !body.Contains("does not execute", StringComparison.Ordinal))
             throw new InvalidOperationException("The compiled Safety & Security surface is incomplete or stale.");

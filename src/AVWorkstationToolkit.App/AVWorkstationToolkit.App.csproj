@@ -8,6 +8,7 @@
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
+    <ApplicationIcon>..\..\assets\branding\AVWorkstationToolkit.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -18,5 +19,9 @@
   <ItemGroup>
     <ProjectReference Include="..\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />
     <ProjectReference Include="..\AVWorkstationToolkit.Infrastructure.Windows\AVWorkstationToolkit.Infrastructure.Windows.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="..\..\assets\branding\AVWorkstationToolkit.ico" Link="Assets\AVWorkstationToolkit.ico" />
+    <Resource Include="..\..\assets\branding\AVWorkstationToolkit.png" Link="Assets\AVWorkstationToolkit.png" />
   </ItemGroup>
 </Project>

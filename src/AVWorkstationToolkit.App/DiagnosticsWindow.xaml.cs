@@ -30,7 +30,7 @@ public partial class DiagnosticsWindow : Window
 
     internal void VerifySmokeContract()
     {
-        if (DataContext is not DiagnosticsViewModel viewModel || viewModel.Snapshot.Catalog.Total != 3 ||
+        if (Icon is null || DataContext is not DiagnosticsViewModel viewModel || viewModel.Snapshot.Catalog.Total != 3 ||
             !DiagnosticsText.Text.Contains("[Catalog]", StringComparison.Ordinal) ||
             !DiagnosticsText.Text.Contains("[Warnings and errors]", StringComparison.Ordinal))
             throw new InvalidOperationException("Compiled diagnostics surface did not bind the deterministic sanitized snapshot.");

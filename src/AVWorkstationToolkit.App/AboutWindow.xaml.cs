@@ -17,7 +17,7 @@ public partial class AboutWindow : Window
 
     internal void VerifySmokeContract()
     {
-        if (Title != "About AV Workstation Toolkit" || ProductTitle.Text != "AV Workstation Toolkit" ||
+        if (Icon is null || BrandMark.Source is null || Title != "About AV Workstation Toolkit" || ProductTitle.Text != "AV Workstation Toolkit" ||
             !IdentityText.Text.Contains(version, StringComparison.Ordinal) ||
             !IdentityText.Text.Contains(executionMode, StringComparison.Ordinal) || DescriptionText.Text.Length == 0)
             throw new InvalidOperationException("The compiled About surface is incomplete or has inconsistent identity metadata.");

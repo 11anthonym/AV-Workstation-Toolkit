@@ -2,7 +2,7 @@
   <PropertyGroup>
     <InstallerPlatform>x64</InstallerPlatform>
     <OutputName>AV-Workstation-Toolkit-$(ProductVersion)-x64</OutputName>
-    <DefineConstants>ProductVersion=$(ProductVersion);PayloadDir=$(PayloadDir)</DefineConstants>
+    <DefineConstants>ProductVersion=$(ProductVersion);PayloadDir=$(PayloadDir);IconPath=$(IconPath)</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>

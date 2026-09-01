@@ -13,6 +13,8 @@
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
     <Property Id="ARPCOMMENTS" Value="Local commercial-AV engineering workstation manager." />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/11anthonym/AV-Workstation-Toolkit" />
+    <Property Id="ARPPRODUCTICON" Value="AVWorkstationToolkitProductIcon.ico" />
+    <Icon Id="AVWorkstationToolkitProductIcon.ico" SourceFile="$(var.IconPath)" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="INSTALLFOLDER" Name="AVWorkstationToolkit" />
@@ -29,6 +31,8 @@
             Name="AV Workstation Toolkit"
             Description="AV/IT workstation setup and maintenance"
             WorkingDirectory="INSTALLFOLDER"
+            Icon="AVWorkstationToolkitProductIcon.ico"
+            IconIndex="0"
             Advertise="yes" />
       </File>
       <RemoveFolder Id="RemoveAVWorkstationToolkitProgramMenuFolder" Directory="AVWorkstationToolkitProgramMenuFolder" On="uninstall" />

@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="AV Workstation Toolkit diagnostics" Width="820" Height="720" MinWidth="580" MinHeight="460"
+        Icon="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.ico"
         WindowStartupLocation="CenterOwner" Background="#0A0F1C" Foreground="#E8EEF8"
         FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Read-only sanitized diagnostics">
     <Grid Margin="20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

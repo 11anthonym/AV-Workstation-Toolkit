@@ -17,7 +17,7 @@ public partial class CatalogDetailWindow : Window
 
     internal void VerifySmokeContract(string packageId)
     {
-        if (DataContext is not CatalogDetailViewModel viewModel || viewModel.Detail.PackageId != packageId)
+        if (Icon is null || DataContext is not CatalogDetailViewModel viewModel || viewModel.Detail.PackageId != packageId)
             throw new InvalidOperationException("Compiled detail surface does not match the selected package.");
         if (DetailGroups.Items.Count < 7 || !ProductIntentButton.IsEnabled)
             throw new InvalidOperationException("Compiled detail surface is missing semantic groups or its validated official product intent.");

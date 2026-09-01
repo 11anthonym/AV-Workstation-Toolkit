@@ -407,12 +407,45 @@ try {
         Assert-True ((Get-MsiProperty -Path $msiPath -Name 'ProductCode') -ne '{8030A656-389C-46B3-8D17-F7F1912C2864}') 'MSI ProductCode did not change for the 1.1.1 major upgrade.'
         Assert-Equal 'AV Workstation Toolkit Project' (Get-MsiProperty -Path $msiPath -Name 'Manufacturer') 'MSI manufacturer differs.'
         Assert-Equal $version (Get-MsiProperty -Path $msiPath -Name 'ProductVersion') 'MSI product version differs.'
+        Assert-Equal 'AVWorkstationToolkitProductIcon.ico' (Get-MsiProperty -Path $msiPath -Name 'ARPPRODUCTICON') 'MSI Installed Apps icon identity differs.'
         $versionInfo = (Get-Item -LiteralPath $standalonePath).VersionInfo
         Assert-Equal 'AV Workstation Toolkit' ([string]$versionInfo.FileDescription) 'Launcher file description differs.'
         Assert-Equal 'AV Workstation Toolkit Project' ([string]$versionInfo.CompanyName) 'Launcher project-publisher metadata differs.'
         Assert-Equal 'AVWorkstationToolkit' ([IO.Path]::GetFileNameWithoutExtension([string]$versionInfo.OriginalFilename)) 'Launcher original filename base differs.'
         Assert-Equal 'AVWorkstationToolkit' ([IO.Path]::GetFileNameWithoutExtension([string]$versionInfo.InternalName)) 'Launcher internal-name base differs.'
         Assert-True ([string]$versionInfo.ProductVersion -like "$version*") 'EXE product version differs from MSI/release identity.'
+        Add-Type -AssemblyName System.Drawing
+        # Use a unique probe filename so the Windows Shell icon cache cannot return
+        # imagery retained for an earlier build at the stable release path.
+        $iconProbePath = Join-Path $temporaryRoot ("icon-probe-{0}.exe" -f [guid]::NewGuid().ToString('N'))
+        Copy-Item -LiteralPath $standalonePath -Destination $iconProbePath
+        $packagedIcon = [Drawing.Icon]::ExtractAssociatedIcon($iconProbePath)
+        try {
+            Assert-True ($null -ne $packagedIcon) 'Standalone executable has no extractable Windows application icon.'
+            $packagedBitmap = $packagedIcon.ToBitmap()
+            try {
+                Assert-Equal 32 $packagedBitmap.Width 'Packaged executable icon width differs.'
+                Assert-Equal 32 $packagedBitmap.Height 'Packaged executable icon height differs.'
+                $signalPixels = 0
+                $navyPixels = 0
+                $transparentPixels = 0
+                for ($x = 0; $x -lt $packagedBitmap.Width; $x++) {
+                    for ($y = 0; $y -lt $packagedBitmap.Height; $y++) {
+                        $pixel = $packagedBitmap.GetPixel($x,$y)
+                        if ($pixel.A -lt 32) { $transparentPixels++ }
+                        elseif ($pixel.B -gt 100 -and $pixel.G -gt 45 -and $pixel.B -gt ($pixel.R + 40)) { $signalPixels++ }
+                        if ($pixel.A -ge 32 -and $pixel.B -gt 25 -and $pixel.B -gt $pixel.G -and $pixel.G -gt $pixel.R -and $pixel.R -lt 40) { $navyPixels++ }
+                    }
+                }
+                Assert-True ($signalPixels -ge 100 -and $navyPixels -ge 500 -and $transparentPixels -ge 150) 'Packaged executable icon does not contain the canonical cyan signal, navy tile, and transparent boundary.'
+            }
+            finally {
+                $packagedBitmap.Dispose()
+            }
+        }
+        finally {
+            if ($null -ne $packagedIcon) { $packagedIcon.Dispose() }
+        }
     }
 
     Expand-Archive -LiteralPath $portablePath -DestinationPath $portableExtract

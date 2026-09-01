@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-01 — Custom Windows application identity artwork
+
+- Added a project-specific AV signal-path mark with a transparent PNG master and a multi-resolution Windows ICO.
+- Applied the same identity to compiled WPF windows and taskbar presence, the standalone executable, Start-menu shortcut, and MSI Installed Apps entry.
+- Added source, rendered-WPF, executable, and installer regressions so generic or inconsistent application icons cannot silently return.
+
 ## 2026-09-01 — Compiled WPF interaction parity restored
 
 - Restored label-only closed filter selections and an actual F5 refresh binding in the compiled WPF surface.

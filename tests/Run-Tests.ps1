@@ -1338,6 +1338,42 @@ Invoke-Check 'Developer launcher prefers packaged output and otherwise starts on
     Assert-True ($launcher -match '(?i)dotnet\.exe run --project "%~dp0src\\AVWorkstationToolkit\.App\\AVWorkstationToolkit\.App\.csproj" --configuration Release') 'Source fallback does not target the compiled App project.'
     Assert-True ($launcher -notmatch '(?i)powershell|Start-AVWorkstationToolkit\.ps1|cmd\.exe\s+/c') 'Developer launcher retains a shell-hosted application fallback.'
 }
+Invoke-Check 'Canonical application artwork covers WPF, executable, taskbar, shortcut, and Installed Apps identity' {
+    $brandingRoot = Join-Path $repositoryRoot 'assets\branding'
+    $pngPath = Join-Path $brandingRoot 'AVWorkstationToolkit.png'
+    $iconPath = Join-Path $brandingRoot 'AVWorkstationToolkit.ico'
+    Assert-True (Test-Path -LiteralPath $pngPath -PathType Leaf) 'Canonical transparent PNG artwork is missing.'
+    Assert-True (Test-Path -LiteralPath $iconPath -PathType Leaf) 'Canonical multi-resolution Windows icon is missing.'
+    Add-Type -AssemblyName PresentationCore
+    $pngFrame = [Windows.Media.Imaging.BitmapFrame]::Create([uri]$pngPath)
+    Assert-Equal 1024 $pngFrame.PixelWidth 'Canonical PNG width differs.'
+    Assert-Equal 1024 $pngFrame.PixelHeight 'Canonical PNG height differs.'
+    Assert-True ($pngFrame.Format.BitsPerPixel -eq 32) 'Canonical PNG does not preserve its alpha-capable 32-bit format.'
+    $iconDecoder = [Windows.Media.Imaging.IconBitmapDecoder]::new(
+        [uri]$iconPath,
+        [Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,
+        [Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+    $iconSizes = @($iconDecoder.Frames | ForEach-Object PixelWidth)
+    foreach ($requiredSize in @(16,20,24,32,40,48,64,128,256)) {
+        Assert-Contains $iconSizes $requiredSize "Windows icon omits the $requiredSize px frame."
+    }
+    $appProjectSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj') -Raw
+    $launcherProjectSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
+    Assert-True ($appProjectSource -match '<ApplicationIcon>[^<]*AVWorkstationToolkit\.ico</ApplicationIcon>' -and
+        $appProjectSource -match '<Resource Include="[^\"]*AVWorkstationToolkit\.ico"' -and
+        $appProjectSource -match '<Resource Include="[^\"]*AVWorkstationToolkit\.png"') 'Compiled WPF icon resources are not explicit.'
+    Assert-True ($launcherProjectSource -match '<ApplicationIcon>[^<]*AVWorkstationToolkit\.ico</ApplicationIcon>') 'Standalone launcher does not embed the canonical icon.'
+    foreach ($windowName in @('MainWindow','AboutWindow','SafetySecurityWindow','CatalogDetailWindow','DiagnosticsWindow')) {
+        $windowSource = Get-Content -LiteralPath (Join-Path $repositoryRoot "src\AVWorkstationToolkit.App\$windowName.xaml") -Raw
+        Assert-True ($windowSource -match 'Icon="/AVWorkstationToolkit\.App;component/Assets/AVWorkstationToolkit\.ico"') "$windowName does not use the canonical window/taskbar icon."
+    }
+    $mainWindowSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
+    Assert-True ($mainWindowSource -match 'x:Name="BrandMark"[^>]+AVWorkstationToolkit\.png') 'Primary WPF header does not show the canonical brand mark.'
+    $installerSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
+    Assert-True ($installerSource -match '<Icon Id="AVWorkstationToolkitProductIcon\.ico"' -and
+        $installerSource -match '<Property Id="ARPPRODUCTICON" Value="AVWorkstationToolkitProductIcon\.ico"' -and
+        $installerSource -match 'Shortcut[\s\S]+?Icon="AVWorkstationToolkitProductIcon\.ico"') 'MSI Installed Apps or Start-menu icon identity is incomplete.'
+}
 Invoke-Check 'AV Workstation Toolkit v1.1.1 identity is consistent across source and package projects' {
     $xamlText = Get-Content -LiteralPath $xamlPath -Raw
     Assert-True ($xamlText -match 'Title="AV Workstation Toolkit 1\.1\.1"') 'Window title is missing the v1.1.1 identity.'

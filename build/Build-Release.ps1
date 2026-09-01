@@ -72,6 +72,10 @@ $workerStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path
 $releaseRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'release' $Version)))
 $intermediateRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'obj' $Version)))
 $offlineStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($Version + '-offline-bundle'))))
+$productIconPath = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'assets\branding\AVWorkstationToolkit.ico'))
+if (-not (Test-Path -LiteralPath $productIconPath -PathType Leaf)) {
+    throw "The canonical Windows application icon is unavailable: $productIconPath"
+}
 if ([string]::IsNullOrWhiteSpace($ExternalPackageRoot)) {
     $ExternalPackageRoot = Join-Path $repositoryRoot 'external-packages'
 }
@@ -406,6 +410,7 @@ $installerArguments = @(
     'build',$installerProject,'-c','Release','--nologo',
     "-p:ProductVersion=$Version",
     "-p:PayloadDir=$stagingRoot",
+    "-p:IconPath=$productIconPath",
     "-p:OutputPath=$releaseRoot",
     "-p:IntermediateOutputPath=$intermediateRoot/"
 )

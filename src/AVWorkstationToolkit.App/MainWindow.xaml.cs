@@ -68,7 +68,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
+            "BrandMark", "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
             "ActivityLog", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
@@ -77,6 +77,7 @@ public partial class MainWindow : Window
         {
             if (FindName(name) is null) throw new InvalidOperationException($"Compiled WPF smoke could not find required control '{name}'.");
         }
+        VerifyBrandingContract();
         if (DataContext is not MainWindowViewModel viewModel || viewModel.VisiblePackages.Count != 3)
             throw new InvalidOperationException("Compiled WPF smoke did not bind the deterministic plan.");
         Measure(new Size(1280, 860));
@@ -143,7 +144,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
+            "BrandMark", "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog",
             "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
@@ -152,6 +153,7 @@ public partial class MainWindow : Window
         {
             if (FindName(name) is null) throw new InvalidOperationException($"Compiled production smoke could not find required control '{name}'.");
         }
+        VerifyBrandingContract();
         if (DataContext is not MainWindowViewModel viewModel || viewModel.Packages.Count < 300 || !viewModel.MigrationActionMode)
             throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");
         VerifyClosedComboBoxLabels();
@@ -250,6 +252,12 @@ public partial class MainWindow : Window
             if (string.IsNullOrWhiteSpace(expected) || !string.Equals(rendered, expected, StringComparison.Ordinal))
                 throw new InvalidOperationException($"Closed ComboBox '{comboBox.Name}' rendered '{rendered}' instead of its FilterOption label '{expected}'.");
         }
+    }
+
+    private void VerifyBrandingContract()
+    {
+        if (Icon is null || BrandMark.Source is null || BrandMark.ActualWidth <= 0 || BrandMark.ActualHeight <= 0)
+            throw new InvalidOperationException("The compiled WPF window did not load its application/taskbar icon and visible brand mark.");
     }
 
     private void VerifyF5Binding(MainWindowViewModel viewModel, bool invoke)
