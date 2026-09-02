@@ -34,12 +34,24 @@ public sealed class VendorDeliveryTests
         using var inventory = new VendorExternalReleaseInventory(catalog, new FixtureReleaseClient(CrestronCatalogXml));
 
         var result = await inventory.ReadAsync();
-        var toolbox = result.Releases.Single(item => item.Id == "Crestron.Toolbox");
+        var expected = new Dictionary<string, (string Version, string ProductId)>(StringComparer.Ordinal)
+        {
+            ["Crestron.Database"] = ("210.0", "9"),
+            ["Crestron.DeviceDatabase"] = ("120.0", "10"),
+            ["Crestron.Toolbox"] = ("3.125.0", "137"),
+            ["Crestron.SmartGraphics"] = ("2.18.0", "400"),
+            ["Crestron.DMNVXTool"] = ("1.5.0", "406")
+        };
 
-        Assert.IsTrue(toolbox.OnlineAvailable);
-        Assert.AreEqual("3.125.0", toolbox.AvailableVersion);
-        Assert.AreEqual("137", toolbox.Products.Single().ProductId);
-        Assert.AreEqual("/software/toolbox/3.125.0/toolbox.exe", toolbox.Products.Single().RemotePath);
+        foreach (var item in expected)
+        {
+            var release = result.Releases.Single(release => release.Id == item.Key);
+            Assert.IsTrue(release.OnlineAvailable, item.Key);
+            Assert.AreEqual(item.Value.Version, release.AvailableVersion, item.Key);
+            Assert.AreEqual(item.Value.ProductId, release.Products.Single().ProductId, item.Key);
+        }
+        Assert.AreEqual("/software/toolbox/3.125.0/toolbox.exe",
+            result.Releases.Single(item => item.Id == "Crestron.Toolbox").Products.Single().RemotePath);
     }
 
     [TestMethod]

@@ -28,7 +28,8 @@ The hosted workflows are `.github/workflows/qa.yml` and
 build requires:
 
 - Windows 10/11 or a compatible hosted Windows x64 runner;
-- inbox Windows PowerShell 5.1 for the application and QA entry points;
+- inbox Windows PowerShell 5.1 for repository build, QA, and operator tooling;
+  the packaged compiled application and worker do not require PowerShell;
 - a stable .NET 10 SDK selected from the `10.0.100` baseline through the latest
   installed stable .NET 10 feature band; CI installs `10.0.x`;
 - self-contained .NET runtime and apphost version 10.0.11;

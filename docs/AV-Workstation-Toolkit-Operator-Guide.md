@@ -153,7 +153,7 @@ Then render the UI for visual review:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\scripts\Start-AVWorkstationToolkit.ps1 -SmokeTest -RenderPreviewPath "$env:TEMP\AV-Workstation-Toolkit-preview.png"
 ```
 
-For deterministic geometry checks at all supported release viewports, run `tests\Test-VisualLayout.ps1`. A `PREVIEW_UNAVAILABLE` result means the current Windows session could lay out the WPF tree but could not capture a meaningful desktop frame; it is not a visual approval. Inspect the default, minimum, ComboBox popup, selection, focus, disabled, and details states on an interactive Windows desktop before publication.
+The packaged compiled-production smoke in `tests\Test-Package.ps1` is the authoritative automated geometry and behavior gate at all supported release viewports. `tests\Test-VisualLayout.ps1` is retained only for legacy PowerShell presentation characterization. An unavailable or blank capture is not visual approval. Inspect the default, minimum, ComboBox popup, selection, focus, disabled, activity follow/pause, dialogs, and details states on an interactive Windows desktop before publication.
 
 Do not use a catalog edit for a live install until both checks pass and the package decision register is updated.
 

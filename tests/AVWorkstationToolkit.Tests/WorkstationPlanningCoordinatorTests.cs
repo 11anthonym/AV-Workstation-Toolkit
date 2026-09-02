@@ -54,31 +54,41 @@ public sealed class WorkstationPlanningCoordinatorTests
     }
 
     [TestMethod]
-    public async Task ParentCatalogEvidencePreventsCrestronChildFromFallingIntoCheckUnavailable()
+    public async Task ParentCatalogEvidencePreventsRepresentativeCrestronChildrenFromFallingIntoCheckUnavailable()
     {
         var catalog = new RepositoryCatalogLoader().Load(RepositoryRoot());
-        var toolbox = catalog.GetRequired("Crestron.Toolbox");
+        var cases = new[]
+        {
+            new { Id = "Crestron.Database", Name = "Crestron Database", ProductId = "9", Installed = "209.0", Available = "210.0" },
+            new { Id = "Crestron.DeviceDatabase", Name = "Crestron Device Database", ProductId = "10", Installed = "119.0", Available = "120.0" },
+            new { Id = "Crestron.Toolbox", Name = "Crestron Toolbox", ProductId = "137", Installed = "3.124.0", Available = "3.125.0" },
+            new { Id = "Crestron.SmartGraphics", Name = "Crestron Smart Graphics", ProductId = "400", Installed = "2.17.0", Available = "2.18.0" },
+            new { Id = "Crestron.DMNVXTool", Name = "Crestron DM NVX Tool", ProductId = "406", Installed = "1.4.0", Available = "1.5.0" }
+        };
         var registry = new RegistryInventoryResult(ProviderQuality.Complete, ProviderFailureKind.None,
-            [new(RegistryInventorySource.Hklm64, "Crestron Toolbox", "3.124.0")],
-            [new(RegistryInventorySource.Hklm64, true, 1, "ok"), new(RegistryInventorySource.Hklm32, true, 0, "ok"), new(RegistryInventorySource.Hkcu, true, 0, "ok")], "ok");
-        var release = new ExternalReleaseEvidence(toolbox.Id, "3.125.0", "3.125.0", true, true,
+            [.. cases.Select(item => new RegistryUninstallRecord(RegistryInventorySource.Hklm64, item.Name, item.Installed))],
+            [new(RegistryInventorySource.Hklm64, true, cases.Length, "ok"), new(RegistryInventorySource.Hklm32, true, 0, "ok"), new(RegistryInventorySource.Hkcu, true, 0, "ok")], "ok");
+        var releases = cases.Select(item => new ExternalReleaseEvidence(item.Id, item.Available, item.Available, true, true,
             "https://www.crestron.com/liveupdate/MasterInstallerSFTP.xml", string.Empty,
-            "Parent provider catalog reports 3.125.0 for product 137.",
-            [new("137", "Crestron Toolbox", "3.125.0", "/software/Toolbox/3.125.0/setup.exe", "setup.exe", 1_048_576, false)]);
+            $"Parent provider catalog reports {item.Available} for product {item.ProductId}.",
+            [new(item.ProductId, item.Name, item.Available, $"/software/{item.ProductId}/{item.Available}/setup.exe", "setup.exe", 1_048_576, false)])).ToArray();
         var coordinator = new WorkstationPlanningCoordinator(catalog,
             new InstalledProvider(new(ProviderQuality.Complete, ProviderFailureKind.None, [], "ok", string.Empty)),
             new UpdateProvider(new(ProviderQuality.Complete, ProviderFailureKind.None, [], "ok", string.Empty)),
             new RegistryProvider(registry),
             new RebootProvider(new(false, [], ProviderQuality.Complete, ProviderFailureKind.None, "clear")),
-            externalReleases: new ReleaseProvider(new([release], ProviderQuality.Complete, ProviderFailureKind.None, "ok")));
+            externalReleases: new ReleaseProvider(new(releases, ProviderQuality.Complete, ProviderFailureKind.None, "ok")));
 
         var plan = await coordinator.RefreshAsync();
-        var state = plan.Packages.Single(item => item.Package.Id == toolbox.Id);
-
-        Assert.AreEqual(PackageStatus.ManualUpdate, state.Status);
-        Assert.AreEqual("3.125.0", state.AvailableVersion);
-        Assert.AreNotEqual(PackageStatus.CheckUnavailable, state.Status);
-        Assert.AreEqual("3.125.0", plan.ExternalReleases![toolbox.Id].ObservedVersion);
+        foreach (var item in cases)
+        {
+            var state = plan.Packages.Single(package => package.Package.Id == item.Id);
+            Assert.AreEqual(PackageStatus.ManualUpdate, state.Status, item.Id);
+            Assert.AreEqual(item.Available, state.AvailableVersion, item.Id);
+            Assert.AreNotEqual(PackageStatus.CheckUnavailable, state.Status, item.Id);
+            Assert.AreEqual(item.Available, plan.ExternalReleases![item.Id].ObservedVersion, item.Id);
+            Assert.IsFalse(state.Package.HasManagedExecutionAuthority, item.Id);
+        }
     }
 
     private static RegistryInventoryResult Registry(ProviderQuality quality) => new(

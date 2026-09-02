@@ -5,6 +5,7 @@ using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using AVWorkstationToolkit.App.ViewModels;
 
 namespace AVWorkstationToolkit.App;
@@ -15,6 +16,8 @@ public partial class MainWindow : Window
     private readonly bool allowDialogs;
     private readonly string productVersion;
     private readonly string executionMode;
+    private double pausedActivityOffset;
+    private bool restoringActivityOffset;
 
     public MainWindow(MainWindowViewModel viewModel, string productVersion = "Unknown", string executionMode = "Compiled runtime", bool autoRefresh = true, bool allowDialogs = true)
     {
@@ -70,7 +73,7 @@ public partial class MainWindow : Window
         {
             "BrandMark", "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
-            "ActivityLog", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
+            "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
@@ -138,6 +141,7 @@ public partial class MainWindow : Window
         viewModel.InstallCommand.Execute(null);
         if (viewModel.MutationRefusalCount != 1)
             throw new InvalidOperationException("Compiled WPF smoke did not preserve the explicit mutation refusal.");
+        VerifyActivityFollowContract();
     }
 
     internal void VerifyProductionSmokeContract()
@@ -145,7 +149,7 @@ public partial class MainWindow : Window
         var required = new[]
         {
             "BrandMark", "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
-            "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog",
+            "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog", "FollowActivityCheckBox",
             "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
         };
@@ -217,7 +221,7 @@ public partial class MainWindow : Window
         if (!SearchBox.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)) || Keyboard.FocusedElement is null)
             throw new InvalidOperationException("Compiled production smoke could not traverse keyboard focus from the search field.");
 
-        foreach (var viewport in new[] { new Size(1040, 760), new Size(1440, 900) })
+        foreach (var viewport in new[] { new Size(1040, 760), new Size(1280, 860), new Size(1440, 900), new Size(1920, 1080) })
         {
             Measure(viewport);
             Arrange(new Rect(new Point(), viewport));
@@ -226,6 +230,56 @@ public partial class MainWindow : Window
                 SidebarScroll.ActualWidth <= 0 || SidebarScroll.ActualHeight <= 0)
                 throw new InvalidOperationException($"Compiled production smoke did not render its common {viewport.Width}x{viewport.Height} layout.");
         }
+        VerifyActivityFollowContract();
+    }
+
+    private void ActivityLog_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (FollowActivityCheckBox?.IsChecked == true)
+        {
+            ActivityLog.ScrollToEnd();
+            return;
+        }
+
+        restoringActivityOffset = true;
+        _ = Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () =>
+        {
+            ActivityLog.ScrollToVerticalOffset(pausedActivityOffset);
+            restoringActivityOffset = false;
+        });
+    }
+
+    private void FollowActivityCheckBox_Checked(object sender, RoutedEventArgs e) => ActivityLog?.ScrollToEnd();
+
+    private void FollowActivityCheckBox_Unchecked(object sender, RoutedEventArgs e) => pausedActivityOffset = ActivityLog?.VerticalOffset ?? 0;
+
+    private void ActivityLog_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (FollowActivityCheckBox?.IsChecked == false && !restoringActivityOffset)
+            pausedActivityOffset = e.VerticalOffset;
+    }
+
+    private void VerifyActivityFollowContract()
+    {
+        if (FollowActivityCheckBox.IsChecked != true)
+            throw new InvalidOperationException("Activity follow must be enabled by default.");
+
+        ActivityLog.Text = string.Join(Environment.NewLine, Enumerable.Range(1, 80).Select(index => $"Activity line {index}"));
+        UpdateLayout();
+        ActivityLog.ScrollToHome();
+        FollowActivityCheckBox.IsChecked = false;
+        var pausedOffset = ActivityLog.VerticalOffset;
+        ActivityLog.AppendText($"{Environment.NewLine}Paused activity");
+        UpdateLayout();
+        Dispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
+        if (Math.Abs(ActivityLog.VerticalOffset - pausedOffset) > 0.5)
+            throw new InvalidOperationException("Activity view moved while follow-latest was paused.");
+
+        FollowActivityCheckBox.IsChecked = true;
+        UpdateLayout();
+        var maximumOffset = Math.Max(0, ActivityLog.ExtentHeight - ActivityLog.ViewportHeight);
+        if (maximumOffset > 0 && ActivityLog.VerticalOffset < maximumOffset - 1)
+            throw new InvalidOperationException("Activity view did not follow the newest entry when enabled.");
     }
 
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject

@@ -194,7 +194,7 @@ Technical readiness and SignPath Foundation acceptance/configuration are separat
 
 ## Observed documentation and implementation differences
 
-- The dated security-audit visual section records black/unavailable automated frames, while the newer QA report records four meaningful captures. The reports describe different validation snapshots; neither constitutes an interactive desktop review.
+- Current compiled geometry and UI-state checks pass at the four supported viewports, while the 2026-09-01 noninteractive capture returned unusable blank/white frames. Automated behavior remains proven, but no unavailable frame constitutes an interactive desktop review.
 - Existing endpoint-security documentation calls the current PowerShell retention work “Phase 1.” That predates this C# migration phase; the term is historical context, not evidence of a compiled cutover.
 - The shipping plan's `CanSelect` reflects package state, while pending-reboot risk enforcement occurs independently in request validation. The parity contract preserves both `CanSelect` and `WorkerEligible`; collapsing them would move authorization into presentation.
 - Shipping `StatusDetail` is user-facing prose rather than a stable machine reason. The C# package state pairs it with a stable `ReasonCode`; the legacy adapter maps the same reasons for parity. This is not a production request/result schema change.

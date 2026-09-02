@@ -47,9 +47,9 @@ A Microsoft false-positive submission was made separately. **Submission status
 not independently verified during this repository pass.** No duplicate sample
 was submitted.
 
-## Current rebuilt specimen
+## 2026-08-26 rebuilt specimen
 
-The current specimen was produced by the ordinary development build and scanned
+This later specimen was produced by the ordinary development build and scanned
 as part of the complete release directory using the repository's supported
 endpoint-trust command:
 
@@ -76,22 +76,32 @@ does not alter Microsoft Defender settings.
 | Defender signature | `1.457.350.0`, updated 2026-08-26 05:32:34 local time |
 | Scan result | Scanner exit 0; `DEFENDER_SCAN_OK result=no-detection-reported` |
 
-The historical and current SHA-256 values differ. The current clean result does
+The historical and rebuilt SHA-256 values differ. The rebuilt clean result does
 not reproduce or disprove the historical classification, and no controlled
 evidence establishes whether signatures, cloud classification, reputation,
 source changes, or another variable accounts for the difference.
 
+The 2026-09-01 release-candidate gate repeated the supported release-directory
+custom scan against newly built, different bytes and again reported no
+detection. Its exact executable SHA-256 is recorded in the generated checksum
+and release-manifest evidence and the gate output. Neither clean rebuilt result
+explains or invalidates the historical classification.
+
 ## Engineering characteristic review
 
-The historical commit and current launcher retain the same principal packaging
-model: a trimmed, self-contained .NET 10 x64 single-file Windows executable with
-compression disabled, native-library self-extraction enabled, and embedded
-PowerShell, XAML, catalog, policy, notices, and managed SSH/SFTP dependencies.
-At runtime the launcher deterministically restores hash-verified static content
-under `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\<version>` and starts the
-fixed inbox Windows PowerShell frontend. A separately constrained worker process
-performs exact-ID WinGet actions, and `--vendor-bridge` is a bounded self-helper
-mode for approved HTTPS/SFTP/Credential Manager operations.
+The historical specimen used the retired launcher model: a self-contained .NET
+single-file host restored embedded PowerShell/XAML resources beneath
+`%LOCALAPPDATA%\AVWorkstationToolkit\runtime\<version>`, launched the fixed
+Windows PowerShell frontend and a constrained PowerShell worker, and exposed a
+bounded vendor-bridge helper. Those facts remain relevant only when reasoning
+about the historical bytes.
+
+The current package is materially different. The self-contained launcher now
+restores and starts a compiled C# WPF App plus an independently constrained
+compiled worker. Planning, request/IPC handling, exact-ID WinGet execution,
+HTTPS/SFTP/Credential Manager access, cache verification, and diagnostics use
+typed C# services. PowerShell, loose XAML, the legacy worker, and the vendor
+bridge are not packaged runtime dependencies.
 
 The rankings below describe plausible classifier contributors, not findings of
 malicious behavior:
@@ -100,8 +110,8 @@ malicious behavior:
 |---|---|---|
 | High | No individual characteristic has controlled evidence proving that it caused the historical classification. | A causal high-confidence claim would require the exact specimen and controlled variants or authoritative Microsoft disposition; neither is available. |
 | Medium | The historical specimen was unsigned, and the product had no established signed release identity. | Missing publisher authentication and limited reputation plausibly increased ML uncertainty, but the investigation cannot show their weight or that signing alone would have changed the result. |
-| Medium | One uncompressed self-contained executable bundles a native apphost, trimmed .NET runtime, managed networking/cryptography libraries, and many static resources; it writes verified PowerShell/XAML/catalog resources to a versioned LocalAppData cache and launches fixed PowerShell child processes. | That legitimate combination presents more static and process-tree features than a conventional small launcher. It may have contributed to a heuristic classification, but no Defender evidence identifies a particular feature. |
-| Low | The same binary exposes a bounded vendor-bridge mode and uses HTTPS, SFTP, host-key validation, and Windows Credential Manager. | Networking and credential API imports expand the inspectable feature surface, but policy and tests constrain them; there is no evidence these capabilities caused the detection. |
+| Medium | The historical uncompressed self-contained executable bundled a native apphost, trimmed .NET runtime, managed networking/cryptography libraries, PowerShell/XAML resources, and fixed PowerShell child-process behavior. | That legitimate combination presented more static and process-tree features than a conventional small launcher. It may have contributed to a heuristic classification, but no Defender evidence identifies a particular feature. The current compiled architecture does not retain that PowerShell runtime path. |
+| Low | The historical binary exposed a bounded vendor-bridge mode and used HTTPS, SFTP, host-key validation, and Windows Credential Manager. | Networking and credential API imports expanded the inspectable feature surface, but policy and tests constrained them; there is no evidence these capabilities caused the detection. Current typed in-process services preserve those security controls without the bridge activation. |
 | Low | The executable is approximately 20 MB and uses the standard .NET single-file bundle/overlay format. | Size or PE overlay shape alone is insufficient evidence, and changing bytes merely to alter classification would be inappropriate. |
 
 ## Conclusion and response boundary

@@ -49,13 +49,9 @@ After the automated suite passes, use the packaged production smoke in
 `Test-Package.ps1` and perform an interactive review of the actual compiled
 window when a material presentation change requires human visual evidence.
 
-Run the deterministic multi-viewport geometry and screenshot-quality gate directly when working on layout:
+The packaged compiled-production smoke is the authoritative automated geometry gate. It measures the current WPF surface at 1040x760, 1280x860, 1440x900, and 1920x1080 and exercises current filter, selection, menu, icon, and activity-follow behavior. `Test-VisualLayout.ps1` is retained only as legacy PowerShell presentation characterization and is not a release-candidate gate for the compiled runtime.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-VisualLayout.ps1
-```
-
-The geometry gate is mandatory. In a noninteractive Windows session, screenshot capture may explicitly report unavailable even when layout succeeds; that result never substitutes for the interactive desktop review required for a production release.
+Automated geometry and screenshot evidence never substitutes for an interactive desktop review required for a production release.
 
 Neither command installs, updates, removes, enables, disables, starts, or stops software.
 

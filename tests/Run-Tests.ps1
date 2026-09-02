@@ -2082,6 +2082,9 @@ if (-not $CoreOnly) {
             $xamlSource = Get-Content -LiteralPath $xamlPath -Raw
             Assert-True ($xamlSource -match 'Grid Background="\{TemplateBinding Background\}"' -and $xamlSource -match 'x:Key="GridSelectionCheckBox"' -and $xamlSource -match 'Property="MinWidth" Value="32"' -and $xamlSource -match 'Property="MinHeight" Value="40"' -and $xamlSource -match 'ToolTipService.ShowOnDisabled="True"') 'Checkbox hit target or disabled-state explanation regressed.'
             Assert-True ($xamlSource -match 'Content="\{TemplateBinding SelectionBoxItem\}"' -and $xamlSource -match '<Style TargetType="ComboBox">[\s\S]+?<Setter Property="Foreground" Value="#E8EEF8"') 'ComboBox template does not render its selected value with the dark-theme foreground.'
+            $compiledXamlSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
+            Assert-True ($compiledXamlSource -match 'x:Name="FollowActivityCheckBox"[^>]+Content="Follow latest activity"[^>]+IsChecked="True"' -and
+                $compiledXamlSource -match 'x:Name="ActivityLog"[^>]+TextChanged="ActivityLog_TextChanged"') 'Compiled activity follow/pause UI contract is incomplete.'
             Assert-True ($xamlSource -notmatch 'Safety boundary') 'Verbose safety policy remains in the primary sidebar.'
             Assert-True ($uiSource -match 'function Show-AVWorkstationToolkitSafetySecurity' -and $uiSource -match "Title = 'Safety & Security - AV Workstation Toolkit'") 'Safety and security content is not available from a read-only surface.'
             Assert-True ($uiSource -match 'function Show-AVWorkstationToolkitAbout' -and $uiSource -match "Title = 'About AV Workstation Toolkit'" -and $uiSource -match 'Version \{0\}  \|  \{1\}' -and $uiSource -match 'Mode=\$executionMode') 'Dark About dialog does not expose product version and package mode.'
@@ -2124,10 +2127,13 @@ if (-not $CoreOnly) {
         }
         finally { $window.Close() }
     }
-    Invoke-Check 'Visual layout validates all required viewports and detects capture availability' {
-        $visualOutput = (& (Join-Path $PSScriptRoot 'Test-VisualLayout.ps1') | Out-String)
-        Assert-Equal 4 @([regex]::Matches($visualOutput,'VISUAL_LAYOUT_OK viewport=')).Count 'Required viewport layout count differs.'
-        Assert-True ($visualOutput -match 'quickView=Missing' -and $visualOutput -match 'quickView=Updates' -and $visualOutput -match 'quickView=All') 'Visual QA did not cover all quick-view states.'
+    Invoke-Check 'Compiled production layout contract covers all required viewports' {
+        $compiledWindowSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml.cs') -Raw
+        foreach ($viewport in @('1040, 760','1280, 860','1440, 900','1920, 1080')) {
+            Assert-True ($compiledWindowSource.Contains("new Size($viewport)")) "Compiled production smoke omits the $viewport viewport."
+        }
+        Assert-True ($compiledWindowSource -match 'VerifyClosedComboBoxLabels\(\)' -and
+            $compiledWindowSource -match 'VerifyActivityFollowContract\(\)') 'Compiled production smoke omits current filter-label or activity-follow rendering behavior.'
     }
     Invoke-Check 'Worker rejects a synthetic path outside the resolved data root before file access' {
         $worker = Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1'

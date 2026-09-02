@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-01 — Release-candidate activity follow control
+
+- Added a default-on **Follow latest activity** control so live refresh and action output remains visible while allowing operators to pause the view and inspect earlier entries.
+- Added rendered compiled-WPF coverage proving both automatic follow and paused scroll-position behavior.
+
 ## 2026-09-01 — Custom Windows application identity artwork
 
 - Added a project-specific AV signal-path mark with a transparent PNG master and a multi-resolution Windows ICO.
