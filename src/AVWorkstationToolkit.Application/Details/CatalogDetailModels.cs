@@ -3,10 +3,11 @@ using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.Application.Vendors;
+using AVWorkstationToolkit.Application.Compatibility;
 
 namespace AVWorkstationToolkit.Application.Details;
 
-public enum OfficialUriKind { Product, Download }
+public enum OfficialUriKind { Product, Download, Evidence }
 
 public interface IValidatedUserHandoffService
 {
@@ -31,6 +32,8 @@ public sealed record OpenOfficialUriIntent
     public static OpenOfficialUriIntent? FromCatalog(PackageDefinition package, OfficialUriKind kind)
     {
         ArgumentNullException.ThrowIfNull(package);
+        if (kind is not (OfficialUriKind.Product or OfficialUriKind.Download))
+            throw new ArgumentOutOfRangeException(nameof(kind), "Package catalog links support only product and download intents.");
         var value = kind == OfficialUriKind.Product
             ? package.MetadataDetails.OfficialProductUri
             : package.MetadataDetails.OfficialDownloadUri;
@@ -53,6 +56,42 @@ public sealed record OpenOfficialUriIntent
             uri.UserInfo.Length > 0 || uri.DnsSafeHost.Length == 0)
             throw new InvalidDataException("The catalogued vendor delivery address is not a safe HTTPS URI.");
         return new(OfficialUriKind.Download, uri, package.Id);
+    }
+
+    public static OpenOfficialUriIntent FromCompatibilityProduct(CompatibilityProductSummary product)
+    {
+        ArgumentNullException.ThrowIfNull(product);
+        return CreateCompatibility(OfficialUriKind.Product, product.OfficialSourceUri, product.Id.Value);
+    }
+
+    public static OpenOfficialUriIntent FromCompatibilityRelease(
+        SoftwareProductId productId,
+        CompatibilityReleaseFamilySummary family)
+    {
+        ArgumentNullException.ThrowIfNull(family);
+        return CreateCompatibility(OfficialUriKind.Evidence, family.EvidenceUri, productId.Value);
+    }
+
+    public static OpenOfficialUriIntent FromCompatibilityRelation(RelevantSoftwareSummary relation)
+    {
+        ArgumentNullException.ThrowIfNull(relation);
+        return CreateCompatibility(OfficialUriKind.Evidence, relation.EvidenceUri, relation.ProductId.Value);
+    }
+
+    public static OpenOfficialUriIntent FromCompatibilityRelation(
+        SoftwareProductId productId,
+        ApplicableDevicePurposeSummary relation)
+    {
+        ArgumentNullException.ThrowIfNull(relation);
+        return CreateCompatibility(OfficialUriKind.Evidence, relation.EvidenceUri, productId.Value);
+    }
+
+    private static OpenOfficialUriIntent CreateCompatibility(OfficialUriKind kind, Uri uri, string productId)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        if (kind == OfficialUriKind.Download || uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length > 0 || uri.DnsSafeHost.Length == 0)
+            throw new InvalidDataException("Compatibility links must be validated non-download HTTPS product or evidence addresses.");
+        return new(kind, uri, productId);
     }
 }
 

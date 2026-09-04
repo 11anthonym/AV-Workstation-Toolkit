@@ -13,4 +13,4 @@ if (-not $process.WaitForExit(30000)) {
     throw 'Compiled WPF migration smoke timed out.'
 }
 if ($process.ExitCode -ne 0) { throw "Compiled WPF migration smoke failed with exit code $($process.ExitCode)." }
-Write-Output 'CSHARP_WPF_SMOKE_OK controls=19 bindings=loaded selection=toggle details=loaded diagnostics=loaded official-intent=read-only mutation=absent'
+Write-Output 'CSHARP_WPF_SMOKE_OK controls=compatibility-extended bindings=loaded find-apps-device=rendered selection=toggle details=loaded diagnostics=loaded official-intent=read-only mutation=absent'

@@ -162,3 +162,17 @@ Until a product has an authoritative multi-install detector, production queries 
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 The finite unresolved evidence remains unchanged: authoritative multi-install identities and locations for Q-SYS Designer; Tesira/Canvas coexistence and historical install identities; Nexia acquisition, release lineage, supported Windows versions, and installed detection; and authorized MasterInstaller child identities/version meanings. These are evidence gates for later detection work, not Phase 3A implementation blockers.
+
+### CAT-017 — Compiled Find Apps compatibility presentation
+
+**DESIGN DECISION**
+Phase 3B extends the existing Find Apps field rather than adding a separate device utility. Package rows continue to use the existing catalog query. A compact read-only compatibility result area independently presents matches from the Phase 3A `CompatibilityCatalogQueryService`, labels each match as Device or Software, and opens the existing details window. Compatibility results have no selection state and are never copied into package planning or worker requests.
+
+**DESIGN DECISION**
+Device details group the single authoritative `DeviceSoftwareRelation` projection by readable field-service purpose and show applicability, confidence, optional release-family scope, constraints, and evidence. Relevant-software buttons navigate within the same details surface to the selected Product. Product details show lifecycle, aliases, every release family, explicit installed-version evidence, and reverse applicable-device groups. `Unknown` evidence is rendered as `Unknown / Not yet verified`, never as absent or not installed.
+
+**DESIGN DECISION**
+Compatibility product, release, and relationship URLs use the existing validated user browser-handoff service through typed, non-download intents. These links cannot invoke package delivery, reveal cached payloads, create downloads, or grant execution authority. Q-SYS Designer remains one product with Current, LTS, and Archived sections; no release family or patch becomes a top-level package row.
+
+**VERIFIED FACT**
+Focused presentation tests exercise CP4N and DM-NVX device results, Q-SYS release-family display, explicit unknown evidence, reverse software-to-device details, in-place relevant-software navigation, browser-only evidence intents, and unchanged package filtering/selection behavior.

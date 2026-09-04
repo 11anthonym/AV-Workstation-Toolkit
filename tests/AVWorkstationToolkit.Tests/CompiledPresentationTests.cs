@@ -8,6 +8,9 @@ using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.Application.Providers;
 using System.Text.Json;
+using AVWorkstationToolkit.Application.Compatibility;
+using AVWorkstationToolkit.Application.Details;
+using AVWorkstationToolkit.Application.Vendors;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -279,6 +282,139 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task FindAppsDeviceMatchOpensApprovedCp4nSoftwareWithoutSelectionAuthority()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "CP4N";
+
+        var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        Assert.AreEqual("CP4N", match.Title);
+        Assert.IsFalse(match.CanSelect);
+        Assert.AreEqual(0, viewModel.SelectedCount);
+        match.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+
+        var detail = viewModel.SelectedCompatibilityDetail!;
+        var software = detail.Groups.SelectMany(group => group.Fields).Select(field => field.Label).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        CollectionAssert.IsSubsetOf(new[] { "Crestron SIMPL Windows", "Crestron Database", "Crestron Device Database", "Crestron Toolbox" }, software.ToArray());
+        Assert.IsTrue(detail.Groups.Any(group => group.Name == "Programming"));
+        Assert.IsTrue(detail.Groups.Any(group => group.Name == "Diagnostics"));
+        Assert.IsTrue(detail.Groups.Any(group => group.Name == "Firmware"));
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
+    [DataRow("CP4N")]
+    [DataRow("DM-NVX")]
+    [DataRow("Q-SYS Core")]
+    [DataRow("Nexia")]
+    public async Task FindAppsRecognizesReferenceDeviceModelsAndAliases(string search)
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = search;
+
+        Assert.IsTrue(viewModel.CompatibilityMatches.Any(item => item.Kind == CompatibilitySearchResultKind.Device));
+        Assert.IsTrue(viewModel.CompatibilityMatches.All(item => !item.CanSelect));
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
+    public async Task DmNvxDeviceViewKeepsToolAndToolboxPurposesDistinct()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "DM-NVX";
+        var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        match.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+
+        var detail = viewModel.SelectedCompatibilityDetail!;
+        Assert.IsTrue(detail.Groups.Single(group => group.Name == "Configuration").Fields.Any(field => field.Label == "Crestron DM NVX Tool"));
+        Assert.IsTrue(detail.Groups.Single(group => group.Name == "Discovery").Fields.Any(field => field.Label == "Crestron Toolbox"));
+        Assert.IsFalse(detail.Groups.Single(group => group.Name == "Discovery").Fields.Any(field => field.Label == "Crestron DM NVX Tool"));
+    }
+
+    [TestMethod]
+    public async Task DeviceSoftwareSelectionNavigatesWithinCompatibilityDetails()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "CP4N";
+        viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device).OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        var deviceDetail = viewModel.SelectedCompatibilityDetail!;
+        CompatibilityDetailViewModel? navigated = null;
+        deviceDetail.NavigationRequested += detail => navigated = detail;
+
+        deviceDetail.RelatedSoftware.Single(item => item.ProductName == "Crestron SIMPL Windows").OpenCommand.Execute(null);
+        await WaitForAsync(() => navigated is not null);
+
+        Assert.AreEqual("Crestron.SIMPLWindows", navigated!.ContextId);
+        Assert.IsTrue(navigated.Groups.Any(group => group.Name == "CP4N"));
+    }
+
+    [TestMethod]
+    public async Task QsysProductDetailShowsOneProductFamiliesAndExplicitUnknownEvidence()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Q-SYS Designer";
+
+        Assert.HasCount(1, viewModel.CompatibilityMatches.Where(item => item.Kind == CompatibilitySearchResultKind.Software));
+        viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Software).OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        var detail = viewModel.SelectedCompatibilityDetail!;
+        var families = detail.Groups.Single(group => group.Name == "Release families").Fields;
+        CollectionAssert.AreEqual(new[] { "Current — Current", "LTS — LTS", "Archived — Archived" }, families.Select(field => field.Label).ToArray());
+        var installed = detail.Groups.Single(group => group.Name == "Installed-version evidence").Fields.Single();
+        StringAssert.StartsWith(installed.Value, "Unknown / Not yet verified");
+        Assert.DoesNotContain("Not installed", installed.Value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [TestMethod]
+    public async Task SoftwareDetailShowsApplicableDevicesAndUsesReadOnlyEvidenceHandoff()
+    {
+        var handoff = new RecordingCompatibilityHandoff();
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), handoffService: handoff,
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Crestron Toolbox Software";
+        viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Software).OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+
+        var detail = viewModel.SelectedCompatibilityDetail!;
+        Assert.IsTrue(detail.Groups.Any(group => group.Name == "CP4N"));
+        Assert.IsTrue(detail.Groups.Any(group => group.Name.Contains("DM NVX", StringComparison.OrdinalIgnoreCase)));
+        var evidence = detail.Links.First(link => link.Label.Contains("evidence", StringComparison.OrdinalIgnoreCase));
+        evidence.Command.Execute(null);
+
+        Assert.IsNotNull(handoff.Intent);
+        Assert.AreEqual(OfficialUriKind.Evidence, handoff.Intent.Kind);
+        Assert.AreEqual(Uri.UriSchemeHttps, handoff.Intent.Uri.Scheme);
+        Assert.IsFalse(viewModel.Packages.Any(item => item.Selected));
+    }
+
+    [TestMethod]
+    public async Task CompatibilitySearchDoesNotChangeExistingPackageFiltering()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "update";
+        Assert.AreEqual("Fixture.Update", viewModel.VisiblePackages.Single().Id);
+        Assert.IsEmpty(viewModel.CompatibilityMatches);
+    }
+
+    [TestMethod]
     public void RepositoryCatalogLoaderReadsAllThreeCurrentCatalogClasses()
     {
         var root = FindRepositoryRoot();
@@ -346,6 +482,25 @@ public sealed class CompiledPresentationTests
         var providers = new ProviderRefreshSummary(ProviderQuality.Complete, ProviderQuality.Complete, inventoryWarning ? ProviderQuality.Partial : ProviderQuality.Complete, ProviderQuality.Complete, warnings);
         var reboot = rebootPending ? new RebootState(true, [RebootReason.WindowsUpdate], "Windows Update") : RebootState.Clear;
         return new WorkstationPlan(states, summary, reboot, providers);
+    }
+
+    private static CompatibilityCatalogQueryService CreateCompatibilityQueries() => new(
+        new RepositoryCompatibilityCatalogLoader().Load(FindRepositoryRoot()),
+        new UnresolvedInstalledVersionEvidenceProvider());
+
+    private static async Task WaitForAsync(Func<bool> condition)
+    {
+        for (var attempt = 0; attempt < 50 && !condition(); attempt++) await Task.Delay(10);
+        Assert.IsTrue(condition(), "The compatibility UI command did not complete in time.");
+    }
+
+    private sealed class RecordingCompatibilityHandoff : IValidatedUserHandoffService
+    {
+        public OpenOfficialUriIntent? Intent { get; private set; }
+        public void OpenOfficialUri(OpenOfficialUriIntent intent) => Intent = intent;
+        public void RevealVerifiedPayload(VendorDeliveryAuthorization authorization, VendorDownloadResult payload, string explicitDataRoot) =>
+            throw new AssertFailedException("Compatibility links must not reveal vendor payloads.");
+        public void OpenLogs(string explicitDataRoot) => throw new AssertFailedException("Compatibility links must not open logs.");
     }
 
     private static PackageState State(PackageDefinition package, PackageStatus status, PackageAction action, bool installed, string installedVersion, string availableVersion = "", InventoryQuality quality = InventoryQuality.Complete) =>

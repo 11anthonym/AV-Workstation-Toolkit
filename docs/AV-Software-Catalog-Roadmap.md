@@ -133,7 +133,8 @@ Before closing a later batch, record its source links, missing field/service sof
 1. **Phase 1 — research and ledger:** complete for reference batch; no runtime or manifest change.
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
-4. **Phase 4 — catalog-wide completion:** process the frozen unfinished batches once each, recording evidence and unresolved facts. Do not re-audit Batch 1 unless a source change or identified conflict requires it.
+4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
+5. **Phase 4 — catalog-wide completion:** process the frozen unfinished batches once each, recording evidence and unresolved facts. Do not re-audit Batch 1 unless a source change or identified conflict requires it.
 
 ### Phase 2 implemented schema contract
 
@@ -165,3 +166,4 @@ Before closing a later batch, record its source links, missing field/service sof
 - [x] Phase 2 standalone version-1 Product/ReleaseFamily/InstalledVersion/DeviceSoftwareRelation model and strict parser were implemented without converting production records.
 - [x] Phase 2 focused tests prove reverse indexes, aliases, identity/relationship validation, incomplete inventory semantics, authority isolation, and backward-compatible production manifest loading.
 - [x] Phase 3A production reference data, compiled read-only composition, alias/device queries, explicit unknown installed evidence, and authority-isolation regressions are implemented.
+- [x] Phase 3B integrates product and device compatibility search into Find Apps and the existing compiled details surface while preserving read-only authority isolation.

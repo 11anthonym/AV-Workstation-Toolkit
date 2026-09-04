@@ -7,6 +7,7 @@ using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.App.ViewModels;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
+using AVWorkstationToolkit.Application.Compatibility;
 
 namespace AVWorkstationToolkit.App;
 
@@ -50,6 +51,7 @@ public partial class App : System.Windows.Application
             IValidatedUserHandoffService? handoffs = null;
             IPackageDeliveryWorkflow? packageDelivery = null;
             IApplicationMenuWorkflow? applicationMenu = null;
+            CompatibilityCatalogQueryService? compatibility = null;
             var productVersion = packagedContext?.Version ?? "Unknown";
             var executionMode = packagedContext is null ? "Source compiled runtime" : "Packaged compiled runtime";
             if (packagedContext is not null)
@@ -67,6 +69,7 @@ public partial class App : System.Windows.Application
                 handoffs = services.Handoffs;
                 packageDelivery = services.PackageDelivery;
                 applicationMenu = services.ApplicationMenu;
+                compatibility = services.Compatibility;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
@@ -74,6 +77,10 @@ public partial class App : System.Windows.Application
             {
                 coordinator = SmokePlanningCoordinator.Create();
                 diagnostics = SmokePlanningCoordinator.CreateDiagnostics();
+                var repositoryRoot = RepositoryRootLocator.Find();
+                compatibility = new CompatibilityCatalogQueryService(
+                    new RepositoryCompatibilityCatalogLoader().Load(repositoryRoot),
+                    new UnresolvedInstalledVersionEvidenceProvider());
             }
             else
             {
@@ -87,11 +94,12 @@ public partial class App : System.Windows.Application
                 handoffs = services.Handoffs;
                 packageDelivery = services.PackageDelivery;
                 applicationMenu = services.ApplicationMenu;
+                compatibility = services.Compatibility;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
             var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
-                applicationMenu, liveRehearsalMode: false);
+                applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility);
             var window = new MainWindow(viewModel, productVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();
@@ -99,7 +107,7 @@ public partial class App : System.Windows.Application
             {
                 await viewModel.RefreshAsync().ConfigureAwait(true);
                 if (packagedContext is null) window.VerifySmokeContract();
-                else window.VerifyProductionSmokeContract();
+                else await window.VerifyProductionSmokeContractAsync().ConfigureAwait(true);
                 window.Close();
                 Shutdown(0);
             }

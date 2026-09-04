@@ -10,6 +10,7 @@ using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.App.Services;
+using AVWorkstationToolkit.Application.Compatibility;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
@@ -22,16 +23,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IValidatedUserHandoffService? handoffService;
     private readonly IPackageDeliveryWorkflow? packageDeliveryWorkflow;
     private readonly IApplicationMenuWorkflow? applicationMenuWorkflow;
+    private readonly CompatibilityCatalogQueryService? compatibilityService;
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
     private readonly ObservableCollection<PackageRowViewModel> visiblePackages = [];
+    private readonly ObservableCollection<CompatibilitySearchResultViewModel> compatibilityMatches = [];
     private CancellationTokenSource? refreshCancellation;
     private long refreshGeneration;
     private WorkstationPlan? plan;
     private PackageCatalog? planCatalog;
     private DiagnosticsViewModel? diagnostics;
     private CatalogDetailViewModel? selectedDetail;
+    private CompatibilityDetailViewModel? selectedCompatibilityDetail;
     private bool isBusy;
     private string searchText = string.Empty;
     private bool standardProfile = true;
@@ -65,7 +69,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IValidatedUserHandoffService? handoffService = null,
         IPackageDeliveryWorkflow? packageDeliveryWorkflow = null,
         IApplicationMenuWorkflow? applicationMenuWorkflow = null,
-        bool liveRehearsalMode = false)
+        bool liveRehearsalMode = false,
+        CompatibilityCatalogQueryService? compatibilityService = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -75,6 +80,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.handoffService = handoffService;
         this.packageDeliveryWorkflow = packageDeliveryWorkflow;
         this.applicationMenuWorkflow = applicationMenuWorkflow;
+        this.compatibilityService = compatibilityService;
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -120,6 +126,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public ReadOnlyObservableCollection<PackageRowViewModel> Packages => new(packages);
     public ReadOnlyObservableCollection<PackageRowViewModel> VisiblePackages => new(visiblePackages);
+    public ReadOnlyObservableCollection<CompatibilitySearchResultViewModel> CompatibilityMatches => new(compatibilityMatches);
     public IReadOnlyList<FilterOption<PackagePriority?>> PriorityOptions { get; }
     public IReadOnlyList<FilterOption<CatalogPreset>> CatalogPresetOptions { get; }
     public ObservableCollection<FilterOption<string>> ManufacturerOptions { get; }
@@ -141,6 +148,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand AboutCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
     public event Action<CatalogDetailViewModel>? DetailRequested;
+    public event Action<CompatibilityDetailViewModel>? CompatibilityDetailRequested;
     public event Action<DiagnosticsViewModel>? DiagnosticsRequested;
     public event Action? SafetySecurityRequested;
     public event Action? AboutRequested;
@@ -176,7 +184,20 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     }
     public CompiledActionSnapshot ActionSnapshot { get => actionSnapshot; private set => SetProperty(ref actionSnapshot, value); }
 
-    public string SearchText { get => searchText; set { if (SetProperty(ref searchText, value ?? string.Empty)) RebuildVisible(); } }
+    public string SearchText
+    {
+        get => searchText;
+        set
+        {
+            if (!SetProperty(ref searchText, value ?? string.Empty)) return;
+            RebuildVisible();
+            RebuildCompatibilityMatches();
+        }
+    }
+    public bool CompatibilityMatchesVisible => compatibilityMatches.Count > 0;
+    public string CompatibilityMatchSummary => compatibilityMatches.Count == 1
+        ? "1 compatibility match"
+        : $"{compatibilityMatches.Count} compatibility matches";
     public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) RebuildVisible(); } }
     public bool FieldProfile { get => fieldProfile; set { if (SetProperty(ref fieldProfile, value)) RebuildVisible(); } }
     public bool DeveloperProfile { get => developerProfile; set { if (SetProperty(ref developerProfile, value)) RebuildVisible(); } }
@@ -231,6 +252,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         get => selectedDetail;
         private set => SetProperty(ref selectedDetail, value);
+    }
+
+    public CompatibilityDetailViewModel? SelectedCompatibilityDetail
+    {
+        get => selectedCompatibilityDetail;
+        private set => SetProperty(ref selectedCompatibilityDetail, value);
     }
 
     public string ActivityText { get => activityText; private set => SetProperty(ref activityText, value); }
@@ -386,6 +413,70 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         foreach (var row in rows) visiblePackages.Add(row);
         if (SelectedRow is not null && !visiblePackages.Contains(SelectedRow)) SelectedRow = null;
         UpdateStatusText();
+    }
+
+    private void RebuildCompatibilityMatches()
+    {
+        compatibilityMatches.Clear();
+        var query = SearchText.Trim();
+        if (compatibilityService is null || query.Length < 2)
+        {
+            NotifyCompatibilityMatchesChanged();
+            return;
+        }
+
+        foreach (var device in compatibilityService.SearchDevices(query).Take(6))
+        {
+            var displayName = CompatibilityDetailViewModel.DeviceDisplayName(device, query);
+            var softwareCount = compatibilityService.GetSoftwareForDevice(displayName).Sum(group => group.Software.Count);
+            compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
+                CompatibilitySearchResultKind.Device,
+                displayName,
+                $"{device.DeviceFamilyId} | {softwareCount} reviewed software relationship(s)",
+                "View software grouped by field-service purpose. This result cannot be selected for install or update.",
+                () => OpenCompatibilityDeviceAsync(device, displayName)));
+        }
+
+        foreach (var product in compatibilityService.SearchProducts(query).Take(Math.Max(0, 8 - compatibilityMatches.Count)))
+        {
+            compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
+                CompatibilitySearchResultKind.Software,
+                product.Name,
+                $"{product.Vendor} | {CompatibilityLabel(product.Lifecycle)}",
+                "View release families, installed evidence, and applicable devices.",
+                () => OpenCompatibilityProductAsync(product.Id)));
+        }
+        NotifyCompatibilityMatchesChanged();
+    }
+
+    internal async Task OpenCompatibilityProductAsync(SoftwareProductId productId)
+    {
+        if (compatibilityService is null) return;
+        var detail = await CompatibilityDetailViewModel.CreateProductAsync(compatibilityService, productId, handoffService).ConfigureAwait(true);
+        SelectedCompatibilityDetail = detail;
+        CompatibilityDetailRequested?.Invoke(detail);
+    }
+
+    private Task OpenCompatibilityDeviceAsync(CompatibilityDeviceSearchResult device, string displayName)
+    {
+        if (compatibilityService is null) return Task.CompletedTask;
+        var detail = CompatibilityDetailViewModel.CreateDevice(compatibilityService, device, displayName, handoffService);
+        SelectedCompatibilityDetail = detail;
+        CompatibilityDetailRequested?.Invoke(detail);
+        return Task.CompletedTask;
+    }
+
+    private void NotifyCompatibilityMatchesChanged()
+    {
+        OnPropertyChanged(nameof(CompatibilityMatchesVisible));
+        OnPropertyChanged(nameof(CompatibilityMatchSummary));
+    }
+
+    private static string CompatibilityLabel(Enum value)
+    {
+        var text = value.ToString();
+        return string.Concat(text.Select((character, index) => index > 0 && char.IsUpper(character) && char.IsLower(text[index - 1])
+            ? $" {character}" : character.ToString()));
     }
 
     private IEnumerable<PackageRowViewModel> ApplySort(IEnumerable<PackageRowViewModel> rows)

@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         this.productVersion = productVersion;
         this.executionMode = executionMode;
         viewModel.DetailRequested += ShowDetail;
+        viewModel.CompatibilityDetailRequested += ShowCompatibilityDetail;
         viewModel.DiagnosticsRequested += ShowDiagnostics;
         viewModel.SafetySecurityRequested += ShowSafetySecurity;
         viewModel.AboutRequested += ShowAbout;
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             viewModel.DetailRequested -= ShowDetail;
+            viewModel.CompatibilityDetailRequested -= ShowCompatibilityDetail;
             viewModel.DiagnosticsRequested -= ShowDiagnostics;
             viewModel.SafetySecurityRequested -= ShowSafetySecurity;
             viewModel.AboutRequested -= ShowAbout;
@@ -71,7 +73,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "RebootBanner", "SearchBox", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
+            "BrandMark", "TopMenu", "RebootBanner", "SearchBox", "CompatibilityMatchesPanel", "CompatibilitySearchResults", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
             "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
@@ -92,6 +94,14 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke exposed awareness selection authority.");
         VerifyClosedComboBoxLabels();
         VerifyF5Binding(viewModel, invoke: true);
+
+        viewModel.SearchText = "CP4N";
+        UpdateLayout();
+        if (!CompatibilityMatchesPanel.IsVisible || CompatibilitySearchResults.Items.Count == 0 ||
+            viewModel.CompatibilityMatches.Any(item => item.CanSelect))
+            throw new InvalidOperationException("Compiled WPF smoke did not render read-only device matches through Find Apps.");
+        viewModel.SearchText = string.Empty;
+        UpdateLayout();
 
         var selectable = viewModel.VisiblePackages.FirstOrDefault(item => item.SelectionEnabled)
             ?? throw new InvalidOperationException("Compiled WPF smoke did not expose an eligible selection fixture.");
@@ -144,11 +154,11 @@ public partial class MainWindow : Window
         VerifyActivityFollowContract();
     }
 
-    internal void VerifyProductionSmokeContract()
+    internal async Task VerifyProductionSmokeContractAsync()
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "SidebarScroll", "SearchBox", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
+            "BrandMark", "TopMenu", "SidebarScroll", "SearchBox", "CompatibilityMatchesPanel", "CompatibilitySearchResults", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog", "FollowActivityCheckBox",
             "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
@@ -170,6 +180,27 @@ public partial class MainWindow : Window
         viewModel.SearchText = "Crestron";
         if (viewModel.VisiblePackages.Count == 0)
             throw new InvalidOperationException("Compiled production smoke filtering produced no matching catalog rows.");
+        viewModel.SearchText = "CP4N";
+        var deviceMatch = viewModel.CompatibilityMatches.SingleOrDefault(item => item.Kind == CompatibilitySearchResultKind.Device)
+            ?? throw new InvalidOperationException("Compiled production smoke did not surface CP4N from the Find Apps device search.");
+        if (deviceMatch.CanSelect || !CompatibilityMatchesPanel.IsVisible)
+            throw new InvalidOperationException("Compiled production smoke exposed device compatibility as an action selection or hid its result.");
+        deviceMatch.OpenCommand.Execute(null);
+        for (var attempt = 0; attempt < 20 && viewModel.SelectedCompatibilityDetail is null; attempt++)
+            await Task.Delay(10).ConfigureAwait(true);
+        var compatibilityDetail = viewModel.SelectedCompatibilityDetail
+            ?? throw new InvalidOperationException("Compiled production smoke did not open CP4N compatibility details.");
+        if (!compatibilityDetail.Groups.SelectMany(group => group.Fields).Any(field => field.Label.Contains("SIMPL", StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Compiled production smoke did not display CP4N's reviewed software relationships.");
+        var compatibilityWindow = new CatalogDetailWindow(compatibilityDetail) { Owner = this };
+        compatibilityWindow.Show();
+        compatibilityWindow.UpdateLayout();
+        compatibilityWindow.VerifyCompatibilitySmokeContract("Crestron.4Series");
+        compatibilityDetail.RelatedSoftware.First(item => item.ProductName == "Crestron SIMPL Windows").OpenCommand.Execute(null);
+        for (var attempt = 0; attempt < 20 && compatibilityWindow.DataContext == compatibilityDetail; attempt++)
+            await Task.Delay(10).ConfigureAwait(true);
+        compatibilityWindow.VerifyCompatibilitySmokeContract("Crestron.SIMPLWindows");
+        compatibilityWindow.Close();
         viewModel.SearchText = string.Empty;
         viewModel.QuickViewCommand.Execute("Missing");
         if (!viewModel.IsMissingQuickView)
@@ -327,6 +358,12 @@ public partial class MainWindow : Window
     }
 
     private void ShowDetail(CatalogDetailViewModel viewModel)
+    {
+        if (!allowDialogs) return;
+        new CatalogDetailWindow(viewModel) { Owner = this }.ShowDialog();
+    }
+
+    private void ShowCompatibilityDetail(CompatibilityDetailViewModel viewModel)
     {
         if (!allowDialogs) return;
         new CatalogDetailWindow(viewModel) { Owner = this }.ShowDialog();
