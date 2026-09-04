@@ -1,6 +1,6 @@
 # AV Software Catalog Decision Register
 
-**Status:** Phase 3A reference-vendor compatibility pilot — 2026-09-04
+**Status:** Phase 4 Batch 2 complete — 2026-09-04
 **Companion source of truth:** [AV Software, Version & Device Compatibility Catalog Roadmap](AV-Software-Catalog-Roadmap.md)
 
 This register records evidence and decisions for later catalog-roadmap work. It does not amend a production manifest, authorize a package, or replace the existing exact-ID/explicit-provider security model.
@@ -176,3 +176,20 @@ Compatibility product, release, and relationship URLs use the existing validated
 
 **VERIFIED FACT**
 Focused presentation tests exercise CP4N and DM-NVX device results, Q-SYS release-family display, explicit unknown evidence, reverse software-to-device details, in-place relevant-software navigation, browser-only evidence intents, and unchanged package filtering/selection behavior.
+
+### CAT-018 — Phase 4 Batch 2 evidence and implementation
+
+**VERIFIED FACT**
+Batch 2 reviewed all twelve frozen manufacturers: 7thSense, Adamson, AFMG, AJA Video Systems, Alcorn McBride, Allen & Heath, AMX, Analog Way, Angry IP Scanner Project, Ashly Audio, AtlasIED, and Atlona. The reviewed direct vendor sources are recorded in the Batch 2 table in the companion roadmap.
+
+The following evidence supports the device-scoped records added in this pass: [AJA Mini-Config](https://www.aja.com/products/mini-config-software) identifies supported USB Mini-Converters; [Alcorn WinScript version guidance](https://support.alcorn.com/hc/en-us/articles/115003178786-What-are-the-differences-between-WinScript-WinScript-Live-WinScript-Live-4-and-WinScript-Live-5) scopes versions to V16/V4/VCore controller families; [AHM](https://www.allen-heath.com/hardware/ahm/) and [dLive](https://www.allen-heath.com/hardware/dlive-series/) identify their editor/control workflows; [AMX NetLinx Studio](https://www.amx.com/en-US/products/netlinx-studio.html) identifies the NetLinx programming scope; [AW EDID Editor](https://www.analogway.com/products/aw-edid-editor) scopes Aquilon/Alta/Midra compatibility analysis; [AquaControl Portal](https://ashly.com/aquacontrol-portal/) names AQZ32/AQM1208/AQM408; [BlueBridge software](https://www.atlasied.com/bluebridge-software) identifies supported DSP design; and [Velocity Device Manager](https://ts.atlona.com/velocity-device-manager/) scopes IP-controllable product discovery/configuration.
+
+**DESIGN DECISION**
+Batch 2 adds 26 descriptive `Product` records, 12 evidence-backed `ReleaseFamily` records, and 22 `DeviceSoftwareRelation` records to the existing production `software-compatibility.json` document. It does not add package IDs, provider fields, download routes, credentials, deployment authority, device probes, or worker authority. Existing managed/external/awareness manifest behavior is unchanged.
+
+Version families are recorded only when the source identifies a durable branch: AJA Mini-Config Current/Archive; Alcorn WinScript Live Current/Legacy; Allen & Heath AHM Current/Previous Versions; Angry IP Scanner 3.x/2.x; AtlasIED BlueBridge Designer II Current/Old Versions; and Atlona VDM Current/AMS Legacy. These are product-history views, not patch rows, generic update targets, or coexistence claims.
+
+7thSense Delta, Adamson Blueprint AV, AFMG specialist tools, AJA Desktop Software, Allen & Heath Custom Control, AMX SVSI N-Able, Analog Way Web RCS, and AtlasIED BlueBridge Control are searchable products where the workstation use case is supported, but are deliberately not given unproven device mappings or installed-version detectors. Angry IP Scanner has no AV device relation because it is a network utility rather than manufacturer compatibility metadata.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 2 product received a new authoritative Windows multi-version detector. Exact uninstall/registry identities, coexistence rules, and signed installer/publisher evidence remain unverified for the relevant vendor packages. Delta host images/licenses, Blueprint AV current acquisition and model scope, AFMG manufacturer data scope, AMX legacy utility scope, Protea acquisition/firmware, and Atlona VM inventory are explicit evidence gaps. They do not permit a fallback to "not installed," nor do they block the read-only product/device workflow.

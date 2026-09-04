@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 3A reference-vendor compatibility pilot complete (2026-09-04)
+**Status:** Phase 4 Batch 2 complete (2026-09-04)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -115,7 +115,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | Batch | Status | Manufacturers |
 |---|---|---|
 | 1 — reference | **Phase 1 research complete** | Biamp; Crestron; Q-SYS |
-| 2 | Unfinished | 7thSense; Adamson; AFMG; AJA Video Systems; Alcorn McBride; Allen & Heath; AMX; Analog Way; Angry IP Scanner Project; Ashly Audio; AtlasIED; Atlona |
+| 2 | **Complete** | 7thSense; Adamson; AFMG; AJA Video Systems; Alcorn McBride; Allen & Heath; AMX; Analog Way; Angry IP Scanner Project; Ashly Audio; AtlasIED; Atlona |
 | 3 | Unfinished | Audinate; Audio-Technica; AV Stumpfl; AVer; Avolites; Barco; Blackmagic Design; Bose Professional; BrightSign; Brompton Technology; BSS; Capture Visualisation |
 | 4 | Unfinished | ChamSys; Christie; Cisco; Clear-Com; ClearOne; Colorlight; d&b audiotechnik; Datapath; Dataton; Dell / Waves; DELTACAST; Disguise |
 | 5 | Unfinished | Epson; ETC; Extron; Figure 53; FileZilla Project; Flachmann und Heggelbacher; Green Hippo; Green-GO; HP Poly; Huddly; HW group; Intermodulation Analysis |
@@ -128,13 +128,34 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 
 Before closing a later batch, record its source links, missing field/service software, release-family behavior, device relations, confidence, and unresolved install/login evidence in the Decision Register. A batch is not complete merely because its current catalog row exists.
 
+## Phase 4 Batch 2 — completion record
+
+This batch adds only read-only descriptive compatibility evidence. Existing catalog deployment classes, provider policies, detection rules, vendor delivery, and worker authorization are unchanged.
+
+| Manufacturer | Existing catalog audit and source decision | Descriptive products / relations | Release-family and detection decision | Unresolved or intentionally excluded |
+|---|---|---|---|---|
+| 7thSense | Retained the direct [Delta Media Server page](https://7thsense.one/product/delta-media-server). | Delta Media Server aliases include DeltaServer and DeltaGUI. | No release family or Windows detection claim; Delta is a controlled hardware-host/server deployment. | No supported workstation installer, host-image, license, or device-family evidence added. |
+| Adamson | Retained the official [Blueprint AV legacy download page](https://legacy.adamson.ai/support/downloads-directory/design-and-control/blueprint-av). | Blueprint AV is discoverable as a legacy design/prediction product. | No family or installed-evidence claim. | Exact supported loudspeaker/model mapping, current acquisition, and Windows detection remain unresolved. |
+| AFMG | Retained direct product pages for [SysTune](https://www.afmg.eu/en/systune), EASE, EASE Focus, EASERA, SoundFlow, and SpeakerLab. | The six existing specialist design/measurement products are searchable as descriptive products. | No vendor branch/coexistence assertion was found for this pass. | No manufacturer-specific device relation is inferred from AFMG simulation data. |
+| AJA Video Systems | Retained [AJA Desktop Software](https://www.aja.com/family/software) and added direct [Mini-Config](https://www.aja.com/products/mini-config-software) evidence. | Added Mini-Config; related it to vendor-supported USB Mini-Converters for configuration and firmware evidence. | Mini-Config has Current and Archived branches from its vendor download/archive page; local detection remains Unknown. | Do not infer support for every Mini-Converter or execute firmware actions. |
+| Alcorn McBride | Retained direct [WinScript Live](https://alcorn.com/products/winscript-live/) and added the version-scope [support article](https://support.alcorn.com/hc/en-us/articles/115003178786-What-are-the-differences-between-WinScript-WinScript-Live-WinScript-Live-4-and-WinScript-Live-5). | WinScript Live is related to the named V16/V4/VCore controller families for programming and diagnostics. | Current and legacy families are explicit; controller/firmware pairing is retained as a constraint. | Exact installation identities and broader controller revisions require controlled-install evidence. |
+| Allen & Heath | Retained direct AHM resources and added the official [dLive page](https://www.allen-heath.com/hardware/dlive-series/). | AHM System Manager, Custom Control Editor, and dLive Director are searchable; AHM and dLive relations are evidence-scoped. | AHM Current/Previous Versions are recorded; coexistence and installed detection are Unknown. | No broad console-family or Custom Control runtime mapping is inferred. |
+| AMX | Replaced the NetLinx Studio generic link with the direct [NetLinx Studio page](https://www.amx.com/en-US/products/netlinx-studio.html); TPDesign5 uses official release evidence. | NetLinx Studio, TPDesign5, and SVSI N-Able PC are descriptive products; NetLinx and G5 Touch Panel relations are documented. | No branch/coexistence claim is made. | Legacy AMX utility exact scope and installed detection remain unresolved. |
+| Analog Way | Retained the direct [AW EDID Editor page](https://www.analogway.com/products/aw-edid-editor) and added LivePremier Web RCS training evidence. | AW EDID Editor is related to Aquilon/Alta/Midra presentation systems; embedded Web RCS is descriptive only. | No local Web RCS package, detection, or release family is claimed. | No arbitrary device write or download path is added. |
+| Angry IP Scanner Project | Retained the official [download page](https://angryip.org/download/) rather than a third-party package source. | The existing managed package is mirrored as descriptive search metadata only; no device relation applies. | Current 3.x and Legacy 2.x branches are explicit. | Network scanning remains governed by the existing approved network-scope policy. |
+| Ashly Audio | Retained direct [AquaControl Portal](https://ashly.com/aquacontrol-portal/) and Protea product pages. | AquaControl Portal is related to AQZ32/AQM1208/AQM408 for configuration/discovery; Protea remains legacy service information. | No side-by-side or installed-detection claim. | Protea acquisition, firmware, and exact Windows inventory remain unresolved. |
+| AtlasIED | Retained direct [BlueBridge software](https://www.atlasied.com/bluebridge-software) evidence. | BlueBridge Designer II is related to BlueBridge DSP/BB-816 for configuration and firmware evidence. | Current and Old Versions are recorded; local detection remains Unknown. | Atmosphere is browser-based; no new local installer or relation is inferred. |
+| Atlona | Corrected Velocity Device Manager to its direct [product page](https://ts.atlona.com/velocity-device-manager/) and retained the discontinued [AMS page](https://ts.atlona.com/product/at-ams-hw/). | VDM relates to vendor-described IP-controllable products for discovery/configuration; AMS is LegacyService only. | VDM Current and AMS Legacy are explicit; both remain infrastructure/manual deployment surfaces. | No ordinary workstation installer, VM detection, or generic device compatibility claim is added. |
+
+All Batch 2 products receive the existing explicit `Unknown` installed-version evidence until a controlled installation or authoritative vendor inventory contract justifies a detector.
+
 ## Delivery phases
 
 1. **Phase 1 — research and ledger:** complete for reference batch; no runtime or manifest change.
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** process the frozen unfinished batches once each, recording evidence and unresolved facts. Do not re-audit Batch 1 unless a source change or identified conflict requires it.
+5. **Phase 4 — catalog-wide completion:** Batch 2 is **complete** with 26 descriptive products, 12 release-family records, and 22 evidence-backed relations added to the production compatibility document. Process only the remaining frozen unfinished batches once each; do not re-audit Batch 1 or Batch 2 unless a source change or identified conflict requires it.
 
 ### Phase 2 implemented schema contract
 

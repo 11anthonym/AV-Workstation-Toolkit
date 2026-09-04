@@ -9,15 +9,22 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class ProductionCompatibilityCatalogTests
 {
     [TestMethod]
-    public void ProductionReferenceCatalogParsesWithOnlyApprovedPilotVendors()
+    public void ProductionCatalogParsesWithApprovedReferenceAndBatchTwoVendors()
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(9, catalog.Products);
-        CollectionAssert.AreEquivalent(new[] { "Biamp", "Crestron", "Q-SYS" }, catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
+        Assert.HasCount(35, catalog.Products);
+        CollectionAssert.AreEquivalent(
+            new[]
+            {
+                "7thSense", "Adamson", "AFMG", "AJA Video Systems", "Alcorn McBride", "Allen & Heath", "AMX", "Analog Way",
+                "Angry IP Scanner Project", "Ashly Audio", "AtlasIED", "Atlona", "Biamp", "Crestron", "Q-SYS"
+            },
+            catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
         Assert.IsGreaterThan(0, catalog.DeviceSoftwareRelations.Count);
         Assert.HasCount(0, catalog.InstalledVersions);
+        Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
 
     [TestMethod]
@@ -32,7 +39,7 @@ public sealed class ProductionCompatibilityCatalogTests
         CollectionAssert.AreEquivalent(
             new[] { ReleaseFamilyKind.Current, ReleaseFamilyKind.Lts, ReleaseFamilyKind.Archived },
             families.Select(item => item.Kind).ToArray());
-        Assert.HasCount(1, catalog.Products.Where(item => item.Name.Contains("Designer", StringComparison.OrdinalIgnoreCase)).ToArray());
+        Assert.HasCount(1, catalog.Products.Where(item => item.Id.Value == "QSYSDesigner").ToArray());
         Assert.IsTrue(families.All(item => item.MinimumVersion is null && item.MaximumVersion is null));
         Assert.IsTrue(families.All(item => item.Constraints.Contains("project", StringComparison.OrdinalIgnoreCase)));
     }
@@ -96,6 +103,39 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchTwoDeviceRelationsAreEvidenceBackedAndAliasesResolve()
+    {
+        var service = CreateQueryService();
+
+        var aja = service.GetSoftwareForDevice("AJA Mini-Converters").SelectMany(group => group.Software).ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { DeviceSoftwarePurpose.Configuration, DeviceSoftwarePurpose.Firmware },
+            aja.Where(item => item.ProductId.Value == "AJA.MiniConfig").Select(item => item.Purpose).ToArray());
+
+        var ahm = service.GetSoftwareForDevice("AHM-64").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(ahm.Any(item => item.ProductId.Value == "AllenHeath.AHMSystemManager" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.SearchProducts("Velocity Device Manager").Any(item => item.Id.Value == "Atlona.VelocityDeviceManager"));
+        Assert.IsTrue(service.SearchProducts("Blueprint AV").Any(item => item.Id.Value == "Adamson.BlueprintAV"));
+        Assert.IsTrue(service.GetSoftwareForDevice("AQM408").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Ashly.AquaControlPortal" && item.Purpose == DeviceSoftwarePurpose.Discovery));
+    }
+
+    [TestMethod]
+    public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
+    {
+        var service = CreateQueryService();
+        var product = service.SearchProducts("Mini-Config").Single();
+        var evidence = await service.GetInstalledVersionsAsync(product.Id);
+
+        Assert.HasCount(1, evidence);
+        Assert.AreEqual(InstalledVersionEvidenceState.Unknown, evidence[0].State);
+        Assert.AreEqual(string.Empty, evidence[0].RawVersion);
+        Assert.IsNull(evidence[0].NormalizedVersion);
+        CollectionAssert.DoesNotContain(typeof(Product).GetProperties().Select(item => item.Name).ToArray(), "Authority");
+        CollectionAssert.DoesNotContain(typeof(DeviceSoftwareRelation).GetProperties().Select(item => item.Name).ToArray(), "Delivery");
+    }
+
+    [TestMethod]
     public async Task UnresolvedInstalledVersionEvidenceRemainsExplicit()
     {
         var service = CreateQueryService();
@@ -118,7 +158,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(9, services.Compatibility.SearchProducts());
+        Assert.HasCount(35, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -133,7 +173,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(9, compatibility.Products);
+        Assert.HasCount(35, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or

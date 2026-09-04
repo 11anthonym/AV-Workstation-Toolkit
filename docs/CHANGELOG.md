@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-04 — AV software compatibility catalog Batch 2
+
+- Completed the frozen Batch 2 evidence pass for 7thSense, Adamson, AFMG, AJA Video Systems, Alcorn McBride, Allen & Heath, AMX, Analog Way, Angry IP Scanner, Ashly Audio, AtlasIED, and Atlona.
+- Added read-only product, release-family, alias, and evidence-backed device/software records while keeping local installed-version evidence explicit as `Unknown`.
+- Preserved every existing package, delivery, and worker authorization boundary; compatibility data remains descriptive only.
+
 ## 2026-09-01 — Release-candidate activity follow control
 
 - Added a default-on **Follow latest activity** control so live refresh and action output remains visible while allowing operators to pause the view and inspect earlier entries.
