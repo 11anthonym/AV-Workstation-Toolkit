@@ -1,0 +1,114 @@
+{
+  "SchemaVersion": 1,
+  "Products": [
+    {
+      "Id": "Example.Designer",
+      "Vendor": "Example AV",
+      "Name": "Example Designer",
+      "Lifecycle": "Current",
+      "OfficialSourceUri": "https://support.example.test/designer",
+      "Aliases": ["Example Configurator", "EXD"]
+    },
+    {
+      "Id": "Example.ServiceTool",
+      "Vendor": "Example AV",
+      "Name": "Example Service Tool",
+      "Lifecycle": "Legacy",
+      "OfficialSourceUri": "https://support.example.test/service",
+      "Aliases": ["EST"]
+    }
+  ],
+  "ReleaseFamilies": [
+    {
+      "Id": "Example.Designer.Current",
+      "ProductId": "Example.Designer",
+      "Kind": "Current",
+      "Branch": "10.x",
+      "MinimumVersion": "10.0",
+      "MaximumVersion": "10.9.9",
+      "Lifecycle": "Current",
+      "EvidenceUri": "https://support.example.test/designer/release-notes",
+      "EvidenceKind": "VendorReleaseNotes",
+      "Constraints": "Example fixture branch only."
+    },
+    {
+      "Id": "Example.Designer.LTS",
+      "ProductId": "Example.Designer",
+      "Kind": "LTS",
+      "Branch": "9.4",
+      "MinimumVersion": "9.4",
+      "MaximumVersion": "9.4.8",
+      "Lifecycle": "Legacy",
+      "EvidenceUri": "https://support.example.test/designer/lts",
+      "EvidenceKind": "VendorCompatibilityMatrix",
+      "Constraints": "Example fixture LTS branch only."
+    }
+  ],
+  "InstalledVersions": [
+    {
+      "EvidenceId": "Example.Designer.Registry64.10",
+      "ProductId": "Example.Designer",
+      "State": "Observed",
+      "RawDisplayName": "Example Designer 10",
+      "RawVersion": "10.2.3",
+      "Sources": ["RegistryHKLM64"],
+      "InstallLocation": "C:\\Program Files\\Example\\Designer10",
+      "Architecture": "x64",
+      "Detail": "Observed fixture installation."
+    },
+    {
+      "EvidenceId": "Example.Designer.Registry64.9",
+      "ProductId": "Example.Designer",
+      "State": "Observed",
+      "RawDisplayName": "Example Designer 9.4",
+      "RawVersion": "9.4.8",
+      "Sources": ["RegistryHKLM64"],
+      "InstallLocation": "C:\\Program Files\\Example\\Designer9",
+      "Architecture": "x64",
+      "Detail": "Observed fixture installation."
+    },
+    {
+      "EvidenceId": "Example.ServiceTool.RegistryPartial",
+      "ProductId": "Example.ServiceTool",
+      "State": "Incomplete",
+      "RawDisplayName": "",
+      "RawVersion": "",
+      "Sources": [],
+      "InstallLocation": "",
+      "Architecture": "",
+      "Detail": "One inventory source was unavailable."
+    }
+  ],
+  "DeviceSoftwareRelations": [
+    {
+      "Id": "Example.Core.Designer.Programming",
+      "DeviceFamilyId": "Example.Core",
+      "ExactModelIds": ["EX-CORE-100"],
+      "DeviceAliases": ["Example Core 100", "Core100"],
+      "ProductId": "Example.Designer",
+      "ReleaseFamilyId": "Example.Designer.Current",
+      "Purpose": "Programming",
+      "Applicability": "Required",
+      "Lifecycle": "Current",
+      "EvidenceUri": "https://support.example.test/core-100/requirements",
+      "EvidenceKind": "VendorCompatibilityMatrix",
+      "Confidence": "VendorDocumented",
+      "Constraints": "Current family applies only to the fixture Core model."
+    },
+    {
+      "Id": "Example.Core.Service.Diagnostics",
+      "DeviceFamilyId": "Example.Core",
+      "ExactModelIds": ["EX-CORE-100"],
+      "DeviceAliases": ["Example Core 100", "Core100"],
+      "ProductId": "Example.ServiceTool",
+      "ReleaseFamilyId": null,
+      "Purpose": "Diagnostics",
+      "Applicability": "Conditional",
+      "Lifecycle": "Legacy",
+      "EvidenceUri": "https://support.example.test/core-100/service",
+      "EvidenceKind": "VendorSupportArticle",
+      "Confidence": "Unresolved",
+      "Constraints": "Model/release support needs physical-install confirmation."
+    }
+  ]
+}

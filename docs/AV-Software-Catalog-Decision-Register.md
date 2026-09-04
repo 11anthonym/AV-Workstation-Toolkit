@@ -1,6 +1,6 @@
 # AV Software Catalog Decision Register
 
-**Status:** Phase 1 reference research — 2026-09-04
+**Status:** Phase 2 additive domain/data foundation — 2026-09-04
 **Companion source of truth:** [AV Software, Version & Device Compatibility Catalog Roadmap](AV-Software-Catalog-Roadmap.md)
 
 This register records evidence and decisions for later catalog-roadmap work. It does not amend a production manifest, authorize a package, or replace the existing exact-ID/explicit-provider security model.
@@ -116,3 +116,24 @@ Later catalog changes require strict schema tests, reverse-index tests, source-l
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 Before operational multi-version detection or device-aware currentness is enabled, validate on controlled installations: multiple Q-SYS Designer families; Tesira/Canvas family behavior; Nexia; and authorized Crestron MasterInstaller children. Record only sanitized, non-customer evidence.
+
+### CAT-012 — Standalone compatibility schema version 1
+
+**DESIGN DECISION**
+Phase 2 implements a strict, standalone `CompatibilityCatalogParser` with `SchemaVersion: 1` and required `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays. It rejects unknown fields, duplicate JSON properties, malformed identifiers, non-HTTPS evidence URIs, unsupported vocabulary, duplicate identities, inconsistent release-family ownership, and invalid observed-version evidence.
+
+**DESIGN DECISION**
+The existing `RepositoryCatalogLoader` does not load this schema yet. Existing managed, operational-external, and awareness manifests remain their current schemas and load unchanged. Later adoption requires an explicit, reviewed composition decision and migration fixture; it must not silently reinterpret existing records.
+
+### CAT-013 — Identity, inventory, and relationship normalization
+
+**DESIGN DECISION**
+`Product` owns `ReleaseFamily`; a release-family branch is unique within `(ProductId, Kind, Branch)`. `InstalledVersion` is independent local evidence and permits multiple observations for a Product. Only `Observed` evidence may contain a numeric version; `Unknown`, `Incomplete`, and `Unavailable` preserve the reason without claiming absence or currency.
+
+**DESIGN DECISION**
+`DeviceSoftwareRelation` is the single mapping source. Reverse software-to-device and device-to-software indexes are derived in memory from relations; they are not separately authored. Semantic duplicate relations are rejected by `(DeviceFamilyId, ProductId, optional ReleaseFamilyId, Purpose)`.
+
+### CAT-014 — Compatibility metadata cannot authorize execution
+
+**DESIGN DECISION**
+The Phase 2 compatibility model deliberately has no package provider, delivery, deployment, execution, command, or authority field. It remains descriptive metadata. `PackageDefinition`, managed exact-ID WinGet authority, external/awareness/manual boundaries, and the production worker authorization path are unchanged.

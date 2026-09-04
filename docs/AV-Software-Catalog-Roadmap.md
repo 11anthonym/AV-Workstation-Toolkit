@@ -1,7 +1,7 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 1 reference research complete (2026-09-04)
-**Scope:** planning and evidence only. This document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
+**Status:** Phase 2 additive domain/data foundation complete (2026-09-04)
+**Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
 
@@ -12,7 +12,7 @@ The existing catalog separates product knowledge from deployment authority. That
 - Compatibility evidence is recorded only when supported by a vendor source or a documented physical-install observation. Manufacturer matching alone is never compatibility evidence.
 - Later work must update this roadmap and decision register before changing `catalog/vendors/*.json`, `manifests/*.json`, or application code.
 
-Phase 1 made no application-code or production-manifest changes.
+Phase 1 made no application-code or production-manifest changes. Phase 2 adds only an uncomposed typed Domain model, a strict standalone schema parser, a representative fixture, and focused tests; it does not alter a production manifest, runtime catalog load, package authority, or worker authorization.
 
 ## Phase 1 reference batch — Q-SYS, Biamp, and Crestron
 
@@ -131,9 +131,18 @@ Before closing a later batch, record its source links, missing field/service sof
 ## Delivery phases
 
 1. **Phase 1 — research and ledger:** complete for reference batch; no runtime or manifest change.
-2. **Phase 2 — schema and fixtures:** propose a strict, fail-closed data shape for Product, ReleaseFamily, InstalledVersion, and DeviceSoftwareRelation; test unknown fields, duplicate IDs, unverified relations, and incomplete inventory.
+2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3 — bounded pilot:** implement only the reference-batch evidence that has reviewable sources and deterministic tests. Preserve all external/manual authority boundaries.
 4. **Phase 4 — catalog-wide completion:** process the frozen unfinished batches once each, recording evidence and unresolved facts. Do not re-audit Batch 1 unless a source change or identified conflict requires it.
+
+### Phase 2 implemented schema contract
+
+- `Product` is a descriptive identity with vendor, lifecycle, HTTPS official source, and aliases. Its identifier is deliberately separate from a package ID.
+- `ReleaseFamily` belongs to one Product and has a unique `(Product, Kind, Branch)` identity. Version bounds are optional numeric evidence; a family is not a patch row.
+- `InstalledVersion` records independent local evidence. `Observed` requires matching raw and normalized numeric versions plus a source. `Unknown`, `Incomplete`, and `Unavailable` cannot claim a version, so incomplete inventory cannot silently become not installed.
+- `DeviceSoftwareRelation` is the only mapping record. Its semantic uniqueness key is `(DeviceFamilyId, ProductId, optional ReleaseFamilyId, Purpose)`; both reverse indexes are derived from this one collection. It carries exact models, device aliases, product/family scope, purpose, applicability, lifecycle, HTTPS evidence URI/kind, confidence, and constraints.
+- Only `VendorDocumented`, `PhysicalInstallVerified`, and `Unresolved` relation confidence values are accepted. The schema has no inferred-by-manufacturer state.
+- Compatibility documents contain no `Provider`, `Authority`, `Deployment`, executable, command, or delivery fields. They cannot modify `PackageDefinition`, managed WinGet eligibility, external/manual boundaries, or worker authorization.
 
 ## Phase 1 completion criteria
 
@@ -142,4 +151,6 @@ Before closing a later batch, record its source links, missing field/service sof
 - [x] A product/release-family/installed-evidence/device-relation design was recorded without changing production schema.
 - [x] Representative device-to-software relationships were recorded with evidence and confidence.
 - [x] Every current manufacturer was assigned exactly once to a frozen future audit batch.
-- [x] No code or production manifest changed.
+- [x] Phase 1 changed no code or production manifest.
+- [x] Phase 2 standalone version-1 Product/ReleaseFamily/InstalledVersion/DeviceSoftwareRelation model and strict parser were implemented without converting production records.
+- [x] Phase 2 focused tests prove reverse indexes, aliases, identity/relationship validation, incomplete inventory semantics, authority isolation, and backward-compatible production manifest loading.
