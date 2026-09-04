@@ -97,7 +97,7 @@ public sealed class SoftwareCompatibilityCatalogTests
     }
 
     [TestMethod]
-    public void ExistingProductionCatalogsRemainBackwardCompatibleAndIndependent()
+    public void ExistingProductionCatalogsRemainBackwardCompatibleWithAdditiveCompatibilityManifest()
     {
         var root = RepositoryRoot();
         var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
@@ -107,7 +107,7 @@ public sealed class SoftwareCompatibilityCatalogTests
         Assert.IsGreaterThan(0, external.Items.Count);
         Assert.IsGreaterThan(0, awareness.Items.Count);
         Assert.IsFalse(external.Items.Concat(awareness.Items).Any(item => item.HasManagedExecutionAuthority));
-        Assert.IsFalse(File.Exists(Path.Combine(root, "manifests", "software-compatibility.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(root, "manifests", "software-compatibility.json")));
     }
 
     [TestMethod]

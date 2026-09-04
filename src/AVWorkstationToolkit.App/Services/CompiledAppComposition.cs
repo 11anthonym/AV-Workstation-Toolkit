@@ -12,6 +12,7 @@ using AVWorkstationToolkit.Infrastructure.Windows.WinGet;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Infrastructure.Windows.Files;
 using AVWorkstationToolkit.Application.Vendors;
+using AVWorkstationToolkit.Application.Compatibility;
 using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
@@ -20,6 +21,7 @@ namespace AVWorkstationToolkit.App.Services;
 
 public sealed record CompiledAppServices(
     PackageCatalog Catalog,
+    CompatibilityCatalogQueryService Compatibility,
     IWorkstationPlanningCoordinator Planning,
     IReadOnlyDiagnosticsService Diagnostics,
     CatalogDetailService Details,
@@ -58,6 +60,9 @@ public static class CompiledAppComposition
         string? expectedWorkerSha256 = null)
     {
         var catalog = new RepositoryCatalogLoader().Load(repositoryRoot);
+        var compatibility = new CompatibilityCatalogQueryService(
+            new RepositoryCompatibilityCatalogLoader().Load(repositoryRoot),
+            new UnresolvedInstalledVersionEvidenceProvider());
         var resolver = new WindowsWinGetResolver();
         var runner = new WinGetReadOnlyProcessRunner(resolver);
         var managed = catalog.Items.Where(item => item.HasManagedExecutionAuthority).Select(item => (item.Id, item.Name));
@@ -103,7 +108,7 @@ public static class CompiledAppComposition
             packageDelivery = new PackageDeliveryWorkflow(catalog, vendors, handoffs, cachePaths, dataRoot);
         }
         var executionMode = production ? "Packaged compiled runtime" : "Source compiled runtime";
-        return new(catalog, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
+        return new(catalog, compatibility, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
             handoffs, packageDelivery, applicationMenu, version, executionMode, false, production);
     }
 }

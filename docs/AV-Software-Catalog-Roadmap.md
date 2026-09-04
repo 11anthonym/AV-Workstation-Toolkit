@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 2 additive domain/data foundation complete (2026-09-04)
+**Status:** Phase 3A reference-vendor compatibility pilot complete (2026-09-04)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -12,7 +12,7 @@ The existing catalog separates product knowledge from deployment authority. That
 - Compatibility evidence is recorded only when supported by a vendor source or a documented physical-install observation. Manufacturer matching alone is never compatibility evidence.
 - Later work must update this roadmap and decision register before changing `catalog/vendors/*.json`, `manifests/*.json`, or application code.
 
-Phase 1 made no application-code or production-manifest changes. Phase 2 adds only an uncomposed typed Domain model, a strict standalone schema parser, a representative fixture, and focused tests; it does not alter a production manifest, runtime catalog load, package authority, or worker authorization.
+Phase 1 made no application-code or production-manifest changes. Phase 2 added the typed Domain model and strict standalone schema parser. Phase 3A composes a separate read-only production compatibility document for Q-SYS, Biamp, and Crestron; it does not merge that metadata into `PackageCatalog`, package planning, delivery authorization, selection policy, or worker authorization.
 
 ## Phase 1 reference batch — Q-SYS, Biamp, and Crestron
 
@@ -132,7 +132,7 @@ Before closing a later batch, record its source links, missing field/service sof
 
 1. **Phase 1 — research and ledger:** complete for reference batch; no runtime or manifest change.
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
-3. **Phase 3 — bounded pilot:** implement only the reference-batch evidence that has reviewable sources and deterministic tests. Preserve all external/manual authority boundaries.
+3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 4 — catalog-wide completion:** process the frozen unfinished batches once each, recording evidence and unresolved facts. Do not re-audit Batch 1 unless a source change or identified conflict requires it.
 
 ### Phase 2 implemented schema contract
@@ -144,6 +144,16 @@ Before closing a later batch, record its source links, missing field/service sof
 - Only `VendorDocumented`, `PhysicalInstallVerified`, and `Unresolved` relation confidence values are accepted. The schema has no inferred-by-manufacturer state.
 - Compatibility documents contain no `Provider`, `Authority`, `Deployment`, executable, command, or delivery fields. They cannot modify `PackageDefinition`, managed WinGet eligibility, external/manual boundaries, or worker authorization.
 
+### Phase 3A implemented production pilot
+
+- `manifests/software-compatibility.json` is the schema-version-1 production source for the reference batch: 9 products, 7 release-family records, and 24 purpose-specific relations. It contains no local installed-version claims.
+- Q-SYS Designer is one `QSYSDesigner` product with `Current`, `LTS`, and `Archived` families. Its Q-SYS Core relations retain project/Core-firmware matching constraints and do not turn a family or patch into an update recommendation.
+- Biamp Tesira and Canvas remain distinct products. Their `Current` and `Archived` evidence branches carry no invented version bounds; the conditional Canvas relation records only the documented same-version configuration workflow. Nexia is a legacy product with manual informational relations and no package, acquisition, detection, or execution record.
+- Crestron CP4N and DM NVX relations point to existing child product identities. The compatibility document does not reproduce or replace MasterInstaller provider metadata, so credential, transport, and acquisition authority remain exclusively in the existing package catalog.
+- `RepositoryCompatibilityCatalogLoader` loads the fixed document from the application root with strict UTF-8, size, containment, and direct-file reparse checks. `CompiledAppComposition` exposes `CompatibilityCatalogQueryService` separately from `PackageCatalog`; the launcher embeds and requires the document as a runtime resource.
+- Read-only queries provide product/alias search, release families, explicit installed-version evidence, device/model/alias search, software grouped by purpose, and applicable devices for a product. They contain no WPF or execution types.
+- `UnresolvedInstalledVersionEvidenceProvider` returns one explicit `Unknown` record per product. Existing package inventory intentionally was not adapted because it collapses package state and does not establish authoritative multi-install/release-family identity for the pilot vendors.
+
 ## Phase 1 completion criteria
 
 - [x] Q-SYS, Biamp, and Crestron were researched from authoritative vendor sources.
@@ -154,3 +164,4 @@ Before closing a later batch, record its source links, missing field/service sof
 - [x] Phase 1 changed no code or production manifest.
 - [x] Phase 2 standalone version-1 Product/ReleaseFamily/InstalledVersion/DeviceSoftwareRelation model and strict parser were implemented without converting production records.
 - [x] Phase 2 focused tests prove reverse indexes, aliases, identity/relationship validation, incomplete inventory semantics, authority isolation, and backward-compatible production manifest loading.
+- [x] Phase 3A production reference data, compiled read-only composition, alias/device queries, explicit unknown installed evidence, and authority-isolation regressions are implemented.

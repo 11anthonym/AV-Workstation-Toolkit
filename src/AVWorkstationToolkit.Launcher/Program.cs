@@ -19,6 +19,7 @@ internal static class Program
         "manifests/managed-applications.json",
         "manifests/external-applications.json",
         "manifests/commercial-av-catalog.json",
+        "manifests/software-compatibility.json",
         "manifests/process-launch-policy.json",
         "manifests/winget-team-baseline.json",
         "notices/THIRD-PARTY-NOTICES.md",

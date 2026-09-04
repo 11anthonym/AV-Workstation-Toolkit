@@ -1,6 +1,6 @@
 # AV Software Catalog Decision Register
 
-**Status:** Phase 2 additive domain/data foundation — 2026-09-04
+**Status:** Phase 3A reference-vendor compatibility pilot — 2026-09-04
 **Companion source of truth:** [AV Software, Version & Device Compatibility Catalog Roadmap](AV-Software-Catalog-Roadmap.md)
 
 This register records evidence and decisions for later catalog-roadmap work. It does not amend a production manifest, authorize a package, or replace the existing exact-ID/explicit-provider security model.
@@ -137,3 +137,28 @@ The existing `RepositoryCatalogLoader` does not load this schema yet. Existing m
 
 **DESIGN DECISION**
 The Phase 2 compatibility model deliberately has no package provider, delivery, deployment, execution, command, or authority field. It remains descriptive metadata. `PackageDefinition`, managed exact-ID WinGet authority, external/awareness/manual boundaries, and the production worker authorization path are unchanged.
+
+### CAT-015 — Reference-vendor production compatibility document
+
+**DESIGN DECISION**
+Phase 3A adopts `manifests/software-compatibility.json` as the production schema-version-1 compatibility source for Q-SYS, Biamp, and Crestron only. It contains 9 descriptive Products, 7 release-family records, no authored machine installation observations, and 24 purpose-specific device/software relations derived from the accepted Phase 1 evidence. Scalar `Purpose` means the four accepted CP4N product associations are encoded as five records: three Programming records plus separate Toolbox Diagnostics and Firmware records.
+
+**DESIGN DECISION**
+Q-SYS Designer remains one Product with `Current`, `LTS`, and `Archived` families and no numeric family bounds invented by this pass. Tesira and Canvas are distinct Products with evidence-backed Current/Archived branches and an explicitly conditional Canvas-to-Tesira-family Configuration relation. Nexia is a Legacy Product with only manual informational relations; it has no ReleaseFamily claim, package record, delivery route, or detection rule. Crestron relations reuse child product identities but do not duplicate or modify the MasterInstaller parent-provider boundary.
+
+**DESIGN DECISION**
+Each separately displayed purpose is an independent `DeviceSoftwareRelation`. Device/model aliases and reverse indexes are derived solely from those records. Empty exact-model lists mean the accepted evidence is family-scoped; they must not be interpreted as every model made by the vendor.
+
+### CAT-016 — Read-only runtime composition and installed evidence
+
+**DESIGN DECISION**
+`RepositoryCompatibilityCatalogLoader` loads the fixed compatibility document independently of `RepositoryCatalogLoader`. `CompiledAppComposition` exposes a `CompatibilityCatalogQueryService` next to, not inside, `PackageCatalog`. The query service provides product, alias, release-family, installed-evidence, device search, grouped software-purpose, and reverse applicable-device projections without WPF or worker types.
+
+**DESIGN DECISION**
+The launcher embeds and requires the compatibility document so source and packaged compiled composition use the same reviewed bytes. Loading and querying are read-only. No compatibility record is copied into package planning, vendor delivery, selection policy, action requests, or worker authorization.
+
+**DESIGN DECISION**
+Until a product has an authoritative multi-install detector, production queries return explicit `Unknown` `InstalledVersion` evidence. Existing package inventory is not adapted in Phase 3A because its package-level result does not establish release-family identity, coexistence, or every observed installation for Q-SYS, Tesira/Canvas, Nexia, or authenticated Crestron children.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+The finite unresolved evidence remains unchanged: authoritative multi-install identities and locations for Q-SYS Designer; Tesira/Canvas coexistence and historical install identities; Nexia acquisition, release lineage, supported Windows versions, and installed detection; and authorized MasterInstaller child identities/version meanings. These are evidence gates for later detection work, not Phase 3A implementation blockers.
