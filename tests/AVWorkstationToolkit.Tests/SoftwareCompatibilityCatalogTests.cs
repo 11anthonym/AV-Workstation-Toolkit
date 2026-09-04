@@ -124,7 +124,8 @@ public sealed class SoftwareCompatibilityCatalogTests
 
     private static SoftwareCompatibilityCatalog LoadFixture() => new CompatibilityCatalogParser().Parse(FixtureJson());
 
-    private static string FixtureJson() => File.ReadAllText(Path.Combine(RepositoryRoot(), "tests", "fixtures", "software-compatibility", "schema-v1-representative.json"));
+    private static string FixtureJson() => File.ReadAllText(Path.Combine(RepositoryRoot(), "tests", "fixtures", "software-compatibility", "schema-v1-representative.json"))
+        .Replace("\r\n", "\n", StringComparison.Ordinal);
 
     private static PackageDefinition Package(string id, CatalogAuthority authority, ProviderKind provider) => new(
         id, id, "Example AV", string.Empty, "Test", provider, authority, PackageProfile.Field, PackagePriority.P2, PackageRisk.None,
