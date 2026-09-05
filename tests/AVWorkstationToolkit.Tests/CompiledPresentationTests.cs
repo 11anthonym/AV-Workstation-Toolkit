@@ -411,7 +411,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
         viewModel.SearchText = "update";
         Assert.AreEqual("Fixture.Update", viewModel.VisiblePackages.Single().Id);
-        Assert.IsEmpty(viewModel.CompatibilityMatches);
+        Assert.IsTrue(viewModel.CompatibilityMatches.Any(item => item.Title == "Green-GO Update Connection"));
     }
 
     [TestMethod]

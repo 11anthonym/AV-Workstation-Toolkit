@@ -9,18 +9,21 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class ProductionCompatibilityCatalogTests
 {
     [TestMethod]
-    public void ProductionCatalogParsesWithApprovedReferenceAndCompletedBatchThreeVendors()
+    public void ProductionCatalogParsesWithApprovedReferenceAndCompletedBatchFiveVendors()
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(63, catalog.Products);
+        Assert.HasCount(120, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
                 "7thSense", "Adamson", "AFMG", "AJA Video Systems", "Alcorn McBride", "Allen & Heath", "AMX", "Analog Way",
                 "Angry IP Scanner Project", "Ashly Audio", "AtlasIED", "Atlona", "Audinate", "Audio-Technica", "AV Stumpfl", "AVer",
                 "Avolites", "Barco", "Biamp", "Blackmagic Design", "Bose Professional", "BrightSign", "Brompton Technology", "BSS",
-                "Capture Visualisation", "Crestron", "Q-SYS"
+                "Capture Visualisation", "ChamSys", "Christie", "Cisco", "Clear-Com", "ClearOne", "Colorlight", "Crestron",
+                "d&b audiotechnik", "Datapath", "Dataton", "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron",
+                "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
+                "HW group", "Intermodulation Analysis", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -146,6 +149,37 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchFourRelationsAndVersionFamiliesAreEvidenceBackedAndAliasesResolve()
+    {
+        var service = CreateQueryService();
+
+        var christie = service.GetSoftwareForDevice("Christie 3DLP projector").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(christie.Any(item => item.ProductId.Value == "Christie.Conductor" && item.Purpose == DeviceSoftwarePurpose.Monitoring));
+
+        var watchout = service.SearchProducts("WATCHOUT").Single();
+        CollectionAssert.AreEquivalent(
+            new[] { ReleaseFamilyKind.Current, ReleaseFamilyKind.Legacy },
+            service.GetReleaseFamilies(watchout.Id).Select(item => item.Kind).ToArray());
+
+        Assert.IsTrue(service.GetSoftwareForDevice("Fx4").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Datapath.WallDesigner" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.SearchProducts("LED Setting").Any(item => item.Id.Value == "Colorlight.LEDSetting"));
+    }
+
+    [TestMethod]
+    public void BatchFiveRelationsKeepDistinctUtilitiesAndAliasesReadOnly()
+    {
+        var service = CreateQueryService();
+
+        var extron = service.GetSoftwareForDevice("Extron XTP").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(extron.Any(item => item.ProductId.Value == "Extron.XTPSystemConfiguration" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.GetSoftwareForDevice("Poly Studio V12").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "HPPoly.StudioDesktop" && item.Purpose == DeviceSoftwarePurpose.Firmware));
+        Assert.IsTrue(service.SearchProducts("HWg Config").Any(item => item.Id.Value == "HWGroup.HWgConfig"));
+        Assert.IsTrue(service.SearchProducts("QLab").Single().OfficialSourceUri.Host.Equals("qlab.app", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -183,7 +217,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(63, services.Compatibility.SearchProducts());
+        Assert.HasCount(120, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -198,13 +232,22 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(63, compatibility.Products);
+        Assert.HasCount(120, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
                     "Crestron.SIMPLWindows" or "Crestron.Database" or "Crestron.DeviceDatabase" or
                     "Crestron.Toolbox" or "Crestron.DMNVXTool")
             .All(item => !item.HasManagedExecutionAuthority));
+        var batchFourAndFiveVendors = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "ChamSys", "Christie", "Cisco", "Clear-Com", "ClearOne", "Colorlight", "d&b audiotechnik", "Datapath", "Dataton",
+            "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron", "Figure 53", "FileZilla Project",
+            "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly", "HW group", "Intermodulation Analysis"
+        };
+        var batchFourAndFiveProductIds = compatibility.Products.Where(item => batchFourAndFiveVendors.Contains(item.Vendor))
+            .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.IsTrue(packages.Items.Where(item => batchFourAndFiveProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");

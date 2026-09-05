@@ -504,7 +504,627 @@
       "Lifecycle": "Current",
       "OfficialSourceUri": "https://www.capture.se/Downloads/Download-Capture",
       "Aliases": [ "Capture", "Capture Visualisation" ]
-    }
+    },
+  {
+    "Id": "ChamSys.MagicQ",
+    "Vendor": "ChamSys",
+    "Name": "ChamSys MagicQ",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "Aliases": [
+      "MagicQ",
+      "Magic Q"
+    ]
+  },
+  {
+    "Id": "ChamSys.MediaMaster",
+    "Vendor": "ChamSys",
+    "Name": "ChamSys MediaMaster",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "Aliases": [
+      "MediaMaster",
+      "ChamSys MediaMaster"
+    ]
+  },
+  {
+    "Id": "ChamSys.QuickQDesigner",
+    "Vendor": "ChamSys",
+    "Name": "ChamSys QuickQ Designer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://chamsyslighting.com/product/quickq-software/",
+    "Aliases": [
+      "QuickQ Designer",
+      "QuickQ"
+    ]
+  },
+  {
+    "Id": "Christie.Twist",
+    "Vendor": "Christie",
+    "Name": "Christie Twist",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.christiedigital.com/products/all-accessories/software/",
+    "Aliases": [
+      "Twist",
+      "Christie Twist"
+    ]
+  },
+  {
+    "Id": "Christie.Mystique",
+    "Vendor": "Christie",
+    "Name": "Christie Mystique",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.christiedigital.com/en-gb/products/warping-blending/mystique/Mystique-pro-venue-edition/",
+    "Aliases": [
+      "Mystique",
+      "Christie Mystique"
+    ]
+  },
+  {
+    "Id": "Christie.Conductor",
+    "Vendor": "Christie",
+    "Name": "Christie Conductor",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.christiedigital.com/products/projector-management/conductor/",
+    "Aliases": [
+      "Conductor",
+      "Christie Conductor"
+    ]
+  },
+  {
+    "Id": "Christie.Guardian",
+    "Vendor": "Christie",
+    "Name": "Christie Guardian",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.christiedigital.com/products/all-accessories/software/",
+    "Aliases": [
+      "Guardian",
+      "Christie Guardian"
+    ]
+  },
+  {
+    "Id": "Cisco.WebexDeviceConnector",
+    "Vendor": "Cisco",
+    "Name": "Cisco Webex Device Connector",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://help.webex.com/en-us/article/383gbd/Cisco-Webex-Device-Connector",
+    "Aliases": [
+      "Webex Device Connector",
+      "Cisco Device Connector"
+    ]
+  },
+  {
+    "Id": "ClearCom.EHX",
+    "Vendor": "Clear-Com",
+    "Name": "Clear-Com EHX Configuration Software",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://clearcom.com/Download-Center/Software-Versions-Chart",
+    "Aliases": [
+      "EHX",
+      "Eclipse HX Configuration"
+    ]
+  },
+  {
+    "Id": "ClearCom.DynamEC",
+    "Vendor": "Clear-Com",
+    "Name": "Clear-Com Dynam-EC",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://clearcom.com/DownloadCenter/datasheets/EclipseHX/DynamEC_Datasheet.pdf",
+    "Aliases": [
+      "Dynam-EC",
+      "Dynam EC"
+    ]
+  },
+  {
+    "Id": "ClearCom.StationIC",
+    "Vendor": "Clear-Com",
+    "Name": "Clear-Com Station-IC",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.clearcom.com/Station-IC",
+    "Aliases": [
+      "Station-IC",
+      "Station IC"
+    ]
+  },
+  {
+    "Id": "ClearCom.FreeSpeakIIConfigurationEditor",
+    "Vendor": "Clear-Com",
+    "Name": "Clear-Com FreeSpeak II Configuration Editor",
+    "Lifecycle": "Legacy",
+    "OfficialSourceUri": "https://clearcom.com/Download-Center/Software-Versions-Chart",
+    "Aliases": [
+      "FreeSpeak II Configuration Editor",
+      "FreeSpeak II"
+    ]
+  },
+  {
+    "Id": "ClearOne.ConsoleAI",
+    "Vendor": "ClearOne",
+    "Name": "ClearOne CONSOLE AI",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://pages.clearone.com/console",
+      "Aliases": [ "CONSOLE AI" ]
+  },
+  {
+    "Id": "ClearOne.ConvergeProConsole",
+    "Vendor": "ClearOne",
+    "Name": "ClearOne CONVERGE Pro Console",
+    "Lifecycle": "Legacy",
+    "OfficialSourceUri": "https://www.clearone.com/resource-library-search",
+      "Aliases": [ "CONVERGE Pro Console" ]
+  },
+  {
+    "Id": "Colorlight.LEDVISION",
+    "Vendor": "Colorlight",
+    "Name": "Colorlight LEDVISION",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://en.colorlightinside.com/product/download/381?language=en",
+    "Aliases": [
+      "LEDVISION",
+      "LED Vision"
+    ]
+  },
+  {
+    "Id": "Colorlight.LEDSetting",
+    "Vendor": "Colorlight",
+    "Name": "Colorlight LEDSetting",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://en.colorlightinside.com/product/download/381?language=en",
+    "Aliases": [
+      "LEDSetting",
+      "LED Setting"
+    ]
+  },
+  {
+    "Id": "dbaudio.ArrayCalc",
+    "Vendor": "d&b audiotechnik",
+    "Name": "d&b ArrayCalc",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.dbaudio.com/global/en/products/software/arraycalc/",
+    "Aliases": [
+      "ArrayCalc",
+      "d&b ArrayCalc"
+    ]
+  },
+  {
+    "Id": "dbaudio.R1",
+    "Vendor": "d&b audiotechnik",
+    "Name": "d&b R1 Remote Control Software",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.dbaudio.com/global/en/products/software/r1/",
+    "Aliases": [
+      "R1",
+      "d&b R1"
+    ]
+  },
+  {
+    "Id": "dbaudio.NoizCalc",
+    "Vendor": "d&b audiotechnik",
+    "Name": "d&b NoizCalc",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.dbaudio.com/global/en/service-and-support/downloads/?category=14%2C24%2C12",
+    "Aliases": [
+      "NoizCalc",
+      "d&b NoizCalc"
+    ]
+  },
+  {
+    "Id": "Datapath.WallControl10",
+    "Vendor": "Datapath",
+    "Name": "Datapath WallControl 10",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.datapath.co.uk/datapath-products/video-wall-management-software/wallcontrol-10-software/",
+    "Aliases": [
+      "WallControl 10",
+      "WallControl"
+    ]
+  },
+  {
+    "Id": "Datapath.Aetria",
+    "Vendor": "Datapath",
+    "Name": "Datapath Aetria",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.datapath.co.uk/datapath-products/aetria/",
+    "Aliases": [
+      "Aetria",
+      "Datapath Aetria"
+    ]
+  },
+  {
+    "Id": "Datapath.WallDesigner",
+    "Vendor": "Datapath",
+    "Name": "Datapath Wall Designer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://walldesigner.datapath.co.uk/",
+    "Aliases": [
+      "Wall Designer",
+      "Datapath Wall Designer"
+    ]
+  },
+  {
+    "Id": "Dataton.WATCHOUT",
+    "Vendor": "Dataton",
+    "Name": "Dataton WATCHOUT",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.dataton.com/downloads/watchout7",
+      "Aliases": [ "WATCHOUT" ]
+  },
+  {
+    "Id": "Dell.WavesAudio",
+    "Vendor": "Dell / Waves",
+    "Name": "Dell / Waves OEM Audio Processing",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=0t5nn",
+    "Aliases": [
+      "Waves MaxxAudio",
+      "MaxxAudio",
+      "Dell Optimizer"
+    ]
+  },
+  {
+    "Id": "Deltacast.EEDIDEditor",
+    "Vendor": "DELTACAST",
+    "Name": "DELTACAST E-EDID Editor",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.deltacast.tv/products/free-software/e-edid-editor/",
+    "Aliases": [
+      "E-EDID Editor",
+      "E EDID Editor"
+    ]
+  },
+  {
+    "Id": "Disguise.Designer",
+    "Vendor": "Disguise",
+    "Name": "Disguise Designer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.disguise.one/en/products/designer",
+    "Aliases": [
+      "Designer",
+      "Disguise Designer"
+    ]
+  },
+  {
+    "Id": "Epson.ProjectorProfessionalTool",
+    "Vendor": "Epson",
+    "Name": "Epson Projector Professional Tool",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://epson.com/advanced-projector-installation-tools",
+    "Aliases": [
+      "Projector Professional Tool",
+      "EPPT"
+    ]
+  },
+  {
+    "Id": "Epson.ProjectorManagement",
+    "Vendor": "Epson",
+    "Name": "Epson Projector Management",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://epson.com/Accessories/Projector-Accessories/Epson-Projector-Management-Software/p/PROJMNGRSW",
+    "Aliases": [
+      "Projector Management",
+      "Epson Projector Management"
+    ]
+  },
+  {
+    "Id": "Epson.ProjectorContentManager",
+    "Vendor": "Epson",
+    "Name": "Epson Projector Content Manager",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://epson.com/Support/Projectors/Mobile-and-Cloud-Solutions/Epson-Projector-Content-Manager-Software/s/SPT_PROJCONTMNGRSW",
+    "Aliases": [
+      "Projector Content Manager",
+      "Epson Content Manager"
+    ]
+  },
+  {
+    "Id": "ETC.EosFamily",
+    "Vendor": "ETC",
+    "Name": "ETC Eos Family Software",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://support.etcconnect.com/ETC/Consoles/Eos_Family/Software_and_Programming/All_Eos_Family_Software_Versions",
+    "Aliases": [
+      "Eos",
+      "ETCnomad",
+      "Eos Family"
+    ]
+  },
+  {
+    "Id": "ETC.Concert",
+    "Vendor": "ETC",
+    "Name": "ETC Concert",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Software.aspx",
+    "Aliases": [
+      "Concert",
+      "ETC Concert"
+    ]
+  },
+  {
+    "Id": "ETC.UpdaterAtor",
+    "Vendor": "ETC",
+    "Name": "ETC UpdaterAtor",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.etcconnect.com/products/networking/system-configuration/software/updaterator.aspx",
+    "Aliases": [
+      "UpdaterAtor",
+      "ETC UpdaterAtor"
+    ]
+  },
+  {
+    "Id": "Extron.DSPConfiguratorPro",
+    "Vendor": "Extron",
+    "Name": "Extron DSP Configurator Pro",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/dspcpro",
+    "Aliases": [
+      "DSP Configurator Pro",
+      "DSP Configurator"
+    ]
+  },
+  {
+    "Id": "Extron.GlobalScripter",
+    "Vendor": "Extron",
+    "Name": "Extron Global Scripter",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/technology/landing/programming/content/english/content.html",
+    "Aliases": [
+      "Global Scripter",
+      "GlobalScripter"
+    ]
+  },
+  {
+    "Id": "Extron.GlobalConfiguratorPlus",
+    "Vendor": "Extron",
+    "Name": "Extron Global Configurator Plus",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/listbytype.aspx?id=575&subtype=625",
+    "Aliases": [
+      "Global Configurator Plus",
+      "GCP"
+    ]
+  },
+  {
+    "Id": "Extron.GUIDesigner",
+    "Vendor": "Extron",
+    "Name": "Extron GUI Designer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/guidesigner",
+    "Aliases": [
+      "GUI Designer",
+      "GUIDesigner"
+    ]
+  },
+  {
+    "Id": "Extron.VCS",
+    "Vendor": "Extron",
+    "Name": "Extron Videowall Configuration Software",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/vcs",
+    "Aliases": [
+      "VCS",
+      "Videowall Configuration Software"
+    ]
+  },
+  {
+    "Id": "Extron.XTPSystemConfiguration",
+    "Vendor": "Extron",
+    "Name": "Extron XTP System Configuration Software",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/xtpscs?src=software",
+    "Aliases": [
+      "XTP System Configuration",
+      "XTP SCS"
+    ]
+  },
+  {
+    "Id": "Extron.EDIDManager",
+    "Vendor": "Extron",
+    "Name": "Extron EDID Manager",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/edidmanager30",
+    "Aliases": [
+      "EDID Manager",
+      "EDID Manager 3.0"
+    ]
+  },
+  {
+    "Id": "Extron.FirmwareLoader",
+    "Vendor": "Extron",
+    "Name": "Extron Firmware Loader",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/fwloader",
+    "Aliases": [
+      "Firmware Loader",
+      "Extron Firmware Loader"
+    ]
+  },
+  {
+    "Id": "Extron.DataViewer",
+    "Vendor": "Extron",
+    "Name": "Extron DataViewer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/dataviewer?subtype=312",
+    "Aliases": [
+      "DataViewer",
+      "Extron DataViewer"
+    ]
+  },
+  {
+    "Id": "Extron.Toolbelt",
+    "Vendor": "Extron",
+    "Name": "Extron Toolbelt",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.extron.com/product/software/toolbelt",
+    "Aliases": [
+      "Toolbelt",
+      "Extron Toolbelt"
+    ]
+  },
+  {
+    "Id": "Figure53.QLab",
+    "Vendor": "Figure 53",
+    "Name": "QLab",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://qlab.app/download/",
+    "Aliases": [
+      "QLab",
+      "QLab 5"
+    ]
+  },
+  {
+    "Id": "FileZilla.Client",
+    "Vendor": "FileZilla Project",
+    "Name": "FileZilla Client",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://filezilla-project.org/download.php?show_all=1",
+    "Aliases": [
+      "FileZilla",
+      "FileZilla Client"
+    ]
+  },
+  {
+    "Id": "Docklight",
+    "Vendor": "Flachmann und Heggelbacher",
+    "Name": "Docklight",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://docklight.de/",
+    "Aliases": [
+      "Docklight",
+      "Docklight RS232"
+    ]
+  },
+  {
+    "Id": "Docklight.Scripting",
+    "Vendor": "Flachmann und Heggelbacher",
+    "Name": "Docklight Scripting",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://docklight.de/manual/docklightscripting-overview.html",
+    "Aliases": [
+      "Docklight Scripting",
+      "Docklight Script"
+    ]
+  },
+  {
+    "Id": "GreenHippo.Hippotizer",
+    "Vendor": "Green Hippo",
+    "Name": "Green Hippo Hippotizer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://support.green-hippo.com/hc/en-gb/sections/16360938723730-Hippotizer",
+    "Aliases": [
+      "Hippotizer",
+      "Green Hippo"
+    ]
+  },
+  {
+    "Id": "GreenGO.Control",
+    "Vendor": "Green-GO",
+    "Name": "Green-GO Control",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.greengocom.com/software-products/control",
+    "Aliases": [
+      "Green-GO Control",
+      "Green GO Control"
+    ]
+  },
+  {
+    "Id": "GreenGO.UpdateConnection",
+    "Vendor": "Green-GO",
+    "Name": "Green-GO Update Connection",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.greengocom.com/software-products/updateconnection",
+    "Aliases": [
+      "Update Connection",
+      "Green-GO Update Connection"
+    ]
+  },
+  {
+    "Id": "HPPoly.StudioDesktop",
+    "Vendor": "HP Poly",
+    "Name": "HP Poly Studio Desktop",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://support.hp.com/us-en/document/ish_13663054-13662994-16",
+    "Aliases": [
+      "Poly Studio Desktop",
+      "HP Poly Studio Desktop"
+    ]
+  },
+  {
+    "Id": "HPPoly.CameraControl",
+    "Vendor": "HP Poly",
+    "Name": "HP Poly Camera Control",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://support.hp.com/us-en/document/ish_9991482-11028434-16",
+    "Aliases": [
+      "Poly Camera Control",
+      "Camera Control"
+    ]
+  },
+  {
+    "Id": "HPPoly.LensDesktop",
+    "Vendor": "HP Poly",
+    "Name": "Poly Lens Desktop",
+    "Lifecycle": "Legacy",
+    "OfficialSourceUri": "https://support.hp.com/us-en/product/product-specs/poly-lens-desktop-and-web-app/2101801767",
+    "Aliases": [
+      "Poly Lens Desktop",
+      "Lens Desktop"
+    ]
+  },
+  {
+    "Id": "Huddly.Connect",
+    "Vendor": "Huddly",
+    "Name": "Huddly Connect App",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.huddly.com/app/",
+    "Aliases": [
+      "Huddly Connect",
+      "Connect App"
+    ]
+  },
+  {
+    "Id": "Huddly.DesktopApp",
+    "Vendor": "Huddly",
+    "Name": "Huddly Desktop App",
+    "Lifecycle": "Legacy",
+    "OfficialSourceUri": "https://www.huddly.com/app/",
+    "Aliases": [
+      "Huddly Desktop App",
+      "Huddly App"
+    ]
+  },
+  {
+    "Id": "HWGroup.Hercules",
+    "Vendor": "HW group",
+    "Name": "HW group Hercules SETUP Utility",
+    "Lifecycle": "Legacy",
+    "OfficialSourceUri": "https://www.hw-group.com/software/hercules-setup-utility",
+    "Aliases": [
+      "Hercules SETUP",
+      "Hercules Utility"
+    ]
+  },
+  {
+    "Id": "HWGroup.HWgConfig",
+    "Vendor": "HW group",
+    "Name": "HWg-Config",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.hw-group.com/files/download/man/version/sd-man_19-8-7_en.pdf",
+    "Aliases": [
+      "HWg-Config",
+      "HWg Config"
+    ]
+  },
+  {
+    "Id": "IntermodulationAnalysis.IntermodExplorer",
+    "Vendor": "Intermodulation Analysis",
+    "Name": "IntermodExplorer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.intermodulationanalysis.com/",
+    "Aliases": [
+      "IntermodExplorer",
+      "Intermod Explorer"
+    ]
+  }
   ],
   "ReleaseFamilies": [
     {
@@ -830,10 +1450,1325 @@
       "EvidenceUri": "https://www.capture.se/Downloads/Download-Capture",
       "EvidenceKind": "VendorProductPage",
       "Constraints": "The vendor directs older Capture versions to its archive; local version and side-by-side behavior remain unverified."
-    }
+    },
+  {
+    "Id": "ChamSys.MagicQ.Current",
+    "ProductId": "ChamSys.MagicQ",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Use the stable release required by the show and console; this does not authorize an update."
+  },
+  {
+    "Id": "ChamSys.MagicQ.Archived",
+    "ProductId": "ChamSys.MagicQ",
+    "Kind": "Archived",
+    "Branch": "Archived",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Older-console archives are project-specific service choices, not generic update targets."
+  },
+  {
+    "Id": "ClearCom.EHX.Current",
+    "ProductId": "ClearCom.EHX",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://clearcom.com/Download-Center/Software-Versions-Chart",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Use the EHX release and matching matrix/card firmware documented for the deployed system."
+  },
+  {
+    "Id": "ClearCom.EHX.Legacy",
+    "ProductId": "ClearCom.EHX",
+    "Kind": "Legacy",
+    "Branch": "Legacy",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://clearcom.com/Download-Center/Software-Versions-Chart",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Legacy Eclipse software remains an installed-base service choice."
+  },
+  {
+    "Id": "dbaudio.ArrayCalc.Current",
+    "ProductId": "dbaudio.ArrayCalc",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dbaudio.com/global/en/service-and-support/downloads/?category=14%2C24%2C12",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Current ArrayCalc releases are planning software; system data and project requirements remain controlling."
+  },
+  {
+    "Id": "dbaudio.ArrayCalc.Archived",
+    "ProductId": "dbaudio.ArrayCalc",
+    "Kind": "Archived",
+    "Branch": "Archived",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.dbaudio.com/global/en/products/software/software-archive/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Archive releases are legacy project-service choices, not generic update targets."
+  },
+  {
+    "Id": "dbaudio.R1.Current",
+    "ProductId": "dbaudio.R1",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dbaudio.com/global/en/service-and-support/downloads/?category=14%2C24%2C12",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Use the R1 release supported by the deployed d&b system and project."
+  },
+  {
+    "Id": "dbaudio.R1.Archived",
+    "ProductId": "dbaudio.R1",
+    "Kind": "Archived",
+    "Branch": "Archived",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.dbaudio.com/global/en/products/software/software-archive/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Archive releases remain legacy service choices."
+  },
+  {
+    "Id": "Dataton.WATCHOUT.Current",
+    "ProductId": "Dataton.WATCHOUT",
+    "Kind": "Current",
+    "Branch": "7",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dataton.com/downloads/watchout7",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "WATCHOUT 7 is the current vendor branch; server and license requirements remain project-specific."
+  },
+  {
+    "Id": "Dataton.WATCHOUT.Legacy",
+    "ProductId": "Dataton.WATCHOUT",
+    "Kind": "Legacy",
+    "Branch": "6",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.dataton.com/downloads/watchout",
+    "EvidenceKind": "VendorSupportArticle",
+    "Constraints": "WATCHOUT 6 remains a legacy installed-base service branch; do not infer coexistence."
+  },
+  {
+    "Id": "Disguise.Designer.Current",
+    "ProductId": "Disguise.Designer",
+    "Kind": "Current",
+    "Branch": "r30",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://help.disguise.one/designer/release-notes/r30",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Use the Designer release licensed and supported by the deployed server."
+  },
+  {
+    "Id": "Disguise.Designer.Legacy",
+    "ProductId": "Disguise.Designer",
+    "Kind": "Legacy",
+    "Branch": "r29",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://help.disguise.one/designer/getting-started/legacy-licenses",
+    "EvidenceKind": "VendorSupportArticle",
+    "Constraints": "r29 is a legacy/long-term service branch for compatible server and licence circumstances."
+  },
+  {
+    "Id": "ETC.EosFamily.Current",
+    "ProductId": "ETC.EosFamily",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.etcconnect.com/ETC/Consoles/Eos_Family/Software_and_Programming/All_Eos_Family_Software_Versions",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Use the Eos release supported by the console, show file, and site procedure."
+  },
+  {
+    "Id": "ETC.EosFamily.Archived",
+    "ProductId": "ETC.EosFamily",
+    "Kind": "Archived",
+    "Branch": "Archived",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://support.etcconnect.com/ETC/Consoles/Eos_Family/Software_and_Programming/All_Eos_Family_Software_Versions",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Archived Eos releases remain show- and console-specific service choices."
+  },
+  {
+    "Id": "Figure53.QLab.Current",
+    "ProductId": "Figure53.QLab",
+    "Kind": "Current",
+    "Branch": "QLab 5",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://qlab.app/download/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "QLab is macOS-only and remains descriptive information in this Windows toolkit."
+  },
+  {
+    "Id": "Figure53.QLab.Legacy",
+    "ProductId": "Figure53.QLab",
+    "Kind": "Legacy",
+    "Branch": "QLab 4",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://qlab.app/download/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "QLab 4 is an archived legacy branch; it does not create a Windows package."
+  },
+  {
+    "Id": "GreenHippo.Hippotizer.Current",
+    "ProductId": "GreenHippo.Hippotizer",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.green-hippo.com/hc/en-gb/sections/16360938723730-Hippotizer",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Use the software release supported by the media server and show."
+  },
+  {
+    "Id": "GreenHippo.Hippotizer.Legacy",
+    "ProductId": "GreenHippo.Hippotizer",
+    "Kind": "Legacy",
+    "Branch": "Legacy",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://support.green-hippo.com/hc/en-gb/articles/16361000222226-Legacy-Hippotizer-versions",
+    "EvidenceKind": "VendorSupportArticle",
+    "Constraints": "Legacy Hippotizer is an installed-base service branch."
+  },
+  {
+    "Id": "GreenGO.Control.Current",
+    "ProductId": "GreenGO.Control",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.greengocom.com/software-products/control",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Use current Control software for supported Green-GO devices."
+  },
+  {
+    "Id": "GreenGO.Control.Legacy",
+    "ProductId": "GreenGO.Control",
+    "Kind": "Legacy",
+    "Branch": "v4",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.greengocom.com/support/knowledge-and-downloads",
+    "EvidenceKind": "VendorSupportArticle",
+    "Constraints": "Green-GO Control v4 is discontinued legacy-service material."
+  },
+  {
+    "Id": "HPPoly.StudioDesktop.Current",
+    "ProductId": "HPPoly.StudioDesktop",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.hp.com/us-en/document/ish_13663054-13662994-16",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Studio Desktop is the current renamed application for supported devices."
+  },
+  {
+    "Id": "HPPoly.LensDesktop.Legacy",
+    "ProductId": "HPPoly.LensDesktop",
+    "Kind": "Legacy",
+    "Branch": "Lens Desktop",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://support.hp.com/us-en/document/ish_13663054-13662994-16",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Poly Lens Desktop is the earlier product identity; do not infer parallel installation."
+  }
   ],
   "InstalledVersions": [],
   "DeviceSoftwareRelations": [
+  {
+    "Id": "ChamSys.MagicQConsoles.ChamSys.MagicQ.Programming",
+    "DeviceFamilyId": "ChamSys.MagicQConsoles",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ChamSys MagicQ console",
+      "MagicQ console"
+    ],
+    "ProductId": "ChamSys.MagicQ",
+    "ReleaseFamilyId": null,
+    "Purpose": "Programming",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ChamSys.MagicQConsoles.ChamSys.MagicQ.Configuration",
+    "DeviceFamilyId": "ChamSys.MagicQConsoles",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ChamSys MagicQ console",
+      "MagicQ console"
+    ],
+    "ProductId": "ChamSys.MagicQ",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ChamSys.QuickQConsoles.ChamSys.QuickQDesigner.Programming",
+    "DeviceFamilyId": "ChamSys.QuickQConsoles",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ChamSys QuickQ console",
+      "QuickQ console"
+    ],
+    "ProductId": "ChamSys.QuickQDesigner",
+    "ReleaseFamilyId": null,
+    "Purpose": "Programming",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://chamsyslighting.com/product/quickq-software/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Christie.3DLPProjectors.Christie.Twist.Configuration",
+    "DeviceFamilyId": "Christie.3DLPProjectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Christie 3DLP projector",
+      "Christie blended projector"
+    ],
+    "ProductId": "Christie.Twist",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.christiedigital.com/en-gb/help-center/resources/learn/visual-display-and-projection-technologies/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Christie.3DLPProjectors.Christie.Mystique.Commissioning",
+    "DeviceFamilyId": "Christie.3DLPProjectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Christie 3DLP projector",
+      "Christie blended projector"
+    ],
+    "ProductId": "Christie.Mystique",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.christiedigital.com/en-gb/help-center/resources/learn/visual-display-and-projection-technologies/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Christie.3DLPProjectors.Christie.Conductor.Monitoring",
+    "DeviceFamilyId": "Christie.3DLPProjectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Christie 3DLP projector",
+      "Christie projector network"
+    ],
+    "ProductId": "Christie.Conductor",
+    "ReleaseFamilyId": null,
+    "Purpose": "Monitoring",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.christiedigital.com/products/projector-management/conductor/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Christie.3DLPProjectors.Christie.Conductor.Diagnostics",
+    "DeviceFamilyId": "Christie.3DLPProjectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Christie 3DLP projector",
+      "Christie projector network"
+    ],
+    "ProductId": "Christie.Conductor",
+    "ReleaseFamilyId": null,
+    "Purpose": "Diagnostics",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.christiedigital.com/products/projector-management/conductor/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Christie.BlendedProjectors.Christie.Guardian.Monitoring",
+    "DeviceFamilyId": "Christie.BlendedProjectors",
+    "ExactModelIds": [
+      "Griffyn",
+      "Sapphire 4K40-RGBH"
+    ],
+    "DeviceAliases": [
+      "Christie blended projector",
+      "Christie Guardian"
+    ],
+    "ProductId": "Christie.Guardian",
+    "ReleaseFamilyId": null,
+    "Purpose": "Monitoring",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.christiedigital.com/en-gb/help-center/resources/learn/visual-display-and-projection-technologies/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Cisco.WebexDevices.Cisco.WebexDeviceConnector.Commissioning",
+    "DeviceFamilyId": "Cisco.WebexDevices",
+    "ExactModelIds": [
+      "Room",
+      "Desk",
+      "Board"
+    ],
+    "DeviceAliases": [
+      "Cisco Webex Room",
+      "Cisco Webex Desk",
+      "Cisco Webex Board"
+    ],
+    "ProductId": "Cisco.WebexDeviceConnector",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://help.webex.com/en-us/article/383gbd/Cisco-Webex-Device-Connector",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearCom.EclipseHX.ClearCom.EHX.Configuration",
+    "DeviceFamilyId": "ClearCom.EclipseHX",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Eclipse HX",
+      "Clear-Com Eclipse matrix"
+    ],
+    "ProductId": "ClearCom.EHX",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://clearcom.com/Download-Center/Software-Versions-Chart",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearCom.EclipseHX.ClearCom.DynamEC.Configuration",
+    "DeviceFamilyId": "ClearCom.EclipseHX",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Eclipse HX",
+      "Clear-Com Eclipse matrix"
+    ],
+    "ProductId": "ClearCom.DynamEC",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://clearcom.com/DownloadCenter/datasheets/EclipseHX/DynamEC_Datasheet.pdf",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearCom.EclipseLQ.ClearCom.StationIC.Configuration",
+    "DeviceFamilyId": "ClearCom.EclipseLQ",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Eclipse HX",
+      "Clear-Com LQ",
+      "Station-IC"
+    ],
+    "ProductId": "ClearCom.StationIC",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.clearcom.com/Station-IC",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearCom.FreeSpeakII.ClearCom.FreeSpeakIIConfigurationEditor.Configuration",
+    "DeviceFamilyId": "ClearCom.FreeSpeakII",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "FreeSpeak II",
+      "Clear-Com FreeSpeak"
+    ],
+    "ProductId": "ClearCom.FreeSpeakIIConfigurationEditor",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://clearcom.com/Download-Center/Software-Versions-Chart",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearOne.ConvergePro2.ClearOne.ConsoleAI.Configuration",
+    "DeviceFamilyId": "ClearOne.ConvergePro2",
+    "ExactModelIds": [],
+      "DeviceAliases": [ "CONVERGE Pro 2" ],
+    "ProductId": "ClearOne.ConsoleAI",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://pages.clearone.com/console",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearOne.ConvergePro2.ClearOne.ConsoleAI.Firmware",
+    "DeviceFamilyId": "ClearOne.ConvergePro2",
+    "ExactModelIds": [],
+      "DeviceAliases": [ "CONVERGE Pro 2" ],
+    "ProductId": "ClearOne.ConsoleAI",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.clearone.com/resource-library-search",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ClearOne.ConvergePro.ClearOne.ConvergeProConsole.LegacyService",
+    "DeviceFamilyId": "ClearOne.ConvergePro",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "CONVERGE Pro",
+      "ClearOne Converge Pro"
+    ],
+    "ProductId": "ClearOne.ConvergeProConsole",
+    "ReleaseFamilyId": null,
+    "Purpose": "LegacyService",
+    "Applicability": "Applicable",
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.clearone.com/resource-library-search",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Colorlight.LEDControllers.Colorlight.LEDVISION.Configuration",
+    "DeviceFamilyId": "Colorlight.LEDControllers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Colorlight LED controller",
+      "Colorlight LED display"
+    ],
+    "ProductId": "Colorlight.LEDVISION",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://en.colorlightinside.com/product/download/381?language=en",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Colorlight.LEDControllers.Colorlight.LEDSetting.Configuration",
+    "DeviceFamilyId": "Colorlight.LEDControllers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Colorlight LED controller",
+      "Colorlight LED display"
+    ],
+    "ProductId": "Colorlight.LEDSetting",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://en.colorlightinside.com/product/download/381?language=en",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Colorlight.LEDControllers.Colorlight.LEDSetting.Firmware",
+    "DeviceFamilyId": "Colorlight.LEDControllers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Colorlight LED controller",
+      "Colorlight LED display"
+    ],
+    "ProductId": "Colorlight.LEDSetting",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://en.colorlightinside.com/product/download/381?language=en",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "dbaudio.Systems.dbaudio.R1.Configuration",
+    "DeviceFamilyId": "dbaudio.Systems",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "d&b system",
+      "d&b amplifier"
+    ],
+    "ProductId": "dbaudio.R1",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dbaudio.com/global/en/service-and-support/downloads/?category=14%2C24%2C12",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "dbaudio.Systems.dbaudio.R1.Monitoring",
+    "DeviceFamilyId": "dbaudio.Systems",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "d&b system",
+      "d&b amplifier"
+    ],
+    "ProductId": "dbaudio.R1",
+    "ReleaseFamilyId": null,
+    "Purpose": "Monitoring",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dbaudio.com/global/en/service-and-support/downloads/?category=14%2C24%2C12",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Datapath.Fx4.Datapath.WallDesigner.Configuration",
+    "DeviceFamilyId": "Datapath.Fx4",
+    "ExactModelIds": [
+      "Fx4",
+      "Fx4-HDR",
+      "Fx4-SDI",
+      "Hx4",
+      "x4"
+    ],
+    "DeviceAliases": [
+      "Datapath Fx4",
+      "Datapath display controller",
+      "Wall Designer"
+    ],
+    "ProductId": "Datapath.WallDesigner",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.datapath.co.uk/datapath-fx4-display-wall-controller/",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Datapath.VideoWalls.Datapath.WallControl10.Configuration",
+    "DeviceFamilyId": "Datapath.VideoWalls",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Datapath video wall",
+      "WallControl"
+    ],
+    "ProductId": "Datapath.WallControl10",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.datapath.co.uk/datapath-products/video-wall-management-software/wallcontrol-10-software/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Dataton.WATCHOUT.Dataton.WATCHOUT.Configuration",
+    "DeviceFamilyId": "Dataton.WATCHOUT",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "WATCHOUT production computer",
+      "WATCHPAX",
+      "WATCHOUT media server"
+    ],
+    "ProductId": "Dataton.WATCHOUT",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dataton.com/downloads/watchout7",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Dataton.WATCHOUT.Dataton.WATCHOUT.Commissioning",
+    "DeviceFamilyId": "Dataton.WATCHOUT",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "WATCHOUT production computer",
+      "WATCHPAX",
+      "WATCHOUT media server"
+    ],
+    "ProductId": "Dataton.WATCHOUT",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.dataton.com/downloads/watchout7",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Deltacast.IOCards.Deltacast.EEDIDEditor.Configuration",
+    "DeviceFamilyId": "Deltacast.IOCards",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "DELTACAST I/O card",
+      "DELTACAST capture card",
+      "DELTACAST FLEX"
+    ],
+    "ProductId": "Deltacast.EEDIDEditor",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.deltacast.tv/products/free-software/e-edid-editor/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Deltacast.IOCards.Deltacast.EEDIDEditor.Diagnostics",
+    "DeviceFamilyId": "Deltacast.IOCards",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "DELTACAST I/O card",
+      "DELTACAST capture card",
+      "DELTACAST FLEX"
+    ],
+    "ProductId": "Deltacast.EEDIDEditor",
+    "ReleaseFamilyId": null,
+    "Purpose": "Diagnostics",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.deltacast.tv/products/free-software/e-edid-editor/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Disguise.VXMediaServers.Disguise.Designer.Configuration",
+    "DeviceFamilyId": "Disguise.VXMediaServers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "disguise VX",
+      "disguise media server",
+      "VX4+"
+    ],
+    "ProductId": "Disguise.Designer",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://help.disguise.one/designer/release-notes/r30",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Disguise.VXMediaServers.Disguise.Designer.Commissioning",
+    "DeviceFamilyId": "Disguise.VXMediaServers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "disguise VX",
+      "disguise media server",
+      "VX4+"
+    ],
+    "ProductId": "Disguise.Designer",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://help.disguise.one/designer/release-notes/r30",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Epson.Projectors.Epson.ProjectorProfessionalTool.Configuration",
+    "DeviceFamilyId": "Epson.Projectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Epson projector",
+      "Epson large venue projector"
+    ],
+    "ProductId": "Epson.ProjectorProfessionalTool",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://epson.com/advanced-projector-installation-tools",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Epson.Projectors.Epson.ProjectorProfessionalTool.Commissioning",
+    "DeviceFamilyId": "Epson.Projectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Epson projector",
+      "Epson large venue projector"
+    ],
+    "ProductId": "Epson.ProjectorProfessionalTool",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://epson.com/advanced-projector-installation-tools",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Epson.Projectors.Epson.ProjectorManagement.Monitoring",
+    "DeviceFamilyId": "Epson.Projectors",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Epson projector",
+      "Epson network projector"
+    ],
+    "ProductId": "Epson.ProjectorManagement",
+    "ReleaseFamilyId": null,
+    "Purpose": "Monitoring",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://epson.com/Accessories/Projector-Accessories/Epson-Projector-Management-Software/p/PROJMNGRSW",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ETC.EosConsoles.ETC.EosFamily.Programming",
+    "DeviceFamilyId": "ETC.EosConsoles",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ETC Eos console",
+      "ETCnomad",
+      "Eos Family"
+    ],
+    "ProductId": "ETC.EosFamily",
+    "ReleaseFamilyId": null,
+    "Purpose": "Programming",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.etcconnect.com/ETC/Consoles/Eos_Family/Software_and_Programming/All_Eos_Family_Software_Versions",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ETC.Net3.ETC.Concert.Configuration",
+    "DeviceFamilyId": "ETC.Net3",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ETC Net3",
+      "ETC Concert"
+    ],
+    "ProductId": "ETC.Concert",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Software.aspx",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ETC.Net3.ETC.Concert.Monitoring",
+    "DeviceFamilyId": "ETC.Net3",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ETC Net3",
+      "ETC Concert"
+    ],
+    "ProductId": "ETC.Concert",
+    "ReleaseFamilyId": null,
+    "Purpose": "Monitoring",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Software.aspx",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "ETC.Net3.ETC.UpdaterAtor.Firmware",
+    "DeviceFamilyId": "ETC.Net3",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "ETC Net3",
+      "ETC UpdaterAtor"
+    ],
+    "ProductId": "ETC.UpdaterAtor",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.etcconnect.com/products/networking/system-configuration/software/updaterator.aspx",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.DSP.Extron.DSPConfiguratorPro.Configuration",
+    "DeviceFamilyId": "Extron.DSP",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron DSP",
+      "Extron DMP Plus"
+    ],
+    "ProductId": "Extron.DSPConfiguratorPro",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/product/software/dspcpro",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.XTP.Extron.XTPSystemConfiguration.Configuration",
+    "DeviceFamilyId": "Extron.XTP",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron XTP",
+      "XTP system"
+    ],
+    "ProductId": "Extron.XTPSystemConfiguration",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/product/software/xtpscs?src=software",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.XTP.Extron.XTPSystemConfiguration.Commissioning",
+    "DeviceFamilyId": "Extron.XTP",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron XTP",
+      "XTP system"
+    ],
+    "ProductId": "Extron.XTPSystemConfiguration",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/product/software/xtpscs?src=software",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.QuantumUltra.Extron.VCS.Configuration",
+    "DeviceFamilyId": "Extron.QuantumUltra",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron Quantum Ultra",
+      "Extron videowall processor"
+    ],
+    "ProductId": "Extron.VCS",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/product/software/vcs",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.ProControl.Extron.GlobalScripter.Programming",
+    "DeviceFamilyId": "Extron.ProControl",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron Pro Series controller",
+      "Extron control processor"
+    ],
+    "ProductId": "Extron.GlobalScripter",
+    "ReleaseFamilyId": null,
+    "Purpose": "Programming",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/technology/landing/programming/content/english/content.html",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.ProControl.Extron.GlobalConfiguratorPlus.Configuration",
+    "DeviceFamilyId": "Extron.ProControl",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron Pro Series controller",
+      "Extron control processor"
+    ],
+    "ProductId": "Extron.GlobalConfiguratorPlus",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/product/listbytype.aspx?id=575&subtype=625",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Extron.FieldDevices.Extron.FirmwareLoader.Firmware",
+    "DeviceFamilyId": "Extron.FieldDevices",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Extron field-upgradeable device",
+      "Extron device"
+    ],
+    "ProductId": "Extron.FirmwareLoader",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.extron.com/product/software/fwloader",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "GreenHippo.MediaServers.GreenHippo.Hippotizer.Configuration",
+    "DeviceFamilyId": "GreenHippo.MediaServers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Hippotizer media server",
+      "Green Hippo media server"
+    ],
+    "ProductId": "GreenHippo.Hippotizer",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.green-hippo.com/hc/en-gb/sections/16360938723730-Hippotizer",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "GreenHippo.MediaServers.GreenHippo.Hippotizer.Commissioning",
+    "DeviceFamilyId": "GreenHippo.MediaServers",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Hippotizer media server",
+      "Green Hippo media server"
+    ],
+    "ProductId": "GreenHippo.Hippotizer",
+    "ReleaseFamilyId": null,
+    "Purpose": "Commissioning",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.green-hippo.com/hc/en-gb/sections/16360938723730-Hippotizer",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "GreenGO.Systems.GreenGO.Control.Configuration",
+    "DeviceFamilyId": "GreenGO.Systems",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Green-GO system",
+      "Green-GO intercom"
+    ],
+    "ProductId": "GreenGO.Control",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.greengocom.com/software-products/control",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "GreenGO.Systems.GreenGO.Control.Monitoring",
+    "DeviceFamilyId": "GreenGO.Systems",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "Green-GO system",
+      "Green-GO intercom"
+    ],
+    "ProductId": "GreenGO.Control",
+    "ReleaseFamilyId": null,
+    "Purpose": "Monitoring",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.greengocom.com/software-products/control",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "GreenGO.Switches.GreenGO.UpdateConnection.Firmware",
+    "DeviceFamilyId": "GreenGO.Switches",
+    "ExactModelIds": [
+      "Switch 8.1"
+    ],
+    "DeviceAliases": [
+      "Green-GO Switch",
+      "Green-GO legacy device"
+    ],
+    "ProductId": "GreenGO.UpdateConnection",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.greengocom.com/software-products/updateconnection",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "HPPoly.Studio.HPPoly.StudioDesktop.Configuration",
+    "DeviceFamilyId": "HPPoly.Studio",
+    "ExactModelIds": [
+      "Poly Studio V12"
+    ],
+    "DeviceAliases": [
+      "HP Poly Studio",
+      "Poly Studio USB video bar"
+    ],
+    "ProductId": "HPPoly.StudioDesktop",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.hp.com/us-en/document/ish_12322104-11968424-16",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "HPPoly.Studio.HPPoly.StudioDesktop.Diagnostics",
+    "DeviceFamilyId": "HPPoly.Studio",
+    "ExactModelIds": [
+      "Poly Studio V12"
+    ],
+    "DeviceAliases": [
+      "HP Poly Studio",
+      "Poly Studio USB video bar"
+    ],
+    "ProductId": "HPPoly.StudioDesktop",
+    "ReleaseFamilyId": null,
+    "Purpose": "Diagnostics",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.hp.com/us-en/document/ish_12322104-11968424-16",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "HPPoly.Studio.HPPoly.StudioDesktop.Firmware",
+    "DeviceFamilyId": "HPPoly.Studio",
+    "ExactModelIds": [
+      "Poly Studio V12"
+    ],
+    "DeviceAliases": [
+      "HP Poly Studio",
+      "Poly Studio USB video bar"
+    ],
+    "ProductId": "HPPoly.StudioDesktop",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.hp.com/us-en/document/ish_12322104-11968424-16",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "HPPoly.StudioE70.HPPoly.CameraControl.Configuration",
+    "DeviceFamilyId": "HPPoly.StudioE70",
+    "ExactModelIds": [
+      "Poly Studio E70"
+    ],
+    "DeviceAliases": [
+      "Poly Studio E70",
+      "HP Poly Camera Control"
+    ],
+    "ProductId": "HPPoly.CameraControl",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://support.hp.com/us-en/document/ish_9991482-11028434-16",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Huddly.Cameras.Huddly.Connect.Configuration",
+    "DeviceFamilyId": "Huddly.Cameras",
+    "ExactModelIds": [
+      "Huddly GO",
+      "Huddly IQ",
+      "Huddly ONE",
+      "Huddly L1",
+      "Huddly S1"
+    ],
+    "DeviceAliases": [
+      "Huddly camera",
+      "Huddly Connect"
+    ],
+    "ProductId": "Huddly.Connect",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.huddly.com/app/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "Huddly.Cameras.Huddly.Connect.Firmware",
+    "DeviceFamilyId": "Huddly.Cameras",
+    "ExactModelIds": [
+      "Huddly GO",
+      "Huddly IQ",
+      "Huddly ONE",
+      "Huddly L1",
+      "Huddly S1"
+    ],
+    "DeviceAliases": [
+      "Huddly camera",
+      "Huddly Connect"
+    ],
+    "ProductId": "Huddly.Connect",
+    "ReleaseFamilyId": null,
+    "Purpose": "Firmware",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.huddly.com/app/",
+    "EvidenceKind": "VendorProductPage",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "HWGroup.NetworkDevices.HWGroup.HWgConfig.Discovery",
+    "DeviceFamilyId": "HWGroup.NetworkDevices",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "HW group device",
+      "HWg device",
+      "Poseidon2",
+      "STE2"
+    ],
+    "ProductId": "HWGroup.HWgConfig",
+    "ReleaseFamilyId": null,
+    "Purpose": "Discovery",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.hw-group.com/files/download/man/version/sd-man_19-8-7_en.pdf",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
+  {
+    "Id": "HWGroup.NetworkDevices.HWGroup.HWgConfig.Configuration",
+    "DeviceFamilyId": "HWGroup.NetworkDevices",
+    "ExactModelIds": [],
+    "DeviceAliases": [
+      "HW group device",
+      "HWg device",
+      "Poseidon2",
+      "STE2"
+    ],
+    "ProductId": "HWGroup.HWgConfig",
+    "ReleaseFamilyId": null,
+    "Purpose": "Configuration",
+    "Applicability": "Applicable",
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.hw-group.com/files/download/man/version/sd-man_19-8-7_en.pdf",
+    "EvidenceKind": "VendorSupportArticle",
+    "Confidence": "VendorDocumented",
+    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+  },
     {
       "Id": "QSYS.Core.QSYSDesigner.Programming",
       "DeviceFamilyId": "QSYS.Core",

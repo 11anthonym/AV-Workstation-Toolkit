@@ -1,6 +1,6 @@
 # AV Software Catalog Decision Register
 
-**Status:** Phase 4 Batch 2 complete — 2026-09-04
+**Status:** Phase 4 Batches 4 and 5 complete — 2026-09-04
 **Companion source of truth:** [AV Software, Version & Device Compatibility Catalog Roadmap](AV-Software-Catalog-Roadmap.md)
 
 This register records evidence and decisions for later catalog-roadmap work. It does not amend a production manifest, authorize a package, or replace the existing exact-ID/explicit-provider security model.
@@ -208,3 +208,29 @@ Durable current/archive families are recorded only for Dante Controller, PIXERA,
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 3 product receives an installed-version detector. Exact Windows inventory identities, multiple-install behavior, signed package/publisher evidence, account-gated acquisition, firmware compatibility, and workstation coexistence require controlled installations or authenticated vendor evidence. Audio-Technica wireless-system mapping, AVer legacy PTZApp2 acquisition, Barco WallConnect/XMS scope, BrightSign player/OS/content pairing, PIXERA server images/licenses, and Capture fixture/console mapping remain intentionally unresolved. These gaps preserve explicit `Unknown` evidence and do not create execution authority.
+
+### CAT-020 — Phase 4 Batch 4 evidence and implementation
+
+**VERIFIED FACT**
+Batch 4 reviewed all twelve frozen manufacturers: ChamSys, Christie, Cisco, Clear-Com, ClearOne, Colorlight, d&b audiotechnik, Datapath, Dataton, Dell / Waves, DELTACAST, and Disguise. Their retained/corrected links, additions, exclusions, release-family decisions, and unresolved evidence are in the companion roadmap.
+
+Direct vendor evidence supports the scoped records: [ChamSys MagicQ downloads](https://chamsyslighting.com/software/magicq-downloads/) exposes stable, beta, and archive material; [Christie Conductor](https://www.christiedigital.com/products/projector-management/conductor/) scopes 3DLP monitoring; [Cisco Device Connector](https://help.webex.com/en-us/article/383gbd/Cisco-Webex-Device-Connector) scopes workstation onboarding; [Clear-Com versions](https://clearcom.com/Download-Center/Software-Versions-Chart) identifies EHX/Dynam-EC/FreeSpeak status; [Colorlight LEDVISION](https://en.colorlightinside.com/product/download/381?language=en), [d&b archive](https://www.dbaudio.com/global/en/products/software/software-archive/), [Datapath Wall Designer](https://walldesigner.datapath.co.uk/), [WATCHOUT](https://www.dataton.com/downloads/watchout7), [E-EDID Editor](https://www.deltacast.tv/products/free-software/e-edid-editor/), and [Designer r30](https://help.disguise.one/designer/release-notes/r30) support the encoded product, branch, or relation claims.
+
+**DESIGN DECISION**
+Batch 4 adds descriptive product metadata and only relationship records whose hardware scope is identified by a vendor source. The Dell / Waves OEM record is deliberately descriptive only. Product metadata remains disjoint from package/provider/delivery fields; no relation creates download, credential, managed WinGet, or worker authority.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 4 product receives a Windows installed-version detector or coexistence claim. Account-gated downloads, license/server roles, exact product-model/firmware pairing, and installer identity/publisher evidence require controlled installation or vendor-login evidence.
+
+### CAT-021 — Phase 4 Batch 5 evidence and implementation
+
+**VERIFIED FACT**
+Batch 5 reviewed all twelve frozen manufacturers: Epson, ETC, Extron, Figure 53, FileZilla Project, Flachmann und Heggelbacher, Green Hippo, Green-GO, HP Poly, Huddly, HW group, and Intermodulation Analysis. The companion roadmap is the completion ledger for all per-manufacturer source decisions.
+
+The relevant direct sources include [Epson projector tools](https://epson.com/advanced-projector-installation-tools), [ETC configuration software](https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Software.aspx), [Extron DSP Configurator Pro](https://www.extron.com/product/software/dspcpro), [QLab download/archive](https://qlab.app/download/), [Green-GO Control](https://www.greengocom.com/software-products/control), [HP Poly Studio Desktop release notes](https://support.hp.com/us-en/document/ish_13663054-13662994-16), [Huddly Connect](https://www.huddly.com/app/), and [IntermodExplorer](https://www.intermodulationanalysis.com/). Extron acquisition remains account-gated where its source says so; direct product links are browser evidence, not automated acquisition routes.
+
+**DESIGN DECISION**
+Batch 5 preserves distinct tools where their field purposes differ (for example Epson setup/monitoring/content, ETC Eos/Concert/UpdaterAtor, Extron configuration/diagnostic/firmware utilities, and Green-GO configuration/update). QLab and IntermodExplorer remain descriptive platform/web information; FileZilla and Docklight remain manual utilities without manufacturer compatibility claims. Product and relation data stay read-only and cannot alter any existing PackageDefinition, manual/external boundary, or production worker authorization.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 5 product receives multi-install detection, side-by-side support, a generic download route, or arbitrary device coverage. Exact installer inventory identities, signed payload/publisher data, vendor account rights, device firmware compatibility, and physical compatibility remain explicit unknowns pending controlled installation or vendor evidence.

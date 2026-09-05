@@ -3579,7 +3579,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://chamsyslighting.com/software/",
+                                          "OfficialProductUri":  "https://chamsyslighting.com/software/magicq-downloads/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3763,7 +3763,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.christiedigital.com/products/projectors/all-projectors/",
+                                          "OfficialProductUri":  "https://www.christiedigital.com/products/projector-management/conductor/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -4213,7 +4213,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://en.colorlightinside.com/",
+                                          "OfficialProductUri":  "https://en.colorlightinside.com/product/download/381?language=en",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -4804,7 +4804,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://epson.com/Support/wa00812",
+                                          "OfficialProductUri":  "https://epson.com/advanced-projector-installation-tools",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -5355,7 +5355,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/vcs",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5436,7 +5436,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/edidmanager30",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5477,7 +5477,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/fwloader",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5515,7 +5515,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/dataviewer?subtype=312",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5951,7 +5951,7 @@
                                                               "Embedded"
                                                           ],
                                           "OfficialDownloadUri":  "https://support.green-hippo.com/hc/en-gb/categories/16355399313170-Downloads",
-                                          "OfficialProductUri":  "https://www.green-hippo.com/",
+                                          "OfficialProductUri":  "https://support.green-hippo.com/hc/en-gb/sections/16360938723730-Hippotizer",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -6025,7 +6025,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://support.hp.com/us-en/poly",
+                                          "OfficialProductUri":  "https://support.hp.com/us-en/document/ish_9991482-11028434-16",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]

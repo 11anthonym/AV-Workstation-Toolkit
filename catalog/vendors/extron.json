@@ -348,7 +348,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/vcs",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -429,7 +429,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/edidmanager30",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -470,7 +470,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/fwloader",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -508,7 +508,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/dataviewer?subtype=312",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
