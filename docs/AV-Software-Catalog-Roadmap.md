@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 Batch 7 complete (2026-09-05)
+**Status:** Phase 4 Batch 8 complete (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -121,7 +121,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | 5 | Complete | Epson; ETC; Extron; Figure 53; FileZilla Project; Flachmann und Heggelbacher; Green Hippo; Green-GO; HP Poly; Huddly; HW group; Intermodulation Analysis |
 | 6 | **Complete** | Jabra; JBL Professional; Kramer; L-Acoustics; Lake; LEA Professional; Lectrosonics; LG; Lightware; Logitech; Luminex; MA Lighting |
 | 7 | **Complete** | Magewell; Martin Audio; Matrox Video; Medialon; Mersive; Meyer Sound; Microsoft; Milan Manager; Multiple vendors; NagleCode; NDI; NETGEAR |
-| 8 | Unfinished | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
+| 8 | **Complete** | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
 | 9 | Unfinished | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
 | 10 | Unfinished | Sennheiser; Sharp NEC Display Solutions; Shure; Sony Professional; SoundBase; StudioCoast; Symetrix; TeraTerm Project; Unity Intercom; Uwe Sieber; Vaddio; Wisycom |
 | 11 | Unfinished | WolfVision; Xilica; Yamaha Professional Audio; Yealink; ZeeVee |
@@ -212,7 +212,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** Batches 4–7 are **complete**. Batch 7 adds 21 descriptive products, 3 durable release-family records, and 8 evidence-backed relations. They do not change package authority. Process only frozen Batches 8–11; do not re-audit Batches 1–7 unless a source change or concrete conflict requires it.
+5. **Phase 4 — catalog-wide completion:** Batches 4–8 are **complete**. Batch 8 adds 23 descriptive products, 6 durable release-family records, and 10 evidence-backed relations. They do not change package authority. Process only frozen Batches 9–11; do not re-audit Batches 1–8 unless a source change or concrete conflict requires it.
 
 ### Phase 2 implemented schema contract
 
@@ -283,3 +283,22 @@ Batch 7 adds 21 descriptive products, 3 release-family records, and 8 purpose-sp
 | NagleCode | Retained [Packet Sender](https://packetsender.com/). | No branch claim. | Generic packet utility remains descriptive only. |
 | NDI | Retained [NDI Tools](https://ndi.video/tools/) and Analysis sources. | NDI Tools 6 current family. | Protocol-wide device relations and service behavior intentionally excluded. |
 | NETGEAR | Retained direct [Engage Controller](https://www.netgear.com/business/management/engage-software/); added M4250/M4300/M4350/M4500 relation only. | No branch claim. | Firmware, profile, and model pairing remain manual/vendor-specific. |
+
+## Phase 4 Batch 8 — completion record
+
+Batch 8 adds 23 descriptive products, 6 release-family records, and 10 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed.
+
+| Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
+|---|---|---|---|
+| NEXO | Retained NS-1/NeMo and added NeFu from the official [software page](https://www.nexo-sa.com/software/); scoped NS-1 and controller relations only. | No branch claim. | Exact project, firmware, and detection evidence unresolved. |
+| NovaStar | Retained official software-download records for NovaLCT, SmartLCT, ViPlex Express, and VMP. | No branch claim. | Controller/player pairing and local inventory are unresolved; no broad LED relation inferred. |
+| Nureva | Corrected Nureva App to the direct [getting-started guide](https://support.nureva.com/docs/get-started-with-the-nureva-app); scoped HDL App/Console relations. | No branch claim. | Account enrollment, device update, and installation evidence unresolved. |
+| OBS Project | Retained official [OBS Studio download](https://obsproject.com/download). | No branch claim. | General capture/streaming tool; no device relation inferred. |
+| Obsidian Control Systems | Retained official [ONYX download/archive](https://support.obsidiancontrol.com/Content/Support/Downloads.htm); scoped ONYX console relation. | Current and archived ONYX branches. | Console OS, fixture library, and local coexistence remain unresolved. |
+| Open Sound Meter | Retained direct [releases](https://opensoundmeter.com/releases). | No branch claim. | General measurement utility; no device relation inferred. |
+| Panasonic | Retained Media Production Suite and projector sources; scoped camera and projector relations only. | No branch claim. | Model/firmware, driver, and local detection evidence unresolved. |
+| Pingman Tools | Corrected to direct [PingPlotter download](https://www.pingplotter.com/download/). | No branch claim. | General network diagnostic; no device relation inferred. |
+| Planar | Retained direct [WallDirector OS](https://www.planar.com/products/planar-walldirector/planar-walldirector-os/) source; scoped controller relation. | No branch claim. | Select video-wall/model support and account/deployment evidence unresolved. |
+| Powersoft | Corrected ArmoniaPlus source and recorded its [official releases](https://www.powersoft.com/en/armonia-official-releases); scoped amplifier/controller relation. | Current ArmoniaPlus and legacy Armonia Pro branches. | Firmware/project pairing and local detection unresolved. |
+| Professional Wireless Systems | Corrected IAS to direct [product evidence](https://www.professionalwireless.com/intermod-analysis/). | No branch claim. | Generic RF coordination remains descriptive; licensing and manufacturer-specific mapping unresolved. |
+| QLC+ Project | Corrected to direct [download/release page](https://qlcplus.org/download). | Current QLC+ 5 and legacy QLC+ 4 branches. | General lighting control; no fixture/manufacturer relation inferred. |

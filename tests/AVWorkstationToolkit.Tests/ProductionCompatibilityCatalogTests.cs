@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(162, catalog.Products);
+        Assert.HasCount(185, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -25,7 +25,8 @@ public sealed class ProductionCompatibilityCatalogTests
                 "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
                 "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Kramer", "L-Acoustics", "Lake",
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
-                "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR", "Q-SYS"
+                "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
+                "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Powersoft", "Professional Wireless Systems", "QLC+ Project", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -212,6 +213,23 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchEightRelationsRemainEvidenceScopedAndGenericToolsStayDescriptive()
+    {
+        var service = CreateQueryService();
+
+        Assert.IsTrue(service.GetSoftwareForDevice("NXAMPmk2").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "NEXO.NeFu" && item.Purpose == DeviceSoftwarePurpose.Firmware));
+        Assert.IsTrue(service.GetSoftwareForDevice("HDL410").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Nureva.App" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.GetSoftwareForDevice("NX3").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Obsidian.ONYX" && item.Purpose == DeviceSoftwarePurpose.Programming));
+        Assert.IsTrue(service.GetSoftwareForDevice("WallDirector OS").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Planar.WallDirectorOS"));
+        Assert.IsFalse(service.SearchDevices("OBS device").Any());
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("QLCPlus.QLCPlus")));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -249,7 +267,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(162, services.Compatibility.SearchProducts());
+        Assert.HasCount(185, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -264,7 +282,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(162, compatibility.Products);
+        Assert.HasCount(185, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -296,6 +314,14 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchSevenProductIds = compatibility.Products.Where(item => batchSevenVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchSevenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var batchEightVendors = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools",
+            "Planar", "Powersoft", "Professional Wireless Systems", "QLC+ Project"
+        };
+        var batchEightProductIds = compatibility.Products.Where(item => batchEightVendors.Contains(item.Vendor))
+            .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.IsTrue(packages.Items.Where(item => batchEightProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");

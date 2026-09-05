@@ -256,3 +256,14 @@ Batch 7 adds 21 descriptive Products, 3 release families, and 8 purpose-specific
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 7 record claims authoritative Windows detection, coexistence, generic cross-vendor protocol compatibility, or release-to-device pairing. Account/licensing rights, signed payload identities, hardware firmware/project coupling, and actual workstation inventory require controlled-install or vendor evidence. These remain explicit `Unknown` evidence and are not schema blockers.
+
+### CAT-024 — Phase 4 Batch 8 evidence and implementation
+
+**VERIFIED FACT**
+Batch 8 reviewed all twelve frozen manufacturers: NEXO, NovaStar, Nureva, OBS Project, Obsidian Control Systems, Open Sound Meter, Panasonic, Pingman Tools, Planar, Powersoft, Professional Wireless Systems, and QLC+ Project. Direct evidence scopes [NEXO software](https://www.nexo-sa.com/software/), [Nureva App](https://support.nureva.com/docs/get-started-with-the-nureva-app), [ONYX downloads](https://support.obsidiancontrol.com/Content/Support/Downloads.htm), [Planar WallDirector OS](https://www.planar.com/products/planar-walldirector/planar-walldirector-os/), [Powersoft releases](https://www.powersoft.com/en/armonia-official-releases), and [QLC+ downloads](https://qlcplus.org/download).
+
+**DESIGN DECISION**
+Batch 8 adds 23 descriptive Products, 6 release families, and 10 purpose-specific relations. Relations are limited to NEXO loudspeaker/controller, Nureva HDL, ONYX console, Panasonic camera/projector, Planar WallDirector controller, and Powersoft amplifier/controller workflows. NovaStar, OBS, Open Sound Meter, PingPlotter, Professional Wireless Systems IAS, and QLC+ remain descriptive where vendor evidence does not establish a specific device relationship. No package/provider/delivery/credential/worker authority is added.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 8 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, device firmware/project pairing, account/licensing rights, or installer/publisher identity. These retain explicit `Unknown` installed evidence and are not schema blockers.
