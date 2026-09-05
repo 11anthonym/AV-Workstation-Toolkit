@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 Batch 6 complete (2026-09-05)
+**Status:** Phase 4 Batch 7 complete (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -120,7 +120,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | 4 | Complete | ChamSys; Christie; Cisco; Clear-Com; ClearOne; Colorlight; d&b audiotechnik; Datapath; Dataton; Dell / Waves; DELTACAST; Disguise |
 | 5 | Complete | Epson; ETC; Extron; Figure 53; FileZilla Project; Flachmann und Heggelbacher; Green Hippo; Green-GO; HP Poly; Huddly; HW group; Intermodulation Analysis |
 | 6 | **Complete** | Jabra; JBL Professional; Kramer; L-Acoustics; Lake; LEA Professional; Lectrosonics; LG; Lightware; Logitech; Luminex; MA Lighting |
-| 7 | Unfinished | Magewell; Martin Audio; Matrox Video; Medialon; Mersive; Meyer Sound; Microsoft; Milan Manager; Multiple vendors; NagleCode; NDI; NETGEAR |
+| 7 | **Complete** | Magewell; Martin Audio; Matrox Video; Medialon; Mersive; Meyer Sound; Microsoft; Milan Manager; Multiple vendors; NagleCode; NDI; NETGEAR |
 | 8 | Unfinished | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
 | 9 | Unfinished | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
 | 10 | Unfinished | Sennheiser; Sharp NEC Display Solutions; Shure; Sony Professional; SoundBase; StudioCoast; Symetrix; TeraTerm Project; Unity Intercom; Uwe Sieber; Vaddio; Wisycom |
@@ -212,7 +212,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** Batches 4–6 are **complete**. Batch 6 adds 21 descriptive products, 9 durable release-family records, and 12 evidence-backed relations. They do not change package authority. Process only frozen Batches 7–11; do not re-audit Batches 1–6 unless a source change or concrete conflict requires it.
+5. **Phase 4 — catalog-wide completion:** Batches 4–7 are **complete**. Batch 7 adds 21 descriptive products, 3 durable release-family records, and 8 evidence-backed relations. They do not change package authority. Process only frozen Batches 8–11; do not re-audit Batches 1–7 unless a source change or concrete conflict requires it.
 
 ### Phase 2 implemented schema contract
 
@@ -264,3 +264,22 @@ Batch 6 adds 21 descriptive products, 9 release-family records, and 12 purpose-s
 | Logitech | Retained Sync/CollabOS and added Logi Tune descriptive identity; added Sync relation for documented CollabOS room devices. | No branch claim. | Account/service and endpoint firmware pairing unresolved. |
 | Luminex | Retained [Araneo](https://www.luminex.be/products/software/araneo/) and [Araneo Studio](https://www.luminex.be/products/software/araneo-studio/); added GigaCore relation. | No branch claim. | License, model coverage, and local detection unresolved. |
 | MA Lighting | Corrected/retained direct [grandMA3 downloads/archive](https://www.malighting.com/downloads/products/grandMA3/); added grandMA3/grandMA2 onPC and MA3 relation. | grandMA3 current/archive and grandMA2 legacy are vendor-backed. | Console project pairing, multi-install behavior, and inventory evidence unresolved. |
+
+## Phase 4 Batch 7 — completion record
+
+Batch 7 adds 21 descriptive products, 3 release-family records, and 8 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed.
+
+| Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
+|---|---|---|---|
+| Magewell | Used the direct [USB Capture](https://www.magewell.com/downloads/usb-capture) compatibility source; added USB Capture Utility relation only. | No branch claim. | Exact capture model/firmware and detection unresolved. |
+| Martin Audio | Used [software support](https://martin-audio.com/support/software) and direct [VU-NET](https://martin-audio.com/products/software/vu-net) compatibility sources; added DISPLAY 3/VU-NET. | DISPLAY 3 and legacy DISPLAY 2 branches. | System pairing and local detection unresolved. |
+| Matrox Video | Retained ConvertIP/ConductIP sources; added scoped ConvertIP Manager relation. | No branch claim. | Appliance, routing, and inventory scope unresolved. |
+| Medialon | Used Manager's direct [product page](https://medialon.com/products/medialon-manager/) as compatibility evidence; added Manager/Marquee and Showmaster relation. | No branch claim. | Licensing, Showmaster generation pairing, and detection unresolved. |
+| Mersive | Retained deployment/admin sources; added App, Dashboard, and Discovery Service with Pod monitoring only. | No branch claim. | Account/service and deployment pairing unresolved. |
+| Meyer Sound | Retained [software hub](https://software.meyersound.com/); added MAPP 3D, Compass, Nebra and scoped Compass relation. | No branch claim. | GALAXY firmware/system pairing and inventory unresolved. |
+| Microsoft | Retained official USBView/Sysinternals sources. | No branch claim. | Generic diagnostics remain descriptive; no AV device relation. |
+| Milan Manager | Retained [Milan Manager](https://milanmanager.com/). | No branch claim. | No generic Milan device relation: multi-vendor pairing is unresolved. |
+| Multiple vendors | Added descriptive AVB/Milan interoperability guidance only. | No branch claim. | No cross-vendor relation inferred. |
+| NagleCode | Retained [Packet Sender](https://packetsender.com/). | No branch claim. | Generic packet utility remains descriptive only. |
+| NDI | Retained [NDI Tools](https://ndi.video/tools/) and Analysis sources. | NDI Tools 6 current family. | Protocol-wide device relations and service behavior intentionally excluded. |
+| NETGEAR | Retained direct [Engage Controller](https://www.netgear.com/business/management/engage-software/); added M4250/M4300/M4350/M4500 relation only. | No branch claim. | Firmware, profile, and model pairing remain manual/vendor-specific. |

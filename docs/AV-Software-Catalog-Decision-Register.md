@@ -245,3 +245,14 @@ Batch 6 adds 21 descriptive Products, 9 evidence-backed ReleaseFamilies, and 12 
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 6 product receives authoritative installed-version detection, coexistence behavior, or a generic installer route. Exact Windows inventory identities, signed installer/publisher evidence, licensing/account requirements, model/firmware/project pairing, and multi-version behavior require controlled installation or vendor-login evidence. These gaps retain explicit `Unknown` evidence and are not schema blockers.
+
+### CAT-023 — Phase 4 Batch 7 evidence and implementation
+
+**VERIFIED FACT**
+Batch 7 reviewed all twelve frozen manufacturers: Magewell, Martin Audio, Matrox Video, Medialon, Mersive, Meyer Sound, Microsoft, Milan Manager, Multiple vendors, NagleCode, NDI, and NETGEAR. Direct evidence scopes [Magewell USB Capture Utility](https://www.magewell.com/downloads/usb-capture), [Martin Audio software](https://martin-audio.com/support/software), [Medialon Manager](https://medialon.com/products/medialon-manager/), [Milan Manager](https://milanmanager.com/), [NDI Tools](https://ndi.video/tools/), and [NETGEAR Engage](https://www.netgear.com/business/management/engage-software/).
+
+**DESIGN DECISION**
+Batch 7 adds 21 descriptive Products, 3 release families, and 8 purpose-specific relations. Relations remain strictly scoped to named Magewell, Martin Audio, Matrox ConvertIP, Medialon Showmaster, Mersive Solstice, Meyer Sound Galileo/GALAXY, and NETGEAR AV switch families. Microsoft, Milan, Multiple-vendor AVB, Packet Sender, and NDI protocol records stay descriptive unless a vendor source identifies a specific hardware relation. No package/provider/delivery/credential/worker authority is added.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 7 record claims authoritative Windows detection, coexistence, generic cross-vendor protocol compatibility, or release-to-device pairing. Account/licensing rights, signed payload identities, hardware firmware/project coupling, and actual workstation inventory require controlled-install or vendor evidence. These remain explicit `Unknown` evidence and are not schema blockers.

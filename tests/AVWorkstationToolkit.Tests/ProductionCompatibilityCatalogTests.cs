@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(141, catalog.Products);
+        Assert.HasCount(162, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -24,7 +24,8 @@ public sealed class ProductionCompatibilityCatalogTests
                 "d&b audiotechnik", "Datapath", "Dataton", "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron",
                 "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
                 "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Kramer", "L-Acoustics", "Lake",
-                "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Q-SYS"
+                "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
+                "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -196,6 +197,21 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchSevenRelationsAvoidProtocolWideAuthorityAndRetainScopedLookups()
+    {
+        var service = CreateQueryService();
+
+        Assert.IsTrue(service.GetSoftwareForDevice("USB Capture HDMI").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Magewell.USBCaptureUtility"));
+        Assert.IsTrue(service.GetSoftwareForDevice("M4350").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "NETGEAR.EngageController"));
+        Assert.IsTrue(service.GetSoftwareForDevice("Showmaster Pro").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Medialon.Manager"));
+        Assert.IsFalse(service.SearchDevices("NDI device").Any());
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("MartinAudio.Display3")));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -233,7 +249,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(141, services.Compatibility.SearchProducts());
+        Assert.HasCount(162, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -248,7 +264,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(141, compatibility.Products);
+        Assert.HasCount(162, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -272,6 +288,14 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchSixProductIds = compatibility.Products.Where(item => batchSixVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchSixProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var batchSevenVendors = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Magewell", "Martin Audio", "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager",
+            "Multiple vendors", "NagleCode", "NDI", "NETGEAR"
+        };
+        var batchSevenProductIds = compatibility.Products.Where(item => batchSevenVendors.Contains(item.Vendor))
+            .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.IsTrue(packages.Items.Where(item => batchSevenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");
