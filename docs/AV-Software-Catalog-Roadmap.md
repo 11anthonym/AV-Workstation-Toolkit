@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 Batch 10 complete (2026-09-05)
+**Status:** Phase 4 catalog-wide expansion complete (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -124,7 +124,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | 8 | **Complete** | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
 | 9 | **Complete** | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
 | 10 | **Complete** | Sennheiser; Sharp NEC Display Solutions; Shure; Sony Professional; SoundBase; StudioCoast; Symetrix; TeraTerm Project; Unity Intercom; Uwe Sieber; Vaddio; Wisycom |
-| 11 | Unfinished | WolfVision; Xilica; Yamaha Professional Audio; Yealink; ZeeVee |
+| 11 | **Complete** | WolfVision; Xilica; Yamaha Professional Audio; Yealink; ZeeVee |
 
 Before closing a later batch, record its source links, missing field/service software, release-family behavior, device relations, confidence, and unresolved install/login evidence in the Decision Register. A batch is not complete merely because its current catalog row exists.
 
@@ -212,7 +212,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** Batches 4–10 are **complete**. Batch 10 adds 20 descriptive products, 2 durable release-family records, and 7 evidence-backed relations. They do not change package authority. Process only frozen Batch 11; do not re-audit Batches 1–10 unless a source change or concrete conflict requires it.
+5. **Phase 4 — catalog-wide completion:** **complete.** Batches 2–11 have been processed using the frozen ledger. Batch 11 adds 13 descriptive products, 5 durable release-family records, and 9 evidence-backed relations. No Phase 4 product changes package authority. Do not begin Phase 5 without an explicit owner task.
 
 ### Phase 2 implemented schema contract
 
@@ -343,3 +343,18 @@ Batch 10 adds 20 descriptive products, 2 release-family records, and 7 purpose-s
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 10 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
+
+## Phase 4 Batch 11 — completion record
+
+Batch 11 completes the frozen Phase 4 ledger with 13 descriptive products, 5 release-family records, and 9 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed.
+
+| Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
+|---|---|---|---|
+| WolfVision | Retained direct [support/download evidence](https://wolfvision.com/en/support/vsolution-link-pro); scoped Cynap/Visualizer management relation. | No branch claim. | Legacy vSolution Link, firmware pairing, and local detection unresolved. |
+| Xilica | Corrected Designer to direct [current/legacy download evidence](https://support.xilica.com/en/articles/3947394); retained distinct Designer, XTouch, XConsole, and XLink products with scoped DSP/control relations. | Current Designer 4.12 and legacy 4.9-or-earlier branches. | Firmware, project migration, and local coexistence unresolved. |
+| Yamaha Professional Audio | Corrected ProVisionaire Design/Control sources to direct [downloads](https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html); preserved distinct Design, Control PLUS, Kiosk, and Edge products. | Design 3.1 current and previous-version archive. | Edge/Kiosk deployment, license/service behavior, firmware pairing, and local detection unresolved. |
+| Yealink | Retained direct [USB Connect](https://www.yealink.com/en/product-resource/usb-connect-management) and management-platform sources; scoped USB device diagnostic relation only. | No branch claim. | YDMP/YMCS tenant/on-prem deployment, firmware, and local detection unresolved. |
+| ZeeVee | Retained direct [ZyPer Management Platform](https://www.zeevee.com/av-over-ip/management/) source; scoped documented ZyPer endpoint relation. | Current ZMP 4.1. | Appliance/VM deployment, firmware sequencing, endpoint generation, and local detection unresolved. |
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 11 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.

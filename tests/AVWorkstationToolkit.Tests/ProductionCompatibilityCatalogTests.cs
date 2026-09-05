@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(232, catalog.Products);
+        Assert.HasCount(245, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -27,7 +27,7 @@ public sealed class ProductionCompatibilityCatalogTests
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
                 "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
                 "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
-                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom", "Q-SYS"
+                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom", "WolfVision", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -268,6 +268,28 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchElevenRelationsKeepProfessionalAudioAndManagedPlatformsScoped()
+    {
+        var service = CreateQueryService();
+
+        Assert.IsTrue(service.GetSoftwareForDevice("Cynap Core Pro").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "WolfVision.VSolutionLinkPro" && item.Purpose == DeviceSoftwarePurpose.Monitoring));
+        Assert.IsTrue(service.GetSoftwareForDevice("Solaro QR1").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Xilica.Designer" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.GetSoftwareForDevice("Neutrino").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Xilica.Designer" && item.ReleaseFamilyId?.Value == "Xilica.Designer.Legacy"));
+        Assert.IsTrue(service.GetSoftwareForDevice("DME7").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Yamaha.ProVisionaireDesign"));
+        Assert.IsTrue(service.GetSoftwareForDevice("Yealink USB headset").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Yealink.USBConnect" && item.Purpose == DeviceSoftwarePurpose.Diagnostics));
+        Assert.IsTrue(service.GetSoftwareForDevice("ZyPerUHD").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "ZeeVee.ZyPerManagementPlatform"));
+        Assert.IsFalse(service.SearchDevices("Yealink cloud device").Any());
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("Xilica.Designer")));
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("Yamaha.ProVisionaireDesign")));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -305,7 +327,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(232, services.Compatibility.SearchProducts());
+        Assert.HasCount(245, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -320,7 +342,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(232, compatibility.Products);
+        Assert.HasCount(245, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -376,6 +398,13 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchTenProductIds = compatibility.Products.Where(item => batchTenVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchTenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var batchElevenVendors = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "WolfVision", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee"
+        };
+        var batchElevenProductIds = compatibility.Products.Where(item => batchElevenVendors.Contains(item.Vendor))
+            .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.IsTrue(packages.Items.Where(item => batchElevenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");

@@ -34,7 +34,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html",
+                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -69,7 +69,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html",
+                                          "OfficialProductUri":  "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_control/index.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

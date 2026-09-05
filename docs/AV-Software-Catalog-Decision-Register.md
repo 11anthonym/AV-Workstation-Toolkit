@@ -289,3 +289,14 @@ Batch 10 adds 20 descriptive Products, 2 release families, and 7 purpose-specifi
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 10 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
+
+### CAT-027 — Phase 4 Batch 11 evidence and completion
+
+**VERIFIED FACT**
+Batch 11 reviewed all five frozen manufacturers: WolfVision, Xilica, Yamaha Professional Audio, Yealink, and ZeeVee. Direct evidence scopes [WolfVision vSolution Link Pro](https://wolfvision.com/en/support/vsolution-link-pro), [Xilica Designer downloads](https://support.xilica.com/en/articles/3947394), [Yamaha ProVisionaire Design downloads](https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html), [Yealink USB Connect](https://www.yealink.com/en/product-resource/usb-connect-management), and [ZyPer Management Platform](https://www.zeevee.com/av-over-ip/management/).
+
+**DESIGN DECISION**
+Batch 11 adds 13 descriptive Products, 5 release families, and 9 purpose-specific relations, completing the frozen Phase 4 manufacturer ledger. Relations are limited to WolfVision Cynap/Visualizer, Xilica DSP/control, documented Yamaha professional-audio DSP, Yealink USB-device, and ZeeVee ZyPer workflows. Server, cloud, and portal records remain descriptive unless the evidence establishes a workstation/device-service role. No package/provider/delivery/credential/worker authority is added.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 11 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
