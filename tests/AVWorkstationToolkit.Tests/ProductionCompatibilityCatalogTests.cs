@@ -9,7 +9,7 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class ProductionCompatibilityCatalogTests
 {
     [TestMethod]
-    public void ProductionCatalogParsesWithApprovedReferenceAndCompletedBatchFiveVendors()
+    public void ProductionCatalogParsesWithCompleteFrozenManufacturerLedger()
     {
         var catalog = LoadCatalog();
 
@@ -30,10 +30,44 @@ public sealed class ProductionCompatibilityCatalogTests
                 "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom", "WolfVision", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
-        Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
-        Assert.IsGreaterThan(0, catalog.DeviceSoftwareRelations.Count);
+        Assert.HasCount(80, catalog.ReleaseFamilies);
+        Assert.HasCount(195, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
+    }
+
+    [TestMethod]
+    public void DeviceAliasesResolveToOneCanonicalDeviceFamily()
+    {
+        var collisions = LoadCatalog().DeviceSoftwareRelations
+            .SelectMany(relation => relation.DeviceAliases.Concat(relation.ExactModelIds)
+                .Select(alias => new { Alias = alias.Trim(), relation.DeviceFamilyId }))
+            .GroupBy(item => item.Alias, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Select(item => item.DeviceFamilyId).Distinct(StringComparer.OrdinalIgnoreCase).Count() > 1)
+            .Select(group => group.Key)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        Assert.HasCount(0, collisions, $"Device aliases must not identify multiple device families: {string.Join(", ", collisions)}");
+    }
+
+    [TestMethod]
+    public void CompatibilityDocumentContainsNoExecutionAuthorityFields()
+    {
+        var forbidden = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "PackageId", "Provider", "Authority", "Deployment", "Executable", "Command",
+            "Credential", "Delivery", "Arguments", "WorkingDirectory"
+        };
+        using var document = System.Text.Json.JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(RepositoryRoot(), "manifests", "software-compatibility.json")));
+        var present = EnumeratePropertyNames(document.RootElement)
+            .Where(forbidden.Contains)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        Assert.HasCount(0, present, $"Compatibility metadata must remain descriptive: {string.Join(", ", present)}");
     }
 
     [TestMethod]
@@ -413,6 +447,23 @@ public sealed class ProductionCompatibilityCatalogTests
     private static CompatibilityCatalogQueryService CreateQueryService() => new(
         LoadCatalog(),
         new UnresolvedInstalledVersionEvidenceProvider());
+
+    private static IEnumerable<string> EnumeratePropertyNames(System.Text.Json.JsonElement element)
+    {
+        if (element.ValueKind == System.Text.Json.JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                yield return property.Name;
+                foreach (var nested in EnumeratePropertyNames(property.Value)) yield return nested;
+            }
+        }
+        else if (element.ValueKind == System.Text.Json.JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+                foreach (var nested in EnumeratePropertyNames(item)) yield return nested;
+        }
+    }
 
     private static SoftwareCompatibilityCatalog LoadCatalog() =>
         new RepositoryCompatibilityCatalogLoader().Load(RepositoryRoot());

@@ -285,7 +285,7 @@ No Batch 9 record claims authoritative Windows detection, side-by-side behavior,
 Batch 10 reviewed all twelve frozen manufacturers: Sennheiser, Sharp NEC Display Solutions, Shure, Sony Professional, SoundBase, StudioCoast, Symetrix, TeraTerm Project, Unity Intercom, Uwe Sieber, Vaddio, and Wisycom. Direct evidence scopes [Sennheiser Spectera LinkDesk](https://www.sennheiser.com/en-us/catalog/products/software/spectera-link-desk-829c7449/spectera-linkdesk-linkdesk), [SoundBase supported devices](https://docs.soundbase.app/guides/monitoring/supported-devices/), [Sony RM-IP Setup Tool](https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7), [Symetrix Composer releases](https://www.symetrixinc.com/download-composer/), [Vaddio Deployment Tool](https://www.legrandav.com/products/system_management/vaddio-deployment-tool), and [Wisycom Manager](https://wisycom.com/product/wisycom-manager/).
 
 **DESIGN DECISION**
-Batch 10 adds 20 descriptive Products, 2 release families, and 7 purpose-specific relations. Relations are limited to Spectera Base Station, exact SoundBase-supported receivers, Sharp NEC displays, Sony remote cameras, Symetrix DSP workflows, Vaddio cameras, and Wisycom wireless systems. Shure IntelliMix Room/SystemOn, StudioCoast vMix, Tera Term, Unity Intercom, and USB Device Tree Viewer remain descriptive where official evidence does not establish a specific hardware relation. No package/provider/delivery/credential/worker authority is added.
+Batch 10 adds 20 descriptive Products, 2 release families, and 9 purpose-specific relations. Relations are limited to canonical Sennheiser Spectera and wireless-receiver families, the vendor-documented Shure Axient Digital receiver, Sharp NEC displays, Sony remote cameras, Symetrix DSP workflows, Vaddio cameras, and Wisycom wireless systems. Shure IntelliMix Room/SystemOn, StudioCoast vMix, Tera Term, Unity Intercom, and USB Device Tree Viewer remain descriptive where official evidence does not establish a specific hardware relation. No package/provider/delivery/credential/worker authority is added.
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 10 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
@@ -300,3 +300,17 @@ Batch 11 adds 13 descriptive Products, 5 release families, and 9 purpose-specifi
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 11 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
+
+### CAT-028 — Phase 5 final acceptance
+
+**VERIFIED FACT**
+The completed frozen ledger contains 116 unique manufacturers exactly once and matches the combined maintained package manifests. The accepted production catalog contains 245 Products, 80 ReleaseFamilies, no asserted local InstalledVersion records, and 195 DeviceSoftwareRelations. Consolidated schema, reference-integrity, device/product lookup, compiled-WPF presentation, authority-isolation, source/core, endpoint-trust, build, formatting, and generated-catalog checks passed. A bounded live URL probe found three concrete obsolete destinations; ClearOne evidence now uses its current official product/support destinations, Dataton WATCHOUT 6 uses the official legacy page, and Lake Controller uses current official Lab Gruppen evidence.
+
+**DESIGN DECISION**
+The catalog workstream is DONE. Device aliases and exact model identifiers must resolve to one canonical device family, while a software search alias may legitimately return multiple products when the words identify distinct tools. Compatibility metadata remains a read-only descriptive dataset and cannot create package, WinGet, vendor-delivery, credential, worker, or arbitrary-process authority.
+
+**RECOMMENDATION**
+Treat future catalog changes as bounded evidence maintenance. Preserve the frozen ledger and the existing schema/query/UI contract; add or change records only with authoritative evidence and focused regression coverage.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+Authoritative Windows inventory identities, multi-install/coexistence behavior, gated acquisition/licensing, installer hash/Authenticode/publisher evidence, and firmware/project/device-generation pairing still require controlled installation, vendor-account access, or physical hardware. These facts remain explicitly unknown or constrained and are not Phase 5 blockers.

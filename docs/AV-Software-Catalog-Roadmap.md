@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 catalog-wide expansion complete (2026-09-05)
+**Status:** Phase 5 COMPLETE — catalog workstream DONE (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -178,7 +178,7 @@ Batch 4 adds 26 descriptive products, 12 evidence-backed release families, and 2
 | Christie | Replaced Conductor's all-projector link with its direct [product page](https://www.christiedigital.com/products/projector-management/conductor/); retained direct Twist/Mystique sources. | Added Twist, Mystique, Conductor, and Guardian with scoped 3DLP projector relations. | No branch/coexistence claim. | Projector edition, camera, and firmware compatibility remain vendor/project-specific. |
 | Cisco | Retained the official [Webex Device Connector article](https://help.webex.com/en-us/article/383gbd/Cisco-Webex-Device-Connector). | Added Device Connector for Webex Room/Desk/Board onboarding evidence. | No family claim. | Control Hub is web-only; account, network, and local detection are unresolved. |
 | Clear-Com | Retained the official [software versions chart](https://clearcom.com/Download-Center/Software-Versions-Chart) and direct Station-IC page. | Added EHX, Dynam-EC, Station-IC, and FreeSpeak II Configuration Editor relations. | EHX Current and Legacy families are recorded from the chart. | License, matrix/card/firmware pairing and installed detection remain unresolved. |
-| ClearOne | Retained CONSOLE AI and [resource-library](https://www.clearone.com/resource-library-search) sources. | Added CONSOLE AI and legacy CONVERGE Pro Console for Converge Pro 2 and legacy service. | No coexistence claim. | Console/firmware pairing and Windows inventory require controlled evidence. |
+| ClearOne | Retained the direct CONSOLE AI page and replaced the dead resource-library destination with the official ClearOne DSP support portal. | Added CONSOLE AI and legacy CONVERGE Pro Console for Converge Pro 2 and legacy service. | No coexistence claim. | Console/firmware pairing and Windows inventory require controlled evidence. |
 | Colorlight | Replaced the generic home page with direct [LEDVISION](https://en.colorlightinside.com/product/download/381?language=en) evidence. | Added LEDVISION and LEDSetting for Colorlight LED controller configuration/firmware. | No family claim. | Exact controller/model scope, installer identity, and local detection remain unresolved. |
 | d&b audiotechnik | Retained product pages and direct [downloads/archive](https://www.dbaudio.com/global/en/products/software/software-archive/). | Added ArrayCalc, R1, and NoizCalc; R1 is scoped to d&b system control/monitoring. | Current and Archived families recorded for ArrayCalc and R1. | System firmware pairing, licensing, and Windows detection remain unresolved. |
 | Datapath | Retained WallControl/Aetria pages and the official [Wall Designer](https://walldesigner.datapath.co.uk/) application. | Added WallControl 10, Aetria, and Wall Designer; Wall Designer is related to Fx4/Hx4/x4 controllers. | No family claim. | Server deployment, device scope, and local detection remain unresolved. |
@@ -210,9 +210,10 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 
 1. **Phase 1 — research and ledger:** complete for reference batch; no runtime or manifest change.
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
-3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
+3. **Phase 3A — bounded reference-vendor pilot:** **complete.** Q-SYS, Biamp, and Crestron established the initial `manifests/software-compatibility.json` production dataset and read-only Application queries. Phase 4 subsequently expanded that same schema and composition; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** **complete.** Batches 2–11 have been processed using the frozen ledger. Batch 11 adds 13 descriptive products, 5 durable release-family records, and 9 evidence-backed relations. No Phase 4 product changes package authority. Do not begin Phase 5 without an explicit owner task.
+5. **Phase 4 — catalog-wide completion:** **complete.** Batches 2–11 have been processed using the frozen ledger. Batch 11 adds 13 descriptive products, 5 durable release-family records, and 9 evidence-backed relations. No Phase 4 product changes package authority.
+6. **Phase 5 — final acceptance:** **complete.** The 116-manufacturer ledger, production schema/data, representative compiled-WPF queries, link/evidence structure, and execution-authority isolation passed the consolidated acceptance gate. The catalog workstream is done; unresolved controlled-install and vendor-login evidence remains future evidence maintenance, not an incomplete batch.
 
 ### Phase 2 implemented schema contract
 
@@ -225,7 +226,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 
 ### Phase 3A implemented production pilot
 
-- `manifests/software-compatibility.json` is the schema-version-1 production source for the reference batch: 9 products, 7 release-family records, and 24 purpose-specific relations. It contains no local installed-version claims.
+- `manifests/software-compatibility.json` began as the schema-version-1 reference-vendor pilot and is now the single catalog-wide production source: 245 products, 80 release-family records, and 195 purpose-specific relations. It contains no fabricated local installed-version claims.
 - Q-SYS Designer is one `QSYSDesigner` product with `Current`, `LTS`, and `Archived` families. Its Q-SYS Core relations retain project/Core-firmware matching constraints and do not turn a family or patch into an update recommendation.
 - Biamp Tesira and Canvas remain distinct products. Their `Current` and `Archived` evidence branches carry no invented version bounds; the conditional Canvas relation records only the documented same-version configuration workflow. Nexia is a legacy product with manual informational relations and no package, acquisition, detection, or execution record.
 - Crestron CP4N and DM NVX relations point to existing child product identities. The compatibility document does not reproduce or replace MasterInstaller provider metadata, so credential, transport, and acquisition authority remain exclusively in the existing package catalog.
@@ -256,7 +257,7 @@ Batch 6 adds 21 descriptive products, 9 release-family records, and 12 purpose-s
 | JBL Professional | Retained direct [Performance Manager](https://jblpro.com/en-US/products/performance-manager); added Performance Manager and Venue Synthesis. | No branch claim. | Exact JBL/Crown model and inventory scope unresolved. |
 | Kramer | Retained direct K-Config/K-Router product sources; added their descriptive identities and scoped relations. | No branch claim. | Controller/matrix revision and installed detection unresolved. |
 | L-Acoustics | Retained [Soundvision](https://www.l-acoustics.com/products/soundvision/) and [LA Network Manager](https://www.l-acoustics.com/products/network-manager/); added controller relation. | Current/archive families are vendor-backed. | Controlled-install coexistence and firmware pairing remain unresolved. |
-| Lake | Retained Controller support source; added processor/amplifier configuration relation. | No branch claim. | Exact model/firmware and local inventory unresolved. |
+| Lake | Replaced a dead model URL with the official [Lab Gruppen networking evidence](https://www.labgruppen.com/en/technologies/networking) for Lake Controller; retained the processor/amplifier configuration relation. | No branch claim. | Exact model/firmware and local inventory unresolved. |
 | LEA Professional | Retained [SharkWare](https://leaprofessional.com/products/sharkware/page/2/); added Connect Series relation. | No branch claim. | Firmware, installer identity, and detection remain unresolved. |
 | Lectrosonics | Retained [Wireless Designer](https://lectrosonics.com/wireless-designer/); added documented receiver/IEM discovery relation. | No branch claim. | USB/firmware workflow and installation evidence unresolved. |
 | LG | Corrected/retained direct [SuperSign downloads](https://solutions.lg.com/us/software/supersign/supersign-downloads); added SuperSign CMS and LED Assistant, with DVLED relation only. | No branch claim. | CMS licensing/server deployment and model/firmware scope unresolved. |
@@ -324,7 +325,7 @@ Batch 9 adds 27 descriptive products, 6 release-family records, and 11 purpose-s
 
 ## Phase 4 Batch 10 — completion record
 
-Batch 10 adds 20 descriptive products, 2 release-family records, and 7 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed.
+Batch 10 adds 20 descriptive products, 2 release-family records, and 9 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed. Phase 5 normalized one broad multi-vendor SoundBase receiver family into canonical Sennheiser and Shure device families without changing its documented product scope.
 
 | Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
 |---|---|---|---|
@@ -358,3 +359,16 @@ Batch 11 completes the frozen Phase 4 ledger with 13 descriptive products, 5 rel
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 11 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
+
+## Phase 5 — final acceptance
+
+The catalog workstream passed its final consolidated acceptance on 2026-09-05:
+
+- all 116 frozen manufacturers occur exactly once across Batches 1–11, every batch is complete, and the ledger exactly matches the maintained package-manifest vendor set;
+- 245 Product IDs, 80 ReleaseFamily IDs, and 195 DeviceSoftwareRelation IDs are unique, with no dangling or cross-product family references and no duplicate semantic relations;
+- all compatibility links are structurally valid HTTPS destinations; a bounded live probe corrected concrete dead ClearOne, Dataton legacy, and Lake destinations while preserving access-gated or transiently restricted vendor evidence;
+- device aliases and exact model identifiers resolve to one canonical device family. The acceptance fix removed five ambiguous family identities while retaining legitimate multi-product software aliases;
+- representative product/device search, reverse lookup, release-family, installed-evidence, link-handoff, compiled-WPF smoke, and closed-runtime regression tests pass;
+- the compatibility schema remains descriptive and contains no package, provider, deployment, executable, command, credential, delivery, or worker-authority fields.
+
+**Future evidence maintenance (not acceptance blockers):** controlled physical installs are still required for authoritative uninstall/registry identities, local multi-install detection, and coexistence behavior; vendor accounts may be required for gated acquisition and licensing facts; installers are required for hash, Authenticode, and publisher evidence; and vendor/device access is required for firmware, project, hardware-generation, and device-pairing verification. Until verified, the application continues to present this evidence as `Unknown`, `Incomplete`, `Unavailable`, or an explicit constraint rather than guessing.
