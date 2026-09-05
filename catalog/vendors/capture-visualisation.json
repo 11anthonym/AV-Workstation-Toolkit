@@ -54,7 +54,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://www.capture.se/Downloads/Download-Capture",
-                                          "OfficialProductUri":  "https://www.capture.se/Products/Capture",
+                                          "OfficialProductUri":  "https://www.capture.se/Downloads/Download-Capture",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

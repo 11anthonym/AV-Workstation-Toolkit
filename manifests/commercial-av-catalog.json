@@ -1877,7 +1877,7 @@
                                                           ],
                                           "SideBySideSupported":  "Unknown",
                                           "OfficialDownloadUri":  "https://www.avolites.com/support/titan-pc-suite/",
-                                          "OfficialProductUri":  "https://www.avolites.com/software/titan/",
+                                          "OfficialProductUri":  "https://www.avolites.com/support/titan-pc-suite/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -1940,7 +1940,7 @@
                                                               "Embedded"
                                                           ],
                                           "OfficialDownloadUri":  "https://avstumpfl.com/en/support/downloads/",
-                                          "OfficialProductUri":  "https://pixera.one/",
+                                          "OfficialProductUri":  "https://pixera.one/en/downloads",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -1984,7 +1984,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.barco.com/en/support/software",
+                                          "OfficialProductUri":  "https://www.barco.com/en/product/projector-toolset",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2560,7 +2560,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://boseprofessional.com/products/software/controlspace-designer-software",
+                                          "OfficialProductUri":  "https://boseprofessional.com/products/power-amplifiers/software-power-amplifiers/controlspace-designer-software",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3540,7 +3540,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://www.capture.se/Downloads/Download-Capture",
-                                          "OfficialProductUri":  "https://www.capture.se/Products/Capture",
+                                          "OfficialProductUri":  "https://www.capture.se/Downloads/Download-Capture",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

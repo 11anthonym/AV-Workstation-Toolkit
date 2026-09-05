@@ -48,7 +48,7 @@
                                                           ],
                                           "SideBySideSupported":  "Unknown",
                                           "OfficialDownloadUri":  "https://www.avolites.com/support/titan-pc-suite/",
-                                          "OfficialProductUri":  "https://www.avolites.com/software/titan/",
+                                          "OfficialProductUri":  "https://www.avolites.com/support/titan-pc-suite/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-04 — AV software compatibility catalog Batch 3
+
+- Completed the frozen Batch 3 evidence pass for Audinate, Audio-Technica, AV Stumpfl, AVer, Avolites, Barco, Blackmagic Design, Bose Professional, BrightSign, Brompton Technology, BSS, and Capture Visualisation.
+- Added read-only product, release-family, alias, and evidence-backed device/software records while preserving explicit `Unknown` local installed-version evidence.
+- Corrected selected catalog links to more direct official vendor destinations without changing package, delivery, or worker authorization.
+
 ## 2026-09-04 — AV software compatibility catalog Batch 2
 
 - Completed the frozen Batch 2 evidence pass for 7thSense, Adamson, AFMG, AJA Video Systems, Alcorn McBride, Allen & Heath, AMX, Analog Way, Angry IP Scanner, Ashly Audio, AtlasIED, and Atlona.

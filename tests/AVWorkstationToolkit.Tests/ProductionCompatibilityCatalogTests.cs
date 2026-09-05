@@ -9,16 +9,18 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class ProductionCompatibilityCatalogTests
 {
     [TestMethod]
-    public void ProductionCatalogParsesWithApprovedReferenceAndBatchTwoVendors()
+    public void ProductionCatalogParsesWithApprovedReferenceAndCompletedBatchThreeVendors()
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(35, catalog.Products);
+        Assert.HasCount(63, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
                 "7thSense", "Adamson", "AFMG", "AJA Video Systems", "Alcorn McBride", "Allen & Heath", "AMX", "Analog Way",
-                "Angry IP Scanner Project", "Ashly Audio", "AtlasIED", "Atlona", "Biamp", "Crestron", "Q-SYS"
+                "Angry IP Scanner Project", "Ashly Audio", "AtlasIED", "Atlona", "Audinate", "Audio-Technica", "AV Stumpfl", "AVer",
+                "Avolites", "Barco", "Biamp", "Blackmagic Design", "Bose Professional", "BrightSign", "Brompton Technology", "BSS",
+                "Capture Visualisation", "Crestron", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -121,6 +123,29 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchThreeDeviceRelationsAreEvidenceBackedAndAliasesResolve()
+    {
+        var service = CreateQueryService();
+
+        var dante = service.GetSoftwareForDevice("Dante-enabled device").SelectMany(group => group.Software).ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { DeviceSoftwarePurpose.Configuration, DeviceSoftwarePurpose.Diagnostics, DeviceSoftwarePurpose.Discovery, DeviceSoftwarePurpose.Firmware },
+            dante.Where(item => item.ProductId.Value == "Audinate.DanteController").Select(item => item.Purpose).ToArray());
+
+        var projector = service.GetSoftwareForDevice("UDX").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(projector.Any(item => item.ProductId.Value == "Barco.ProjectorToolset" && item.Purpose == DeviceSoftwarePurpose.Diagnostics));
+
+        var atem = service.GetSoftwareForDevice("ATEM Mini").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(atem.Any(item => item.ProductId.Value == "Blackmagic.ATEMSoftwareControl" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+
+        var bose = service.GetSoftwareForDevice("EX-1280C").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(bose.Any(item => item.ProductId.Value == "Bose.ControlSpaceDesigner" && item.Purpose == DeviceSoftwarePurpose.Commissioning));
+
+        var bss = service.GetSoftwareForDevice("BSS AVX").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(bss.Any(item => item.ProductId.Value == "BSS.AVXManager" && item.Purpose == DeviceSoftwarePurpose.Discovery));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -158,7 +183,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(35, services.Compatibility.SearchProducts());
+        Assert.HasCount(63, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -173,7 +198,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(35, compatibility.Products);
+        Assert.HasCount(63, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
