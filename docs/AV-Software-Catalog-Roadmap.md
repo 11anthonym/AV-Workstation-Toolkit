@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 Batch 8 complete (2026-09-05)
+**Status:** Phase 4 Batch 9 complete (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -122,7 +122,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | 6 | **Complete** | Jabra; JBL Professional; Kramer; L-Acoustics; Lake; LEA Professional; Lectrosonics; LG; Lightware; Logitech; Luminex; MA Lighting |
 | 7 | **Complete** | Magewell; Martin Audio; Matrox Video; Medialon; Mersive; Meyer Sound; Microsoft; Milan Manager; Multiple vendors; NagleCode; NDI; NETGEAR |
 | 8 | **Complete** | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
-| 9 | Unfinished | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
+| 9 | **Complete** | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
 | 10 | Unfinished | Sennheiser; Sharp NEC Display Solutions; Shure; Sony Professional; SoundBase; StudioCoast; Symetrix; TeraTerm Project; Unity Intercom; Uwe Sieber; Vaddio; Wisycom |
 | 11 | Unfinished | WolfVision; Xilica; Yamaha Professional Audio; Yealink; ZeeVee |
 
@@ -212,7 +212,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** Batches 4–8 are **complete**. Batch 8 adds 23 descriptive products, 6 durable release-family records, and 10 evidence-backed relations. They do not change package authority. Process only frozen Batches 9–11; do not re-audit Batches 1–8 unless a source change or concrete conflict requires it.
+5. **Phase 4 — catalog-wide completion:** Batches 4–9 are **complete**. Batch 9 adds 27 descriptive products, 6 durable release-family records, and 11 evidence-backed relations. They do not change package authority. Process only frozen Batches 10–11; do not re-audit Batches 1–9 unless a source change or concrete conflict requires it.
 
 ### Phase 2 implemented schema contract
 
@@ -302,3 +302,22 @@ Batch 8 adds 23 descriptive products, 6 release-family records, and 10 purpose-s
 | Powersoft | Corrected ArmoniaPlus source and recorded its [official releases](https://www.powersoft.com/en/armonia-official-releases); scoped amplifier/controller relation. | Current ArmoniaPlus and legacy Armonia Pro branches. | Firmware/project pairing and local detection unresolved. |
 | Professional Wireless Systems | Corrected IAS to direct [product evidence](https://www.professionalwireless.com/intermod-analysis/). | No branch claim. | Generic RF coordination remains descriptive; licensing and manufacturer-specific mapping unresolved. |
 | QLC+ Project | Corrected to direct [download/release page](https://qlcplus.org/download). | Current QLC+ 5 and legacy QLC+ 4 branches. | General lighting control; no fixture/manufacturer relation inferred. |
+
+## Phase 4 Batch 9 — completion record
+
+Batch 9 adds 27 descriptive products, 6 release-family records, and 11 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed.
+
+| Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
+|---|---|---|---|
+| Rane Commercial | Retained direct [Halogen](https://www.ranecommercial.com/halogen); added HAL processor configuration relation. | No branch claim. | HAL project/firmware and local detection unresolved. |
+| Rational Acoustics | Retained Suite/edition sources and added the Smaart product family. | No branch claim. | Measurement applications remain descriptive; license activation and local detection unresolved. |
+| RealTerm Project | Retained [RealTerm](https://realterm.sourceforge.io/). | Legacy descriptive product. | Generic serial terminal; no device relation inferred. |
+| Resolume | Retained direct [download/archive](https://www.resolume.com/download/); added Arena, Avenue, and Wire. | Current 7 and archived families for Arena/Avenue. | Media-server/project/display mapping and coexistence unresolved. |
+| RF Explorer | Retained direct [ClearWaves](https://rfexplorer.com/clearwaves/) source; added analyzer diagnostic relation. | No branch claim. | Device-serial license and frequency coordination remain manual. |
+| Riedel Communications | Retained Director/Bolero sources; added Artist and Bolero relations. | No branch claim. | MyRiedel access, matrix firmware, and local detection unresolved. |
+| Room EQ Wizard | Retained [REW](https://www.roomeqwizard.com/). | No branch claim. | General measurement utility; no device relation inferred. |
+| Ross Video | Retained DashBoard/Platform Manager sources. | No branch claim. | Broad Ross-device compatibility and account/deployment evidence unresolved. |
+| RTS Intercoms | Retained direct [apps/tools](https://rtsintercoms.com/support/apps-and-tools/) and AZedit sources; added scoped NEO, matrix, OMNEO, and VLink relations. | No branch claim. | Firmware, network, and exact system pairing unresolved. |
+| sACNView Project | Retained [sACNView](https://sacnview.org/). | No branch claim. | Protocol analyzer remains descriptive; no lighting-device relation inferred. |
+| Samsung | Retained MagicINFO/VXT sources and added Color Expert LED signage relation only. | No branch claim. | Tenant, player, display, and server deployment scope unresolved. |
+| ScreenBeam | Corrected CMS Enterprise to its direct [product/release page](https://www.screenbeam.com/products/screenbeam-cms-enterprise/); added receiver relation. | Current and archived CMS Enterprise families. | Server/VM sizing, licensing, and receiver migration remain unresolved. |

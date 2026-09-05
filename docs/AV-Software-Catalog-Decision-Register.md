@@ -267,3 +267,14 @@ Batch 8 adds 23 descriptive Products, 6 release families, and 10 purpose-specifi
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 8 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, device firmware/project pairing, account/licensing rights, or installer/publisher identity. These retain explicit `Unknown` installed evidence and are not schema blockers.
+
+### CAT-025 — Phase 4 Batch 9 evidence and implementation
+
+**VERIFIED FACT**
+Batch 9 reviewed all twelve frozen manufacturers: Rane Commercial, Rational Acoustics, RealTerm Project, Resolume, RF Explorer, Riedel Communications, Room EQ Wizard, Ross Video, RTS Intercoms, sACNView Project, Samsung, and ScreenBeam. Direct evidence scopes [Rane Halogen](https://www.ranecommercial.com/halogen), [Resolume downloads](https://www.resolume.com/download/), [ClearWaves](https://rfexplorer.com/clearwaves/), [RTS apps and tools](https://rtsintercoms.com/support/apps-and-tools/), and [ScreenBeam CMS Enterprise](https://www.screenbeam.com/products/screenbeam-cms-enterprise/).
+
+**DESIGN DECISION**
+Batch 9 adds 27 descriptive Products, 6 release families, and 11 purpose-specific relations. Relations are limited to Rane HAL processors, RF Explorer analyzers, Riedel Artist/Bolero, RTS matrix/OMNEO systems, Samsung LED signage, and ScreenBeam receivers. Rational Acoustics, RealTerm, Resolume, Room EQ Wizard, Ross Video, and sACNView remain descriptive where official evidence does not establish a specific hardware relation. No package/provider/delivery/credential/worker authority is added.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 9 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
