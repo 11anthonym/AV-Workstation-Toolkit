@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(120, catalog.Products);
+        Assert.HasCount(141, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -23,7 +23,8 @@ public sealed class ProductionCompatibilityCatalogTests
                 "Capture Visualisation", "ChamSys", "Christie", "Cisco", "Clear-Com", "ClearOne", "Colorlight", "Crestron",
                 "d&b audiotechnik", "Datapath", "Dataton", "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron",
                 "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
-                "HW group", "Intermodulation Analysis", "Q-SYS"
+                "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Kramer", "L-Acoustics", "Lake",
+                "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -180,6 +181,21 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchSixRelationsKeepVendorScopesAndReleaseFamiliesExplicit()
+    {
+        var service = CreateQueryService();
+
+        Assert.IsTrue(service.GetSoftwareForDevice("LA12X").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "LAcoustics.LANetworkManager" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.GetSoftwareForDevice("DCR822").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Lectrosonics.WirelessDesigner" && item.Purpose == DeviceSoftwarePurpose.Discovery));
+        Assert.IsTrue(service.GetSoftwareForDevice("Luminex GigaCore").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Luminex.Araneo" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("Jabra.Direct")));
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("MALighting.grandMA3onPC")));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -217,7 +233,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(120, services.Compatibility.SearchProducts());
+        Assert.HasCount(141, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -232,7 +248,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(120, compatibility.Products);
+        Assert.HasCount(141, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -248,6 +264,14 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchFourAndFiveProductIds = compatibility.Products.Where(item => batchFourAndFiveVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchFourAndFiveProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var batchSixVendors = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Jabra", "JBL Professional", "Kramer", "L-Acoustics", "Lake", "LEA Professional", "Lectrosonics", "LG",
+            "Lightware", "Logitech", "Luminex", "MA Lighting"
+        };
+        var batchSixProductIds = compatibility.Products.Where(item => batchSixVendors.Contains(item.Vendor))
+            .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.IsTrue(packages.Items.Where(item => batchSixProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");

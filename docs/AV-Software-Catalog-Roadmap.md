@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 Batches 4 and 5 complete (2026-09-04)
+**Status:** Phase 4 Batch 6 complete (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -119,7 +119,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | 3 | **Complete** | Audinate; Audio-Technica; AV Stumpfl; AVer; Avolites; Barco; Blackmagic Design; Bose Professional; BrightSign; Brompton Technology; BSS; Capture Visualisation |
 | 4 | Complete | ChamSys; Christie; Cisco; Clear-Com; ClearOne; Colorlight; d&b audiotechnik; Datapath; Dataton; Dell / Waves; DELTACAST; Disguise |
 | 5 | Complete | Epson; ETC; Extron; Figure 53; FileZilla Project; Flachmann und Heggelbacher; Green Hippo; Green-GO; HP Poly; Huddly; HW group; Intermodulation Analysis |
-| 6 | Unfinished | Jabra; JBL Professional; Kramer; L-Acoustics; Lake; LEA Professional; Lectrosonics; LG; Lightware; Logitech; Luminex; MA Lighting |
+| 6 | **Complete** | Jabra; JBL Professional; Kramer; L-Acoustics; Lake; LEA Professional; Lectrosonics; LG; Lightware; Logitech; Luminex; MA Lighting |
 | 7 | Unfinished | Magewell; Martin Audio; Matrox Video; Medialon; Mersive; Meyer Sound; Microsoft; Milan Manager; Multiple vendors; NagleCode; NDI; NETGEAR |
 | 8 | Unfinished | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
 | 9 | Unfinished | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
@@ -212,7 +212,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** Batches 4 and 5 are **complete** with 57 descriptive products, 22 durable release-family records, and 56 evidence-backed relations. They do not change package authority. Process only frozen Batches 6–11; do not re-audit Batches 1–5 unless a source change or concrete conflict requires it.
+5. **Phase 4 — catalog-wide completion:** Batches 4–6 are **complete**. Batch 6 adds 21 descriptive products, 9 durable release-family records, and 12 evidence-backed relations. They do not change package authority. Process only frozen Batches 7–11; do not re-audit Batches 1–6 unless a source change or concrete conflict requires it.
 
 ### Phase 2 implemented schema contract
 
@@ -245,3 +245,22 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 - [x] Phase 2 focused tests prove reverse indexes, aliases, identity/relationship validation, incomplete inventory semantics, authority isolation, and backward-compatible production manifest loading.
 - [x] Phase 3A production reference data, compiled read-only composition, alias/device queries, explicit unknown installed evidence, and authority-isolation regressions are implemented.
 - [x] Phase 3B integrates product and device compatibility search into Find Apps and the existing compiled details surface while preserving read-only authority isolation.
+
+## Phase 4 Batch 6 — completion record
+
+Batch 6 adds 21 descriptive products, 9 release-family records, and 12 purpose-specific device/software relations. All added products retain explicit `Unknown` installed evidence. No package, WinGet, delivery, credential, or worker authority changed.
+
+| Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
+|---|---|---|---|
+| Jabra | Retained [Direct](https://www.jabra.com/software-and-services/jabra-direct); added Direct relation for supported professional headsets/speakerphones. | Direct current/legacy branches from Jabra support guidance. | Xpress/Plus tenant/device scope and local detection unresolved. |
+| JBL Professional | Retained direct [Performance Manager](https://jblpro.com/en-US/products/performance-manager); added Performance Manager and Venue Synthesis. | No branch claim. | Exact JBL/Crown model and inventory scope unresolved. |
+| Kramer | Retained direct K-Config/K-Router product sources; added their descriptive identities and scoped relations. | No branch claim. | Controller/matrix revision and installed detection unresolved. |
+| L-Acoustics | Retained [Soundvision](https://www.l-acoustics.com/products/soundvision/) and [LA Network Manager](https://www.l-acoustics.com/products/network-manager/); added controller relation. | Current/archive families are vendor-backed. | Controlled-install coexistence and firmware pairing remain unresolved. |
+| Lake | Retained Controller support source; added processor/amplifier configuration relation. | No branch claim. | Exact model/firmware and local inventory unresolved. |
+| LEA Professional | Retained [SharkWare](https://leaprofessional.com/products/sharkware/page/2/); added Connect Series relation. | No branch claim. | Firmware, installer identity, and detection remain unresolved. |
+| Lectrosonics | Retained [Wireless Designer](https://lectrosonics.com/wireless-designer/); added documented receiver/IEM discovery relation. | No branch claim. | USB/firmware workflow and installation evidence unresolved. |
+| LG | Corrected/retained direct [SuperSign downloads](https://solutions.lg.com/us/software/supersign/supersign-downloads); added SuperSign CMS and LED Assistant, with DVLED relation only. | No branch claim. | CMS licensing/server deployment and model/firmware scope unresolved. |
+| Lightware | Retained direct [Device Controller](https://www.lightware.com/en/products/software/lightware-device-controller); added LDC/LDU2 product data and LDC relation. | No branch claim. | Device-specific coverage and installed evidence unresolved. |
+| Logitech | Retained Sync/CollabOS and added Logi Tune descriptive identity; added Sync relation for documented CollabOS room devices. | No branch claim. | Account/service and endpoint firmware pairing unresolved. |
+| Luminex | Retained [Araneo](https://www.luminex.be/products/software/araneo/) and [Araneo Studio](https://www.luminex.be/products/software/araneo-studio/); added GigaCore relation. | No branch claim. | License, model coverage, and local detection unresolved. |
+| MA Lighting | Corrected/retained direct [grandMA3 downloads/archive](https://www.malighting.com/downloads/products/grandMA3/); added grandMA3/grandMA2 onPC and MA3 relation. | grandMA3 current/archive and grandMA2 legacy are vendor-backed. | Console project pairing, multi-install behavior, and inventory evidence unresolved. |

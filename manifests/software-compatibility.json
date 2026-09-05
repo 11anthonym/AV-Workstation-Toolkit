@@ -1124,6 +1124,174 @@
       "IntermodExplorer",
       "Intermod Explorer"
     ]
+  },
+  {
+    "Id": "Jabra.Direct",
+    "Vendor": "Jabra",
+    "Name": "Jabra Direct",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.jabra.com/software-and-services/jabra-direct",
+    "Aliases": [ "Jabra Direct", "Jabra headset utility", "Jabra speakerphone utility" ]
+  },
+  {
+    "Id": "JBL.PerformanceManager",
+    "Vendor": "JBL Professional",
+    "Name": "JBL Performance Manager",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://jblpro.com/en-US/products/performance-manager",
+    "Aliases": [ "Performance Manager", "JBL Performance Manager" ]
+  },
+  {
+    "Id": "JBL.VenueSynthesis",
+    "Vendor": "JBL Professional",
+    "Name": "JBL Venue Synthesis",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://jblpro.com/en-US/products/performance-manager",
+    "Aliases": [ "Venue Synthesis", "JBL Venue Synthesis", "JBL VS" ]
+  },
+  {
+    "Id": "Kramer.KConfig",
+    "Vendor": "Kramer",
+    "Name": "Kramer K-Config",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.kramerav.com/product/k-config/",
+    "Aliases": [ "K-Config", "Kramer K Config", "Kramer control configuration" ]
+  },
+  {
+    "Id": "Kramer.KRouterPlus",
+    "Vendor": "Kramer",
+    "Name": "Kramer K-Router Plus",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.kramerav.com/product/k-router-plus/",
+    "Aliases": [ "K-Router Plus", "Kramer K Router", "Kramer router utility" ]
+  },
+  {
+    "Id": "LAcoustics.Soundvision",
+    "Vendor": "L-Acoustics",
+    "Name": "L-Acoustics Soundvision",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.l-acoustics.com/products/soundvision/",
+    "Aliases": [ "Soundvision", "L-Acoustics Soundvision" ]
+  },
+  {
+    "Id": "LAcoustics.LANetworkManager",
+    "Vendor": "L-Acoustics",
+    "Name": "L-Acoustics LA Network Manager",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.l-acoustics.com/products/network-manager/",
+    "Aliases": [ "LA Network Manager", "L-Acoustics Network Manager" ]
+  },
+  {
+    "Id": "Lake.Controller",
+    "Vendor": "Lake",
+    "Name": "Lake Controller",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.labgruppen.com/product.html?modelCode=0808-AAK",
+    "Aliases": [ "Lake Controller", "Lake processing" ]
+  },
+  {
+    "Id": "LEAProfessional.SharkWare",
+    "Vendor": "LEA Professional",
+    "Name": "LEA Professional SharkWare",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://leaprofessional.com/products/sharkware/page/2/",
+    "Aliases": [ "SharkWare", "LEA SharkWare", "LEA amplifier control" ]
+  },
+  {
+    "Id": "Lectrosonics.WirelessDesigner",
+    "Vendor": "Lectrosonics",
+    "Name": "Lectrosonics Wireless Designer",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://lectrosonics.com/wireless-designer/",
+    "Aliases": [ "Wireless Designer", "Lectrosonics Wireless Designer" ]
+  },
+  {
+    "Id": "LG.SuperSignCMS",
+    "Vendor": "LG",
+    "Name": "LG SuperSign CMS",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://solutions.lg.com/us/software/supersign/supersign-downloads",
+    "Aliases": [ "SuperSign CMS", "LG SuperSign", "LG signage CMS" ]
+  },
+  {
+    "Id": "LG.LEDAssistant",
+    "Vendor": "LG",
+    "Name": "LG LED Assistant",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://solutions.lg.com/us/software/supersign/supersign-downloads",
+    "Aliases": [ "LED Assistant", "LG LED Assistant", "LG DVLED" ]
+  },
+  {
+    "Id": "Lightware.LDC",
+    "Vendor": "Lightware",
+    "Name": "Lightware Device Controller",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.lightware.com/en/products/software/lightware-device-controller",
+    "Aliases": [ "Lightware Device Controller", "LDC", "Lightware LDC" ]
+  },
+  {
+    "Id": "Lightware.LDU2",
+    "Vendor": "Lightware",
+    "Name": "Lightware Device Updater 2",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.lightware.com/en/products/software/lightware-device-controller",
+    "Aliases": [ "Lightware Device Updater 2", "LDU2", "Lightware firmware updater" ]
+  },
+  {
+    "Id": "Logitech.Sync",
+    "Vendor": "Logitech",
+    "Name": "Logitech Sync",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.logitech.com/en-us/video-collaboration/products/sync.html",
+    "Aliases": [ "Logitech Sync", "Logi Sync" ]
+  },
+  {
+    "Id": "Logitech.CollabOS",
+    "Vendor": "Logitech",
+    "Name": "Logitech CollabOS",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://prosupport.logi.com/hc/en-us/articles/1500001344641-CollabOS-Guide",
+    "Aliases": [ "CollabOS", "Logitech CollabOS" ]
+  },
+  {
+    "Id": "Logitech.Tune",
+    "Vendor": "Logitech",
+    "Name": "Logi Tune",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.logitech.com/en-us/video-collaboration/software/logi-tune-software.html",
+    "Aliases": [ "Logi Tune", "Logitech Tune" ]
+  },
+  {
+    "Id": "Luminex.Araneo",
+    "Vendor": "Luminex",
+    "Name": "Luminex Araneo",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.luminex.be/products/software/araneo/",
+    "Aliases": [ "Araneo", "Luminex Araneo", "Araneo GigaCore" ]
+  },
+  {
+    "Id": "Luminex.AraneoStudio",
+    "Vendor": "Luminex",
+    "Name": "Luminex Araneo Studio",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.luminex.be/products/software/araneo-studio/",
+    "Aliases": [ "Araneo Studio", "Luminex Araneo Studio" ]
+  },
+  {
+    "Id": "MALighting.grandMA3onPC",
+    "Vendor": "MA Lighting",
+    "Name": "grandMA3 onPC",
+    "Lifecycle": "Current",
+    "OfficialSourceUri": "https://www.malighting.com/downloads/products/grandMA3/",
+    "Aliases": [ "grandMA3 onPC", "MA3 onPC", "grandMA3" ]
+  },
+  {
+    "Id": "MALighting.grandMA2onPC",
+    "Vendor": "MA Lighting",
+    "Name": "grandMA2 onPC",
+    "Lifecycle": "Legacy",
+    "OfficialSourceUri": "https://www.malighting.com/downloads/",
+    "Aliases": [ "grandMA2 onPC", "MA2 onPC", "grandMA2" ]
   }
   ],
   "ReleaseFamilies": [
@@ -1714,6 +1882,114 @@
     "EvidenceUri": "https://support.hp.com/us-en/document/ish_13663054-13662994-16",
     "EvidenceKind": "VendorReleaseNotes",
     "Constraints": "Poly Lens Desktop is the earlier product identity; do not infer parallel installation."
+  },
+  {
+    "Id": "Jabra.Direct.Current",
+    "ProductId": "Jabra.Direct",
+    "Kind": "Current",
+    "Branch": "Direct 4 and later",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.jabra.com/en-au/supportpages/jabra-direct",
+    "EvidenceKind": "VendorSupportArticle",
+    "Constraints": "Jabra documents that Direct 4 and later replaces earlier Direct generations; do not infer side-by-side installation."
+  },
+  {
+    "Id": "Jabra.Direct.Legacy",
+    "ProductId": "Jabra.Direct",
+    "Kind": "Legacy",
+    "Branch": "Direct 3.x and earlier",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.jabra.com/en-au/supportpages/jabra-direct",
+    "EvidenceKind": "VendorSupportArticle",
+    "Constraints": "Jabra states that Direct 3.x and earlier are no longer updated; installed-version detection remains unknown."
+  },
+  {
+    "Id": "LAcoustics.Soundvision.Current",
+    "ProductId": "LAcoustics.Soundvision",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.l-acoustics.com/products/soundvision/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Use a Soundvision release compatible with the linked LA Network Manager release; this is not an automatic update recommendation."
+  },
+  {
+    "Id": "LAcoustics.Soundvision.Archived",
+    "ProductId": "LAcoustics.Soundvision",
+    "Kind": "Archived",
+    "Branch": "Archived",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.l-acoustics.com/archives-product/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Archive availability is vendor-managed; project and device compatibility remain manual decisions."
+  },
+  {
+    "Id": "LAcoustics.LANetworkManager.Current",
+    "ProductId": "LAcoustics.LANetworkManager",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.l-acoustics.com/products/network-manager/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "Controller firmware and imported Soundvision data must meet vendor compatibility guidance."
+  },
+  {
+    "Id": "LAcoustics.LANetworkManager.Archived",
+    "ProductId": "LAcoustics.LANetworkManager",
+    "Kind": "Archived",
+    "Branch": "V1-V3 archive",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.l-acoustics.com/archives-product/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "The archive lists historic Windows releases; it does not establish a coexistence rule."
+  },
+  {
+    "Id": "MALighting.grandMA3onPC.Current",
+    "ProductId": "MALighting.grandMA3onPC",
+    "Kind": "Current",
+    "Branch": "Current",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Current",
+    "EvidenceUri": "https://www.malighting.com/downloads/products/grandMA3/",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "Use the release required by the target grandMA3 system; console and node updates remain manual vendor workflows."
+  },
+  {
+    "Id": "MALighting.grandMA3onPC.Archived",
+    "ProductId": "MALighting.grandMA3onPC",
+    "Kind": "Archived",
+    "Branch": "Archive",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.malighting.com/downloads/products/grandMA3/",
+    "EvidenceKind": "VendorReleaseNotes",
+    "Constraints": "The official archive exposes historic versions; local detection and multi-install behavior require controlled evidence."
+  },
+  {
+    "Id": "MALighting.grandMA2onPC.Legacy",
+    "ProductId": "MALighting.grandMA2onPC",
+    "Kind": "Legacy",
+    "Branch": "grandMA2",
+    "MinimumVersion": null,
+    "MaximumVersion": null,
+    "Lifecycle": "Legacy",
+    "EvidenceUri": "https://www.malighting.com/downloads/",
+    "EvidenceKind": "VendorProductPage",
+    "Constraints": "grandMA2 remains legacy-service information; console project compatibility and local detection remain unresolved."
   }
   ],
   "InstalledVersions": [],
@@ -3983,6 +4259,18 @@
       "EvidenceKind": "VendorProductPage",
       "Confidence": "VendorDocumented",
       "Constraints": "London Architect is retained only for documented legacy systems; acquisition and installed-version evidence remain unresolved."
-    }
+    },
+    { "Id": "Jabra.ProfessionalDevices.Jabra.Direct.Configuration", "DeviceFamilyId": "Jabra.ProfessionalDevices", "ExactModelIds": [], "DeviceAliases": [ "Jabra headset", "Jabra speakerphone" ], "ProductId": "Jabra.Direct", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.jabra.com/software-and-services/jabra-direct", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Direct applies only to vendor-supported professional devices and grants no package authority." },
+    { "Id": "JBL.CrownNetworkedAudio.JBL.PerformanceManager.Configuration", "DeviceFamilyId": "JBL.CrownNetworkedAudio", "ExactModelIds": [], "DeviceAliases": [ "JBL performance sound system", "Crown network amplifier" ], "ProductId": "JBL.PerformanceManager", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://jblpro.com/en-US/products/performance-manager", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Performance Manager is limited to vendor-described JBL and Crown networked systems." },
+    { "Id": "Kramer.ControlSystems.Kramer.KConfig.Programming", "DeviceFamilyId": "Kramer.ControlSystems", "ExactModelIds": [], "DeviceAliases": [ "Kramer control system", "Kramer room controller", "K-Config" ], "ProductId": "Kramer.KConfig", "ReleaseFamilyId": null, "Purpose": "Programming", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.kramerav.com/product/k-config/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Controller generation and project compatibility require vendor-reviewed selection." },
+    { "Id": "LAcoustics.AmplifiedControllers.LAcoustics.LANetworkManager.Configuration", "DeviceFamilyId": "LAcoustics.AmplifiedControllers", "ExactModelIds": [], "DeviceAliases": [ "L-Acoustics amplified controller", "LA12X", "LA7.16" ], "ProductId": "LAcoustics.LANetworkManager", "ReleaseFamilyId": "LAcoustics.LANetworkManager.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.l-acoustics.com/products/network-manager/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Use the vendor-supported release and controller firmware pairing." },
+    { "Id": "Lake.Processing.Lake.Controller.Configuration", "DeviceFamilyId": "Lake.Processing", "ExactModelIds": [], "DeviceAliases": [ "Lake processor", "Lake amplifier", "Lake Controller" ], "ProductId": "Lake.Controller", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.labgruppen.com/product.html?modelCode=0808-AAK", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Exact product and firmware scope require vendor release documentation." },
+    { "Id": "LEA.ConnectSeries.LEAProfessional.SharkWare.Configuration", "DeviceFamilyId": "LEA.ConnectSeries", "ExactModelIds": [], "DeviceAliases": [ "LEA Connect Series", "LEA Connect amplifier", "LEA Dante Connect" ], "ProductId": "LEAProfessional.SharkWare", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://leaprofessional.com/products/sharkware/page/2/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "SharkWare applies to Connect Series amplifiers under the vendor firmware prerequisite." },
+    { "Id": "Lectrosonics.WirelessSystems.Lectrosonics.WirelessDesigner.Discovery", "DeviceFamilyId": "Lectrosonics.WirelessSystems", "ExactModelIds": [ "DCR822", "DSR", "DSR4", "DSQD", "Venue 2", "Duet Digital IEM" ], "DeviceAliases": [ "Lectrosonics receiver", "Lectrosonics Wireless Designer", "Venue 2" ], "ProductId": "Lectrosonics.WirelessDesigner", "ReleaseFamilyId": null, "Purpose": "Discovery", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://lectrosonics.com/wireless-designer/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Scope is limited to the vendor-listed supported models." },
+    { "Id": "LG.DVLED.LG.LEDAssistant.Configuration", "DeviceFamilyId": "LG.DVLED", "ExactModelIds": [], "DeviceAliases": [ "LG DVLED", "LG direct-view LED", "LG LED Assistant" ], "ProductId": "LG.LEDAssistant", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://solutions.lg.com/us/software/supersign/supersign-downloads", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "LED Assistant is scoped to LG DVLED signage products; model firmware remains manual." },
+    { "Id": "Lightware.Devices.Lightware.LDC.Configuration", "DeviceFamilyId": "Lightware.Devices", "ExactModelIds": [], "DeviceAliases": [ "Lightware device", "Lightware matrix", "Lightware VINX", "Lightware LDC" ], "ProductId": "Lightware.LDC", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.lightware.com/en/products/software/lightware-device-controller", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "LDC support is product-specific; it does not establish universal device compatibility." },
+    { "Id": "Logitech.CollabOSDevices.Logitech.Sync.Monitoring", "DeviceFamilyId": "Logitech.CollabOSDevices", "ExactModelIds": [ "Rally Bar", "Rally Bar Mini", "RoomMate", "Tap IP", "Scribe" ], "DeviceAliases": [ "Logitech Rally Bar", "Logitech RoomMate", "Logitech room device", "CollabOS device" ], "ProductId": "Logitech.Sync", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://prosupport.logi.com/hc/es-ar/articles/4639983516311-Logitech-Select-FAQs", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "Sync monitoring requires the vendor service/account and does not create a package route." },
+    { "Id": "Luminex.GigaCore.Luminex.Araneo.Configuration", "DeviceFamilyId": "Luminex.GigaCore", "ExactModelIds": [], "DeviceAliases": [ "Luminex GigaCore", "Luminex AV switch", "Araneo GigaCore" ], "ProductId": "Luminex.Araneo", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.luminex.be/products/software/araneo/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Araneo scope is limited to the vendor-described Luminex network; no generic network authority is granted." },
+    { "Id": "MALighting.grandMA3Systems.MALighting.grandMA3onPC.Programming", "DeviceFamilyId": "MALighting.grandMA3Systems", "ExactModelIds": [], "DeviceAliases": [ "grandMA3 console", "grandMA3 onPC", "MA3 command wing" ], "ProductId": "MALighting.grandMA3onPC", "ReleaseFamilyId": "MALighting.grandMA3onPC.Current", "Purpose": "Programming", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://help.malighting.com/grandMA3/2.3/HTML/onpc_windows_installation.html", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "Use the matching release for the MA3 system; this does not authorize console updates." }
   ]
 }

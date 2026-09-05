@@ -234,3 +234,14 @@ Batch 5 preserves distinct tools where their field purposes differ (for example 
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 5 product receives multi-install detection, side-by-side support, a generic download route, or arbitrary device coverage. Exact installer inventory identities, signed payload/publisher data, vendor account rights, device firmware compatibility, and physical compatibility remain explicit unknowns pending controlled installation or vendor evidence.
+
+### CAT-022 — Phase 4 Batch 6 evidence and implementation
+
+**VERIFIED FACT**
+Batch 6 reviewed all twelve frozen manufacturers: Jabra, JBL Professional, Kramer, L-Acoustics, Lake, LEA Professional, Lectrosonics, LG, Lightware, Logitech, Luminex, and MA Lighting. Direct sources support the scoped records: [Jabra Direct](https://www.jabra.com/software-and-services/jabra-direct), [JBL Performance Manager](https://jblpro.com/en-US/products/performance-manager), [LA Network Manager](https://www.l-acoustics.com/products/network-manager/), [SharkWare](https://leaprofessional.com/products/sharkware/page/2/), [Wireless Designer](https://lectrosonics.com/wireless-designer/), [LG SuperSign downloads](https://solutions.lg.com/us/software/supersign/supersign-downloads), [Lightware Device Controller](https://www.lightware.com/en/products/software/lightware-device-controller), [Araneo](https://www.luminex.be/products/software/araneo/), and [grandMA3 downloads](https://www.malighting.com/downloads/products/grandMA3/).
+
+**DESIGN DECISION**
+Batch 6 adds 21 descriptive Products, 9 evidence-backed ReleaseFamilies, and 12 purpose-specific DeviceSoftwareRelations. Device relations are limited to the vendor-supported Jabra professional devices, JBL/Crown networked systems, Kramer control/matrix products, L-Acoustics amplified controllers, Lake processing, LEA Connect Series, Lectrosonics listed wireless systems, LG DVLED, Lightware devices, Logitech CollabOS devices, Luminex GigaCore, and grandMA3 systems. No compatibility record adds a package ID, delivery route, credential, device probe, managed WinGet permission, or worker authority.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 6 product receives authoritative installed-version detection, coexistence behavior, or a generic installer route. Exact Windows inventory identities, signed installer/publisher evidence, licensing/account requirements, model/firmware/project pairing, and multi-version behavior require controlled installation or vendor-login evidence. These gaps retain explicit `Unknown` evidence and are not schema blockers.
