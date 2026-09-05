@@ -278,3 +278,14 @@ Batch 9 adds 27 descriptive Products, 6 release families, and 11 purpose-specifi
 
 **UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
 No Batch 9 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
+
+### CAT-026 — Phase 4 Batch 10 evidence and implementation
+
+**VERIFIED FACT**
+Batch 10 reviewed all twelve frozen manufacturers: Sennheiser, Sharp NEC Display Solutions, Shure, Sony Professional, SoundBase, StudioCoast, Symetrix, TeraTerm Project, Unity Intercom, Uwe Sieber, Vaddio, and Wisycom. Direct evidence scopes [Sennheiser Spectera LinkDesk](https://www.sennheiser.com/en-us/catalog/products/software/spectera-link-desk-829c7449/spectera-linkdesk-linkdesk), [SoundBase supported devices](https://docs.soundbase.app/guides/monitoring/supported-devices/), [Sony RM-IP Setup Tool](https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7), [Symetrix Composer releases](https://www.symetrixinc.com/download-composer/), [Vaddio Deployment Tool](https://www.legrandav.com/products/system_management/vaddio-deployment-tool), and [Wisycom Manager](https://wisycom.com/product/wisycom-manager/).
+
+**DESIGN DECISION**
+Batch 10 adds 20 descriptive Products, 2 release families, and 7 purpose-specific relations. Relations are limited to Spectera Base Station, exact SoundBase-supported receivers, Sharp NEC displays, Sony remote cameras, Symetrix DSP workflows, Vaddio cameras, and Wisycom wireless systems. Shure IntelliMix Room/SystemOn, StudioCoast vMix, Tera Term, Unity Intercom, and USB Device Tree Viewer remain descriptive where official evidence does not establish a specific hardware relation. No package/provider/delivery/credential/worker authority is added.
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 10 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.

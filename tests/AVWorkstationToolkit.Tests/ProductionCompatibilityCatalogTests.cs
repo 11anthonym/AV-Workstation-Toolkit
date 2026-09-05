@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(212, catalog.Products);
+        Assert.HasCount(232, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -27,7 +27,7 @@ public sealed class ProductionCompatibilityCatalogTests
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
                 "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
                 "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
-                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Q-SYS"
+                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
@@ -249,6 +249,25 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void BatchTenRelationsAreScopedAndDistinctUtilitiesRemainDescriptive()
+    {
+        var service = CreateQueryService();
+
+        Assert.IsTrue(service.GetSoftwareForDevice("Spectera Base Station").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Sennheiser.SpecteraLinkDesk" && item.Purpose == DeviceSoftwarePurpose.Monitoring));
+        Assert.IsTrue(service.GetSoftwareForDevice("AD4Q").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "SoundBase.Pro" && item.Purpose == DeviceSoftwarePurpose.Monitoring));
+        Assert.IsTrue(service.GetSoftwareForDevice("BRC-X400").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Sony.RMIPSetupTool" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.GetSoftwareForDevice("Vaddio PTZ").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Vaddio.DeploymentTool" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.SearchProducts("UsbTreeView").Any(item => item.Id.Value == "UweSieber.UsbTreeView"));
+        Assert.IsFalse(service.SearchDevices("Tera Term device").Any());
+        Assert.IsFalse(service.SearchDevices("vMix device").Any());
+        Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("Symetrix.Composer")));
+    }
+
+    [TestMethod]
     public async Task BatchTwoInstalledEvidenceRemainsExplicitAndDescriptive()
     {
         var service = CreateQueryService();
@@ -286,7 +305,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(212, services.Compatibility.SearchProducts());
+        Assert.HasCount(232, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -301,7 +320,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(212, compatibility.Products);
+        Assert.HasCount(232, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -349,6 +368,14 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchNineProductIds = compatibility.Products.Where(item => batchNineVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchNineProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var batchTenVendors = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix",
+            "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom"
+        };
+        var batchTenProductIds = compatibility.Products.Where(item => batchTenVendors.Contains(item.Vendor))
+            .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.IsTrue(packages.Items.Where(item => batchTenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");

@@ -1,6 +1,6 @@
 # AV Software, Version & Device Compatibility Catalog Roadmap
 
-**Status:** Phase 4 Batch 9 complete (2026-09-05)
+**Status:** Phase 4 Batch 10 complete (2026-09-05)
 **Scope:** this document and the companion [decision register](AV-Software-Catalog-Decision-Register.md) are the source of truth for subsequent catalog-roadmap work. They do not authorize a download, installation, firmware update, or catalog-manifest change.
 
 ## Guardrails
@@ -123,7 +123,7 @@ This is the finite Phase 4 completion ledger. It enumerates every manufacturer c
 | 7 | **Complete** | Magewell; Martin Audio; Matrox Video; Medialon; Mersive; Meyer Sound; Microsoft; Milan Manager; Multiple vendors; NagleCode; NDI; NETGEAR |
 | 8 | **Complete** | NEXO; NovaStar; Nureva; OBS Project; Obsidian Control Systems; Open Sound Meter; Panasonic; Pingman Tools; Planar; Powersoft; Professional Wireless Systems; QLC+ Project |
 | 9 | **Complete** | Rane Commercial; Rational Acoustics; RealTerm Project; Resolume; RF Explorer; Riedel Communications; Room EQ Wizard; Ross Video; RTS Intercoms; sACNView Project; Samsung; ScreenBeam |
-| 10 | Unfinished | Sennheiser; Sharp NEC Display Solutions; Shure; Sony Professional; SoundBase; StudioCoast; Symetrix; TeraTerm Project; Unity Intercom; Uwe Sieber; Vaddio; Wisycom |
+| 10 | **Complete** | Sennheiser; Sharp NEC Display Solutions; Shure; Sony Professional; SoundBase; StudioCoast; Symetrix; TeraTerm Project; Unity Intercom; Uwe Sieber; Vaddio; Wisycom |
 | 11 | Unfinished | WolfVision; Xilica; Yamaha Professional Audio; Yealink; ZeeVee |
 
 Before closing a later batch, record its source links, missing field/service software, release-family behavior, device relations, confidence, and unresolved install/login evidence in the Decision Register. A batch is not complete merely because its current catalog row exists.
@@ -212,7 +212,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 2. **Phase 2 — schema and fixtures:** **complete.** `SoftwareCompatibilityCatalog` and `CompatibilityCatalogParser` implement standalone schema version 1 under `src/AVWorkstationToolkit.Domain/Catalog`. The schema requires `Products`, `ReleaseFamilies`, `InstalledVersions`, and `DeviceSoftwareRelations` arrays, rejects unknown and duplicate JSON properties, and is not automatically loaded by the existing production catalog loader.
 3. **Phase 3A — bounded reference-vendor pilot:** **complete.** `manifests/software-compatibility.json` contains only the accepted Q-SYS, Biamp, and Crestron evidence. The compiled composition loads it independently and exposes read-only Application queries; all external/manual authority boundaries remain unchanged.
 4. **Phase 3B — compiled WPF compatibility workflow:** **complete.** The existing Find Apps search now also surfaces read-only product/alias and device/model/alias matches from `CompatibilityCatalogQueryService`. The existing details surface presents device software by purpose and product release families, installed evidence, applicable devices, and validated evidence links without creating package rows or action authority.
-5. **Phase 4 — catalog-wide completion:** Batches 4–9 are **complete**. Batch 9 adds 27 descriptive products, 6 durable release-family records, and 11 evidence-backed relations. They do not change package authority. Process only frozen Batches 10–11; do not re-audit Batches 1–9 unless a source change or concrete conflict requires it.
+5. **Phase 4 — catalog-wide completion:** Batches 4–10 are **complete**. Batch 10 adds 20 descriptive products, 2 durable release-family records, and 7 evidence-backed relations. They do not change package authority. Process only frozen Batch 11; do not re-audit Batches 1–10 unless a source change or concrete conflict requires it.
 
 ### Phase 2 implemented schema contract
 
@@ -321,3 +321,25 @@ Batch 9 adds 27 descriptive products, 6 release-family records, and 11 purpose-s
 | sACNView Project | Retained [sACNView](https://sacnview.org/). | No branch claim. | Protocol analyzer remains descriptive; no lighting-device relation inferred. |
 | Samsung | Retained MagicINFO/VXT sources and added Color Expert LED signage relation only. | No branch claim. | Tenant, player, display, and server deployment scope unresolved. |
 | ScreenBeam | Corrected CMS Enterprise to its direct [product/release page](https://www.screenbeam.com/products/screenbeam-cms-enterprise/); added receiver relation. | Current and archived CMS Enterprise families. | Server/VM sizing, licensing, and receiver migration remain unresolved. |
+
+## Phase 4 Batch 10 — completion record
+
+Batch 10 adds 20 descriptive products, 2 release-family records, and 7 purpose-specific relations. All products retain explicit `Unknown` installed evidence. No package, delivery, credential, WinGet, or worker authority changed.
+
+| Manufacturer | Link/product/relation decision | Family decision | Excluded or unresolved |
+|---|---|---|---|
+| Sennheiser | Retained Spectera LinkDesk and legacy Transmitter Manager sources; scoped LinkDesk to Spectera Base Station. | No branch claim. | Transmitter Manager acquisition, wireless coexistence, and local detection unresolved. |
+| Sharp NEC Display Solutions | Retained direct NaViSet Administrator 2 vendor download-contact source; scoped display-management relation. | No branch claim. | Exact display model/network support and local detection unresolved. |
+| Shure | Retained IntelliMix Room and SystemOn sources as distinct descriptive applications. | No branch claim. | Endpoint scope, pairing, licensing, and detection unresolved; no broad wireless mapping inferred. |
+| Sony Professional | Retained RM-IP Setup Tool support source; scoped BRC/SRG/FR7 camera relation. | No branch claim. | Camera firmware/pairing and local detection unresolved. |
+| SoundBase | Retained SE/Pro desktop sources; scoped Pro relation to exact documented supported receiver models. | No branch claim. | Account/licensing, local detection, and additional device support unresolved. |
+| StudioCoast | Retained direct vMix product/download source. | No branch claim. | Production hardware/project mapping and local detection unresolved. |
+| Symetrix | Retained Composer, SymVue, Jupiter, and SymNet Designer sources; scoped Composer DSP relation. | Composer 9 current and Composer 8.5 LTS. | Firmware/project/model pairing and local coexistence unresolved. |
+| TeraTerm Project | Retained project source. | No branch claim. | Generic serial terminal; no device relation inferred. |
+| Unity Intercom | Retained official product source. | No branch claim. | Broad intercom ecosystem mapping, licensing, and local detection unresolved. |
+| Uwe Sieber | Retained USB Device Tree Viewer source. | No branch claim. | Generic USB diagnostic utility; no device relation inferred. |
+| Vaddio | Retained direct Deployment Tool and official tools sources; scoped Deployment Tool camera relation. | No branch claim. | Exact product support, firmware pairing, and local detection unresolved. |
+| Wisycom | Retained direct Manager source; scoped wireless-system configuration relation. | No branch claim. | Receiver/transmitter/firmware pairing and local detection unresolved. |
+
+**UNRESOLVED / REQUIRES PHYSICAL INSTALL OR VENDOR LOGIN**
+No Batch 10 record claims authoritative Windows detection, side-by-side behavior, generic protocol compatibility, installer/publisher identity, firmware/project pairing, or account/licensing rights. These retain explicit `Unknown` installed evidence and are not schema blockers.
