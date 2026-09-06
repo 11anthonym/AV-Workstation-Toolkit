@@ -1,0 +1,17 @@
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="version" required="true" />
+  </parameters>
+  <msi-file path="AV-Workstation-Toolkit-${version}-x64.msi"
+            subject="AV Workstation Toolkit"
+            author="AV Workstation Toolkit Project">
+    <pe-file path="AVWorkstationToolkit.exe"
+             product-name="AV Workstation Toolkit"
+             file-version="${version}.0"
+             company-name="AV Workstation Toolkit Project"
+             original-filename="AVWorkstationToolkit.dll">
+      <authenticode-sign />
+    </pe-file>
+    <authenticode-sign />
+  </msi-file>
+</artifact-configuration>

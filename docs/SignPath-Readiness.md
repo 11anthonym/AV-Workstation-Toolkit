@@ -1,11 +1,11 @@
-# SignPath Foundation readiness
+# SignPath readiness
 
-This is an engineering readiness record for a future SignPath Foundation
-application. AV Workstation Toolkit has not been accepted by SignPath
-Foundation, has no SignPath project configuration, and must not display the
-future attribution as current sponsorship.
+AV Workstation Toolkit has a repository-controlled GitHub Actions to SignPath
+release path. It is **prepared but not operational** until the owner completes
+the external configuration below. No SignPath account, acceptance, certificate,
+signing request, or signed release is claimed.
 
-## Project and artifacts
+## Project and current state
 
 - Project: AV Workstation Toolkit
 - Repository: <https://github.com/11anthonym/AV-Workstation-Toolkit>
@@ -16,167 +16,118 @@ future attribution as current sponsorship.
 - MSI pattern: `AV-Workstation-Toolkit-<version>-x64.msi`
 - ZIP pattern: `AV-Workstation-Toolkit-<version>-win-x64.zip`
 - Build command: `Build-AVWorkstationToolkit.cmd`
+- Current release artifacts: unsigned; no SignPath signing has occurred
 
-The repository exists at the canonical URL and GitHub Actions has completed the
-`core-qa` and `package` jobs successfully. It remains private, with no tags or
-releases. No repository-visibility change is part of this readiness work.
+The Apache-2.0 license is committed. The repository remains private and has no
+public release. Paid or customer-certificate SignPath service can be configured
+for a private repository. The SignPath Foundation open-source route is blocked
+at present because the project is not publicly reviewable and has not already
+been publicly released in the form to be signed. Foundation acceptance remains
+discretionary and separate from technical integration readiness.
 
-## Reproducible build path
+## Resulting signing architecture
 
-The hosted workflows are `.github/workflows/qa.yml` and
-`.github/workflows/release.yml` on a Windows GitHub Actions runner. The release
-build requires:
+`.github/workflows/release.yml` is the single tagged Production release path.
+It runs only on GitHub-hosted Windows runners and uses immutable commit pins for
+every third-party Action. The workflow starts with no permissions; its signing
+job receives only `contents: read` and `actions: read`, while the isolated final
+publication job alone receives `contents: write`. Checkout credentials are not
+persisted.
 
-- Windows 10/11 or a compatible hosted Windows x64 runner;
-- inbox Windows PowerShell 5.1 for repository build, QA, and operator tooling;
-  the packaged compiled application and worker do not require PowerShell;
-- a stable .NET 10 SDK selected from the `10.0.100` baseline through the latest
-  installed stable .NET 10 feature band; CI installs `10.0.x`;
-- self-contained .NET runtime and apphost version 10.0.11;
-- `WixToolset.Sdk` 6.0.2 for the x64 MSI;
-- locked NuGet restore from
-  `src/AVWorkstationToolkit.Launcher/packages.lock.json`;
-- a fail-closed NuGet vulnerability audit;
-- deterministic commercial-catalog compilation and source/artifact parity;
-- immutable GitHub Actions commit pins.
+The workflow accepts only a `vX.Y.Z` tag that exactly matches `VERSION` and the
+current `origin/main` commit. The `signpath-production` GitHub environment is the
+owner-controlled approval and secret boundary. The API token is never available
+to pull-request or application code, and SignPath receives only an artifact
+already stored by GitHub Actions.
 
-`build/Build-Release.ps1` records the source commit, dirty-tree state, selected
-SDK, target framework/runtime, architecture, build channel, dependency-audit
-result, SBOM identity, artifact hashes, and explicit signing/timestamp state.
-Production mode rejects a dirty tree and rejects missing or invalid signatures.
-Development builds remain visibly unsigned.
+The exact two-request chain is:
 
-The build emits:
+1. Build and test an unsigned candidate from the tagged checkout and locked
+   dependencies.
+2. Upload only `AVWorkstationToolkit.Worker.exe`; SignPath signs it using the
+   reviewed worker artifact configuration.
+3. Verify that signed worker, embed its exact bytes in the launcher, and build
+   an unsigned MSI containing the launcher.
+4. Upload only that MSI; SignPath deep-signs the nested
+   `AVWorkstationToolkit.exe` and then the MSI envelope.
+5. Verify the returned MSI and extract its exact signed launcher. Use those same
+   launcher bytes for the direct EXE and portable ZIP. No executable is rebuilt
+   after signing.
+6. Finalize the SBOM, release manifest, and checksums from the returned signed
+   bytes; run signature-required package QA and endpoint-trust checks.
+7. Transfer exactly eight standard assets to a separate least-privilege
+   publication job. Published release assets are immutable.
 
-- self-contained single-file EXE;
-- MSI containing that exact EXE;
-- portable ZIP containing that exact EXE;
-- versioned Apache-2.0 project license;
-- CycloneDX 1.6 SBOM with locked dependency versions, package hashes where
-  available, scope/distribution metadata, and reviewed license expressions;
-- versioned third-party notices;
-- schema-versioned release manifest;
-- SHA-256 checksum list covering the distributables, notices, SBOM, and release
-  manifest. The standard workflow publishes exactly eight assets; the checksum
-  file covers the other seven and intentionally excludes itself.
+The worker, launcher, and MSI each carry Authenticode signatures. The ZIP itself
+is not signed but contains the exact signed launcher. No other executable or DLL
+is a separate shipping payload.
 
-## Current signing capability
+Source-controlled artifact configuration contracts live at:
 
-The current build supports an externally supplied Authenticode certificate by
-thumbprint from the Windows certificate store. The tagged workflow can import
-a secret-backed PFX into an ephemeral CurrentUser store. It signs the EXE
-before MSI construction, signs the MSI, uses SHA-256 plus a configurable HTTPS
-RFC3161 timestamp service, validates the selected thumbprint and timestamp, and
-runs package QA in signature-required mode. No key or password belongs in this
-repository.
+- `.signpath/artifact-configurations/worker.xml`
+- `.signpath/artifact-configurations/installer.xml`
 
-This capability is retained as a working release-security path. Current
-artifacts are unsigned, and it is not a SignPath integration.
+Their SignPath-side configurations must match these files and use explicit,
+versioned slugs. The workflow does not accept arbitrary input paths, executable
+names, signing policies, or certificate identifiers from a tag author.
 
-The current tag-triggered workflow is deliberately Production-only. It requires
-the organizational PFX secrets, `-RequireSignature`, signature-required package
-QA, and post-build endpoint-trust checks; missing secrets fail the workflow
-before release creation. An unsigned initial public release, if the owner later
-chooses one for public project history or reputation evidence, therefore needs
-a separately reviewed release-candidate publication procedure. It must not be
-implemented by weakening or mislabeling Production mode.
+## GitHub settings the owner must configure
 
-## Future SignPath insertion point
+- Create environment `signpath-production` and require a deliberate reviewer;
+  prevent administrators from bypassing it if the account plan supports that.
+- Add environment secret `SIGNPATH_API_TOKEN` for a SignPath user limited to
+  submitter authority for this project and signing policy.
+- Add environment variables:
+  `SIGNPATH_ORGANIZATION_ID`, `SIGNPATH_PROJECT_SLUG`,
+  `SIGNPATH_SIGNING_POLICY_SLUG`,
+  `SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG`,
+  `SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG`, and
+  `SIGNPATH_EXPECTED_SIGNER_SUBJECT`.
+- Keep default workflow token permissions read-only. The workflow grants write
+  permission only to its final publication job.
+- Install and authorize the official SignPath GitHub App for this repository so
+  SignPath can verify source/build origin. For a private repository, retain the
+  explicit `actions: read` and `contents: read` signing-job permissions.
+- When account capability permits, protect `main` and release tags against force
+  pushes/deletion and require `core-qa`, `package`, and the checked-in
+  `.github/CODEOWNERS` review boundary before merging release-trust changes.
 
-Future SignPath signing should operate on the exact artifacts produced and
-verified by the hosted build, without rebuilding application binaries:
+## SignPath settings the owner must configure
 
-1. verified unsigned `AVWorkstationToolkit.exe` -> signing request -> manual
-   approval -> returned signed EXE;
-2. MSI/ZIP construction using that exact signed EXE;
-3. verified unsigned MSI -> signing request -> manual approval -> returned
-   signed MSI;
-4. final provenance generation and signature-required package QA over the
-   returned signed EXE/MSI and ZIP containing the signed EXE;
-5. publication of those exact bytes.
+- Create or select the organization and enable MFA for every maintainer and
+  signing approver.
+- Add the predefined **GitHub.com** trusted build system to the organization and
+  link it to the AV Workstation Toolkit project.
+- Restrict origin to `11anthonym/AV-Workstation-Toolkit`, this release workflow,
+  GitHub-hosted runners, tags matching `v*.*.*`, and the default branch policy
+  supported by the selected SignPath edition.
+- Create a release signing policy that requires manual approval and RFC3161
+  timestamping. Limit the API-token principal to submission, not approval or
+  project administration.
+- Import `.signpath/artifact-configurations/worker.xml` as a versioned worker
+  artifact configuration.
+- Import `.signpath/artifact-configurations/installer.xml` as a versioned MSI
+  artifact configuration. Confirm against an unsigned sample that the nested
+  path is exactly `AVWorkstationToolkit.exe` and its metadata matches.
+- Assign the approved Authenticode certificate to the policy and record its exact
+  signer subject. Foundation, paid, and bring-your-own-certificate choices are
+  external governance decisions; the repository does not invent one.
 
-The precise signing policy is in [Code-Signing-Policy.md](Code-Signing-Policy.md).
+## Values to provide back to Codex
 
-The following values are future configuration inputs and are intentionally not
-present or guessed:
+Provide the exact organization ID, project slug, release signing-policy slug,
+worker artifact-configuration slug, installer artifact-configuration slug, and
+certificate signer subject. Do not send the API token, certificate private key,
+or any password to Codex; set secrets directly in the protected environment.
 
-- SignPath organization ID;
-- SignPath project ID;
-- signing policy ID;
-- artifact configuration ID;
-- API token or service credential;
-- certificate configuration;
-- SignPath-specific workflow permissions and approval configuration.
+## Definition of DONE
 
-Do not add placeholder workflow values that resemble a working integration.
+Repository preparation is complete when source/config validation is green.
+Operational SignPath integration is complete only after all external settings
+exist, a deliberately approved test tag completes both signing requests, the
+returned worker/launcher/MSI signatures and timestamps match the expected
+signer, signature-required package QA passes, and the exact tested eight assets
+are published. Until then, tagged Production releases fail closed.
 
-## Open-source distribution boundary
-
-The normal project release boundary is the AV Workstation Toolkit EXE, MSI,
-portable ZIP, Apache-2.0 project license, SBOM, third-party notices, release
-manifest, and checksums.
-Commercial AV catalog entries are descriptive metadata, not redistributed
-applications. Vendor caches, authenticated credentials, local logs, plans,
-diagnostics, workstation snapshots, signing material, and the local external
-installer depot are excluded.
-
-Optional offline bundles are separate, controlled artifacts created only from
-locally supplied, rights-approved, hash/publisher-validated payloads. They are
-not produced or uploaded by the hosted public-release workflow and require an
-independent redistribution review for every payload.
-
-## Current publication gates
-
-- **Project license selected.** AV Workstation Toolkit is licensed under
-  [Apache-2.0](../LICENSE). This resolves the license-selection gate only; it
-  does not make the repository public or complete any SignPath gate.
-- The owner-reviewed fresh history begins at zero-parent root commit
-  `e5300e490f997301b8d6c7bfb51bcca3f46c2dae`; the canonical GitHub repository
-  now exists and remains private. It has no tags or releases.
-- GitHub Actions is configured and has completed both current QA jobs,
-  `core-qa` and `package`, successfully.
-- Branch protection and repository rulesets are not currently enabled. GitHub's
-  API reports that the current private repository requires GitHub Pro or public
-  visibility for those features. Immediately after the owner makes the
-  repository public, require pull requests plus `core-qa` and `package`, prevent
-  force pushes and deletion, preserve an owner recovery path, and verify the
-  effective rules before normal public development continues.
-- Privacy, security, third-party notices, and code-signing policy review remain
-  explicit owner checklist items.
-- Interactive Windows visual review, signed-artifact verification, and an
-  initial public release remain human release gates.
-
-## Reputation
-
-SignPath Foundation acceptance is discretionary. Executable applications may
-require verifiable project reputation in addition to technical correctness.
-This private repository has no public release under the current identity, so
-reputation remains a non-code acceptance factor. The project will
-not fabricate users, stars, downloads, testimonials, adopters, press, reviews,
-or community size, and will not attempt to game an acceptance requirement.
-
-## Human checklist
-
-Leave owner-review, public-state, account-security, application, acceptance,
-and signing items unchecked until they are independently verified.
-
-- [x] OSI-approved open-source license selected
-- [x] Root LICENSE committed
-- [ ] GitHub repository made public
-- [ ] Public repository history reviewed by owner
-- [ ] GitHub MFA enabled for every maintainer
-- [ ] Initial public release published
-- [ ] Public release exists in the exact form intended for signing
-- [ ] Privacy policy reviewed
-- [ ] Security policy reviewed
-- [ ] Third-party notices reviewed
-- [ ] Code signing policy reviewed
-- [ ] SignPath account created
-- [ ] SignPath MFA enabled
-- [ ] SignPath Foundation application submitted
-- [ ] Project accepted by SignPath Foundation
-- [ ] SignPath project/configuration identifiers received
-- [ ] GitHub build-to-SignPath integration configured
-- [ ] First signing request manually approved
-- [ ] Signed EXE independently verified
-- [ ] Signed MSI independently verified
+The project will not fabricate users, stars, downloads, testimonials, or public
+reputation to obtain Foundation acceptance.

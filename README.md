@@ -67,9 +67,9 @@ three delivery formats above, the Apache-2.0 `LICENSE`, third-party notices, a
 CycloneDX SBOM, a release manifest, and a SHA-256 checksum list. The checksum
 list covers the other seven assets and does not hash itself.
 
-AV Workstation Toolkit is preparing an application for sponsored open-source
-code signing through SignPath Foundation. Current artifacts remain unsigned
-until that process is approved and integrated. Authenticode signing does not
+AV Workstation Toolkit has prepared a fail-closed SignPath release workflow.
+Current artifacts remain unsigned until external configuration and approval are
+completed. Authenticode signing does not
 guarantee that SmartScreen or an organization's endpoint policy will accept a
 new binary.
 
@@ -249,9 +249,9 @@ The maintained execution and release boundaries are described in the
 ## Code signing
 
 Current development and release-candidate artifacts are unsigned. The build
-retains a fail-closed organizational Authenticode path, while the project is
-preparing—but has not submitted or been accepted—for SignPath Foundation
-signing. See the [code signing policy](docs/Code-Signing-Policy.md) and
+retains a fail-closed organizational Authenticode path and prepared SignPath
+workflow, while the project has not submitted to or been accepted by SignPath
+Foundation. See the [code signing policy](docs/Code-Signing-Policy.md) and
 [SignPath readiness record](docs/SignPath-Readiness.md). No private key,
 certificate password, or signing-service credential belongs in this
 repository.

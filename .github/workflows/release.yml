@@ -5,17 +5,21 @@ on:
     tags:
       - 'v*.*.*'
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
-  release:
+  sign-and-verify:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
+    environment: signpath-production
+    permissions:
+      actions: read
+      contents: read
     steps:
       - name: Check out tagged source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Install .NET 10 SDK
@@ -23,118 +27,178 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Verify tag and source version
+      - name: Verify trusted release ref and external configuration
+        id: version
         shell: powershell
+        env:
+          SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG }}
+          SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}
+          SIGNPATH_EXPECTED_SIGNER_SUBJECT: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
         run: |
           $version = (Get-Content -LiteralPath .\VERSION -Raw).Trim()
-          if ($env:GITHUB_REF_NAME -ne "v$version") {
-            throw "Tag $env:GITHUB_REF_NAME does not match VERSION $version."
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw "Tag $env:GITHUB_REF_NAME does not match VERSION $version." }
+          git fetch --no-tags origin main
+          if ($LASTEXITCODE -ne 0) { throw 'The trusted main ref could not be fetched.' }
+          $mainSha = (git rev-parse origin/main).Trim()
+          if ($env:GITHUB_SHA -ne $mainSha) { throw "Release tags must point to current origin/main ($mainSha)." }
+          foreach ($name in @(
+            'SIGNPATH_ORGANIZATION_ID','SIGNPATH_PROJECT_SLUG','SIGNPATH_SIGNING_POLICY_SLUG',
+            'SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG','SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG',
+            'SIGNPATH_EXPECTED_SIGNER_SUBJECT'
+          )) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+              throw "Required SignPath configuration is missing: $name"
+            }
           }
+          "value=$version" >> $env:GITHUB_OUTPUT
 
       - name: Run CI-safe source QA
         shell: powershell
-        run: >-
-          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
-          -File .\tests\Run-Tests.ps1 -CoreOnly
+        run: powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Run-Tests.ps1 -CoreOnly
 
-      - name: Build and compare C# migration scaffolding
+      - name: Build and test compiled runtime
         shell: powershell
-        run: >-
-          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
-          -File .\tests\Test-CSharpMigration.ps1
+        run: powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
 
-      - name: Import required organizational signing certificate
+      - name: Build unsigned candidate
+        shell: powershell
+        run: powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 -SkipTests -BuildChannel ReleaseCandidate
+
+      - name: Upload unsigned worker
+        id: upload-worker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-worker-${{ github.run_id }}
+          path: artifacts/staging/*-worker/AVWorkstationToolkit.Worker.exe
+          archive: false
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign worker with SignPath
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-worker.outputs.artifact-id }}
+          skip-decompress: true
+          wait-for-completion: true
+          output-artifact-directory: ${{ runner.temp }}/signpath-worker
+          parameters: |
+            version: "${{ steps.version.outputs.value }}"
+
+      - name: Build MSI around signed worker
         shell: powershell
         env:
-          # Legacy secret names remain a transition fallback because GitHub
-          # cannot rename or copy encrypted repository secrets through a workflow.
-          SIGNING_PFX_BASE64: ${{ secrets.AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64 || secrets.AVINITE_SIGNING_PFX_BASE64 }}
-          SIGNING_PFX_PASSWORD: ${{ secrets.AVWORKSTATIONTOOLKIT_SIGNING_PFX_PASSWORD || secrets.AVINITE_SIGNING_PFX_PASSWORD }}
+          EXPECTED_SIGNER: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:SIGNING_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:SIGNING_PFX_PASSWORD)) {
-            throw 'Tagged production releases require both AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64 and AVWORKSTATIONTOOLKIT_SIGNING_PFX_PASSWORD.'
-          }
-          $pfxPath = Join-Path $env:RUNNER_TEMP 'avworkstationtoolkit-signing.pfx'
-          [IO.File]::WriteAllBytes($pfxPath,[Convert]::FromBase64String($env:SIGNING_PFX_BASE64))
-          $password = ConvertTo-SecureString $env:SIGNING_PFX_PASSWORD -AsPlainText -Force
-          $certificate = @(Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $password |
-            Where-Object HasPrivateKey | Select-Object -First 1)
-          if ($certificate.Count -ne 1) { throw 'The supplied PFX did not import a certificate with an accessible private key.' }
-          $utf8 = [Text.UTF8Encoding]::new($false)
-          [IO.File]::AppendAllText($env:GITHUB_ENV,"AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT=$($certificate[0].Thumbprint)`n",$utf8)
-
-      - name: Build standalone executable, MSI, and portable ZIP
-        shell: powershell
-        run: |
-          $arguments = @(
-            '-NoProfile','-ExecutionPolicy','RemoteSigned','-File','.\build\Build-Release.ps1','-SkipTests',
-            '-CertificateThumbprint',$env:AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT,'-CertificateStore','CurrentUser',
-            '-RequireSignature','-BuildChannel','Production'
-          )
-          & powershell.exe @arguments
+          $worker = Join-Path $env:RUNNER_TEMP 'signpath-worker\AVWorkstationToolkit.Worker.exe'
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 `
+            -SkipTests -BuildChannel ReleaseCandidate -SignedWorkerPath $worker -ExpectedSignerSubject $env:EXPECTED_SIGNER
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Verify release artifacts
+      - name: Upload unsigned MSI containing signed worker
+        id: upload-msi
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-msi-${{ github.run_id }}
+          path: artifacts/release/*/AV-Workstation-Toolkit-*-x64.msi
+          archive: false
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Deep-sign launcher and MSI with SignPath
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-msi.outputs.artifact-id }}
+          skip-decompress: true
+          wait-for-completion: true
+          output-artifact-directory: ${{ runner.temp }}/signpath-msi
+          parameters: |
+            version: "${{ steps.version.outputs.value }}"
+
+      - name: Extract exact signed launcher from signed MSI
         shell: powershell
+        env:
+          EXPECTED_SIGNER: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
         run: |
-          $arguments = @('-NoProfile','-ExecutionPolicy','RemoteSigned','-STA','-File','.\tests\Test-Package.ps1','-SkipDesktopSmoke','-RequireSignature')
-          & powershell.exe @arguments
+          $version = '${{ steps.version.outputs.value }}'
+          $msi = Join-Path $env:RUNNER_TEMP "signpath-msi\AV-Workstation-Toolkit-$version-x64.msi"
+          $launcher = Join-Path $env:RUNNER_TEMP 'signpath-launcher\AVWorkstationToolkit.exe'
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Extract-SignedMsiLauncher.ps1 `
+            -MsiPath $msi -OutputPath $launcher -ExpectedSignerSubject $env:EXPECTED_SIGNER
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Run endpoint-trust checks and optional Defender scan
+      - name: Finalize exact signed release bytes and provenance
         shell: powershell
+        env:
+          EXPECTED_SIGNER: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
         run: |
-          $version = (Get-Content -LiteralPath .\VERSION -Raw).Trim()
-          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1 `
-            -ReleaseRoot ".\artifacts\release\$version" -ScanWithDefender
+          $version = '${{ steps.version.outputs.value }}'
+          $worker = Join-Path $env:RUNNER_TEMP 'signpath-worker\AVWorkstationToolkit.Worker.exe'
+          $launcher = Join-Path $env:RUNNER_TEMP 'signpath-launcher\AVWorkstationToolkit.exe'
+          $msi = Join-Path $env:RUNNER_TEMP "signpath-msi\AV-Workstation-Toolkit-$version-x64.msi"
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 `
+            -SkipTests -BuildChannel Production -RequireSignature `
+            -SignedWorkerPath $worker -SignedLauncherPath $launcher -SignedMsiPath $msi `
+            -ExpectedSignerSubject $env:EXPECTED_SIGNER
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Publish GitHub release assets
+      - name: Verify signed release package
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-Package.ps1 -SkipDesktopSmoke -RequireSignature
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run endpoint-trust checks
+        shell: powershell
+        run: |
+          $version = '${{ steps.version.outputs.value }}'
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1 -ReleaseRoot ".\artifacts\release\$version"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload verified signed release
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: verified-signed-release-${{ github.run_id }}
+          path: artifacts/release/${{ steps.version.outputs.value }}/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: sign-and-verify
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified signed release
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: verified-signed-release-${{ github.run_id }}
+          path: release
+
+      - name: Publish immutable GitHub release assets
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $version = (Get-Content -LiteralPath .\VERSION -Raw).Trim()
-          $releaseRoot = Join-Path $PWD "artifacts\release\$version"
-          $assets = @(
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-win-x64.exe"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-x64.msi"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-win-x64.zip"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-LICENSE.txt"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-THIRD-PARTY-NOTICES.md"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-SHA256SUMS.txt"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-release.json"
-            Join-Path $releaseRoot "AV-Workstation-Toolkit-$version-sbom.cdx.json"
-          )
-          foreach ($asset in $assets) {
-            if (-not (Test-Path -LiteralPath $asset -PathType Leaf)) {
-              throw "Release asset is missing: $asset"
-            }
-          }
-          $publisherNote = 'The executable and MSI were Authenticode signed, RFC3161 timestamped, and signature-required package QA passed before publication.'
-          $notes = @(
-            "Download **AV-Workstation-Toolkit-$version-win-x64.exe** and run it directly; it carries the complete AV Workstation Toolkit runtime and requires no extraction or separate .NET installation."
-            ''
-            "The MSI and one-file portable ZIP are alternate delivery formats. $publisherNote The Apache-2.0 project license, third-party notices, CycloneDX SBOM, release manifest, and SHA-256 checksum list are published beside them."
-            ''
-            "Review the [Code signing policy](https://github.com/11anthonym/AV-Workstation-Toolkit/blob/$env:GITHUB_REF_NAME/docs/Code-Signing-Policy.md) for the release trust model and verification requirements."
-          ) -join [Environment]::NewLine
-          $releaseListJson = gh release list --limit 1000 --json tagName
+          $assets = @(Get-ChildItem -LiteralPath .\release -Recurse -File)
+          if ($assets.Count -ne 8) { throw "Expected exactly eight standard release assets; found $($assets.Count)." }
+          $existing = @(gh release list --limit 1000 --json tagName | ConvertFrom-Json | ForEach-Object tagName)
           if ($LASTEXITCODE -ne 0) { throw 'Existing release lookup failed.' }
-          $existingReleaseTags = @($releaseListJson | ConvertFrom-Json | ForEach-Object tagName)
-          if ($env:GITHUB_REF_NAME -in $existingReleaseTags) {
-            throw "Release $env:GITHUB_REF_NAME already exists. Published release assets are immutable; correct the source, increment VERSION, and create a new tag."
-          }
-          gh release create $env:GITHUB_REF_NAME @assets --verify-tag --title "AV Workstation Toolkit $version" --notes $notes
+          if ($env:GITHUB_REF_NAME -in $existing) { throw "Release $env:GITHUB_REF_NAME already exists; signed release assets are immutable." }
+          $version = $env:GITHUB_REF_NAME.Substring(1)
+          $notes = 'The executable, embedded worker, and MSI are Authenticode signed and RFC3161 timestamped. Signature-required package QA passed before publication.'
+          gh release create $env:GITHUB_REF_NAME @($assets.FullName) --verify-tag --title "AV Workstation Toolkit $version" --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Release creation failed.' }
-
-      - name: Remove imported signing material
-        if: always()
-        shell: powershell
-        run: |
-          $pfxPath = Join-Path $env:RUNNER_TEMP 'avworkstationtoolkit-signing.pfx'
-          if (Test-Path -LiteralPath $pfxPath -PathType Leaf) { Remove-Item -LiteralPath $pfxPath -Force }
-          if (-not [string]::IsNullOrWhiteSpace($env:AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT)) {
-            $certificatePath = "Cert:\CurrentUser\My\$env:AVWORKSTATIONTOOLKIT_SIGNING_THUMBPRINT"
-            if (Test-Path -LiteralPath $certificatePath) { Remove-Item -LiteralPath $certificatePath -Force }
-          }

@@ -2,10 +2,10 @@
 
 ## Current state
 
-AV Workstation Toolkit is preparing an application to SignPath Foundation.
-The project has not been accepted, no SignPath integration is configured, and
-current development/release-candidate artifacts are not SignPath Foundation
-signed. No sponsorship, certificate issuance, or approval is implied.
+AV Workstation Toolkit contains a fail-closed, repository-controlled GitHub
+Actions to SignPath release path. External configuration is not complete, the
+project has not been accepted by SignPath Foundation, and current artifacts are
+unsigned. No sponsorship, certificate issuance, or approval is implied.
 
 The repository contains no private signing key or certificate password. Its
 existing build can use an externally supplied organizational Authenticode
@@ -20,14 +20,13 @@ Production code signing is a release-security control. Every production
 signing request requires deliberate approval; a successful build, tag, or
 automated test does not itself grant signing authority.
 
-## Current tagged-release boundary
+## Tagged-release boundary
 
-The current `.github/workflows/release.yml` path implements organizational
-Authenticode/PFX signing, not SignPath. A version tag starts a Production build
-that requires the configured PFX secrets, signs and RFC3161-timestamps the EXE
-and MSI, runs signature-required package QA, and publishes only after those
-checks pass. Missing signing secrets fail closed; the workflow cannot silently
-publish an unsigned tagged Production release.
+The `.github/workflows/release.yml` path submits only GitHub-hosted workflow
+artifacts through an immutable-pinned SignPath action. A version tag must match
+`VERSION` and current `origin/main`. Protected-environment configuration,
+manual approval, signer identity, valid RFC3161 timestamps, and
+signature-required package QA are mandatory. Missing configuration fails closed.
 
 Development and release-candidate builds may remain explicitly unsigned. If an
 initial unsigned public artifact is later needed to establish public project
@@ -35,7 +34,7 @@ history before a SignPath application, the owner must approve a separate,
 clearly labeled release-candidate publication procedure. Production mode must
 not be weakened or described as unsigned to create that path.
 
-## Planned hosted-signing model
+## Hosted-signing model
 
 The intended high-level chain is:
 
@@ -51,21 +50,15 @@ source commit
 AV Workstation Toolkit has a nested Windows distribution chain, so a future
 integration must preserve the exact artifact boundary:
 
-1. Build and verify the unsigned `AVWorkstationToolkit.exe` from the reviewed
-   commit and locked dependencies.
-2. Submit that exact executable for signing and require manual approval.
-3. Put the returned signed executable into the MSI and portable ZIP; do not
-   rebuild the executable.
-4. Build and verify the MSI around that signed executable.
-5. Submit that exact MSI for signing and require manual approval.
-6. Generate the final ZIP, SBOM, release manifest, and checksums from the
-   returned signed artifacts.
-7. Run signature-required package QA and publish those exact bytes without
-   rebuilding or replacing them.
+1. Build and submit the exact compiled worker as a GitHub workflow artifact.
+2. Embed the returned signed worker in the launcher and build the MSI.
+3. Submit that exact MSI; SignPath deep-signs its nested launcher and MSI shell.
+4. Extract the signed launcher from the returned MSI for the direct EXE and ZIP.
+5. Generate provenance, run signature-required QA, and publish exact tested bytes.
 
-This preserves both the signed inner executable and signed outer MSI. A future
-SignPath integration belongs after reproducible unsigned artifact verification,
-with a second signing boundary after MSI construction. It must not use a
+This preserves the signed worker, signed inner executable, and signed outer MSI.
+The repository integration operates after reproducible unsigned verification
+and must not use a
 separate unreviewed source checkout or regenerate application binaries during
 signing.
 

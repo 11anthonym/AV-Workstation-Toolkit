@@ -1,0 +1,6 @@
+# Release trust boundary. Enforcement requires repository rules with code-owner review.
+/.github/workflows/ @11anthonym
+/.signpath/ @11anthonym
+/build/Build-Release.ps1 @11anthonym
+/build/Extract-SignedMsiLauncher.ps1 @11anthonym
+/installer/ @11anthonym

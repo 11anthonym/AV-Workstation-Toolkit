@@ -174,7 +174,7 @@ Phase 7 adds 27 file/IPC lifecycle cases. Valid cases compare persisted request 
 
 ## SignPath parallel workstream
 
-The migration does not configure SignPath or imply Foundation acceptance. The target production chain remains:
+The completed migration does not imply Foundation acceptance. A fail-closed repository SignPath workflow now prepares this production chain:
 
 ```text
 reviewed source/tag

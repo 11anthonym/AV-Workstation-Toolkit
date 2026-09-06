@@ -20,6 +20,10 @@ param(
     [string]$CertificateStore = 'Auto',
     [uri]$TimestampServer = 'https://timestamp.digicert.com',
     [string]$SignToolPath,
+    [string]$SignedWorkerPath,
+    [string]$SignedLauncherPath,
+    [string]$SignedMsiPath,
+    [string]$ExpectedSignerSubject,
     [switch]$RequireSignature,
     [ValidateSet('Development','ReleaseCandidate','Production')]
     [string]$BuildChannel = 'Development',
@@ -37,8 +41,19 @@ if ($TimestampServer.Scheme -ne [Uri]::UriSchemeHttps -or -not [string]::IsNullO
     throw 'TimestampServer must be an absolute HTTPS URI without embedded credentials.'
 }
 if ($RequireDefender -and -not $ScanWithDefender) { throw 'RequireDefender requires ScanWithDefender.' }
-if (($RequireSignature -or $BuildChannel -eq 'Production') -and [string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
-    throw 'A signed production release requires CertificateThumbprint; unsigned output is supported only for explicit development or release-candidate builds.'
+if (($RequireSignature -or $BuildChannel -eq 'Production') -and
+    [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and
+    ([string]::IsNullOrWhiteSpace($SignedWorkerPath) -or [string]::IsNullOrWhiteSpace($SignedLauncherPath) -or [string]::IsNullOrWhiteSpace($SignedMsiPath))) {
+    throw 'A signed production release requires either CertificateThumbprint or the complete externally signed worker, launcher, and MSI set.'
+}
+if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and
+    (-not [string]::IsNullOrWhiteSpace($SignedWorkerPath) -or -not [string]::IsNullOrWhiteSpace($SignedLauncherPath) -or -not [string]::IsNullOrWhiteSpace($SignedMsiPath))) {
+    throw 'Certificate-store signing and externally signed artifact inputs cannot be combined.'
+}
+if (($RequireSignature -or $BuildChannel -eq 'Production') -and
+    [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and
+    [string]::IsNullOrWhiteSpace($ExpectedSignerSubject)) {
+    throw 'Externally signed production artifacts require ExpectedSignerSubject.'
 }
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -287,6 +302,32 @@ if ([string]$launcherProperties[0].Company -ne 'AV Workstation Toolkit Project' 
     [string]$launcherProperties[0].PublishTrimmed -ne 'false') {
     throw 'Launcher identity metadata or compiled-WPF single-file policy is incomplete.'
 }
+
+function Assert-AVWorkstationToolkitExternalSignedArtifact {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$ExpectedName,
+        [string]$SignerSubject
+    )
+
+    $resolved = [IO.Path]::GetFullPath($Path)
+    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf) -or
+        [IO.Path]::GetFileName($resolved) -cne $ExpectedName) {
+        throw "Externally signed artifact is missing or has an unexpected name: $ExpectedName"
+    }
+    if (((Get-Item -LiteralPath $resolved -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Externally signed artifact cannot be a reparse point: $ExpectedName"
+    }
+    $metadata = Get-AVWorkstationToolkitSignatureMetadata -Path $resolved
+    if ($metadata.Status -ne 'Valid' -or $metadata.TimestampStatus -ne 'Valid') {
+        throw "Externally signed artifact lacks a valid Authenticode signature and RFC3161 timestamp: $ExpectedName"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($SignerSubject) -and
+        -not $metadata.SignerSubject.Equals($SignerSubject,[StringComparison]::Ordinal)) {
+        throw "Externally signed artifact signer does not match ExpectedSignerSubject: $ExpectedName"
+    }
+    return $resolved
+}
 $workerProjectIdentity = Get-Content -LiteralPath $workerProject -Raw
 $workerProjectXml = [xml]$workerProjectIdentity
 $workerProperties = @($workerProjectXml.Project.PropertyGroup | Where-Object { $null -ne $_.TargetFramework } | Select-Object -First 1)
@@ -360,11 +401,17 @@ if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
     $resolvedSignToolPath = Resolve-AVWorkstationToolkitSignTool -RequestedPath $SignToolPath
 }
 
-& $dotnetPath publish $workerProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
-    -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
-    -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None -o $workerStagingRoot
-if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit compiled worker publish failed.' }
 $workerPayloadPath = Join-Path $workerStagingRoot 'AVWorkstationToolkit.Worker.exe'
+if ([string]::IsNullOrWhiteSpace($SignedWorkerPath)) {
+    & $dotnetPath publish $workerProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
+        -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
+        -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None -o $workerStagingRoot
+    if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit compiled worker publish failed.' }
+}
+else {
+    $signedWorkerInput = Assert-AVWorkstationToolkitExternalSignedArtifact -Path $SignedWorkerPath -ExpectedName 'AVWorkstationToolkit.Worker.exe' -SignerSubject $ExpectedSignerSubject
+    Copy-Item -LiteralPath $signedWorkerInput -Destination $workerPayloadPath
+}
 if (-not (Test-Path -LiteralPath $workerPayloadPath -PathType Leaf) -or
     @(Get-ChildItem -LiteralPath $workerStagingRoot -File).Count -ne 1) {
     throw 'The compiled worker publish did not produce exactly one self-contained executable.'
@@ -381,13 +428,18 @@ if ($embeddedPayloadFiles.Count -lt 6) {
     throw "The standalone executable would embed too few runtime files: $($embeddedPayloadFiles.Count)"
 }
 
-& $dotnetPath publish $launcherProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
-    -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
-    -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None `
-    "-p:WorkerPayloadPath=$workerPayloadPath" -o $stagingRoot
-if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit launcher publish failed.' }
-
 $launcherPath = Join-Path $stagingRoot 'AVWorkstationToolkit.exe'
+if ([string]::IsNullOrWhiteSpace($SignedLauncherPath)) {
+    & $dotnetPath publish $launcherProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
+        -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
+        -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None `
+        "-p:WorkerPayloadPath=$workerPayloadPath" -o $stagingRoot
+    if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit launcher publish failed.' }
+}
+else {
+    $signedLauncherInput = Assert-AVWorkstationToolkitExternalSignedArtifact -Path $SignedLauncherPath -ExpectedName 'AVWorkstationToolkit.exe' -SignerSubject $ExpectedSignerSubject
+    Copy-Item -LiteralPath $signedLauncherInput -Destination $launcherPath
+}
 if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) {
     throw 'Published AVWorkstationToolkit.exe was not produced.'
 }
@@ -405,19 +457,25 @@ if ($null -ne $certificate) {
 $standalonePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.exe" -f $Version)
 Copy-Item -LiteralPath $launcherPath -Destination $standalonePath
 
-$installerProject = Join-Path $repositoryRoot 'installer\AVWorkstationToolkit.Installer.wixproj'
-$installerArguments = @(
-    'build',$installerProject,'-c','Release','--nologo',
-    "-p:ProductVersion=$Version",
-    "-p:PayloadDir=$stagingRoot",
-    "-p:IconPath=$productIconPath",
-    "-p:OutputPath=$releaseRoot",
-    "-p:IntermediateOutputPath=$intermediateRoot/"
-)
-& $dotnetPath @installerArguments
-if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit MSI build failed.' }
-
 $msiPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-x64.msi" -f $Version)
+if ([string]::IsNullOrWhiteSpace($SignedMsiPath)) {
+    $installerProject = Join-Path $repositoryRoot 'installer\AVWorkstationToolkit.Installer.wixproj'
+    $installerArguments = @(
+        'build',$installerProject,'-c','Release','--nologo',
+        "-p:ProductVersion=$Version",
+        "-p:PayloadDir=$stagingRoot",
+        "-p:IconPath=$productIconPath",
+        "-p:OutputPath=$releaseRoot",
+        "-p:IntermediateOutputPath=$intermediateRoot/"
+    )
+    & $dotnetPath @installerArguments
+    if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit MSI build failed.' }
+}
+else {
+    $expectedMsiName = "AV-Workstation-Toolkit-$Version-x64.msi"
+    $signedMsiInput = Assert-AVWorkstationToolkitExternalSignedArtifact -Path $SignedMsiPath -ExpectedName $expectedMsiName -SignerSubject $ExpectedSignerSubject
+    Copy-Item -LiteralPath $signedMsiInput -Destination $msiPath
+}
 if (-not (Test-Path -LiteralPath $msiPath -PathType Leaf)) {
     throw "Expected MSI was not produced: $msiPath"
 }
@@ -533,8 +591,13 @@ $releaseManifest = [ordered]@{
     BuildChannel = $BuildChannel
     CommitSha = $commitSha.ToLowerInvariant()
     SourceDirty = $sourceDirty
-    Signed = ($null -ne $certificate)
+    Signed = ($launcherSignature.Status -eq 'Valid' -and
+        (Get-AVWorkstationToolkitSignatureMetadata -Path $workerPayloadPath).Status -eq 'Valid' -and
+        (Get-AVWorkstationToolkitSignatureMetadata -Path $msiPath).Status -eq 'Valid')
     SignaturePolicy = $(if ($RequireSignature -or $BuildChannel -eq 'Production') { 'Required' } else { 'Optional' })
+    SigningProvider = $(if ($null -ne $certificate) { 'CertificateStore' } elseif (-not [string]::IsNullOrWhiteSpace($SignedMsiPath)) { 'ExternalService' } else { 'Unsigned' })
+    ExternallySignedArtifactsReused = (-not [string]::IsNullOrWhiteSpace($SignedWorkerPath) -or
+        -not [string]::IsNullOrWhiteSpace($SignedLauncherPath) -or -not [string]::IsNullOrWhiteSpace($SignedMsiPath))
     EmbeddedPayloadFiles = $embeddedPayloadFiles.Count
     BundledExternalPackages = @($bundledExternalPackages | ForEach-Object { $_.Id })
     NuGetAudit = [ordered]@{

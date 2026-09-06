@@ -147,20 +147,27 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-
 
 The build requires the selected certificate to be currently valid, carry the code-signing EKU, and expose its private key. A validated Microsoft Windows SDK `signtool.exe` signs both artifacts with SHA-256, obtains a configurable HTTPS RFC3161 timestamp (`-TimestampServer`), verifies the signature and timestamp, and records signer and timestamp identity before release hashes are generated. The portable ZIP is authenticated by its published checksum and the signature on the contained executable. No private key or password is accepted in a command line or committed to the repository.
 
-The tagged release workflow requires a base64 PFX and password through `AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64` and `AVWORKSTATIONTOOLKIT_SIGNING_PFX_PASSWORD` secrets. During the repository rename only, the historical `AVINITE_SIGNING_PFX_BASE64` and `AVINITE_SIGNING_PFX_PASSWORD` names remain accepted as a CI compatibility fallback because GitHub cannot rename or copy encrypted secrets through a workflow. Configure the canonical names and remove the fallback after the repository settings are migrated. The workflow imports the certificate into an ephemeral CurrentUser store, builds with `-RequireSignature -BuildChannel Production`, runs package QA with `-RequireSignature`, and removes the imported certificate and temporary PFX in an always-run cleanup step. Missing signing secrets fail the tagged release; they never silently produce a public unsigned artifact. Ordinary local and pull-request builds remain explicitly unsigned development builds.
+The tagged workflow uses the official immutable-pinned SignPath GitHub Action.
+It signs the worker first, embeds those exact bytes, and then deep-signs the
+launcher inside the MSI plus the MSI envelope. The exact signed launcher
+extracted from the returned MSI is used for the direct EXE and ZIP. Missing
+protected-environment configuration, approval, expected signer identity,
+signature, or RFC3161 timestamp fails closed. Ordinary local and pull-request
+builds remain explicitly unsigned. The local certificate-thumbprint path remains
+available for controlled organizational builds but is not used by tagged CI.
 
-Consequently, the current tag-triggered workflow is not an unsigned first-release
-path: without valid organizational signing secrets it fails before publication.
+Consequently, the tag-triggered workflow is not an unsigned first-release path:
+without valid SignPath configuration and approval it fails before publication.
 If the owner decides that an initial unsigned public artifact is needed to
 establish public project history before a SignPath application, that artifact
 must use a separately reviewed, explicitly release-candidate publication
 procedure. Production mode and the tag-triggered production workflow must not
 be weakened or relabeled to make that possible.
 
-AV Workstation Toolkit is preparing—but has not submitted or been accepted—for
-SignPath Foundation signing. Future hosted signing must sign the exact verified
-EXE, package that returned signed EXE into the MSI, sign the exact MSI, and
-generate final provenance without rebuilding application binaries. See the
+AV Workstation Toolkit has prepared—but not operationally configured or
+executed—the hosted SignPath path. It signs the exact worker first, then
+deep-signs the launcher inside the MSI and the exact MSI, and generates final
+provenance without rebuilding application binaries. See the
 [code signing policy](Code-Signing-Policy.md) and
 [SignPath readiness record](SignPath-Readiness.md). The existing Authenticode
 path remains valid until a reviewed replacement is operational.

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-05 — SignPath release-path preparation
+
+- Replaced tagged CI's secret PFX import with a least-privilege, immutable-pinned GitHub Actions to SignPath workflow that signs the worker, deep-signs the launcher inside the MSI, and signs the MSI envelope.
+- Added reviewed worker/MSI artifact-configuration contracts and fail-closed external signed-artifact ingestion with exact signer and RFC3161 timestamp verification.
+- Preserved exact launcher bytes across the direct EXE, portable ZIP, and MSI while generating final provenance only after signing.
+
 ## 2026-09-04 — AV software compatibility catalog Batch 3
 
 - Completed the frozen Batch 3 evidence pass for Audinate, Audio-Technica, AV Stumpfl, AVer, Avolites, Barco, Blackmagic Design, Bose Professional, BrightSign, Brompton Technology, BSS, and Capture Visualisation.

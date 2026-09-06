@@ -1177,7 +1177,7 @@ Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-
     Assert-True ($agents -match 'If the new implementation disagrees with the current implementation' -and
         $agents -match 'unknown-field-tolerant request parsing' -and $agents -match 'UI-side package authorization') 'Repository migration instructions omit parity or safety rules.'
     Assert-True ($architecture -match 'Domain must not reference WPF, Registry, Process, HTTP, filesystem, Credential Manager, or PowerShell' -and
-        $architecture -match 'AVWorkstationToolkit\.Worker\.exe --production' -and $architecture -match 'does not configure SignPath') 'Migration architecture dependency, mode, or signing boundary is incomplete.'
+        $architecture -match 'AVWorkstationToolkit\.Worker\.exe --production' -and $architecture -match 'fail-closed repository SignPath workflow') 'Migration architecture dependency, mode, or signing boundary is incomplete.'
     Assert-True ($coverage -match 'WinGet package state' -and $coverage -match 'Worker lifecycle' -and $coverage -match 'Code signing') 'Migration coverage matrix omits required responsibilities.'
     foreach ($project in @('App','Application','Domain','Infrastructure.Windows')) {
         Assert-True ($solution -match [regex]::Escape("src/AVWorkstationToolkit.$project/AVWorkstationToolkit.$project.csproj")) "Migration solution omits $project."
@@ -1425,10 +1425,7 @@ Invoke-Check 'Old product branding is restricted to explicit legacy compatibilit
         [pscustomobject]@{ Path='PRIVACY.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='legacy data migration privacy disclosure' },
         [pscustomobject]@{ Path='docs/AV-Workstation-Toolkit-Operator-Guide.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='legacy data-retention operator guidance' },
         [pscustomobject]@{ Path='docs/Packaging-and-Release.md'; Pattern='%LOCALAPPDATA%\\AVinite'; Purpose='operator migration documentation' },
-        [pscustomobject]@{ Path='docs/Packaging-and-Release.md'; Pattern='`AVINITE_SIGNING_PFX_BASE64` and `AVINITE_SIGNING_PFX_PASSWORD`'; Purpose='CI secret migration documentation' },
-        [pscustomobject]@{ Path='docs/Endpoint-Security-Behavior.md'; Pattern='legacy `AVinite:VendorSftp:`'; Purpose='endpoint credential compatibility disclosure' },
-        [pscustomobject]@{ Path='.github/workflows/release.yml'; Pattern='secrets\.AVINITE_SIGNING_PFX_BASE64'; Purpose='legacy release signing secret fallback' },
-        [pscustomobject]@{ Path='.github/workflows/release.yml'; Pattern='secrets\.AVINITE_SIGNING_PFX_PASSWORD'; Purpose='legacy release signing secret fallback' }
+        [pscustomobject]@{ Path='docs/Endpoint-Security-Behavior.md'; Pattern='legacy `AVinite:VendorSftp:`'; Purpose='endpoint credential compatibility disclosure' }
     )
     $hits = @{}
     for ($index = 0; $index -lt $allowRules.Count; $index++) { $hits[$index] = 0 }
@@ -1546,21 +1543,24 @@ Invoke-Check 'Clone build entry point and tagged-release workflow publish the st
     Assert-True ($buildEntry -match '(?i)set\s+"PSModulePath="') 'Root build entry point can inherit an incompatible PowerShell 7 module path.'
     $releaseWorkflow = Get-Content -LiteralPath (Join-Path $repositoryRoot '.github\workflows\release.yml') -Raw
     Assert-True ($releaseWorkflow -match "tags:\s*\r?\n\s*- 'v\*\.\*\.\*'" -and $releaseWorkflow -match 'contents:\s*write') 'Tagged-release workflow trigger or permissions differ.'
-    Assert-True ($releaseWorkflow -match 'AV-Workstation-Toolkit-\$version-win-x64\.exe' -and
-        $releaseWorkflow -match 'AV-Workstation-Toolkit-\$version-sbom\.cdx\.json' -and
-        $releaseWorkflow -match 'AV-Workstation-Toolkit-\$version-LICENSE\.txt' -and
-        $releaseWorkflow -match 'AV-Workstation-Toolkit-\$version-THIRD-PARTY-NOTICES\.md' -and
-        $releaseWorkflow -match 'gh release create') 'Tagged-release workflow does not publish the direct executable, Apache-2.0 license, notices, and SBOM.'
-    Assert-True ($releaseWorkflow -match '\[Code signing policy\]\(https://github\.com/11anthonym/AV-Workstation-Toolkit/blob/\$env:GITHUB_REF_NAME/docs/Code-Signing-Policy\.md\)') 'Tagged-release notes do not visibly link the canonical code-signing policy.'
+    Assert-True ($releaseWorkflow -match 'verified-signed-release' -and $releaseWorkflow -match 'gh release create') 'Tagged-release workflow does not publish the verified signed release artifact.'
     Assert-True ($releaseWorkflow -match 'Run-Tests\.ps1\s+-CoreOnly' -and $releaseWorkflow -match 'Build-Release\.ps1' -and $releaseWorkflow -match 'SkipTests') 'Tagged-release workflow does not separate CI-safe source QA from the package build.'
     Assert-True ($releaseWorkflow -match 'gh release list\s+--limit' -and $releaseWorkflow -notmatch 'gh release view') 'Tagged-release workflow uses a failing first-release existence probe.'
-    Assert-True ($releaseWorkflow -match 'Published release assets are immutable' -and
+    Assert-True ($releaseWorkflow -match 'signed release assets are immutable' -and
         $releaseWorkflow -notmatch '(?i)gh release (?:upload|edit)|--clobber') 'Tagged-release workflow can replace already-published release bytes.'
-    Assert-True ($releaseWorkflow -match 'actions/checkout@[a-f0-9]{40}' -and $releaseWorkflow -match 'actions/setup-dotnet@[a-f0-9]{40}') 'Release workflow actions are not pinned to immutable commits.'
+    Assert-True ($releaseWorkflow -match 'actions/checkout@[a-f0-9]{40}' -and $releaseWorkflow -match 'actions/setup-dotnet@[a-f0-9]{40}' -and
+        $releaseWorkflow -match 'signpath/github-action-submit-signing-request@[a-f0-9]{40}' -and
+        $releaseWorkflow -notmatch 'uses:\s*[^\r\n]+@v\d+') 'Release workflow actions are not pinned to immutable commits.'
     Assert-True ($releaseWorkflow -match 'persist-credentials:\s*false') 'Release checkout retains an unnecessary repository credential.'
-    Assert-True ($releaseWorkflow -match 'AVWORKSTATIONTOOLKIT_SIGNING_PFX_BASE64' -and $releaseWorkflow -match 'Import-PfxCertificate' -and
-        $releaseWorkflow -match 'RequireSignature' -and $releaseWorkflow -match "BuildChannel','Production" -and
-        $releaseWorkflow -match 'Test-EndpointTrust\.ps1[\s\S]+?-ScanWithDefender') 'Tagged release does not require organizational signing and endpoint-trust validation.'
+    Assert-True ($releaseWorkflow -match 'permissions:\s*\{\}' -and $releaseWorkflow -match 'actions:\s*read' -and
+        $releaseWorkflow -match 'contents:\s*read' -and $releaseWorkflow -match 'contents:\s*write' -and
+        $releaseWorkflow -match 'environment:\s*signpath-production') 'Tagged release does not use least-privilege jobs and the protected signing environment.'
+    Assert-True ($releaseWorkflow -match 'SIGNPATH_API_TOKEN' -and $releaseWorkflow -match 'SIGNPATH_EXPECTED_SIGNER_SUBJECT' -and
+        $releaseWorkflow -match 'SignedWorkerPath' -and $releaseWorkflow -match 'SignedLauncherPath' -and
+        $releaseWorkflow -match 'SignedMsiPath' -and $releaseWorkflow -match 'RequireSignature' -and
+        $releaseWorkflow -match 'BuildChannel\s+Production' -and $releaseWorkflow -match 'Test-EndpointTrust\.ps1') 'Tagged release does not require SignPath signing, exact returned artifacts, and endpoint-trust validation.'
+    Assert-True ($releaseWorkflow -match 'GITHUB_SHA -ne \$mainSha' -and $releaseWorkflow -match 'archive:\s*false' -and
+        $releaseWorkflow -match 'skip-decompress:\s*true') 'Tagged release does not restrict source origin or preserve direct signing artifact identity.'
     Assert-True ($releaseWorkflow -notmatch 'producing an unsigned release candidate') 'Tagged production workflow can silently publish unsigned artifacts.'
     $qaWorkflow = Get-Content -LiteralPath (Join-Path $repositoryRoot '.github\workflows\qa.yml') -Raw
     Assert-True ($qaWorkflow -match 'actions/upload-artifact@[a-f0-9]{40}' -and $qaWorkflow -notmatch 'uses:\s*actions/[^@]+@v\d+') 'QA workflow actions are not pinned to immutable commits.'
@@ -1569,21 +1569,7 @@ Invoke-Check 'Clone build entry point and tagged-release workflow publish the st
 Invoke-Check 'Tagged workflow and release documentation agree on eight standard assets' {
     $workflowPath = Join-Path $repositoryRoot '.github\workflows\release.yml'
     $workflow = Get-Content -LiteralPath $workflowPath -Raw
-    $assetBlock = [regex]::Match($workflow,'(?s)\$assets\s*=\s*@\((?<Body>.*?)\r?\n\s*\)\r?\n\s*foreach')
-    Assert-True $assetBlock.Success 'Tagged workflow release asset block was not found.'
-    $actualAssets = @([regex]::Matches($assetBlock.Groups['Body'].Value,'"(?<Name>AV-Workstation-Toolkit-\$version-[^"]+)"') |
-        ForEach-Object { $_.Groups['Name'].Value })
-    $expectedAssets = @(
-        'AV-Workstation-Toolkit-$version-win-x64.exe',
-        'AV-Workstation-Toolkit-$version-x64.msi',
-        'AV-Workstation-Toolkit-$version-win-x64.zip',
-        'AV-Workstation-Toolkit-$version-LICENSE.txt',
-        'AV-Workstation-Toolkit-$version-THIRD-PARTY-NOTICES.md',
-        'AV-Workstation-Toolkit-$version-SHA256SUMS.txt',
-        'AV-Workstation-Toolkit-$version-release.json',
-        'AV-Workstation-Toolkit-$version-sbom.cdx.json'
-    )
-    Assert-Equal ($expectedAssets -join '|') ($actualAssets -join '|') 'Tagged workflow standard release asset set differs.'
+    Assert-True ($workflow -match '\$assets\.Count -ne 8' -and $workflow -match 'verified-signed-release') 'Tagged workflow does not enforce the eight-asset verified release boundary.'
 
     foreach ($relativePath in @(
         'README.md','docs\Packaging-and-Release.md','docs\Endpoint-Security-Behavior.md',
@@ -1670,6 +1656,9 @@ Invoke-Check 'Third-party notices match locked and hosted build dependencies' {
         Assert-True ($notices -match [regex]::Escape($match.Groups['Sha'].Value)) "Third-party notices omit hosted action pin: $key"
     }
     Assert-True ($actionKeys.Count -ge 3) 'Hosted-action notice parity did not inspect the expected pinned actions.'
+    $signPathAction = [regex]::Match($workflowText,'signpath/github-action-submit-signing-request@(?<Sha>[a-f0-9]{40})')
+    Assert-True ($signPathAction.Success -and $notices -match 'signpath/github-action-submit-signing-request' -and
+        $notices -match [regex]::Escape($signPathAction.Groups['Sha'].Value)) 'Third-party notices omit the immutable-pinned SignPath action.'
     $analyzerVersion = [regex]::Match($workflowText,'PSScriptAnalyzer\s+-RequiredVersion\s+(?<Version>\d+\.\d+\.\d+)').Groups['Version'].Value
     Assert-True (-not [string]::IsNullOrWhiteSpace($analyzerVersion) -and $notices.Contains("| PSScriptAnalyzer | $analyzerVersion |")) 'Third-party notices do not match the pinned PSScriptAnalyzer version.'
 
@@ -1719,10 +1708,13 @@ Invoke-Check 'Release build cleans directory contents without deleting the outpu
     Assert-True ($build -match "ValidateSet\('Auto','CurrentUser','LocalMachine'\)" -and $build -match 'EnhancedKeyUsageList' -and
         $build -match 'signtool\.exe' -and $build -match '(?s)''/tr'',\$TimestampServer\.AbsoluteUri,''/td'',''SHA256''' -and
         $build -match 'TimestampStatus -ne ''Valid''') 'Build does not support validated RFC3161 signing through an external organizational certificate.'
-    Assert-True ($build -match '(?s)\(\$RequireSignature -or \$BuildChannel -eq ''Production''\).*CertificateThumbprint') 'Production builds can silently fall back to unsigned output.'
+    Assert-True ($build -match 'complete externally signed worker, launcher, and MSI set' -and
+        $build -match 'Externally signed production artifacts require ExpectedSignerSubject' -and
+        $build -match 'Assert-AVWorkstationToolkitExternalSignedArtifact') 'Production builds can silently accept unsigned or unexpected externally signed output.'
     Assert-True ($build -match "TargetRuntime\s*=\s*'Microsoft\.NETCore\.App\.Runtime\.win-x64/10\.0\.11'" -and
         $build -match "TargetHost\s*=\s*'Microsoft\.NETCore\.App\.Host\.win-x64/10\.0\.11'" -and
-        $build -match 'SelectedSdk\s*=\s*\$dotnetVersionText') 'Release provenance does not record the actual runtime, apphost, and selected SDK.'
+        $build -match 'SelectedSdk\s*=\s*\$dotnetVersionText' -and $build -match 'SigningProvider' -and
+        $build -match 'ExternallySignedArtifactsReused') 'Release provenance does not record runtime, SDK, and signing origin.'
     $manifestWriteIndex = $build.IndexOf('$releaseManifest | ConvertTo-Json',[StringComparison]::Ordinal)
     $checksumWriteIndex = $build.IndexOf('$checksumLines | Set-Content',[StringComparison]::Ordinal)
     Assert-True ($manifestWriteIndex -ge 0 -and $checksumWriteIndex -gt $manifestWriteIndex -and
@@ -1905,7 +1897,7 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
     Assert-True ($contributing -match 'Contributions to AV Workstation Toolkit are submitted under the project' -and $contributing -match 'Apache-2\.0') 'CONTRIBUTING.md does not state the Apache-2.0 contribution terms.'
     Assert-True ($notices -match 'AV Workstation Toolkit itself is licensed under' -and $notices -match 'Apache-2\.0' -and $notices -match 'Third-party components remain governed by their own\s+licenses' -and $notices -match 'does not replace those licenses') 'Third-party notices do not distinguish the project Apache-2.0 license from component licenses.'
     Assert-True ($readme -notmatch 'License selection is pending' -and $contributing -notmatch 'License selection is still pending' -and $readiness -notmatch 'OPEN-SOURCE LICENSE SELECTION REQUIRED') 'Maintained publication documentation still reports license selection as pending.'
-    Assert-True ($readme -match 'preparing an application for sponsored open-source\s+code signing through SignPath Foundation\. Current artifacts remain unsigned\s+until that process is approved and integrated\.') 'README overstates or omits the current SignPath status.'
+    Assert-True ($readme -match 'prepared a fail-closed SignPath release workflow' -and $readme -match 'Current artifacts remain unsigned') 'README overstates or omits the current SignPath status.'
     Assert-True ($security -match 'Private Vulnerability Reporting is not currently verifiable' -and
         $security -match 'no dedicated security email address has been established') 'Security policy invents or omits an unverified private reporting channel.'
 
@@ -1925,28 +1917,24 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
     )) {
         Assert-True ($readiness.Contains($fact)) "SignPath readiness identity differs: $fact"
     }
-    Assert-True ($readiness -match 'acceptance is discretionary' -and
-        $readiness -match 'reputation remains a non-code acceptance factor' -and
-        $readiness -match 'not fabricate users, stars, downloads') 'SignPath readiness overstates acceptance or project reputation.'
-
-    $expectedChecklist = @(
-        'OSI-approved open-source license selected','Root LICENSE committed','GitHub repository made public',
-        'Public repository history reviewed by owner','GitHub MFA enabled for every maintainer',
-        'Initial public release published','Public release exists in the exact form intended for signing',
-        'Privacy policy reviewed','Security policy reviewed','Third-party notices reviewed','Code signing policy reviewed',
-        'SignPath account created','SignPath MFA enabled','SignPath Foundation application submitted',
-        'Project accepted by SignPath Foundation','SignPath project/configuration identifiers received',
-        'GitHub build-to-SignPath integration configured','First signing request manually approved',
-        'Signed EXE independently verified','Signed MSI independently verified'
-    )
-    $checklistMatches = [regex]::Matches($readiness,'(?m)^- \[(?<Mark>[ xX])\] (?<Label>.+)$')
-    Assert-Equal ($expectedChecklist -join '|') (@($checklistMatches | ForEach-Object { $_.Groups['Label'].Value.Trim() }) -join '|') 'SignPath human checklist differs from the required readiness gates.'
-    $completedLabels = @($checklistMatches | Where-Object { $_.Groups['Mark'].Value -match '[xX]' } | ForEach-Object { $_.Groups['Label'].Value.Trim() })
-    Assert-Equal 'OSI-approved open-source license selected|Root LICENSE committed' ($completedLabels -join '|') 'SignPath readiness marks an unverified gate complete or omits the committed project license.'
+    Assert-True ($readiness -match 'Foundation acceptance remains\s+discretionary' -and
+        $readiness -match 'not fabricate users, stars, downloads' -and
+        $readiness -match 'prepared but not operational') 'SignPath readiness overstates acceptance or project reputation.'
+    foreach ($required in @('SIGNPATH_ORGANIZATION_ID','SIGNPATH_PROJECT_SLUG','SIGNPATH_SIGNING_POLICY_SLUG',
+        'SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG','SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG',
+        'SIGNPATH_EXPECTED_SIGNER_SUBJECT','SIGNPATH_API_TOKEN')) {
+        Assert-True ($readiness.Contains($required)) "SignPath readiness omits external setting: $required"
+    }
     $signPathWorkflows = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot '.github\workflows') -File | Where-Object {
         $_.Name -match '(?i)signpath' -or (Get-Content -LiteralPath $_.FullName -Raw) -match '(?i)signpath'
     })
-    Assert-Equal 0 $signPathWorkflows.Count 'A placeholder or unverified SignPath workflow was added.'
+    Assert-Equal 1 $signPathWorkflows.Count 'The single reviewed SignPath release workflow is missing or duplicated.'
+    foreach ($configuration in @('worker.xml','installer.xml')) {
+        $configurationPath = Join-Path $repositoryRoot ".signpath\artifact-configurations\$configuration"
+        Assert-True (Test-Path -LiteralPath $configurationPath -PathType Leaf) "SignPath artifact configuration is missing: $configuration"
+        $xml = [xml](Get-Content -LiteralPath $configurationPath -Raw)
+        Assert-True ($null -ne $xml.'artifact-configuration') "SignPath artifact configuration is malformed: $configuration"
+    }
 }
 Invoke-Check 'Defender investigation keeps historical and current specimens distinct' {
     $path = Join-Path $repositoryRoot 'docs\Defender-False-Positive-Investigation.md'
