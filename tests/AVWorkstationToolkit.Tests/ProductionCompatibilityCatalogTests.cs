@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(245, catalog.Products);
+        Assert.HasCount(246, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(195, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(212, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -97,7 +97,7 @@ public sealed class ProductionCompatibilityCatalogTests
             relations.Select(item => item.ProductId.Value).Distinct().ToArray());
         Assert.IsTrue(relations.All(item => item.Confidence == CompatibilityEvidenceConfidence.VendorDocumented));
         Assert.IsTrue(relations.Where(item => item.ProductId.Value == "Crestron.Toolbox").Select(item => item.Purpose)
-            .Order().SequenceEqual(new[] { DeviceSoftwarePurpose.Diagnostics, DeviceSoftwarePurpose.Firmware }.Order()));
+            .Order().SequenceEqual(new[] { DeviceSoftwarePurpose.Commissioning, DeviceSoftwarePurpose.Diagnostics, DeviceSoftwarePurpose.Firmware }.Order()));
     }
 
     [TestMethod]
@@ -166,8 +166,11 @@ public sealed class ProductionCompatibilityCatalogTests
             .Any(item => item.ProductId.Value == "AVer.RoomManagement"));
 
         Assert.AreEqual(CompatibilitySearchMatchKind.PrefixOrToken, service.SearchDevices("CP4").Single().MatchKind);
-        Assert.AreEqual(CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog, service.GetSearchOutcome("RMC4"));
-        Assert.IsFalse(service.SearchDevices("RMC4").Any());
+        var rmc4 = service.SearchDevices("RMC4").Single();
+        Assert.AreEqual("Crestron.RMC4", rmc4.Hardware!.Id);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, rmc4.LookupState);
+        Assert.IsTrue(service.GetSoftwareForDevice(rmc4).SelectMany(group => group.Software)
+            .Any(software => software.ProductId.Value == "Crestron.Toolbox"));
         Assert.IsFalse(service.SearchDevices("DM-NVX-363").Any());
     }
 
@@ -188,11 +191,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(5, hardware.Families);
-        Assert.HasCount(3, hardware.Models);
+        Assert.HasCount(9, hardware.Families);
+        Assert.HasCount(21, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(3, coverage.Models);
-        Assert.AreEqual(2, coverage.VerifiedModels);
+        Assert.AreEqual(21, coverage.Models);
+        Assert.AreEqual(20, coverage.VerifiedModels);
         Assert.AreEqual(1, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
@@ -211,7 +214,31 @@ public sealed class ProductionCompatibilityCatalogTests
         Assert.AreEqual(HardwareLookupState.KnownFamilyWithVerifiedRelationships, coreFamily.LookupState);
         Assert.IsTrue(service.GetSoftwareForDevice(coreFamily).SelectMany(group => group.Software)
             .Any(software => software.ProductId.Value == "QSYSDesigner"));
-        Assert.IsFalse(service.SearchDevices("RMC4").Any());
+        Assert.AreEqual(HardwareDeviceCategory.AudioDsp, core110.Hardware.Category);
+    }
+
+    [TestMethod]
+    public void ControlProcessorCoveragePreservesExactModelsAndSeparateGenerations()
+    {
+        var service = CreateQueryService();
+
+        var nx4200 = service.SearchDevices("NX 4200").Single();
+        Assert.AreEqual("AMX.NX4200", nx4200.Hardware!.Id);
+        Assert.AreEqual(HardwareDeviceCategory.ControlProcessor, nx4200.Hardware.Category);
+        CollectionAssert.AreEquivalent(new[] { "AMX.NetLinxStudio4" }, service.GetSoftwareForDevice(nx4200)
+            .SelectMany(group => group.Software).Select(software => software.ProductId.Value).Distinct().ToArray());
+
+        var xi = service.SearchDevices("IPCP Pro 360Q xi").Single();
+        Assert.AreEqual("Extron.IPCPPro360QXi", xi.Hardware!.Id);
+        CollectionAssert.AreEquivalent(
+            new[] { "Extron.GlobalConfiguratorPlus", "Extron.GlobalConfiguratorProfessional", "Extron.GlobalScripter", "Extron.Toolbelt" },
+            service.GetSoftwareForDevice(xi).SelectMany(group => group.Software).Select(software => software.ProductId.Value).Distinct().ToArray());
+
+        var retired = service.SearchDevices("IPL Pro S1").Single();
+        Assert.AreEqual("Extron.IPLProS1", retired.Hardware!.Id);
+        Assert.AreEqual(Lifecycle.Legacy, retired.Hardware.Lifecycle);
+        CollectionAssert.AreEquivalent(new[] { "Extron.GlobalConfiguratorPlus", "Extron.GlobalScripter" }, service.GetSoftwareForDevice(retired)
+            .SelectMany(group => group.Software).Select(software => software.ProductId.Value).Distinct().ToArray());
     }
 
     [TestMethod]
@@ -461,7 +488,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(245, services.Compatibility.SearchProducts());
+        Assert.HasCount(246, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -476,7 +503,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(245, compatibility.Products);
+        Assert.HasCount(246, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or

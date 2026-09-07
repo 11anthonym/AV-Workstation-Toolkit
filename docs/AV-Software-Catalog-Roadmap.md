@@ -226,7 +226,7 @@ Batch 5 adds 31 descriptive products, 10 evidence-backed release families, and 2
 
 ### Phase 3A implemented production pilot
 
-- `manifests/software-compatibility.json` began as the schema-version-1 reference-vendor pilot and is now the single catalog-wide production source: 245 products, 80 release-family records, and 195 purpose-specific relations. It contains no fabricated local installed-version claims.
+- `manifests/software-compatibility.json` began as the schema-version-1 reference-vendor pilot and is now the single catalog-wide production source. At the Phase 5 acceptance gate it contained 245 products, 80 release-family records, and 195 purpose-specific relations; later bounded device-lookup coverage passes retain the same authority constraints and no fabricated local installed-version claims.
 - Q-SYS Designer is one `QSYSDesigner` product with `Current`, `LTS`, and `Archived` families. Its Q-SYS Core relations retain project/Core-firmware matching constraints and do not turn a family or patch into an update recommendation.
 - Biamp Tesira and Canvas remain distinct products. Their `Current` and `Archived` evidence branches carry no invented version bounds; the conditional Canvas relation records only the documented same-version configuration workflow. Nexia is a legacy product with manual informational relations and no package, acquisition, detection, or execution record.
 - Crestron CP4N and DM NVX relations point to existing child product identities. The compatibility document does not reproduce or replace MasterInstaller provider metadata, so credential, transport, and acquisition authority remain exclusively in the existing package catalog.
@@ -365,7 +365,7 @@ No Batch 11 record claims authoritative Windows detection, side-by-side behavior
 The catalog workstream passed its final consolidated acceptance on 2026-09-05:
 
 - all 116 frozen manufacturers occur exactly once across Batches 1–11, every batch is complete, and the ledger exactly matches the maintained package-manifest vendor set;
-- 245 Product IDs, 80 ReleaseFamily IDs, and 195 DeviceSoftwareRelation IDs are unique, with no dangling or cross-product family references and no duplicate semantic relations;
+- at acceptance, 245 Product IDs, 80 ReleaseFamily IDs, and 195 DeviceSoftwareRelation IDs were unique, with no dangling or cross-product family references and no duplicate semantic relations;
 - all compatibility links are structurally valid HTTPS destinations; a bounded live probe corrected concrete dead ClearOne, Dataton legacy, and Lake destinations while preserving access-gated or transiently restricted vendor evidence;
 - device aliases and exact model identifiers resolve to one canonical device family. The acceptance fix removed five ambiguous family identities while retaining legitimate multi-product software aliases;
 - representative product/device search, reverse lookup, release-family, installed-evidence, link-handoff, compiled-WPF smoke, and closed-runtime regression tests pass;

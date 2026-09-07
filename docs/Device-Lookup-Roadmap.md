@@ -16,6 +16,12 @@ Coverage states are explicit: `VerifiedSoftwareRelationships`, `Unresolved`, and
 
 `DeviceSoftwareRelation` remains the sole authority for software applicability. Hardware identity does not create package, vendor-delivery, worker, or execution authority.
 
+## Control-processor first coverage pass complete
+
+The first bounded expansion adds exact Crestron CP4N/RMC4/PRO4, AMX NX-1200/NX-2200/NX-3200/NX-4200, Extron IPCP Pro, IPCP Pro xi/Q xi, and retired IPL Pro S1 identities. Extron generations remain distinct: their Global Configurator, Global Scripter, and Toolbelt relations are independently scoped and retain certification, project, and firmware constraints. Q-SYS Core 110f remains an `AudioDsp` identity with unresolved software coverage because its Designer support is hardware-revision and release constrained.
+
+This pass adds no package record, download path, credential rule, worker capability, or device action. The next expansion must remain category-bounded and evidence-backed; older AMX controller generations, unlisted Extron models, installed-version identity, coexistence, account-gated acquisition, and firmware/project compatibility remain unresolved.
+
 ## Next coverage requirement
 
 Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.

@@ -373,9 +373,11 @@ public sealed class CompiledPresentationTests
         Assert.IsFalse(viewModel.CompatibilitySearchOutcomeVisible);
 
         viewModel.SearchText = "RMC4";
-        Assert.HasCount(0, viewModel.CompatibilityMatches);
-        Assert.IsTrue(viewModel.CompatibilitySearchOutcomeVisible);
-        StringAssert.Contains(viewModel.CompatibilitySearchOutcomeText, "No verified device/software relationship");
+        var rmc4 = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        Assert.AreEqual("RMC4", rmc4.Title);
+        StringAssert.Contains(rmc4.Subtitle, "Exact model");
+        Assert.IsFalse(rmc4.CanSelect);
+        Assert.IsFalse(viewModel.CompatibilitySearchOutcomeVisible);
         Assert.AreEqual(0, viewModel.SelectedCount);
     }
 

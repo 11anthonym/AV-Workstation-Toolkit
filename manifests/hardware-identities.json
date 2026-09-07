@@ -50,6 +50,46 @@
       "Lifecycle": "Current",
       "CoverageState": "VerifiedSoftwareRelationships",
       "CompatibilityDeviceFamilyId": "Powersoft.AmplifiersControllers"
+    },
+    {
+      "Id": "Extron.IPCPPro",
+      "Manufacturer": "Extron",
+      "Category": "ControlProcessor",
+      "Name": "Extron IP Link Pro / IPCP Pro Controllers",
+      "Aliases": [ "IPCP Pro", "IP Link Pro", "Extron IPCP Pro" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Extron.IPCPPro"
+    },
+    {
+      "Id": "Extron.IPCPProXi",
+      "Manufacturer": "Extron",
+      "Category": "ControlProcessor",
+      "Name": "Extron IPCP Pro xi / Q xi Controllers",
+      "Aliases": [ "IPCP Pro xi", "IPCP Pro Q xi", "Extron IPCP Pro xi" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Extron.IPCPProXi"
+    },
+    {
+      "Id": "Extron.IPLProRetired",
+      "Manufacturer": "Extron",
+      "Category": "ControlProcessor",
+      "Name": "Extron IPL Pro Controllers",
+      "Aliases": [ "IPL Pro", "Extron IPL Pro" ],
+      "Lifecycle": "Legacy",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Extron.IPLProRetired"
+    },
+    {
+      "Id": "AMX.NetLinxNX",
+      "Manufacturer": "AMX",
+      "Category": "ControlProcessor",
+      "Name": "AMX NetLinx NX Integrated Controllers",
+      "Aliases": [ "NetLinx NX", "AMX NX Controller", "NetLinx NX Controller" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "AMX.NetLinxNX"
     }
   ],
   "Models": [
@@ -58,6 +98,22 @@
       "FamilyId": "Crestron.4Series",
       "Name": "CP4N",
       "Aliases": [ "Crestron CP4N", "4-Series CP4N" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Crestron.RMC4",
+      "FamilyId": "Crestron.4Series",
+      "Name": "RMC4",
+      "Aliases": [ "Crestron RMC4", "4-Series RMC4" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Crestron.PRO4",
+      "FamilyId": "Crestron.4Series",
+      "Name": "PRO4",
+      "Aliases": [ "Crestron PRO4", "4-Series PRO4" ],
       "Lifecycle": "Current",
       "CoverageState": "VerifiedSoftwareRelationships"
     },
@@ -74,6 +130,134 @@
       "FamilyId": "AVer.CollaborationCameras",
       "Name": "CAM520",
       "Aliases": [ "AVer CAM520" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro250",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 250",
+      "Aliases": [ "Extron IPCP Pro 250" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro350",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 350",
+      "Aliases": [ "Extron IPCP Pro 350" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro350DR",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 350DR",
+      "Aliases": [ "Extron IPCP Pro 350DR" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro355DR",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 355DR",
+      "Aliases": [ "Extron IPCP Pro 355DR" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro550",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 550",
+      "Aliases": [ "Extron IPCP Pro 550" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro255",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 255",
+      "Aliases": [ "Extron IPCP Pro 255" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro360",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro 360",
+      "Aliases": [ "Extron IPCP Pro 360" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPProPCS1",
+      "FamilyId": "Extron.IPCPPro",
+      "Name": "IPCP Pro PCS1",
+      "Aliases": [ "Extron IPCP Pro PCS1" ],
+      "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro255QXi",
+      "FamilyId": "Extron.IPCPProXi",
+      "Name": "IPCP Pro 255Q xi",
+      "Aliases": [ "Extron IPCP Pro 255Q xi", "IPCP Pro 255Qxi" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro355DRQXi",
+      "FamilyId": "Extron.IPCPProXi",
+      "Name": "IPCP Pro 355DRQ xi",
+      "Aliases": [ "Extron IPCP Pro 355DRQ xi", "IPCP Pro 355DRQxi" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPCPPro360QXi",
+      "FamilyId": "Extron.IPCPProXi",
+      "Name": "IPCP Pro 360Q xi",
+      "Aliases": [ "Extron IPCP Pro 360Q xi", "IPCP Pro 360Qxi" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.IPLProS1",
+      "FamilyId": "Extron.IPLProRetired",
+      "Name": "IPL Pro S1",
+      "Aliases": [ "Extron IPL Pro S1" ],
+      "Lifecycle": "Legacy",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "AMX.NX1200",
+      "FamilyId": "AMX.NetLinxNX",
+      "Name": "NX-1200",
+      "Aliases": [ "AMX NX-1200", "NX 1200" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "AMX.NX2200",
+      "FamilyId": "AMX.NetLinxNX",
+      "Name": "NX-2200",
+      "Aliases": [ "AMX NX-2200", "NX 2200" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "AMX.NX3200",
+      "FamilyId": "AMX.NetLinxNX",
+      "Name": "NX-3200",
+      "Aliases": [ "AMX NX-3200", "NX 3200" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "AMX.NX4200",
+      "FamilyId": "AMX.NetLinxNX",
+      "Name": "NX-4200",
+      "Aliases": [ "AMX NX-4200", "NX 4200" ],
       "Lifecycle": "Current",
       "CoverageState": "VerifiedSoftwareRelationships"
     }
