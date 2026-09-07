@@ -445,8 +445,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
                 CompatibilitySearchResultKind.Device,
                 displayName,
-                $"{DeviceMatchLabel(device.MatchKind)} | {device.DeviceFamilyId} | {softwareCount} reviewed software relationship(s)",
-                "View software grouped by field-service purpose. This read-only result cannot be selected for install or update.",
+                $"{HardwareLookupLabel(device)} | {DeviceMatchLabel(device.MatchKind)} | {softwareCount} reviewed software relationship(s)",
+                device.LookupState is HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet or HardwareLookupState.KnownFamilyWithUnresolvedCoverage
+                    ? "Known hardware identity; software coverage is not yet verified. This does not mean no software is required."
+                    : "View software grouped by field-service purpose. This read-only result cannot be selected for install or update.",
                 () => OpenCompatibilityDeviceAsync(device, displayName)));
         }
 
@@ -494,6 +496,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CompatibilitySearchMatchKind.NormalizedExact => "Verified normalized model or alias",
         CompatibilitySearchMatchKind.PrefixOrToken => "Verified family or alias match",
         _ => "Verified related match"
+    };
+
+    private static string HardwareLookupLabel(CompatibilityDeviceSearchResult device) => device.LookupState switch
+    {
+        HardwareLookupState.KnownExactModelWithVerifiedRelationships => $"Exact model | {device.Hardware!.Manufacturer} | {device.Hardware.Category}",
+        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => $"Known model | {device.Hardware!.Manufacturer} | software coverage not yet verified",
+        HardwareLookupState.KnownFamilyWithVerifiedRelationships => $"Known family | {device.Hardware!.Manufacturer} | {device.Hardware.Category}",
+        HardwareLookupState.KnownFamilyWithUnresolvedCoverage => $"Known family | {device.Hardware!.Manufacturer} | software coverage not yet verified",
+        _ => device.DeviceFamilyId
     };
 
     private static string CompatibilityLabel(Enum value)

@@ -1,0 +1,81 @@
+{
+  "SchemaVersion": 1,
+  "Families": [
+    {
+      "Id": "Crestron.4Series",
+      "Manufacturer": "Crestron",
+      "Category": "ControlProcessor",
+      "Name": "Crestron 4-Series Control Systems",
+      "Aliases": [ "Crestron 4-Series" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Crestron.4Series"
+    },
+    {
+      "Id": "QSYS.Core",
+      "Manufacturer": "Q-SYS",
+      "Category": "AudioDsp",
+      "Name": "Q-SYS Core Processors",
+      "Aliases": [ "Q-SYS Core", "Q-SYS Core families" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "QSYS.Core"
+    },
+    {
+      "Id": "Biamp.TesiraFamily",
+      "Manufacturer": "Biamp",
+      "Category": "AudioDsp",
+      "Name": "Biamp Tesira Processors",
+      "Aliases": [ "Biamp Tesira", "Tesira families" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Biamp.TesiraFamily"
+    },
+    {
+      "Id": "AVer.CollaborationCameras",
+      "Manufacturer": "AVer",
+      "Category": "Camera",
+      "Name": "AVer Collaboration Cameras",
+      "Aliases": [ "AVer PTZ camera", "AVer collaboration camera" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "AVer.CollaborationCameras"
+    },
+    {
+      "Id": "Powersoft.AmplifiersControllers",
+      "Manufacturer": "Powersoft",
+      "Category": "Amplifier",
+      "Name": "Powersoft Amplifiers and Controllers",
+      "Aliases": [ "Powersoft amplifier", "Powersoft controller" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Powersoft.AmplifiersControllers"
+    }
+  ],
+  "Models": [
+    {
+      "Id": "Crestron.CP4N",
+      "FamilyId": "Crestron.4Series",
+      "Name": "CP4N",
+      "Aliases": [ "Crestron CP4N", "4-Series CP4N" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "QSYS.Core110f",
+      "FamilyId": "QSYS.Core",
+      "Name": "Core 110f",
+      "Aliases": [ "Q-SYS Core 110f", "Core110f" ],
+      "Lifecycle": "Current",
+      "CoverageState": "Unresolved"
+    },
+    {
+      "Id": "AVer.CAM520",
+      "FamilyId": "AVer.CollaborationCameras",
+      "Name": "CAM520",
+      "Aliases": [ "AVer CAM520" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    }
+  ]
+}

@@ -62,7 +62,8 @@ public static class CompiledAppComposition
         var catalog = new RepositoryCatalogLoader().Load(repositoryRoot);
         var compatibility = new CompatibilityCatalogQueryService(
             new RepositoryCompatibilityCatalogLoader().Load(repositoryRoot),
-            new UnresolvedInstalledVersionEvidenceProvider());
+            new UnresolvedInstalledVersionEvidenceProvider(),
+            new RepositoryHardwareIdentityCatalogLoader().Load(repositoryRoot));
         var resolver = new WindowsWinGetResolver();
         var runner = new WinGetReadOnlyProcessRunner(resolver);
         var managed = catalog.Items.Where(item => item.HasManagedExecutionAuthority).Select(item => (item.Id, item.Name));

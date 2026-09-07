@@ -80,7 +80,8 @@ public partial class App : System.Windows.Application
                 var repositoryRoot = RepositoryRootLocator.Find();
                 compatibility = new CompatibilityCatalogQueryService(
                     new RepositoryCompatibilityCatalogLoader().Load(repositoryRoot),
-                    new UnresolvedInstalledVersionEvidenceProvider());
+                    new UnresolvedInstalledVersionEvidenceProvider(),
+                    new RepositoryHardwareIdentityCatalogLoader().Load(repositoryRoot));
             }
             else
             {

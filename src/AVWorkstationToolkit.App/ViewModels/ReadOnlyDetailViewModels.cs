@@ -137,9 +137,16 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
         var softwareGroups = queries.GetSoftwareForDevice(device);
         var groups = new List<CatalogDetailGroup>
         {
-            Group("Device identity", ("Device family", device.DeviceFamilyId),
-                ("Models", Values(device.ExactModelIds)), ("Aliases", Values(device.Aliases)))
+            device.Hardware is null
+                ? Group("Device identity", ("Device family", device.DeviceFamilyId),
+                    ("Models", Values(device.ExactModelIds)), ("Aliases", Values(device.Aliases)))
+                : Group("Hardware identity", ("Manufacturer", device.Hardware.Manufacturer),
+                    ("Exact model", TextOrUnknown(device.Hardware.ExactModel)), ("Family", device.Hardware.Family),
+                    ("Category", Label(device.Hardware.Category)), ("Coverage", CoverageLabel(device.LookupState)),
+                    ("Aliases", Values(device.Hardware.Aliases)))
         };
+        if (softwareGroups.Count == 0)
+            groups.Add(Group("Software coverage", ("Status", CoverageDetail(device.LookupState))));
         foreach (var purposeGroup in softwareGroups)
             groups.Add(Group(Label(purposeGroup.Purpose), purposeGroup.Software.Select(item =>
                 (item.ProductName, RelationSummary(item.Applicability, item.Confidence,
@@ -247,10 +254,30 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
 
     internal static string DeviceDisplayName(CompatibilityDeviceSearchResult device, string query)
     {
+        if (device.Hardware is { ExactModel.Length: > 0 } hardware) return hardware.ExactModel;
+        if (device.Hardware is { } familyHardware) return familyHardware.Family;
         var exact = device.ExactModelIds.Concat(device.Aliases)
             .FirstOrDefault(value => value.Equals(query.Trim(), StringComparison.OrdinalIgnoreCase));
         return exact ?? device.ExactModelIds.FirstOrDefault() ?? device.Aliases.FirstOrDefault() ?? device.DeviceFamilyId;
     }
+
+    private static string CoverageLabel(HardwareLookupState state) => state switch
+    {
+        HardwareLookupState.KnownExactModelWithVerifiedRelationships => "Verified software relationships",
+        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => "Software coverage not yet verified",
+        HardwareLookupState.KnownFamilyWithVerifiedRelationships => "Verified family relationships",
+        HardwareLookupState.KnownFamilyWithUnresolvedCoverage => "Family software coverage not yet verified",
+        _ => "Relation-only compatibility result"
+    };
+
+    private static string CoverageDetail(HardwareLookupState state) => state switch
+    {
+        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet =>
+            "This known model has no verified software relationship in the current catalog. This does not mean no software is required.",
+        HardwareLookupState.KnownFamilyWithUnresolvedCoverage =>
+            "This known device family has no verified software relationship in the current catalog. This does not mean no software is required.",
+        _ => "No verified software relationship is available for this read-only lookup result."
+    };
 
     private static string Values(IEnumerable<string> values)
     {

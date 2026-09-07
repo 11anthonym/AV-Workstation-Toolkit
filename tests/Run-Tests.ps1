@@ -1478,7 +1478,7 @@ Invoke-Check 'Packaged launcher is compiled-only and retires stale legacy runtim
     Assert-True ($source -match 'GetManifestResourceNames' -and $source -match 'GetManifestResourceStream' -and $source -match 'SHA256\.HashData') 'Launcher does not extract and verify its embedded runtime.'
     Assert-True ($source -match 'new PackagedAppStartupContext' -and $source -match 'RunCompiledApp\(new AVWorkstationToolkit\.App\.App\(context\)\)' -and $source -match 'app\.InitializeComponent\(\)') 'Normal launcher startup does not enter the initialized compiled WPF App.'
     Assert-True ($source -match 'RemoveRetiredRuntimeFiles' -and $source -match 'scripts/Start-AVWorkstationToolkit\.ps1' -and $source -match 'File\.Delete') 'Launcher does not clean the recognized stale recovery payload from its versioned runtime.'
-    Assert-True ($source -match 'SpecialFolder\.LocalApplicationData' -and $source -match 'managed-applications\.json' -and $source -match 'external-applications\.json' -and $source -match 'commercial-av-catalog\.json') 'Launcher does not isolate mutable data or require the compiled catalog manifests.'
+    Assert-True ($source -match 'SpecialFolder\.LocalApplicationData' -and $source -match 'managed-applications\.json' -and $source -match 'external-applications\.json' -and $source -match 'commercial-av-catalog\.json' -and $source -match 'hardware-identities\.json') 'Launcher does not isolate mutable data or require the compiled catalog manifests.'
     Assert-True ($source -notmatch '(?i)--legacy-powershell-recovery|--vendor-bridge|powershell\.exe|cmd\.exe|ProcessStartInfo|ExecutionPolicy') 'Launcher retains a retired shell, bridge, or PowerShell runtime surface.'
 }
 Invoke-Check 'Launcher path containment uses one reviewed implementation' {

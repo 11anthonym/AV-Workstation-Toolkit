@@ -104,6 +104,11 @@ public partial class MainWindow : Window
         if (!CompatibilityMatchesPanel.IsVisible || CompatibilitySearchResults.Items.Count == 0 ||
             viewModel.CompatibilityMatches.Any(item => item.CanSelect))
             throw new InvalidOperationException("Compiled WPF smoke did not render read-only device matches through Find Apps.");
+        viewModel.SearchText = "Core 110f";
+        var unresolvedHardware = viewModel.CompatibilityMatches.SingleOrDefault(item => item.Kind == CompatibilitySearchResultKind.Device)
+            ?? throw new InvalidOperationException("Compiled WPF smoke did not surface the known Core 110f hardware identity.");
+        if (!unresolvedHardware.Subtitle.Contains("not yet verified", StringComparison.OrdinalIgnoreCase) || unresolvedHardware.CanSelect)
+            throw new InvalidOperationException("Compiled WPF smoke did not preserve explicit unresolved hardware coverage.");
         viewModel.SearchText = string.Empty;
         UpdateLayout();
 
@@ -199,6 +204,8 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Compiled production smoke did not open CP4N compatibility details.");
         if (!compatibilityDetail.Groups.SelectMany(group => group.Fields).Any(field => field.Label.Contains("SIMPL", StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("Compiled production smoke did not display CP4N's reviewed software relationships.");
+        if (!compatibilityDetail.Groups.Any(group => group.Name == "Hardware identity"))
+            throw new InvalidOperationException("Compiled production smoke did not display CP4N's descriptive hardware identity.");
         var compatibilityWindow = new CatalogDetailWindow(compatibilityDetail) { Owner = this };
         compatibilityWindow.Show();
         compatibilityWindow.UpdateLayout();

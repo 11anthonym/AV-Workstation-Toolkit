@@ -380,6 +380,39 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task HardwareIdentityResultsShowVerifiedAndUnresolvedCoverageWithoutInferringSoftware()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "CP 4N";
+        var verified = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        Assert.AreEqual("CP4N", verified.Title);
+        StringAssert.Contains(verified.Subtitle, "Exact model");
+        verified.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        var verifiedDetail = viewModel.SelectedCompatibilityDetail!;
+        var identity = verifiedDetail.Groups.Single(group => group.Name == "Hardware identity").Fields;
+        CollectionAssert.Contains(identity.Select(field => field.Label).ToArray(), "Manufacturer");
+        CollectionAssert.Contains(identity.Select(field => field.Label).ToArray(), "Coverage");
+        Assert.IsTrue(verifiedDetail.RelatedSoftware.Any(item => item.ProductName == "Crestron SIMPL Windows"));
+
+        viewModel.SearchText = "Core 110f";
+        var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        Assert.AreEqual("Core 110f", unresolved.Title);
+        StringAssert.Contains(unresolved.Subtitle, "not yet verified");
+        Assert.IsFalse(unresolved.CanSelect);
+        unresolved.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null && viewModel.SelectedCompatibilityDetail != verifiedDetail);
+        var unresolvedDetail = viewModel.SelectedCompatibilityDetail!;
+        Assert.HasCount(0, unresolvedDetail.RelatedSoftware);
+        var coverage = unresolvedDetail.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
+        StringAssert.Contains(coverage.Value, "no verified software relationship");
+        StringAssert.Contains(coverage.Value, "does not mean no software is required");
+    }
+
+    [TestMethod]
     public async Task DeviceSoftwareSelectionNavigatesWithinCompatibilityDetails()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
@@ -524,7 +557,8 @@ public sealed class CompiledPresentationTests
 
     private static CompatibilityCatalogQueryService CreateCompatibilityQueries() => new(
         new RepositoryCompatibilityCatalogLoader().Load(FindRepositoryRoot()),
-        new UnresolvedInstalledVersionEvidenceProvider());
+        new UnresolvedInstalledVersionEvidenceProvider(),
+        new RepositoryHardwareIdentityCatalogLoader().Load(FindRepositoryRoot()));
 
     private static async Task WaitForAsync(Func<bool> condition)
     {

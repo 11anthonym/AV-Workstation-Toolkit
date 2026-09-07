@@ -182,6 +182,70 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void HardwareIdentityCatalogMakesCoverageStatesAndRelationAuthorityExplicit()
+    {
+        var root = RepositoryRoot();
+        var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
+        var service = CreateQueryService();
+
+        Assert.HasCount(5, hardware.Families);
+        Assert.HasCount(3, hardware.Models);
+        var coverage = hardware.GetCoverageSummary();
+        Assert.AreEqual(3, coverage.Models);
+        Assert.AreEqual(2, coverage.VerifiedModels);
+        Assert.AreEqual(1, coverage.UnresolvedModels);
+
+        var cp4n = service.SearchDevices("Crestron CP4N").Single();
+        Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, cp4n.LookupState);
+        Assert.IsTrue(service.GetSoftwareForDevice(cp4n).SelectMany(group => group.Software)
+            .Any(software => software.ProductId.Value == "Crestron.SIMPLWindows"));
+
+        var core110 = service.SearchDevices("Core 110f").Single();
+        Assert.AreEqual("QSYS.Core110f", core110.Hardware!.Id);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, core110.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(core110));
+        Assert.AreEqual(CompatibilitySearchOutcome.KnownFamilyOrAliasMatch, service.GetSearchOutcome("Core 110f"));
+
+        var coreFamily = service.SearchDevices("Q-SYS Core").Single(result => result.Hardware?.Id == "QSYS.Core");
+        Assert.AreEqual(HardwareLookupState.KnownFamilyWithVerifiedRelationships, coreFamily.LookupState);
+        Assert.IsTrue(service.GetSoftwareForDevice(coreFamily).SelectMany(group => group.Software)
+            .Any(software => software.ProductId.Value == "QSYSDesigner"));
+        Assert.IsFalse(service.SearchDevices("RMC4").Any());
+    }
+
+    [TestMethod]
+    public void HardwareIdentityDocumentCannotGrantSoftwareOrExecutionAuthority()
+    {
+        var forbidden = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "PackageId", "Provider", "Authority", "Deployment", "Executable", "Command", "Credential", "Delivery", "Arguments", "WorkingDirectory", "ProductId"
+        };
+        using var document = System.Text.Json.JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(RepositoryRoot(), "manifests", "hardware-identities.json")));
+        Assert.HasCount(0, EnumeratePropertyNames(document.RootElement).Where(forbidden.Contains).Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
+        CollectionAssert.DoesNotContain(typeof(HardwareFamily).GetProperties().Select(item => item.Name).ToArray(), "Authority");
+        CollectionAssert.DoesNotContain(typeof(HardwareModel).GetProperties().Select(item => item.Name).ToArray(), "Provider");
+        CollectionAssert.DoesNotContain(typeof(HardwareModel).GetProperties().Select(item => item.Name).ToArray(), "PackageId");
+    }
+
+    [TestMethod]
+    public void HardwareIdentityParserRejectsUnknownFieldsAndInvalidCoverageStates()
+    {
+        const string valid = """
+            { "SchemaVersion": 1, "Families": [
+              { "Id": "Fixture.Family", "Manufacturer": "Fixture", "Category": "AudioDsp", "Name": "Fixture family", "Aliases": [], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" }
+            ], "Models": [
+              { "Id": "Fixture.Model", "FamilyId": "Fixture.Family", "Name": "Fixture model", "Aliases": [], "Lifecycle": "Current", "CoverageState": "Unresolved" }
+            ] }
+            """;
+        var parser = new HardwareIdentityCatalogParser();
+        _ = parser.Parse(valid);
+        Assert.ThrowsExactly<CatalogValidationException>(() => parser.Parse(valid.Replace("\"Models\"", "\"Unexpected\": true, \"Models\"", StringComparison.Ordinal)));
+        Assert.ThrowsExactly<CatalogValidationException>(() => parser.Parse(valid.Replace("\"CoverageState\": \"Unresolved\" }", "\"CoverageState\": \"FamilyOnly\" }", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public void BatchTwoDeviceRelationsAreEvidenceBackedAndAliasesResolve()
     {
         var service = CreateQueryService();
@@ -482,7 +546,8 @@ public sealed class ProductionCompatibilityCatalogTests
 
     private static CompatibilityCatalogQueryService CreateQueryService() => new(
         LoadCatalog(),
-        new UnresolvedInstalledVersionEvidenceProvider());
+        new UnresolvedInstalledVersionEvidenceProvider(),
+        new RepositoryHardwareIdentityCatalogLoader().Load(RepositoryRoot()));
 
     private static IEnumerable<string> EnumeratePropertyNames(System.Text.Json.JsonElement element)
     {
