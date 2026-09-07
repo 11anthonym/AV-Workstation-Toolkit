@@ -146,6 +146,42 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void DeviceLookupPreservesMatchedCanonicalRelationshipScopeAndRanksExactMatches()
+    {
+        var service = CreateQueryService();
+
+        var cp4n = service.SearchDevices("CP 4N").Single();
+        Assert.AreEqual("Crestron.4Series", cp4n.DeviceFamilyId);
+        Assert.AreEqual(CompatibilitySearchMatchKind.NormalizedExact, cp4n.MatchKind);
+        CollectionAssert.AreEquivalent(
+            new[] { "Crestron.SIMPLWindows", "Crestron.Database", "Crestron.DeviceDatabase", "Crestron.Toolbox" },
+            service.GetSoftwareForDevice(cp4n).SelectMany(group => group.Software).Select(item => item.ProductId.Value).Distinct().ToArray());
+
+        var ptzApp = service.SearchDevices("PTZApp2").Single();
+        Assert.AreEqual("AVer.CollaborationCameras", ptzApp.DeviceFamilyId);
+        Assert.AreEqual(CompatibilitySearchMatchKind.ExactModelOrAlias, ptzApp.MatchKind);
+        CollectionAssert.AreEquivalent(new[] { "AVer.PTZApp2" },
+            service.GetSoftwareForDevice(ptzApp).SelectMany(group => group.Software).Select(item => item.ProductId.Value).Distinct().ToArray());
+        Assert.IsFalse(service.GetSoftwareForDevice(ptzApp).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "AVer.RoomManagement"));
+
+        Assert.AreEqual(CompatibilitySearchMatchKind.PrefixOrToken, service.SearchDevices("CP4").Single().MatchKind);
+        Assert.AreEqual(CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog, service.GetSearchOutcome("RMC4"));
+        Assert.IsFalse(service.SearchDevices("RMC4").Any());
+        Assert.IsFalse(service.SearchDevices("DM-NVX-363").Any());
+    }
+
+    [TestMethod]
+    public void DeviceLookupNormalizesSeparatorsWithoutFabricatingModelCompatibility()
+    {
+        var service = CreateQueryService();
+
+        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM NVX").Single().DeviceFamilyId);
+        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM-NVX").Single().DeviceFamilyId);
+        Assert.AreEqual(CompatibilitySearchOutcome.NoDeviceOrCatalogMatch, service.GetSearchOutcome("not-a-device"));
+    }
+
+    [TestMethod]
     public void BatchTwoDeviceRelationsAreEvidenceBackedAndAliasesResolve()
     {
         var service = CreateQueryService();

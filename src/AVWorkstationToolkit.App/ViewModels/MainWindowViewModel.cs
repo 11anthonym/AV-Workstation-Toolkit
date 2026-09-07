@@ -36,6 +36,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private DiagnosticsViewModel? diagnostics;
     private CatalogDetailViewModel? selectedDetail;
     private CompatibilityDetailViewModel? selectedCompatibilityDetail;
+    private CompatibilitySearchOutcome compatibilitySearchOutcome = CompatibilitySearchOutcome.NoDeviceOrCatalogMatch;
     private bool isBusy;
     private string searchText = string.Empty;
     private bool standardProfile = true;
@@ -195,6 +196,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
     public bool CompatibilityMatchesVisible => compatibilityMatches.Count > 0;
+    public bool CompatibilitySearchOutcomeVisible => SearchText.Trim().Length >= 2 && compatibilityMatches.Count == 0;
+    public string CompatibilitySearchOutcomeText => compatibilitySearchOutcome switch
+    {
+        CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog =>
+            "No verified device/software relationship is recorded for this model in the current catalog.",
+        CompatibilitySearchOutcome.NoDeviceOrCatalogMatch =>
+            "No software or device catalog match was found. This does not mean the device has no required software.",
+        _ => string.Empty
+    };
     public string CompatibilityMatchSummary => compatibilityMatches.Count == 1
         ? "1 compatibility match"
         : $"{compatibilityMatches.Count} compatibility matches";
@@ -421,23 +431,26 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         var query = SearchText.Trim();
         if (compatibilityService is null || query.Length < 2)
         {
+            compatibilitySearchOutcome = CompatibilitySearchOutcome.NoDeviceOrCatalogMatch;
             NotifyCompatibilityMatchesChanged();
             return;
         }
 
-        foreach (var device in compatibilityService.SearchDevices(query).Take(6))
+        var devices = compatibilityService.SearchDevices(query);
+        compatibilitySearchOutcome = compatibilityService.GetSearchOutcome(query);
+        foreach (var device in devices)
         {
             var displayName = CompatibilityDetailViewModel.DeviceDisplayName(device, query);
-            var softwareCount = compatibilityService.GetSoftwareForDevice(displayName).Sum(group => group.Software.Count);
+            var softwareCount = compatibilityService.GetSoftwareForDevice(device).Sum(group => group.Software.Count);
             compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
                 CompatibilitySearchResultKind.Device,
                 displayName,
-                $"{device.DeviceFamilyId} | {softwareCount} reviewed software relationship(s)",
-                "View software grouped by field-service purpose. This result cannot be selected for install or update.",
+                $"{DeviceMatchLabel(device.MatchKind)} | {device.DeviceFamilyId} | {softwareCount} reviewed software relationship(s)",
+                "View software grouped by field-service purpose. This read-only result cannot be selected for install or update.",
                 () => OpenCompatibilityDeviceAsync(device, displayName)));
         }
 
-        foreach (var product in compatibilityService.SearchProducts(query).Take(Math.Max(0, 8 - compatibilityMatches.Count)))
+        foreach (var product in compatibilityService.SearchProducts(query))
         {
             compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
                 CompatibilitySearchResultKind.Software,
@@ -470,7 +483,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(CompatibilityMatchesVisible));
         OnPropertyChanged(nameof(CompatibilityMatchSummary));
+        OnPropertyChanged(nameof(CompatibilitySearchOutcomeVisible));
+        OnPropertyChanged(nameof(CompatibilitySearchOutcomeText));
     }
+
+    private static string DeviceMatchLabel(CompatibilitySearchMatchKind kind) => kind switch
+    {
+        CompatibilitySearchMatchKind.ExactModelOrAlias => "Exact verified model or alias",
+        CompatibilitySearchMatchKind.ExactDeviceFamily => "Exact verified device family",
+        CompatibilitySearchMatchKind.NormalizedExact => "Verified normalized model or alias",
+        CompatibilitySearchMatchKind.PrefixOrToken => "Verified family or alias match",
+        _ => "Verified related match"
+    };
 
     private static string CompatibilityLabel(Enum value)
     {

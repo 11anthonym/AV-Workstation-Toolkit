@@ -132,8 +132,9 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
     {
         ArgumentNullException.ThrowIfNull(queries);
         ArgumentNullException.ThrowIfNull(device);
-        var softwareGroups = queries.GetSoftwareForDevice(displayName);
-        if (softwareGroups.Count == 0) softwareGroups = queries.GetSoftwareForDevice(device.DeviceFamilyId);
+        // The result carries the exact authoritative relation scope selected by search. Do not use a display
+        // label (which may be a model or alias) to repeat a lookup and accidentally broaden or switch scope.
+        var softwareGroups = queries.GetSoftwareForDevice(device);
         var groups = new List<CatalogDetailGroup>
         {
             Group("Device identity", ("Device family", device.DeviceFamilyId),

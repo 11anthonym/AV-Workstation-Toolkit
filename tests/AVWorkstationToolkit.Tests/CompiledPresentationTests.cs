@@ -342,6 +342,44 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task AliasDeviceViewPreservesTheMatchedRelationshipScopeInsteadOfUsingDisplayText()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "PTZApp2";
+
+        var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        Assert.AreEqual("PTZApp2", match.Title);
+        match.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+
+        var software = viewModel.SelectedCompatibilityDetail!.Groups.SelectMany(group => group.Fields)
+            .Select(field => field.Label).ToArray();
+        CollectionAssert.Contains(software, "AVer PTZApp 2");
+        CollectionAssert.DoesNotContain(software, "AVer Room Management");
+    }
+
+    [TestMethod]
+    public async Task DeviceSearchShowsEveryCompatibilityMatchAndExplainsUnresolvedModels()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "DSP";
+        var expected = CreateCompatibilityQueries().SearchDevices("DSP").Count + CreateCompatibilityQueries().SearchProducts("DSP").Count;
+        Assert.HasCount(expected, viewModel.CompatibilityMatches);
+        Assert.IsFalse(viewModel.CompatibilitySearchOutcomeVisible);
+
+        viewModel.SearchText = "RMC4";
+        Assert.HasCount(0, viewModel.CompatibilityMatches);
+        Assert.IsTrue(viewModel.CompatibilitySearchOutcomeVisible);
+        StringAssert.Contains(viewModel.CompatibilitySearchOutcomeText, "No verified device/software relationship");
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
     public async Task DeviceSoftwareSelectionNavigatesWithinCompatibilityDetails()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),

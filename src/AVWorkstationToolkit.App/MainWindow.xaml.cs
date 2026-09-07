@@ -73,7 +73,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "RebootBanner", "SearchBox", "CompatibilityMatchesPanel", "CompatibilitySearchResults", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
+            "BrandMark", "TopMenu", "RebootBanner", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
             "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
@@ -94,6 +94,10 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke exposed awareness selection authority.");
         VerifyClosedComboBoxLabels();
         VerifyF5Binding(viewModel, invoke: true);
+        if (FindSoftwareAndDevicesHeading.Text != "FIND SOFTWARE & DEVICES" ||
+            !FindSoftwareAndDevicesHint.Text.Contains("device model", StringComparison.OrdinalIgnoreCase) ||
+            !System.Windows.Automation.AutomationProperties.GetHelpText(SearchBox).Contains("device model", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Compiled WPF smoke did not expose the software and device search guidance.");
 
         viewModel.SearchText = "CP4N";
         UpdateLayout();
@@ -158,7 +162,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "SidebarScroll", "SearchBox", "CompatibilityMatchesPanel", "CompatibilitySearchResults", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
+            "BrandMark", "TopMenu", "SidebarScroll", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog", "FollowActivityCheckBox",
             "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
@@ -172,6 +176,9 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");
         VerifyClosedComboBoxLabels();
         VerifyF5Binding(viewModel, invoke: false);
+        if (FindSoftwareAndDevicesHeading.Text != "FIND SOFTWARE & DEVICES" ||
+            !FindSoftwareAndDevicesHint.Text.Contains("device model", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Compiled production smoke did not expose the software and device search guidance.");
         if (!ExportPlanMenuItem.IsEnabled || !OpenLogsMenuItem.IsEnabled || !SafetySecurityMenuItem.IsEnabled || !AboutMenuItem.IsEnabled)
             throw new InvalidOperationException("Compiled production smoke found a required application menu command disabled.");
         new SafetySecurityWindow().VerifySmokeContract();
