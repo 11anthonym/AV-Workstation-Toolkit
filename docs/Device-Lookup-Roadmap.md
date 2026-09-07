@@ -26,7 +26,11 @@ This pass adds no package record, download path, credential rule, worker capabil
 
 Batch A adds evidence-scoped exact identities for Q-SYS Cores, Biamp TesiraFORTÉ X and reviewed AVB models, Extron DMP 64/128 Plus and FlexPlus processors, Shure IntelliMix P300, ClearOne CONVERGE Pro 2, Symetrix Radius/Prism/Edge and Jupiter, Bose ControlSpace EX/ESP, Allen & Heath AHM, and Yamaha DME/MRX/MTX processors. The software relations remain model-scoped: Q-SYS Core 110f remains unresolved because RAM-revision qualification controls Designer support; Shure Designer and firmware must match P300 evidence; Symetrix Composer/firmware and Yamaha generation/firmware/project pairing remain explicit constraints; Jupiter retains its separate legacy software workflow.
 
-DSP Batch B remains: BSS, Xilica, Rane Commercial, Crestron Avia DSP, AtlasIED, Ashly Audio, and Poly SoundStructure. This is descriptive coverage only—no identity or relation creates a package, download, credential, worker, firmware, or device-action route.
+## Audio DSP / conferencing processor Batch B complete
+
+Batch B adds 50 exact hardware identities across BSS Soundweb OMNI/London, Xilica Solaro, Rane Halogen, Crestron Avia, AtlasIED BlueBridge/Atmosphere, Ashly AquaControl/Protea, and Polycom SoundStructure. The relationship scopes deliberately separate OMNI AVX from Soundweb London legacy software, add the missing Avia Audio Tool and SoundStructure Studio descriptive products, and preserve the existing MasterInstaller boundary for Crestron Toolbox.
+
+AtlasIED Atmosphere AZM processors are known hardware with `Unresolved` workstation-software coverage because the reviewed primary configuration surface is embedded browser control. They do not inherit BlueBridge Designer. BSS BLU-120/320/326DA remain excluded from this AudioDsp pass because they are I/O expanders; Ashly 3.6SP/4.8SP remain deferred to loudspeaker processing. All version, firmware, licensing, coexistence, and Windows-support caveats remain descriptive only—no identity or relation creates a package, download, credential, worker, firmware, or device-action route.
 
 ## Next coverage requirement
 

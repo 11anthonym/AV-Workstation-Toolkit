@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(249, catalog.Products);
+        Assert.HasCount(251, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -26,12 +26,12 @@ public sealed class ProductionCompatibilityCatalogTests
                 "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Kramer", "L-Acoustics", "Lake",
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
                 "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
-                "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
+                "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Polycom", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
                 "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom", "WolfVision", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(218, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(231, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -191,12 +191,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(19, hardware.Families);
-        Assert.HasCount(82, hardware.Models);
+        Assert.HasCount(30, hardware.Families);
+        Assert.HasCount(132, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(82, coverage.Models);
-        Assert.AreEqual(81, coverage.VerifiedModels);
-        Assert.AreEqual(1, coverage.UnresolvedModels);
+        Assert.AreEqual(132, coverage.Models);
+        Assert.AreEqual(127, coverage.VerifiedModels);
+        Assert.AreEqual(5, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -269,6 +269,33 @@ public sealed class ProductionCompatibilityCatalogTests
         var jupiter = service.GetSoftwareForDevice(service.SearchDevices("Jupiter 8").Single(item => item.Hardware?.Id == "Symetrix.Jupiter8")).SelectMany(group => group.Software).ToArray();
         Assert.IsTrue(jupiter.Any(item => item.ProductId.Value == "Symetrix.Jupiter"));
         Assert.IsFalse(jupiter.Any(item => item.ProductId.Value == "Symetrix.Composer"));
+    }
+
+    [TestMethod]
+    public void DspBatchBPreservesGenerationScopesAndExplicitUnresolvedModels()
+    {
+        var service = CreateQueryService();
+
+        var omni = service.GetSoftwareForDevice("256p").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(omni.Any(item => item.ProductId.Value == "BSS.AVXArchitect" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsFalse(omni.Any(item => item.ProductId.Value == "BSS.AudioArchitect"));
+
+        var london = service.GetSoftwareForDevice("BLU-100").SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(london.Any(item => item.ProductId.Value == "BSS.AudioArchitect"));
+        Assert.IsFalse(london.Any(item => item.ProductId.Value == "BSS.AVXArchitect"));
+
+        var qr1Uc = service.SearchDevices("QR1-UC").Single();
+        Assert.IsTrue(service.GetSoftwareForDevice(qr1Uc).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Xilica.Designer" && item.Purpose == DeviceSoftwarePurpose.Diagnostics));
+        Assert.IsTrue(service.GetSoftwareForDevice("DSP-1280").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Crestron.AviaAudioTool" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(service.GetSoftwareForDevice("SoundStructure SR12").SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Polycom.SoundStructureStudio"));
+
+        var atmosphere = service.SearchDevices("AZM8-D").Single();
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, atmosphere.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(atmosphere).SelectMany(group => group.Software));
+        Assert.IsFalse(service.SearchDevices("BLU-320").Any());
     }
 
     [TestMethod]
@@ -518,7 +545,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(249, services.Compatibility.SearchProducts());
+        Assert.HasCount(251, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -533,7 +560,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(249, compatibility.Products);
+        Assert.HasCount(251, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
