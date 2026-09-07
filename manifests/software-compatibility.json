@@ -1379,6 +1379,8 @@
   { "Id": "Sennheiser.TransmitterManager", "Vendor": "Sennheiser", "Name": "Sennheiser Transmitter Manager", "Lifecycle": "Legacy", "OfficialSourceUri": "https://www.sennheiser.com/en-au/terms-and-conditions/sennheiser-transmitter-manager", "Aliases": [ "Sennheiser Transmitter Manager", "STM Sennheiser" ] },
   { "Id": "Sennheiser.SpecteraLinkDesk", "Vendor": "Sennheiser", "Name": "Sennheiser Spectera LinkDesk", "Lifecycle": "Current", "OfficialSourceUri": "https://www.sennheiser.com/en-us/catalog/products/software/spectera-link-desk-829c7449/spectera-linkdesk-linkdesk", "Aliases": [ "Spectera LinkDesk", "Sennheiser LinkDesk", "Spectera monitoring" ] },
   { "Id": "SharpNEC.NaViSetAdministrator2", "Vendor": "Sharp NEC Display Solutions", "Name": "NaViSet Administrator 2", "Lifecycle": "Current", "OfficialSourceUri": "https://proav.sharpusa.com/monitor-download/navisetdownloadcontact", "Aliases": [ "NaViSet Administrator 2", "NaViSet", "NEC display management" ] },
+  { "Id": "Shure.Designer", "Vendor": "Shure", "Name": "Shure Designer", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/docs/guide/Designer", "Aliases": [ "Shure Designer", "Designer System Configuration Software", "Designer 6" ] },
+  { "Id": "Shure.UpdateUtility", "Vendor": "Shure", "Name": "Shure Update Utility", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/shure_update_utility", "Aliases": [ "Shure Update Utility", "SUU", "Shure firmware utility" ] },
   { "Id": "Shure.IntelliMixRoom", "Vendor": "Shure", "Name": "Shure IntelliMix Room", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/intellimix_room", "Aliases": [ "IntelliMix Room", "IMX Room", "Shure software DSP" ] },
   { "Id": "Shure.SystemOn", "Vendor": "Shure", "Name": "Shure SystemOn", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/systemon", "Aliases": [ "Shure SystemOn", "SystemOn Audio Asset Management", "Shure monitoring" ] },
   { "Id": "Sony.RMIPSetupTool", "Vendor": "Sony Professional", "Name": "Sony RM-IP Setup Tool", "Lifecycle": "Current", "OfficialSourceUri": "https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7", "Aliases": [ "RM-IP Setup Tool", "Sony PTZ setup", "Sony BRC SRG setup" ] },
@@ -1401,6 +1403,7 @@
   { "Id": "Xilica.XTouch", "Vendor": "Xilica", "Name": "Xilica XTouch", "Lifecycle": "Current", "OfficialSourceUri": "https://support.xilica.com/en/categories/1363970-software-downloads", "Aliases": [ "XTouch", "Xilica XTouch", "Xilica control app" ] },
   { "Id": "Xilica.XConsole", "Vendor": "Xilica", "Name": "Xilica XConsole", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.xilica.com/en/categories/1363970-software-downloads", "Aliases": [ "XConsole", "Xilica X Series", "Xilica XP XD XA" ] },
   { "Id": "Xilica.XLink", "Vendor": "Xilica", "Name": "Xilica XLink", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.xilica.com/en/categories/1363970-software-downloads", "Aliases": [ "XLink", "Xilica XLink", "Xilica legacy utility" ] },
+  { "Id": "Yamaha.MTXMRXEditor", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha MTX-MRX Editor", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/mtx_editor/index.html", "Aliases": [ "MTX-MRX Editor", "Yamaha MTX Editor", "Yamaha MRX Editor" ] },
   { "Id": "Yamaha.ProVisionaireDesign", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Design", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html", "Aliases": [ "ProVisionaire Design", "Yamaha PV Design", "Yamaha DSP design" ] },
   { "Id": "Yamaha.ProVisionaireControlPlus", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Control PLUS", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html", "Aliases": [ "ProVisionaire Control PLUS", "ProVisionaire Control", "Yamaha control panel" ] },
   { "Id": "Yamaha.ProVisionaireKiosk", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Kiosk", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html", "Aliases": [ "ProVisionaire Kiosk", "Yamaha Kiosk", "Yamaha operator control" ] },
@@ -2375,7 +2378,7 @@
   {
     "Id": "ClearOne.ConvergePro2.ClearOne.ConsoleAI.Configuration",
     "DeviceFamilyId": "ClearOne.ConvergePro2",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "CONVERGE Pro 2 128", "CONVERGE Pro 2 128D", "CONVERGE Pro 2 128T", "CONVERGE Pro 2 128TD", "CONVERGE Pro 2 128V", "CONVERGE Pro 2 128VD", "CONVERGE Pro 2 48T", "CONVERGE Pro 2 48V", "CONVERGE Pro 2 120", "CONVERGE Pro 2 012", "CONVERGE Pro 2 128SR", "CONVERGE Pro 2 128SRD" ],
       "DeviceAliases": [ "CONVERGE Pro 2" ],
     "ProductId": "ClearOne.ConsoleAI",
     "ReleaseFamilyId": null,
@@ -2390,7 +2393,7 @@
   {
     "Id": "ClearOne.ConvergePro2.ClearOne.ConsoleAI.Firmware",
     "DeviceFamilyId": "ClearOne.ConvergePro2",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "CONVERGE Pro 2 128", "CONVERGE Pro 2 128D", "CONVERGE Pro 2 128T", "CONVERGE Pro 2 128TD", "CONVERGE Pro 2 128V", "CONVERGE Pro 2 128VD", "CONVERGE Pro 2 48T", "CONVERGE Pro 2 48V", "CONVERGE Pro 2 120", "CONVERGE Pro 2 012", "CONVERGE Pro 2 128SR", "CONVERGE Pro 2 128SRD" ],
       "DeviceAliases": [ "CONVERGE Pro 2" ],
     "ProductId": "ClearOne.ConsoleAI",
     "ReleaseFamilyId": null,
@@ -2794,10 +2797,10 @@
     "Confidence": "VendorDocumented",
     "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
   },
-  {
-    "Id": "Extron.DSP.Extron.DSPConfiguratorPro.Configuration",
-    "DeviceFamilyId": "Extron.DSP",
-    "ExactModelIds": [],
+    {
+      "Id": "Extron.DSP.Extron.DSPConfiguratorPro.Configuration",
+      "DeviceFamilyId": "Extron.DSP",
+      "ExactModelIds": [ "DMP 64 Plus C", "DMP 64 Plus C AT", "DMP 64 Plus C V", "DMP 64 Plus C V AT", "DMP 128 Plus", "DMP 128 Plus AT", "DMP 128 Plus C", "DMP 128 Plus C AT", "DMP 128 Plus C V", "DMP 128 Plus C V AT", "DMP 128 FlexPlus C AT", "DMP 128 FlexPlus C V AT" ],
     "DeviceAliases": [
       "Extron DSP",
       "Extron DMP Plus"
@@ -3198,7 +3201,7 @@
     {
       "Id": "QSYS.Core.QSYSDesigner.Configuration",
       "DeviceFamilyId": "QSYS.Core",
-      "ExactModelIds": [],
+      "ExactModelIds": [ "Core Nano", "Core 8 Flex", "Core 24f", "Core 510i", "Core 610" ],
       "DeviceAliases": [ "Q-SYS Core", "Q-SYS Core families" ],
       "ProductId": "QSYSDesigner",
       "ReleaseFamilyId": null,
@@ -3258,7 +3261,7 @@
     {
       "Id": "Biamp.Tesira.Biamp.Tesira.Configuration",
       "DeviceFamilyId": "Biamp.TesiraFamily",
-      "ExactModelIds": [],
+      "ExactModelIds": [ "TesiraFORTÉ X 400", "TesiraFORTÉ X 800", "TesiraFORTÉ X 1600", "TesiraFORTÉ AVB AI", "TesiraFORTÉ AVB CI", "TesiraFORTÉ AVB VT", "TesiraFORTÉ AVB VT4" ],
       "DeviceAliases": [ "Biamp Tesira", "Tesira families" ],
       "ProductId": "Biamp.Tesira",
       "ReleaseFamilyId": null,
@@ -4188,17 +4191,17 @@
     {
       "Id": "Bose.ControlSpace.Bose.ControlSpaceDesigner.Configuration",
       "DeviceFamilyId": "Bose.ControlSpace",
-      "ExactModelIds": [ "EX-440C", "EX-1280C", "EX-12AEC", "PowerShareX" ],
+      "ExactModelIds": [ "EX-1280", "EX-1280C", "EX-440C", "EX-12AEC", "ESP-880A", "PowerShareX" ],
       "DeviceAliases": [ "Bose ControlSpace", "ControlSpace processor", "Bose EX processor", "PowerShareX" ],
       "ProductId": "Bose.ControlSpaceDesigner",
       "ReleaseFamilyId": null,
       "Purpose": "Configuration",
       "Applicability": "Applicable",
       "Lifecycle": "Current",
-      "EvidenceUri": "https://boseprofessional.com/products/power-amplifiers/software-power-amplifiers/controlspace-designer-software",
+      "EvidenceUri": "https://boseprofessional.com/products/processors/open-architecture/ex-1280/controlspace-ex-1280-digital-signal-processor",
       "EvidenceKind": "VendorProductPage",
       "Confidence": "VendorDocumented",
-      "Constraints": "ControlSpace Designer applicability is limited to its documented ecosystem and release-specific device support."
+      "Constraints": "EX-1280 requires ControlSpace Designer 5.5 or later; EX/ESP firmware and project compatibility remain release-specific."
     },
     {
       "Id": "Bose.ControlSpace.Bose.ControlSpaceDesigner.Commissioning",
@@ -4456,7 +4459,7 @@
     { "Id": "Shure.AxientDigital.SoundBase.Pro.Monitoring", "DeviceFamilyId": "Shure.AxientDigital", "ExactModelIds": [ "AD4Q" ], "DeviceAliases": [ "Shure AD4Q", "Shure Axient Digital", "SoundBase Shure monitoring" ], "ProductId": "SoundBase.Pro", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://docs.soundbase.app/guides/monitoring/supported-devices/", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "This relation is limited to the exact AD4Q receiver support documented by SoundBase; it does not imply broad Shure wireless compatibility." },
     { "Id": "SharpNEC.ProfessionalDisplays.SharpNEC.NaViSetAdministrator2.Configuration", "DeviceFamilyId": "SharpNEC.ProfessionalDisplays", "ExactModelIds": [], "DeviceAliases": [ "Sharp NEC professional display", "NEC display", "NaViSet display" ], "ProductId": "SharpNEC.NaViSetAdministrator2", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://proav.sharpusa.com/monitor-download/navisetdownloadcontact", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "NaViSet Administrator 2 is scoped to supported Sharp NEC display-management workflows; display model and network support remain vendor-specific." },
     { "Id": "Sony.RemoteCameras.Sony.RMIPSetupTool.Configuration", "DeviceFamilyId": "Sony.RemoteCameras", "ExactModelIds": [ "BRC-X400", "SRG-X400", "SRG-X120", "ILME-FR7" ], "DeviceAliases": [ "Sony BRC", "Sony SRG", "Sony PTZ camera", "Sony RM-IP" ], "ProductId": "Sony.RMIPSetupTool", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "RM-IP Setup Tool is limited to the vendor-described BRC/SRG/FR7 remote-camera workflow; camera firmware and pairing remain manual." },
-    { "Id": "Symetrix.DSPProcessors.Symetrix.Composer.Configuration", "DeviceFamilyId": "Symetrix.DSPProcessors", "ExactModelIds": [], "DeviceAliases": [ "Symetrix DSP", "Symetrix Composer", "Symetrix audio processor" ], "ProductId": "Symetrix.Composer", "ReleaseFamilyId": "Symetrix.Composer.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.symetrix.co/composer/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Composer applies only to vendor-supported Symetrix DSP workflows; firmware, project, and model pairing remain manual." },
+    { "Id": "Symetrix.DSPProcessors.Symetrix.Composer.Configuration", "DeviceFamilyId": "Symetrix.DSPProcessors", "ExactModelIds": [ "Radius NX", "Prism 4x4", "Prism 8x8", "Prism 12x12", "Prism 16x16", "Edge", "Solus NX" ], "DeviceAliases": [ "Symetrix DSP", "Symetrix Composer", "Symetrix audio processor" ], "ProductId": "Symetrix.Composer", "ReleaseFamilyId": "Symetrix.Composer.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.symetrix.co/composer/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Composer applies only to the documented listed DSP workflow; deployed firmware and project compatibility remain manual." },
     { "Id": "Vaddio.Cameras.Vaddio.DeploymentTool.Configuration", "DeviceFamilyId": "Vaddio.Cameras", "ExactModelIds": [], "DeviceAliases": [ "Vaddio camera", "Vaddio deployment", "Vaddio PTZ" ], "ProductId": "Vaddio.DeploymentTool", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.legrandav.com/products/system_management/vaddio-deployment-tool", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Deployment Tool applies only to vendor-supported Vaddio deployment workflows; firmware and device support remain product-specific." },
     { "Id": "Wisycom.WirelessSystems.Wisycom.Manager.Configuration", "DeviceFamilyId": "Wisycom.WirelessSystems", "ExactModelIds": [], "DeviceAliases": [ "Wisycom wireless system", "Wisycom receiver", "Wisycom Manager" ], "ProductId": "Wisycom.Manager", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://wisycom.com/product/wisycom-manager/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Wisycom Manager is limited to its vendor-described wireless workflow; receiver, transmitter, and firmware pairing remain manual." },
     { "Id": "WolfVision.CynapVisualizers.WolfVision.VSolutionLinkPro.Monitoring", "DeviceFamilyId": "WolfVision.CynapVisualizers", "ExactModelIds": [ "Cynap", "Cynap Pro", "Cynap Core", "Cynap Core Pro", "Cynap Pure", "Cynap Pure Pro", "Cynap Pure Receiver", "Cynap Pure SDM", "Cynap Videobar" ], "DeviceAliases": [ "WolfVision Cynap", "WolfVision Visualizer", "vSolution Link Pro" ], "ProductId": "WolfVision.VSolutionLinkPro", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://wolfvision.com/en/support/vsolution-link-pro", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "vSolution Link Pro is a server-capable management platform for the listed Cynap family and Visualizer workflows; device firmware and credentials remain explicit administrator actions." },
@@ -4483,6 +4486,12 @@
     { "Id": "Extron.IPLProRetired.Extron.GlobalScripter.Programming", "DeviceFamilyId": "Extron.IPLProRetired", "ExactModelIds": [ "IPL Pro S1" ], "DeviceAliases": [ "IPL Pro", "Extron IPL Pro", "Extron IPL Pro S1" ], "ProductId": "Extron.GlobalScripter", "ReleaseFamilyId": null, "Purpose": "Programming", "Applicability": "Conditional", "Lifecycle": "Legacy", "EvidenceUri": "https://www.extron.com/product/iplpros1", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Legacy service scope is limited to the documented IPL Pro S1 project workflow; coexistence and exact release selection remain unresolved." },
     { "Id": "AMX.NetLinxNX.AMX.NetLinxStudio4.Programming", "DeviceFamilyId": "AMX.NetLinxNX", "ExactModelIds": [ "NX-1200", "NX-2200", "NX-3200", "NX-4200" ], "DeviceAliases": [ "AMX NX-1200", "AMX NX-2200", "AMX NX-3200", "AMX NX-4200" ], "ProductId": "AMX.NetLinxStudio4", "ReleaseFamilyId": null, "Purpose": "Programming", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.amx.com/en-US/product_families/netlinx-nx-controllers", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "NetLinx Studio is the documented NX programming environment; controller, project, and release compatibility remain manual design decisions." },
     { "Id": "AMX.NetLinxNX.AMX.NetLinxStudio4.Diagnostics", "DeviceFamilyId": "AMX.NetLinxNX", "ExactModelIds": [ "NX-1200", "NX-2200", "NX-3200", "NX-4200" ], "DeviceAliases": [ "AMX NX-1200", "AMX NX-2200", "AMX NX-3200", "AMX NX-4200" ], "ProductId": "AMX.NetLinxStudio4", "ReleaseFamilyId": null, "Purpose": "Diagnostics", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.amx.com/en-US/product_families/netlinx-nx-controllers", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "NetLinx diagnostics and transfer are manually connected development workflows; no device action authority is created." },
-    { "Id": "ZeeVee.ZyPerEndpoints.ZeeVee.ZyPerManagementPlatform.Configuration", "DeviceFamilyId": "ZeeVee.ZyPerEndpoints", "ExactModelIds": [ "ZyPer4K", "ZyPerUHD", "ZyPerHD", "ZyPerUSB", "ZyPerXR", "ZyPerXS" ], "DeviceAliases": [ "ZeeVee ZyPer", "ZyPer encoder", "ZyPer decoder", "MaestroZ", "ZMP" ], "ProductId": "ZeeVee.ZyPerManagementPlatform", "ReleaseFamilyId": "ZeeVee.ZyPerManagementPlatform.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.zeevee.com/av-over-ip/management/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "ZMP is a managed appliance/VM platform for the vendor-listed ZyPer endpoints; endpoint firmware sequencing remains manual and does not authorize a workstation action." }
+    { "Id": "ZeeVee.ZyPerEndpoints.ZeeVee.ZyPerManagementPlatform.Configuration", "DeviceFamilyId": "ZeeVee.ZyPerEndpoints", "ExactModelIds": [ "ZyPer4K", "ZyPerUHD", "ZyPerHD", "ZyPerUSB", "ZyPerXR", "ZyPerXS" ], "DeviceAliases": [ "ZeeVee ZyPer", "ZyPer encoder", "ZyPer decoder", "MaestroZ", "ZMP" ], "ProductId": "ZeeVee.ZyPerManagementPlatform", "ReleaseFamilyId": "ZeeVee.ZyPerManagementPlatform.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.zeevee.com/av-over-ip/management/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "ZMP is a managed appliance/VM platform for the vendor-listed ZyPer endpoints; endpoint firmware sequencing remains manual and does not authorize a workstation action." },
+    { "Id": "Shure.IntelliMixP300.Shure.Designer.Configuration", "DeviceFamilyId": "Shure.IntelliMixP300", "ExactModelIds": [ "P300-IMX" ], "DeviceAliases": [ "IntelliMix P300", "Shure P300" ], "ProductId": "Shure.Designer", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Required", "Lifecycle": "Current", "EvidenceUri": "https://www.shure.com/en-US/docs/guide/Designer", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "Designer and P300 firmware must remain release-compatible; Designer is not IntelliMix Room and does not select a firmware release automatically." },
+    { "Id": "Shure.IntelliMixP300.Shure.Designer.Commissioning", "DeviceFamilyId": "Shure.IntelliMixP300", "ExactModelIds": [ "P300-IMX" ], "DeviceAliases": [ "IntelliMix P300", "Shure P300" ], "ProductId": "Shure.Designer", "ReleaseFamilyId": null, "Purpose": "Commissioning", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.shure.com/en-US/products/mixers/p300", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Designer supports the documented P300 design, routing, and deployment workflow; deployed settings remain a deliberate technician action." },
+    { "Id": "Shure.IntelliMixP300.Shure.UpdateUtility.Firmware", "DeviceFamilyId": "Shure.IntelliMixP300", "ExactModelIds": [ "P300-IMX" ], "DeviceAliases": [ "IntelliMix P300", "Shure P300" ], "ProductId": "Shure.UpdateUtility", "ReleaseFamilyId": null, "Purpose": "Firmware", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.shure.com/en-US/products/software/shure_update_utility", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Shure Update Utility supports the documented P300 firmware workflow; firmware selection and transfer remain manual and never package authority." },
+    { "Id": "Shure.IntelliMixP300.Shure.SystemOn.Monitoring", "DeviceFamilyId": "Shure.IntelliMixP300", "ExactModelIds": [ "P300-IMX" ], "DeviceAliases": [ "IntelliMix P300", "Shure P300" ], "ProductId": "Shure.SystemOn", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Conditional", "Lifecycle": "Current", "EvidenceUri": "https://www.shure.com/en-US/products/mixers/p300", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "SystemOn monitoring applies only when the deployed P300 environment is configured for the documented Shure management workflow." },
+    { "Id": "Symetrix.Jupiter.Symetrix.Jupiter.Configuration", "DeviceFamilyId": "Symetrix.Jupiter", "ExactModelIds": [ "Jupiter 4", "Jupiter 8", "Jupiter 12" ], "DeviceAliases": [ "Symetrix Jupiter", "Jupiter DSP" ], "ProductId": "Symetrix.Jupiter", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Required", "Lifecycle": "Legacy", "EvidenceUri": "https://www.symetrix.co/software-downloads/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Jupiter uses its separate legacy Jupiter software workflow; do not substitute Composer without documented migration evidence." },
+    { "Id": "Yamaha.ProAudioDSP.Yamaha.MTXMRXEditor.Configuration", "DeviceFamilyId": "Yamaha.ProAudioDSP", "ExactModelIds": [ "MRX7-D", "MTX5-D", "MTX3" ], "DeviceAliases": [ "Yamaha MRX", "Yamaha MTX", "MTX-MRX Editor" ], "ProductId": "Yamaha.MTXMRXEditor", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Conditional", "Lifecycle": "Current", "EvidenceUri": "https://usa.yamaha.com/products/proaudio/software/mtx_editor/index.html", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "MTX-MRX Editor is the established installed-project workflow for MTX/MRX processors; newer generation migration and Dante hardware/firmware pairing require the applicable Yamaha evidence." }
   ]
 }

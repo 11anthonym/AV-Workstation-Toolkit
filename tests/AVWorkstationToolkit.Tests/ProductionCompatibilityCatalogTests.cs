@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(246, catalog.Products);
+        Assert.HasCount(249, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(212, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(218, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -191,11 +191,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(9, hardware.Families);
-        Assert.HasCount(21, hardware.Models);
+        Assert.HasCount(19, hardware.Families);
+        Assert.HasCount(82, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(21, coverage.Models);
-        Assert.AreEqual(20, coverage.VerifiedModels);
+        Assert.AreEqual(82, coverage.Models);
+        Assert.AreEqual(81, coverage.VerifiedModels);
         Assert.AreEqual(1, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
@@ -239,6 +239,36 @@ public sealed class ProductionCompatibilityCatalogTests
         Assert.AreEqual(Lifecycle.Legacy, retired.Hardware.Lifecycle);
         CollectionAssert.AreEquivalent(new[] { "Extron.GlobalConfiguratorPlus", "Extron.GlobalScripter" }, service.GetSoftwareForDevice(retired)
             .SelectMany(group => group.Software).Select(software => software.ProductId.Value).Distinct().ToArray());
+    }
+
+    [TestMethod]
+    public void DspBatchAExactModelsKeepSoftwareScopesAndCaveatsEvidenceBacked()
+    {
+        var service = CreateQueryService();
+
+        var core110 = service.SearchDevices("Core 110f").Single();
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, core110.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(core110));
+
+        AssertModelSoftware(service, "Core Nano", "QSYS.CoreNano", "QSYSDesigner", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "TesiraFORTÉ X 800", "Biamp.TesiraForteX800", "Biamp.Tesira", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "DMP 128 Plus C V AT", "Extron.DMP128PlusCVAT", "Extron.DSPConfiguratorPro", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "P300-IMX", "Shure.P300IMX", "Shure.Designer", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "CONVERGE Pro 2 128", "ClearOne.ConvergePro2_128", "ClearOne.ConsoleAI", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "Radius NX", "Symetrix.RadiusNX", "Symetrix.Composer", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "Solus NX", "Symetrix.SolusNX", "Symetrix.Composer", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "EX-1280", "Bose.EX1280", "Bose.ControlSpaceDesigner", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "AHM-64", "AllenHeath.AHM64", "AllenHeath.AHMSystemManager", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "DME7", "Yamaha.DME7", "Yamaha.ProVisionaireDesign", DeviceSoftwarePurpose.Configuration);
+
+        var p300 = service.GetSoftwareForDevice(service.SearchDevices("IntelliMix P300").Single(item => item.Hardware?.Id == "Shure.P300IMX")).SelectMany(group => group.Software).ToArray();
+        Assert.IsFalse(p300.Any(item => item.ProductId.Value == "Shure.IntelliMixRoom"));
+        Assert.IsTrue(p300.Any(item => item.ProductId.Value == "Shure.UpdateUtility" && item.Purpose == DeviceSoftwarePurpose.Firmware));
+        Assert.IsTrue(p300.Any(item => item.Constraints.Contains("firmware", StringComparison.OrdinalIgnoreCase)));
+
+        var jupiter = service.GetSoftwareForDevice(service.SearchDevices("Jupiter 8").Single(item => item.Hardware?.Id == "Symetrix.Jupiter8")).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(jupiter.Any(item => item.ProductId.Value == "Symetrix.Jupiter"));
+        Assert.IsFalse(jupiter.Any(item => item.ProductId.Value == "Symetrix.Composer"));
     }
 
     [TestMethod]
@@ -488,7 +518,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(246, services.Compatibility.SearchProducts());
+        Assert.HasCount(249, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -503,7 +533,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(246, compatibility.Products);
+        Assert.HasCount(249, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -566,6 +596,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchElevenProductIds = compatibility.Products.Where(item => batchElevenVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchElevenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var dspBatchADescriptiveOnly = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Shure.Designer", "Shure.UpdateUtility", "Yamaha.MTXMRXEditor"
+        };
+        Assert.IsTrue(packages.Items.Where(item => dspBatchADescriptiveOnly.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         CollectionAssert.DoesNotContain(typeof(CompatibilityProductSummary).GetProperties().Select(item => item.Name).ToArray(), "Authority");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Provider");
         CollectionAssert.DoesNotContain(typeof(RelevantSoftwareSummary).GetProperties().Select(item => item.Name).ToArray(), "Delivery");
@@ -575,6 +610,20 @@ public sealed class ProductionCompatibilityCatalogTests
         LoadCatalog(),
         new UnresolvedInstalledVersionEvidenceProvider(),
         new RepositoryHardwareIdentityCatalogLoader().Load(RepositoryRoot()));
+
+    private static void AssertModelSoftware(
+        CompatibilityCatalogQueryService service,
+        string search,
+        string expectedHardwareId,
+        string expectedProductId,
+        DeviceSoftwarePurpose expectedPurpose)
+    {
+        var result = service.SearchDevices(search).Single(item => item.Hardware?.Id == expectedHardwareId);
+        Assert.AreEqual(expectedHardwareId, result.Hardware!.Id);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, result.LookupState);
+        Assert.IsTrue(service.GetSoftwareForDevice(result).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == expectedProductId && item.Purpose == expectedPurpose));
+    }
 
     private static IEnumerable<string> EnumeratePropertyNames(System.Text.Json.JsonElement element)
     {
