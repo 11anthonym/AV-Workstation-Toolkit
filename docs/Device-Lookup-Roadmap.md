@@ -38,6 +38,12 @@ Batch A is complete across seven manufacturers, 12 endpoint families, and 90 exa
 
 The endpoint relationships remain exact or family-scoped as documented. Browser and management-appliance workflows are constraints rather than desktop products; no protocol, manufacturer, endpoint role, or hardware identity grants package, download, credential, worker, firmware, or device-action authority.
 
+## AV-over-IP endpoint Batch B complete
+
+Batch B adds seven bounded vendor scopes, 10 families, 36 exact identities, and 78 lookup aliases: Aurora IPBaseT VPX/VLX, Visionary PacketAV 5-Series and E4200/D4200 installed-base endpoints, Kramer KDS-7, Matrox ConvertIP, AVPro Edge MXnet 1G, WyreStorm NetworkHD 500/600, and Just Add Power MaxColor. Twenty-nine exact models have verified software relations and seven are explicitly unresolved. It adds 25 relations and refines one existing Matrox relation. New desktop products are limited to evidence-backed Aurora IPBaseT Manager, Visionary VLite, WyreStorm Management Suite/Series Console, and Just Add Power AMP/JADConfig; existing Matrox ConvertIP Manager and ConductIP remain distinct.
+
+KDS-7 and MXnet identities are intentionally `Unresolved` because their reviewed management paths are appliance/controller or browser-hosted rather than proven desktop applications. Command Center, ConductIP appliance behavior, CBOX, Mentor, embedded endpoint pages, and KDS-7 management infrastructure are descriptive only. VLite keeps PacketAV 5-Series separate from E4200/D4200’s one-way 2.3.169 firmware transition; NetworkHD 500 and 600 scopes stay separate; AMP is the current MaxColor recommendation while JADConfig remains legacy with end of support on January 1, 2027. No Batch B identity or relation creates package, download, credential, worker, firmware, or device-action authority.
+
 ## Next coverage requirement
 
 Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.

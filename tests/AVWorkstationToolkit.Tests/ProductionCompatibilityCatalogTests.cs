@@ -13,25 +13,25 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(251, catalog.Products);
+        Assert.HasCount(256, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
-                "7thSense", "Adamson", "AFMG", "AJA Video Systems", "Alcorn McBride", "Allen & Heath", "AMX", "Analog Way",
+                "7thSense", "Adamson", "AFMG", "AJA Video Systems", "Alcorn McBride", "Allen & Heath", "AMX", "Analog Way", "Aurora Multimedia",
                 "Angry IP Scanner Project", "Ashly Audio", "AtlasIED", "Atlona", "Audinate", "Audio-Technica", "AV Stumpfl", "AVer",
                 "Avolites", "Barco", "Biamp", "Blackmagic Design", "Bose Professional", "BrightSign", "Brompton Technology", "BSS",
                 "Capture Visualisation", "ChamSys", "Christie", "Cisco", "Clear-Com", "ClearOne", "Colorlight", "Crestron",
                 "d&b audiotechnik", "Datapath", "Dataton", "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron",
                 "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
-                "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Kramer", "L-Acoustics", "Lake",
+                "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Just Add Power", "Kramer", "L-Acoustics", "Lake",
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
                 "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
                 "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Polycom", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
-                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Wisycom", "WolfVision", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS"
+                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Visionary Solutions", "Wisycom", "WolfVision", "WyreStorm", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(248, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(273, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -153,6 +153,61 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void AvOverIpBatchBScopesDesktopSoftwareAndBrowserAppliancesToExactModels()
+    {
+        var service = CreateQueryService();
+
+        var kds = service.SearchDevices("KDS-EN7").Single();
+        Assert.AreEqual("Kramer.KDSEN7", kds.Hardware!.Id);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, kds.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(kds));
+        Assert.IsFalse(service.GetSoftwareForDevice(kds).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Kramer.KConfig"));
+
+        var dss = service.SearchDevices("ConvertIP DSS").Single();
+        var matrox = service.GetSoftwareForDevice(dss).SelectMany(group => group.Software).ToArray();
+        Assert.AreEqual("Matrox.ConvertIPDSS", dss.Hardware!.Id);
+        Assert.IsTrue(matrox.Any(item => item.ProductId.Value == "Matrox.ConvertIPManager" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsFalse(matrox.Any(item => item.ProductId.Value == "Matrox.ConductIP"));
+        Assert.IsFalse(service.SearchProducts("Command Center").Any());
+
+        var duet = service.SearchDevices("DuetE-5").Single();
+        Assert.AreEqual("Visionary.DuetE5", duet.Hardware!.Id);
+        Assert.IsTrue(service.GetSoftwareForDevice(duet).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Visionary.VLite" && item.Purpose == DeviceSoftwarePurpose.Discovery));
+
+        var e4200 = service.SearchDevices("E4200").Single();
+        Assert.IsTrue(service.GetSoftwareForDevice(e4200).SelectMany(group => group.Software)
+            .Any(item => item.Constraints.Contains("2.3.169", StringComparison.Ordinal)));
+
+        var vpx = service.SearchDevices("VPX-TC1").Single(item => item.Hardware?.Id == "Aurora.VPXTC1");
+        Assert.AreEqual("Aurora.VPXTC1", vpx.Hardware!.Id);
+        Assert.IsTrue(service.GetSoftwareForDevice(vpx).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Aurora.IPBaseTManager"));
+
+        var mxnet = service.SearchDevices("AC-MXNET-1G-EV2").Single(item => item.Hardware?.Id == "AVProEdge.MXnet1GEV2");
+        Assert.AreEqual("AVProEdge.MXnet1GEV2", mxnet.Hardware!.Id);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, mxnet.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(mxnet));
+        Assert.IsFalse(service.SearchProducts("Mentor").Any());
+
+        var nhd = service.SearchDevices("NHD-500-TX").Single(item => item.Hardware?.Id == "WyreStorm.NHD500TX");
+        Assert.IsTrue(service.GetSoftwareForDevice(nhd).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "WyreStorm.ManagementSuite" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        var nhd600 = service.SearchDevices("NHD-600-TX").Single(item => item.Hardware?.Id == "WyreStorm.NHD600TX");
+        Assert.IsTrue(service.GetSoftwareForDevice(nhd600).SelectMany(group => group.Software)
+            .Any(item => item.Purpose == DeviceSoftwarePurpose.Firmware));
+        Assert.IsFalse(service.GetSoftwareForDevice(nhd600).SelectMany(group => group.Software)
+            .Any(item => item.Purpose == DeviceSoftwarePurpose.Configuration));
+
+        var maxColor = service.SearchDevices("MC-TX1").Single(item => item.Hardware?.Id == "JustAddPower.MCTX1");
+        var maxColorSoftware = service.GetSoftwareForDevice(maxColor).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(maxColorSoftware.Any(item => item.ProductId.Value == "JustAddPower.AMP"));
+        Assert.IsFalse(maxColorSoftware.Any(item => item.ProductId.Value == "JustAddPower.JADConfig"));
+        Assert.AreEqual(Lifecycle.Legacy, service.SearchProducts("JADConfig").Single().Lifecycle);
+    }
+
+    [TestMethod]
     public void LightwareUbexExactModelsPreserveIdentityAndUseOnlyReviewedLdcAndLdu2Scopes()
     {
         var service = CreateQueryService();
@@ -269,12 +324,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(42, hardware.Families);
-        Assert.HasCount(222, hardware.Models);
+        Assert.HasCount(52, hardware.Families);
+        Assert.HasCount(258, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(222, coverage.Models);
-        Assert.AreEqual(217, coverage.VerifiedModels);
-        Assert.AreEqual(5, coverage.UnresolvedModels);
+        Assert.AreEqual(258, coverage.Models);
+        Assert.AreEqual(246, coverage.VerifiedModels);
+        Assert.AreEqual(12, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -623,7 +678,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(251, services.Compatibility.SearchProducts());
+        Assert.HasCount(256, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -638,7 +693,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(251, compatibility.Products);
+        Assert.HasCount(256, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
@@ -701,6 +756,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var batchElevenProductIds = compatibility.Products.Where(item => batchElevenVendors.Contains(item.Vendor))
             .Select(item => item.Id.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.IsTrue(packages.Items.Where(item => batchElevenProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
+        var avoipBatchBProductIds = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Aurora.IPBaseTManager", "Visionary.VLite", "Matrox.ConvertIPManager", "Matrox.ConductIP",
+            "WyreStorm.ManagementSuite", "JustAddPower.AMP", "JustAddPower.JADConfig"
+        };
+        Assert.IsTrue(packages.Items.Where(item => avoipBatchBProductIds.Contains(item.Id)).All(item => !item.HasManagedExecutionAuthority));
         var dspBatchADescriptiveOnly = new HashSet<string>(StringComparer.Ordinal)
         {
             "Shure.Designer", "Shure.UpdateUtility", "Yamaha.MTXMRXEditor"
