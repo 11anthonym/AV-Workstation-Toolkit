@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(246, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(248, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -153,6 +153,45 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void LightwareUbexExactModelsPreserveIdentityAndUseOnlyReviewedLdcAndLdu2Scopes()
+    {
+        var service = CreateQueryService();
+
+        var f100 = service.SearchDevices("UBEX-PRO20-HDMI-F100").Single(item => item.Hardware?.Id == "Lightware.UBEXF100");
+        Assert.AreEqual(HardwareDeviceCategory.AvOverIp, f100.Hardware!.Category);
+        Assert.AreEqual("Lightware.UBEX", f100.DeviceFamilyId);
+        var f100Software = service.GetSoftwareForDevice(f100).SelectMany(group => group.Software).ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { "Lightware.LDC", "Lightware.LDU2" },
+            f100Software.Select(item => item.ProductId.Value).Distinct().ToArray());
+        CollectionAssert.IsSubsetOf(
+            new[] { DeviceSoftwarePurpose.Discovery, DeviceSoftwarePurpose.Configuration, DeviceSoftwarePurpose.Firmware },
+            f100Software.Select(item => item.Purpose).ToArray());
+
+        var f110 = service.SearchDevices("UBEX-PRO20-HDMI-F110").Single(item => item.Hardware?.Id == "Lightware.UBEXF110");
+        var f111 = service.SearchDevices("UBEX-PRO20-HDMI-F111").Single(item => item.Hardware?.Id == "Lightware.UBEXF111");
+        var f120 = service.SearchDevices("UBEX-PRO20-HDMI-F120").Single(item => item.Hardware?.Id == "Lightware.UBEXF120");
+        var f121 = service.SearchDevices("UBEX-PRO20-HDMI-F121").Single(item => item.Hardware?.Id == "Lightware.UBEXF121");
+        Assert.AreNotEqual(f110.Hardware!.Id, f111.Hardware!.Id);
+        Assert.AreNotEqual(f120.Hardware!.Id, f121.Hardware!.Id);
+        Assert.IsTrue(service.GetSoftwareForDevice(f110).SelectMany(group => group.Software)
+            .Any(item => item.Constraints.Contains("F110 and F120 are transitional", StringComparison.OrdinalIgnoreCase)));
+
+        var r100 = service.SearchDevices("UBEX-PRO20-HDMI-R100 2xSM-BiDi-DUO").Single(item => item.Hardware?.Id == "Lightware.UBEXR100SMBiDiDUO");
+        Assert.AreEqual("UBEX-PRO20-HDMI-R100 2xSM-BiDi-DUO", r100.Hardware!.ExactModel);
+        Assert.IsTrue(service.GetSoftwareForDevice(r100).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Lightware.LDU2"));
+
+        var mmu = service.SearchDevices("UBEX-MMU-X200").Single(item => item.Hardware?.Id == "Lightware.UBEXMMUX200");
+        var mmuSoftware = service.GetSoftwareForDevice(mmu).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(mmuSoftware.Any(item => item.ProductId.Value == "Lightware.LDC"));
+        Assert.IsTrue(mmuSoftware.Any(item => item.ProductId.Value == "Lightware.LDU2"));
+        Assert.IsTrue(mmuSoftware.Any(item => item.Constraints.Contains("does not transmit video", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsFalse(service.SearchDevices("Lightware device").Any(item => item.DeviceFamilyId == "Lightware.UBEX"));
+        Assert.IsFalse(service.SearchDevices("VINX").Any(item => item.DeviceFamilyId == "Lightware.UBEX"));
+    }
+
+    [TestMethod]
     public void NexiaRemainsLegacyManualInformationWithoutExecutionAuthority()
     {
         var root = RepositoryRoot();
@@ -231,10 +270,10 @@ public sealed class ProductionCompatibilityCatalogTests
         var service = CreateQueryService();
 
         Assert.HasCount(42, hardware.Families);
-        Assert.HasCount(210, hardware.Models);
+        Assert.HasCount(222, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(210, coverage.Models);
-        Assert.AreEqual(205, coverage.VerifiedModels);
+        Assert.AreEqual(222, coverage.Models);
+        Assert.AreEqual(217, coverage.VerifiedModels);
         Assert.AreEqual(5, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
