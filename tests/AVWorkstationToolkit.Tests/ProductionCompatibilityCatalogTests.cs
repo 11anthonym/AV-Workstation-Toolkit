@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(231, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(246, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -114,6 +114,45 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void AvOverIpBatchAProvidesExactQsysAndEndpointScopedRelationshipsWithoutAuthority()
+    {
+        var service = CreateQueryService();
+
+        var nvx = service.SearchDevices("DM NVX 363").Single(item => item.Hardware?.Id == "Crestron.DMNVX363");
+        Assert.AreEqual("Crestron.DMNVX363", nvx.Hardware!.Id);
+        Assert.AreEqual(HardwareDeviceCategory.AvOverIp, nvx.Hardware.Category);
+        Assert.IsTrue(service.GetSoftwareForDevice(nvx).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Crestron.DMNVXTool" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+
+        var nv32 = service.SearchDevices("NV-32-H").Single();
+        Assert.AreEqual("QSYS.NV32H", nv32.Hardware!.Id);
+        Assert.AreEqual("QSYS.NVSeries", nv32.DeviceFamilyId);
+        Assert.AreEqual(HardwareDeviceCategory.AvOverIp, nv32.Hardware.Category);
+        var nv32Software = service.GetSoftwareForDevice(nv32).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(nv32Software.Any(item => item.ProductId.Value == "QSYSDesigner" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(nv32Software.Any(item => item.Constraints.Contains("Core Mode", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsFalse(nv32Software.Any(item => item.ProductId.Value.Contains("Dante", StringComparison.OrdinalIgnoreCase)));
+
+        var nv21 = service.SearchDevices("NV-21-HU").Single();
+        Assert.AreEqual("QSYS.NV21HU", nv21.Hardware!.Id);
+        Assert.IsTrue(service.GetSoftwareForDevice(nv21).SelectMany(group => group.Software)
+            .Any(item => item.Constraints.Contains("encoder/decoder", StringComparison.OrdinalIgnoreCase)));
+
+        var nv1 = service.SearchDevices("NV-1-H-WE").Single();
+        Assert.AreEqual("QSYS.NV1HWE", nv1.Hardware!.Id);
+        Assert.IsTrue(service.GetSoftwareForDevice(nv1).SelectMany(group => group.Software)
+            .Any(item => item.Constraints.Contains("encoder-only", StringComparison.OrdinalIgnoreCase)));
+
+        var encoder = service.SearchDevices("NVM-302E").Single();
+        var decoder = service.SearchDevices("NVM-302D").Single();
+        Assert.AreEqual("QSYS.NVM302E", encoder.Hardware!.Id);
+        Assert.AreEqual("QSYS.NVM302D", decoder.Hardware!.Id);
+        Assert.AreEqual("QSYS.NVMSeries", decoder.DeviceFamilyId);
+        Assert.IsTrue(service.GetSoftwareForDevice(decoder).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "QSYSDesigner" && item.Constraints.Contains("decoder", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [TestMethod]
     public void NexiaRemainsLegacyManualInformationWithoutExecutionAuthority()
     {
         var root = RepositoryRoot();
@@ -137,7 +176,7 @@ public sealed class ProductionCompatibilityCatalogTests
 
         Assert.AreEqual("QSYSDesigner", service.SearchProducts("QDS").Single().Id.Value);
         Assert.AreEqual("Crestron.4Series", service.SearchDevices("CP4N").Single().DeviceFamilyId);
-        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM-NVX").Single().DeviceFamilyId);
+        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM-NVX").Single(item => item.Hardware?.Id == "Crestron.DMNVX").DeviceFamilyId);
         Assert.IsTrue(service.GetSoftwareForDevice("Crestron CP4N").SelectMany(group => group.Software)
             .Any(item => item.ProductId.Value == "Crestron.SIMPLWindows"));
         Assert.IsTrue(service.GetDevicesForProduct(new SoftwareProductId("Crestron.Toolbox"))
@@ -171,7 +210,7 @@ public sealed class ProductionCompatibilityCatalogTests
         Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, rmc4.LookupState);
         Assert.IsTrue(service.GetSoftwareForDevice(rmc4).SelectMany(group => group.Software)
             .Any(software => software.ProductId.Value == "Crestron.Toolbox"));
-        Assert.IsFalse(service.SearchDevices("DM-NVX-363").Any());
+        Assert.AreEqual("Crestron.DMNVX363", service.SearchDevices("DM-NVX-363").Single(item => item.Hardware?.Id == "Crestron.DMNVX363").Hardware!.Id);
     }
 
     [TestMethod]
@@ -179,8 +218,8 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var service = CreateQueryService();
 
-        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM NVX").Single().DeviceFamilyId);
-        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM-NVX").Single().DeviceFamilyId);
+        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM NVX").Single(item => item.Hardware?.Id == "Crestron.DMNVX").DeviceFamilyId);
+        Assert.AreEqual("Crestron.DMNVX", service.SearchDevices("DM-NVX").Single(item => item.Hardware?.Id == "Crestron.DMNVX").DeviceFamilyId);
         Assert.AreEqual(CompatibilitySearchOutcome.NoDeviceOrCatalogMatch, service.GetSearchOutcome("not-a-device"));
     }
 
@@ -191,11 +230,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(30, hardware.Families);
-        Assert.HasCount(132, hardware.Models);
+        Assert.HasCount(42, hardware.Families);
+        Assert.HasCount(210, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(132, coverage.Models);
-        Assert.AreEqual(127, coverage.VerifiedModels);
+        Assert.AreEqual(210, coverage.Models);
+        Assert.AreEqual(205, coverage.VerifiedModels);
         Assert.AreEqual(5, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();

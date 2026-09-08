@@ -32,6 +32,12 @@ Batch B adds 50 exact hardware identities across BSS Soundweb OMNI/London, Xilic
 
 AtlasIED Atmosphere AZM processors are known hardware with `Unresolved` workstation-software coverage because the reviewed primary configuration surface is embedded browser control. They do not inherit BlueBridge Designer. BSS BLU-120/320/326DA remain excluded from this AudioDsp pass because they are I/O expanders; Ashly 3.6SP/4.8SP remain deferred to loudspeaker processing. All version, firmware, licensing, coexistence, and Windows-support caveats remain descriptive only—no identity or relation creates a package, download, credential, worker, firmware, or device-action route.
 
+## AV-over-IP endpoint Batch A complete
+
+Batch A covers seven manufacturers across 12 endpoint families and 78 exact models: Crestron DM NVX, Extron NAV 1G/10G, AMX SVSI N2300/N2400/N2600, ZeeVee ZyPer4K/ZyPerUHD60, Atlona OmniStream video, Lightware UBEX, and Q-SYS NV/NVM. Lightware UBEX is retained as explicit family-only coverage pending reviewed exact model evidence. Q-SYS covers NV-32-H, NV-21-HU, NV-1-H-WE, NVM-302E, and NVM-302D through the existing Q-SYS Designer product only; Configurator and Peripheral Manager remain workflow descriptions, not duplicate products. NV-32-H retains its Core Mode caveat, NV-1-H-WE remains encoder-only, and NVM encoder/decoder roles are explicit.
+
+The endpoint relationships remain exact or family-scoped as documented. Browser and management-appliance workflows are constraints rather than desktop products; no protocol, manufacturer, endpoint role, or hardware identity grants package, download, credential, worker, firmware, or device-action authority.
+
 ## Next coverage requirement
 
 Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.

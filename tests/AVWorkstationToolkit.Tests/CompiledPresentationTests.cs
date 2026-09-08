@@ -290,7 +290,8 @@ public sealed class CompiledPresentationTests
 
         viewModel.SearchText = "CP4N";
 
-        var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device &&
+            item.Title.Equals("CP4N", StringComparison.Ordinal));
         Assert.AreEqual("CP4N", match.Title);
         Assert.IsFalse(match.CanSelect);
         Assert.AreEqual(0, viewModel.SelectedCount);
@@ -331,7 +332,8 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "DM-NVX";
-        var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        var match = viewModel.CompatibilityMatches.First(item => item.Kind == CompatibilitySearchResultKind.Device &&
+            item.Title.Equals("Crestron DM NVX Endpoints", StringComparison.Ordinal));
         match.OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
 
