@@ -3,6 +3,7 @@
     <!-- Production compiled presentation; the standalone launcher embeds this project and the exact compiled worker. -->
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <RuntimeFrameworkVersion>10.0.11</RuntimeFrameworkVersion>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
