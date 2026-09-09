@@ -2200,7 +2200,7 @@
   {
     "Id": "Christie.3DLPProjectors.Christie.Twist.Configuration",
     "DeviceFamilyId": "Christie.3DLPProjectors",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "Griffyn 4K35-RGB", "M 4K25 RGB", "Crimson WU31" ],
     "DeviceAliases": [
       "Christie 3DLP projector"
     ],
@@ -2209,15 +2209,15 @@
     "Purpose": "Configuration",
     "Applicability": "Applicable",
     "Lifecycle": "Current",
-    "EvidenceUri": "https://www.christiedigital.com/en-gb/help-center/resources/learn/visual-display-and-projection-technologies/",
+    "EvidenceUri": "https://www.christiedigital.com/products/warping-blending/mystique/",
     "EvidenceKind": "VendorProductPage",
     "Confidence": "VendorDocumented",
-    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+    "Constraints": "Twist configuration is limited to the reviewed projector scope; geometry, firmware, and deployment changes remain manual and grant no package, delivery, or worker authority."
   },
   {
     "Id": "Christie.3DLPProjectors.Christie.Mystique.Commissioning",
     "DeviceFamilyId": "Christie.3DLPProjectors",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "Griffyn 4K35-RGB", "M 4K25 RGB", "Crimson WU31" ],
     "DeviceAliases": [
       "Christie 3DLP projector"
     ],
@@ -2226,15 +2226,15 @@
     "Purpose": "Commissioning",
     "Applicability": "Applicable",
     "Lifecycle": "Current",
-    "EvidenceUri": "https://www.christiedigital.com/en-gb/help-center/resources/learn/visual-display-and-projection-technologies/",
+    "EvidenceUri": "https://www.christiedigital.com/products/warping-blending/mystique/",
     "EvidenceKind": "VendorProductPage",
     "Confidence": "VendorDocumented",
-    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+    "Constraints": "Mystique is a reviewed projection-alignment workflow for these models; camera, array, and release compatibility remain project-specific and grant no package, delivery, or worker authority."
   },
   {
     "Id": "Christie.3DLPProjectors.Christie.Conductor.Monitoring",
     "DeviceFamilyId": "Christie.3DLPProjectors",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "Griffyn 4K35-RGB", "M 4K25 RGB", "Crimson WU31" ],
     "DeviceAliases": [
       "Christie 3DLP projector",
       "Christie projector network"
@@ -2244,15 +2244,15 @@
     "Purpose": "Monitoring",
     "Applicability": "Applicable",
     "Lifecycle": "Current",
-    "EvidenceUri": "https://www.christiedigital.com/products/projector-management/conductor/",
+    "EvidenceUri": "https://www.christiedigital.com/globalassets/resources/public/020-103241-05-Christie-LIT-MAN-USR-Christie-Conductor.pdf",
     "EvidenceKind": "VendorProductPage",
     "Confidence": "VendorDocumented",
-    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+    "Constraints": "Conductor is a reviewed Windows projector-management workflow for this exact scope; network, firmware, and device operations remain manual and grant no package, delivery, or worker authority."
   },
   {
     "Id": "Christie.3DLPProjectors.Christie.Conductor.Diagnostics",
     "DeviceFamilyId": "Christie.3DLPProjectors",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "Griffyn 4K35-RGB", "M 4K25 RGB", "Crimson WU31" ],
     "DeviceAliases": [
       "Christie 3DLP projector",
       "Christie projector network"
@@ -2262,10 +2262,10 @@
     "Purpose": "Diagnostics",
     "Applicability": "Applicable",
     "Lifecycle": "Current",
-    "EvidenceUri": "https://www.christiedigital.com/products/projector-management/conductor/",
+    "EvidenceUri": "https://www.christiedigital.com/globalassets/resources/public/020-103241-05-Christie-LIT-MAN-USR-Christie-Conductor.pdf",
     "EvidenceKind": "VendorProductPage",
     "Confidence": "VendorDocumented",
-    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+    "Constraints": "Conductor diagnostics are scoped to the reviewed projector models; logs, firmware, and device actions remain manual and non-authoritative."
   },
   {
     "Id": "Christie.BlendedProjectors.Christie.Guardian.Monitoring",
@@ -2681,7 +2681,7 @@
   {
     "Id": "Epson.Projectors.Epson.ProjectorProfessionalTool.Configuration",
     "DeviceFamilyId": "Epson.Projectors",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "Pro L12000Q", "Pro L20000U", "Pro L630U", "Pro L770U" ],
     "DeviceAliases": [
       "Epson projector",
       "Epson large venue projector"
@@ -2691,15 +2691,15 @@
     "Purpose": "Configuration",
     "Applicability": "Applicable",
     "Lifecycle": "Current",
-    "EvidenceUri": "https://epson.com/advanced-projector-installation-tools",
+    "EvidenceUri": "https://epson.com/Support/Other-Products/Epson-Software/Epson-Projector-Professional-Tool-Software/s/SPT_Epson-PJ-Pro-Tool",
     "EvidenceKind": "VendorProductPage",
     "Confidence": "VendorDocumented",
-    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+    "Constraints": "Projector Professional Tool is limited to the reviewed Pro L models; full function may require the vendor-specified projector firmware and grants no package, delivery, or worker authority."
   },
   {
     "Id": "Epson.Projectors.Epson.ProjectorProfessionalTool.Commissioning",
     "DeviceFamilyId": "Epson.Projectors",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "Pro L12000Q", "Pro L20000U", "Pro L630U", "Pro L770U" ],
     "DeviceAliases": [
       "Epson projector",
       "Epson large venue projector"
@@ -2709,10 +2709,10 @@
     "Purpose": "Commissioning",
     "Applicability": "Applicable",
     "Lifecycle": "Current",
-    "EvidenceUri": "https://epson.com/advanced-projector-installation-tools",
+    "EvidenceUri": "https://epson.com/Support/Other-Products/Epson-Software/Epson-Projector-Professional-Tool-Software/s/SPT_Epson-PJ-Pro-Tool",
     "EvidenceKind": "VendorProductPage",
     "Confidence": "VendorDocumented",
-    "Constraints": "Vendor-documented descriptive compatibility; this record grants no package, delivery, or worker authority."
+    "Constraints": "Commissioning scope is limited to the reviewed Pro L models; firmware and deployment compatibility remain technician-controlled."
   },
   {
     "Id": "Epson.Projectors.Epson.ProjectorManagement.Monitoring",
@@ -4079,8 +4079,8 @@
     {
       "Id": "Barco.Projectors.Barco.ProjectorToolset.Configuration",
       "DeviceFamilyId": "Barco.Projectors",
-      "ExactModelIds": [ "UDM", "UDX", "F70", "F80", "F90", "G60", "G100" ],
-      "DeviceAliases": [ "Barco projector", "Barco large venue projector" ],
+      "ExactModelIds": [ "UDM-4K22", "UDX-4K22", "F70-4K6", "F80-4K9", "F90-4K13", "G100-W22" ],
+      "DeviceAliases": [ "Barco projector", "Barco large venue projector", "UDM", "UDX", "F70", "F80", "F90", "G60", "G100" ],
       "ProductId": "Barco.ProjectorToolset",
       "ReleaseFamilyId": null,
       "Purpose": "Configuration",
@@ -4089,13 +4089,13 @@
       "EvidenceUri": "https://www.barco.com/en/product/projector-toolset",
       "EvidenceKind": "VendorProductPage",
       "Confidence": "VendorDocumented",
-      "Constraints": "Projector Toolset support is restricted to the vendor-listed models; it is not a universal Barco projector claim."
+      "Constraints": "Projector Toolset support is restricted to these vendor-listed exact models; it is not a universal Barco projector claim."
     },
     {
       "Id": "Barco.Projectors.Barco.ProjectorToolset.Diagnostics",
       "DeviceFamilyId": "Barco.Projectors",
-      "ExactModelIds": [ "UDM", "UDX", "F70", "F80", "F90", "G60", "G100" ],
-      "DeviceAliases": [ "Barco projector", "Barco large venue projector" ],
+      "ExactModelIds": [ "UDM-4K22", "UDX-4K22", "F70-4K6", "F80-4K9", "F90-4K13", "G100-W22" ],
+      "DeviceAliases": [ "Barco projector", "Barco large venue projector", "UDM", "UDX", "F70", "F80", "F90", "G60", "G100" ],
       "ProductId": "Barco.ProjectorToolset",
       "ReleaseFamilyId": null,
       "Purpose": "Diagnostics",
@@ -4447,7 +4447,7 @@
     { "Id": "Nureva.AudioSystems.Nureva.Console.Monitoring", "DeviceFamilyId": "Nureva.AudioSystems", "ExactModelIds": [], "DeviceAliases": [ "Nureva HDL", "Nureva Console", "Nureva audio system" ], "ProductId": "Nureva.Console", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.nureva.com/user-guide/nureva-app", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Console is a cloud service requiring account enrollment; it grants no delivery or worker authority." },
     { "Id": "Obsidian.ONYXConsoles.Obsidian.ONYX.Programming", "DeviceFamilyId": "Obsidian.ONYXConsoles", "ExactModelIds": [ "NX1", "NX1-16", "NX2", "AX2", "NX3", "NX4", "M6" ], "DeviceAliases": [ "ONYX console", "Obsidian NX", "ONYX for PC" ], "ProductId": "Obsidian.ONYX", "ReleaseFamilyId": "Obsidian.ONYX.Current", "Purpose": "Programming", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://support.obsidiancontrol.com/Content/Support/Downloads.htm", "EvidenceKind": "VendorReleaseNotes", "Confidence": "VendorDocumented", "Constraints": "Use the matching PC or console release; console OS and firmware are never package actions." },
     { "Id": "Panasonic.RemoteCameras.Panasonic.MediaProductionSuite.Configuration", "DeviceFamilyId": "Panasonic.RemoteCameras", "ExactModelIds": [ "AW-UE40", "AW-UE50", "AW-UE80", "AW-UE100", "AW-UE150", "AW-UE150A" ], "DeviceAliases": [ "Panasonic MPS" ], "ProductId": "Panasonic.MediaProductionSuite", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://pro-av.panasonic.net/en/software/mps/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Media Production Suite support is limited to the reviewed Panasonic remote-camera models; model and firmware pairing remain manual." },
-    { "Id": "Panasonic.ProfessionalProjectors.Panasonic.GeometryManagerPro.Configuration", "DeviceFamilyId": "Panasonic.ProfessionalProjectors", "ExactModelIds": [], "DeviceAliases": [ "Panasonic professional projector", "Panasonic geometry", "Geometry Manager Pro" ], "ProductId": "Panasonic.GeometryManagerPro", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://docs.connect.panasonic.com/projector/products/geometry/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Geometry Manager Pro compatibility is projector/model specific; deployment and firmware changes remain manual." },
+    { "Id": "Panasonic.ProfessionalProjectors.Panasonic.GeometryManagerPro.Configuration", "DeviceFamilyId": "Panasonic.ProfessionalProjectors", "ExactModelIds": [ "PT-RQ50K", "PT-MZ20K", "PT-MZ16K", "PT-MZ882", "PT-DZ780" ], "DeviceAliases": [ "Panasonic professional projector", "Panasonic geometry", "Geometry Manager Pro" ], "ProductId": "Panasonic.GeometryManagerPro", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://docs.connect.panasonic.com/projector/products/geometry/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Geometry Manager Pro is limited to the reviewed models; Visual Software Suite is recommended where supported, and firmware/deployment changes remain manual." },
     { "Id": "Planar.WallDirectorControllers.Planar.WallDirectorOS.Configuration", "DeviceFamilyId": "Planar.WallDirectorControllers", "ExactModelIds": [], "DeviceAliases": [ "Planar WallDirector controller", "Planar video wall controller", "WallDirector OS" ], "ProductId": "Planar.WallDirectorOS", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.planar.com/products/planar-walldirector/planar-walldirector-os/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "WallDirector OS is a web-based application for the WallDirector controller family and selected Planar video walls." },
     { "Id": "Powersoft.AmplifiersControllers.Powersoft.ArmoniaPlus.Configuration", "DeviceFamilyId": "Powersoft.AmplifiersControllers", "ExactModelIds": [], "DeviceAliases": [ "Powersoft amplifier", "Powersoft controller", "ArmoniaPlus" ], "ProductId": "Powersoft.ArmoniaPlus", "ReleaseFamilyId": "Powersoft.ArmoniaPlus.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.powersoft.com/en/products/software/armoniaplus", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "ArmoniaPlus applies to vendor-supported amplifiers and controllers; firmware/project pairing remains manual." },
     { "Id": "RFExplorer.Analyzers.RFExplorer.ClearWaves.Diagnostics", "DeviceFamilyId": "RFExplorer.Analyzers", "ExactModelIds": [], "DeviceAliases": [ "RF Explorer analyzer", "RF Explorer spectrum analyzer", "ClearWaves" ], "ProductId": "RFExplorer.ClearWaves", "ReleaseFamilyId": null, "Purpose": "Diagnostics", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://rfexplorer.com/clearwaves/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "ClearWaves licensing is tied to an RF Explorer device serial number; frequency coordination remains technician-controlled." },
@@ -4464,7 +4464,7 @@
     { "Id": "Sennheiser.Spectera.SoundBase.Pro.Monitoring", "DeviceFamilyId": "Sennheiser.Spectera", "ExactModelIds": [ "Spectera Base Station" ], "DeviceAliases": [ "Sennheiser Spectera", "Spectera Base Station" ], "ProductId": "SoundBase.Pro", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://docs.soundbase.app/guides/monitoring/supported-devices/", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "This relation is limited to the exact Spectera Base Station support documented by SoundBase; it does not create delivery or execution authority." },
     { "Id": "Sennheiser.WirelessReceivers.SoundBase.Pro.Monitoring", "DeviceFamilyId": "Sennheiser.WirelessReceivers", "ExactModelIds": [ "EM 6000", "EW-DX EM 4 Dante", "EW-DX EM 2", "EW-DX EM 2 Dante" ], "DeviceAliases": [ "Sennheiser EM 6000", "Sennheiser EW-DX", "SoundBase Sennheiser monitoring" ], "ProductId": "SoundBase.Pro", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://docs.soundbase.app/guides/monitoring/supported-devices/", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "This relation is limited to the exact Sennheiser receiver models documented by SoundBase; it does not imply broad wireless compatibility." },
     { "Id": "Shure.AxientDigital.SoundBase.Pro.Monitoring", "DeviceFamilyId": "Shure.AxientDigital", "ExactModelIds": [ "AD4Q" ], "DeviceAliases": [ "Shure AD4Q", "Shure Axient Digital", "SoundBase Shure monitoring" ], "ProductId": "SoundBase.Pro", "ReleaseFamilyId": null, "Purpose": "Monitoring", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://docs.soundbase.app/guides/monitoring/supported-devices/", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "This relation is limited to the exact AD4Q receiver support documented by SoundBase; it does not imply broad Shure wireless compatibility." },
-    { "Id": "SharpNEC.ProfessionalDisplays.SharpNEC.NaViSetAdministrator2.Configuration", "DeviceFamilyId": "SharpNEC.ProfessionalDisplays", "ExactModelIds": [], "DeviceAliases": [ "Sharp NEC professional display", "NEC display", "NaViSet display" ], "ProductId": "SharpNEC.NaViSetAdministrator2", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://proav.sharpusa.com/monitor-download/navisetdownloadcontact", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "NaViSet Administrator 2 is scoped to supported Sharp NEC display-management workflows; display model and network support remain vendor-specific." },
+    { "Id": "SharpNEC.ProfessionalDisplays.SharpNEC.NaViSetAdministrator2.Configuration", "DeviceFamilyId": "SharpNEC.ProfessionalDisplays", "ExactModelIds": [ "PN-ME552", "PN-ME752", "PN-P556", "PN-E869" ], "DeviceAliases": [ "Sharp NEC professional display", "NEC display", "NaViSet display" ], "ProductId": "SharpNEC.NaViSetAdministrator2", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://update.sharpnecdisplays.us/navisetadministrator2/naviset_administrator_quick_start_guide.pdf", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "NaViSet Administrator 2 is scoped to these reviewed Sharp NEC display models; network support remains vendor-specific and no device action authority is granted." },
     { "Id": "Sony.RemoteCameras.Sony.RMIPSetupTool.Configuration", "DeviceFamilyId": "Sony.RemoteCameras", "ExactModelIds": [ "BRC-X400", "SRG-X400", "SRG-X120", "ILME-FR7" ], "DeviceAliases": [ "Sony BRC", "Sony SRG", "Sony PTZ camera", "Sony RM-IP" ], "ProductId": "Sony.RMIPSetupTool", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "RM-IP Setup Tool is limited to the vendor-described BRC/SRG/FR7 remote-camera workflow; camera firmware and pairing remain manual." },
     { "Id": "Symetrix.DSPProcessors.Symetrix.Composer.Configuration", "DeviceFamilyId": "Symetrix.DSPProcessors", "ExactModelIds": [ "Radius NX", "Prism 4x4", "Prism 8x8", "Prism 12x12", "Prism 16x16", "Edge", "Solus NX" ], "DeviceAliases": [ "Symetrix DSP", "Symetrix Composer", "Symetrix audio processor" ], "ProductId": "Symetrix.Composer", "ReleaseFamilyId": "Symetrix.Composer.Current", "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.symetrix.co/composer/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Composer applies only to the documented listed DSP workflow; deployed firmware and project compatibility remain manual." },
     { "Id": "Vaddio.Cameras.Vaddio.DeploymentTool.Configuration", "DeviceFamilyId": "Vaddio.Cameras", "ExactModelIds": [], "DeviceAliases": [ "Vaddio camera", "Vaddio deployment", "Vaddio PTZ" ], "ProductId": "Vaddio.DeploymentTool", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.legrandav.com/products/system_management/vaddio-deployment-tool", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "Deployment Tool applies only to vendor-supported Vaddio deployment workflows; firmware and device support remain product-specific." },

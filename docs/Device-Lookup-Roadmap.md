@@ -58,6 +58,12 @@ Crestron 1 Beyond cameras, Lumens cameras, Sony SRG-A40/BRC-X1000, Yealink Meeti
 
 Camera/conferencing category: **DONE** for the agreed Batch A/B scope. Any later additions require the same exact-model and evidence-scoped review; they must not inherit desktop applicability from manufacturer or protocol similarity.
 
+## Displays / projectors first coverage pass complete
+
+The first bounded display identity pass adds 5 families and 22 exact models for Barco, Christie, Epson, Panasonic, and Sharp NEC Display Solutions. Barco Projector Toolset is now exact-model scoped to reviewed UDM, UDX, F-series, and G100 models. Christie Twist, Mystique, and Conductor are limited to the reviewed Griffyn, M 4K RGB, and Crimson models. Epson Projector Professional Tool is scoped to documented Pro L models, Panasonic Geometry Manager Pro to reviewed PT-RQ/PT-MZ/PT-DZ models, and NaViSet Administrator 2 to reviewed Sharp NEC displays.
+
+This remains a first service-relevant scope rather than a comprehensive projector inventory. Panasonic Visual Software Suite migration, Christie array/camera requirements, Epson projector firmware requirements, and NaViSet model/network support remain descriptive constraints. No display identity or relation creates package delivery, credentials, firmware execution, worker authority, or device-action capability.
+
 ## Next coverage requirement
 
 Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.

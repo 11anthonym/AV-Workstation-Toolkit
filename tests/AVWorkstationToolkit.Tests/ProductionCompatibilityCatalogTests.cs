@@ -387,6 +387,31 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void DisplayAndProjectorFirstPassUsesExactModelsAndEvidenceScopedDesktopWorkflows()
+    {
+        var service = CreateQueryService();
+
+        var barco = service.SearchDevices("UDX4K22").Single(item => item.Hardware?.Id == "Barco.UDX4K22");
+        Assert.AreEqual(HardwareDeviceCategory.Display, barco.Hardware!.Category);
+        Assert.AreEqual(CompatibilitySearchMatchKind.NormalizedExact, barco.MatchKind);
+        var barcoSoftware = service.GetSoftwareForDevice(barco).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(barcoSoftware.Any(item => item.ProductId.Value == "Barco.ProjectorToolset" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(barcoSoftware.Any(item => item.ProductId.Value == "Barco.ProjectorToolset" && item.Purpose == DeviceSoftwarePurpose.Diagnostics));
+
+        var christie = service.SearchDevices("Griffyn 4K35-RGB").Single(item => item.Hardware?.Id == "Christie.Griffyn4K35RGB");
+        var christieSoftware = service.GetSoftwareForDevice(christie).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(christieSoftware.Any(item => item.ProductId.Value == "Christie.Mystique" && item.Purpose == DeviceSoftwarePurpose.Commissioning));
+        Assert.IsTrue(christieSoftware.Any(item => item.ProductId.Value == "Christie.Conductor" && item.Purpose == DeviceSoftwarePurpose.Monitoring));
+
+        AssertModelSoftware(service, "Pro L12000Q", "Epson.ProL12000Q", "Epson.ProjectorProfessionalTool", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "PT RQ50K", "Panasonic.PTRQ50K", "Panasonic.GeometryManagerPro", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "PN ME552", "SharpNEC.PNME552", "SharpNEC.NaViSetAdministrator2", DeviceSoftwarePurpose.Configuration);
+
+        Assert.IsFalse(service.SearchDevices("UDM-4K23").Any(item => item.Hardware?.Id == "Barco.UDM4K22"));
+        Assert.AreEqual(CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog, service.GetSearchOutcome("UDM-4K23"));
+    }
+
+    [TestMethod]
     public void DeviceLookupPreservesMatchedCanonicalRelationshipScopeAndRanksExactMatches()
     {
         var service = CreateQueryService();
@@ -432,11 +457,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(72, hardware.Families);
-        Assert.HasCount(333, hardware.Models);
+        Assert.HasCount(77, hardware.Families);
+        Assert.HasCount(355, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(333, coverage.Models);
-        Assert.AreEqual(285, coverage.VerifiedModels);
+        Assert.AreEqual(355, coverage.Models);
+        Assert.AreEqual(307, coverage.VerifiedModels);
         Assert.AreEqual(48, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();

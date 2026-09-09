@@ -434,6 +434,25 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task DisplayProjectorDeviceLookupRendersExactModelSoftwareAsReadOnlyCompatibility()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "UDX4K22";
+        var device = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "UDX-4K22");
+        StringAssert.Contains(device.Subtitle, "Exact model");
+        Assert.IsFalse(device.CanSelect);
+        device.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+
+        var detail = viewModel.SelectedCompatibilityDetail!;
+        Assert.IsTrue(detail.RelatedSoftware.Any(item => item.ProductName == "Barco Projector Toolset"));
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
     public async Task HardwareIdentityResultsShowVerifiedAndUnresolvedCoverageWithoutInferringSoftware()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
