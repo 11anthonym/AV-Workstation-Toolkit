@@ -363,6 +363,31 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task CameraAndConferencingDeviceResultsRemainReadOnlyAndShowVerifiedOrUnresolvedCoverage()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "CAM520 Pro2";
+        var aver = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "CAM520 Pro2");
+        Assert.IsFalse(aver.CanSelect);
+        aver.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "AVer Room Management"));
+
+        viewModel.SearchText = "Poly Studio X52";
+        var poly = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Poly Studio X52");
+        StringAssert.Contains(poly.Subtitle, "not yet verified");
+        Assert.IsFalse(poly.CanSelect);
+        poly.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null && viewModel.SelectedCompatibilityDetail.RelatedSoftware.Count == 0);
+        var coverage = viewModel.SelectedCompatibilityDetail!.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
+        StringAssert.Contains(coverage.Value, "no verified software relationship");
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
     public async Task DeviceSearchShowsEveryCompatibilityMatchAndExplainsUnresolvedModels()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),

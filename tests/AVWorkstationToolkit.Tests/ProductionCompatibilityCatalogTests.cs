@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(273, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(275, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -279,6 +279,56 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void CamerasAndConferencingBatchAUsesExactIdentityAndEvidenceScopedDesktopWorkflows()
+    {
+        var service = CreateQueryService();
+
+        var aver = service.SearchDevices("CAM520 Pro2").Single(item => item.Hardware?.Id == "AVer.CAM520Pro2");
+        Assert.AreEqual("CAM520 Pro2", aver.Hardware!.ExactModel);
+        Assert.AreEqual("AVer.CollaborationCameras", aver.DeviceFamilyId);
+        Assert.IsTrue(service.GetSoftwareForDevice(aver).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "AVer.RoomManagement" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        var ptzAppAlias = service.SearchDevices("PTZApp2").Single();
+        CollectionAssert.AreEquivalent(new[] { "AVer.PTZApp2" }, service.GetSoftwareForDevice(ptzAppAlias)
+            .SelectMany(group => group.Software).Select(item => item.ProductId.Value).Distinct().ToArray());
+        Assert.IsFalse(service.GetSoftwareForDevice(ptzAppAlias).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "AVer.RoomManagement"));
+
+        var rallyBar = service.SearchDevices("Rally Bar").Single(item => item.Hardware?.Id == "Logitech.RallyBar");
+        var logitech = service.GetSoftwareForDevice(rallyBar).SelectMany(group => group.Software).ToArray();
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, rallyBar.LookupState);
+        Assert.IsTrue(logitech.Any(item => item.ProductId.Value == "Logitech.Sync" && item.Purpose == DeviceSoftwarePurpose.Monitoring));
+        Assert.IsFalse(logitech.Any(item => item.ProductId.Value == "Logitech.Tune"));
+        var ptzPro = service.SearchDevices("PTZ Pro 2").Single(item => item.Hardware?.Id == "Logitech.PTZPro2");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, ptzPro.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(ptzPro));
+
+        var studioX52 = service.SearchDevices("Poly Studio X52").Single(item => item.Hardware?.Id == "HPPoly.StudioX52");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, studioX52.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(studioX52));
+        Assert.IsFalse(service.GetSoftwareForDevice(studioX52).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value is "HPPoly.LensDesktop" or "HPPoly.StudioDesktop"));
+
+        var roomBar = service.SearchDevices("Room Bar").Single(item => item.Hardware?.Id == "Cisco.RoomBar");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, roomBar.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(roomBar));
+        Assert.IsFalse(service.SearchProducts("RoomOS").Any());
+        Assert.IsFalse(service.SearchProducts("Control Hub").Any());
+
+        var nc12 = service.SearchDevices("NC-12x80").Single(item => item.Hardware?.Id == "QSYS.NC12x80");
+        var ncSoftware = service.GetSoftwareForDevice(nc12).SelectMany(group => group.Software).ToArray();
+        Assert.AreEqual(HardwareDeviceCategory.Camera, nc12.Hardware!.Category);
+        Assert.IsTrue(ncSoftware.Any(item => item.ProductId.Value == "QSYSDesigner" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(ncSoftware.All(item => item.Constraints.Contains("camera", StringComparison.OrdinalIgnoreCase)));
+
+        var huddly = service.SearchDevices("Huddly L1").Single(item => item.Hardware?.Id == "Huddly.L1");
+        var huddlySoftware = service.GetSoftwareForDevice(huddly).SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(huddlySoftware.Any(item => item.ProductId.Value == "Huddly.Connect" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsTrue(huddlySoftware.Any(item => item.ProductId.Value == "Huddly.Connect" && item.Purpose == DeviceSoftwarePurpose.Firmware));
+        Assert.IsFalse(huddlySoftware.Any(item => item.ProductId.Value == "Huddly.DesktopApp"));
+    }
+
+    [TestMethod]
     public void DeviceLookupPreservesMatchedCanonicalRelationshipScopeAndRanksExactMatches()
     {
         var service = CreateQueryService();
@@ -324,12 +374,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(52, hardware.Families);
-        Assert.HasCount(258, hardware.Models);
+        Assert.HasCount(60, hardware.Families);
+        Assert.HasCount(294, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(258, coverage.Models);
-        Assert.AreEqual(246, coverage.VerifiedModels);
-        Assert.AreEqual(12, coverage.UnresolvedModels);
+        Assert.AreEqual(294, coverage.Models);
+        Assert.AreEqual(266, coverage.VerifiedModels);
+        Assert.AreEqual(28, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
