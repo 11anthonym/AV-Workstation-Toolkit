@@ -50,6 +50,14 @@ Batch A adds 8 camera/conferencing families and 36 exact identities for AVer, Lo
 
 Cisco Room/Board and the reviewed Poly Studio USB, Studio X, and G7500 identities intentionally remain `Unresolved` for desktop applicability: RoomOS, embedded device web interfaces, Control Hub, and Poly Lens cloud administration are not fabricated as Windows products. Huddly Connect remains the evidence-backed Huddly desktop workflow. Browser, cloud, device-OS, firmware, and appliance workflows are descriptive only. Cameras/conferencing Batch B remains deferred for Crestron 1 Beyond, Sony, Panasonic, Lumens, PTZOptics, Jabra, Yealink, Neat, and other vendors.
 
+## Cameras / conferencing devices Batch B complete
+
+Batch B adds 12 families and 39 exact identities across Crestron / 1 Beyond, Sony Professional, Panasonic, Lumens, PTZOptics, Jabra, Yealink, and Neat. Nineteen models have evidence-backed desktop relations; 20 intentionally remain `Unresolved`. Sony RM-IP Setup Tool is limited to the reviewed SRG setup workflow. Panasonic Media Production Suite and EasyIP Setup Tool Plus are scoped to the reviewed AW-UE models. PTZOptics Camera Management Platform is scoped to Move 4K and Link 4K, Jabra Direct to reviewed PanaCast models, and Yealink USB Connect to reviewed UVC USB cameras.
+
+Crestron 1 Beyond cameras, Lumens cameras, Sony SRG-A40/BRC-X1000, Yealink MeetingBar appliances, and Neat room devices remain known hardware without a fabricated desktop relation. Automate VX/Camera Manager appliance workflows, browser configuration, Neat Pulse, device OS, cloud administration, protocols, and firmware transfers remain descriptive only. The material camera/conferencing scope is now complete for the two bounded batches; deferred vendors remain candidates for a future high-value-device pass rather than implied coverage.
+
+Camera/conferencing category: **DONE** for the agreed Batch A/B scope. Any later additions require the same exact-model and evidence-scoped review; they must not inherit desktop applicability from manufacturer or protocol similarity.
+
 ## Next coverage requirement
 
 Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.

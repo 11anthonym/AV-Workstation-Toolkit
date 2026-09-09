@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(256, catalog.Products);
+        Assert.HasCount(257, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -27,11 +27,11 @@ public sealed class ProductionCompatibilityCatalogTests
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
                 "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
                 "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Polycom", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
-                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Visionary Solutions", "Wisycom", "WolfVision", "WyreStorm", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS"
+                "Rane Commercial", "Rational Acoustics", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Visionary Solutions", "Wisycom", "WolfVision", "WyreStorm", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS", "PTZOptics"
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(275, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(284, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -329,6 +329,64 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void CamerasAndConferencingBatchBPreservesExactCameraScopesAndDescriptiveOnlyWorkflows()
+    {
+        var service = CreateQueryService();
+
+        var oneBeyond = service.SearchDevices("IV-CAM-I12-B").Single(item => item.Hardware?.Id == "Crestron.OneBeyondI12");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, oneBeyond.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(oneBeyond));
+
+        AssertModelSoftware(service, "SRG-X400", "Sony.SRGX400", "Sony.RMIPSetupTool", DeviceSoftwarePurpose.Configuration);
+        var sonyA40 = service.SearchDevices("SRG-A40").Single(item => item.Hardware?.Id == "Sony.SRGA40");
+        Assert.HasCount(0, service.GetSoftwareForDevice(sonyA40));
+
+        AssertModelSoftware(service, "AW-UE150A", "Panasonic.AWUE150A", "Panasonic.MediaProductionSuite", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "AW-UE50", "Panasonic.AWUE50", "Panasonic.EasyIPSetupToolPlus", DeviceSoftwarePurpose.Discovery);
+
+        var lumens = service.SearchDevices("VC-TR40").Single(item => item.Hardware?.Id == "Lumens.VCTR40");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, lumens.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(lumens));
+
+        AssertModelSoftware(service, "Move 4K 20X", "PTZOptics.Move4K20X", "PTZOptics.CameraManagementPlatform", DeviceSoftwarePurpose.Configuration);
+        var ptzSoftware = service.GetSoftwareForDevice(service.SearchDevices("Link 4K").Single(item => item.Hardware?.Id == "PTZOptics.Link4K"))
+            .SelectMany(group => group.Software).ToArray();
+        Assert.IsTrue(ptzSoftware.Any(item => item.ProductId.Value == "PTZOptics.CameraManagementPlatform"));
+        Assert.IsFalse(ptzSoftware.Any(item => item.ProductName.Contains("NDI", StringComparison.OrdinalIgnoreCase)));
+
+        AssertModelSoftware(service, "PanaCast 50", "Jabra.PanaCast50", "Jabra.Direct", DeviceSoftwarePurpose.Configuration);
+        Assert.IsFalse(service.GetSoftwareForDevice(service.SearchDevices("PanaCast 50").Single(item => item.Hardware?.Id == "Jabra.PanaCast50"))
+            .SelectMany(group => group.Software).Any(item => item.ProductId.Value == "Jabra.Xpress"));
+
+        AssertModelSoftware(service, "UVC86", "Yealink.UVC86", "Yealink.USBConnect", DeviceSoftwarePurpose.Configuration);
+        var meetingBar = service.SearchDevices("MeetingBar A30").Single(item => item.Hardware?.Id == "Yealink.MeetingBarA30");
+        Assert.HasCount(0, service.GetSoftwareForDevice(meetingBar));
+
+        var neat = service.SearchDevices("Neat Board 50").Single(item => item.Hardware?.Id == "Neat.Board50");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, neat.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(neat));
+        Assert.IsFalse(service.SearchProducts("Neat Pulse").Any());
+        Assert.IsFalse(service.SearchProducts("RoomOS").Any());
+
+        foreach (var (search, id) in new[]
+        {
+            ("IV-CAM-I12-B", "Crestron.OneBeyondI12"),
+            ("IV-CAM-P12-B", "Crestron.OneBeyondP12"),
+            ("IV-CAMA3-20", "Crestron.OneBeyondAutoTracker3"),
+            ("SRG-A40", "Sony.SRGA40"),
+            ("BRC-X1000", "Sony.BRCX1000"),
+            ("AW-UE100", "Panasonic.AWUE100"),
+            ("VC-A61P", "Lumens.VCA61P"),
+            ("VC-A71P", "Lumens.VCA71P"),
+            ("UVC40", "Yealink.UVC40"),
+            ("MeetingBar A40", "Yealink.MeetingBarA40"),
+            ("Neat Bar", "Neat.Bar"),
+            ("Neat Center", "Neat.Center")
+        })
+            Assert.AreEqual(id, service.SearchDevices(search).Single(item => item.Hardware?.Id == id).Hardware!.Id);
+    }
+
+    [TestMethod]
     public void DeviceLookupPreservesMatchedCanonicalRelationshipScopeAndRanksExactMatches()
     {
         var service = CreateQueryService();
@@ -374,12 +432,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(60, hardware.Families);
-        Assert.HasCount(294, hardware.Models);
+        Assert.HasCount(72, hardware.Families);
+        Assert.HasCount(333, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(294, coverage.Models);
-        Assert.AreEqual(266, coverage.VerifiedModels);
-        Assert.AreEqual(28, coverage.UnresolvedModels);
+        Assert.AreEqual(333, coverage.Models);
+        Assert.AreEqual(285, coverage.VerifiedModels);
+        Assert.AreEqual(48, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -728,7 +786,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(256, services.Compatibility.SearchProducts());
+        Assert.HasCount(257, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -743,7 +801,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(256, compatibility.Products);
+        Assert.HasCount(257, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or

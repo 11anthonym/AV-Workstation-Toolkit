@@ -388,6 +388,31 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task CameraAndConferencingBatchBResultsKeepDesktopAndCloudOnlyWorkflowsSeparate()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "Move 4K 20X";
+        var ptzOptics = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Move 4K 20X");
+        Assert.IsFalse(ptzOptics.CanSelect);
+        ptzOptics.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "PTZOptics Camera Management Platform"));
+
+        viewModel.SearchText = "Neat Board 50";
+        var neat = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Neat Board 50");
+        StringAssert.Contains(neat.Subtitle, "not yet verified");
+        Assert.IsFalse(neat.CanSelect);
+        neat.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null && viewModel.SelectedCompatibilityDetail.RelatedSoftware.Count == 0);
+        var coverage = viewModel.SelectedCompatibilityDetail!.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
+        StringAssert.Contains(coverage.Value, "does not mean no software is required");
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
     public async Task DeviceSearchShowsEveryCompatibilityMatchAndExplainsUnresolvedModels()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
