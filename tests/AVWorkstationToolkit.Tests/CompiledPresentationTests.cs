@@ -471,9 +471,9 @@ public sealed class CompiledPresentationTests
         CollectionAssert.Contains(identity.Select(field => field.Label).ToArray(), "Coverage");
         Assert.IsTrue(verifiedDetail.RelatedSoftware.Any(item => item.ProductName == "Crestron SIMPL Windows"));
 
-        viewModel.SearchText = "Core 110f";
+        viewModel.SearchText = "RLNK-910R";
         var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
-        Assert.AreEqual("Core 110f", unresolved.Title);
+        Assert.AreEqual("RLNK-910R-IEC-NS", unresolved.Title);
         StringAssert.Contains(unresolved.Subtitle, "not yet verified");
         Assert.IsFalse(unresolved.CanSelect);
         unresolved.OpenCommand.Execute(null);
@@ -483,6 +483,37 @@ public sealed class CompiledPresentationTests
         var coverage = unresolvedDetail.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
         StringAssert.Contains(coverage.Value, "no verified software relationship");
         StringAssert.Contains(coverage.Value, "does not mean no software is required");
+    }
+
+    [TestMethod]
+    public async Task ShortModelAndControlInterfaceDeviceResultsRetainExactIdentityAndReadOnlyScopes()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "110F";
+        var core = viewModel.CompatibilityMatches.First(item => item.Kind == CompatibilitySearchResultKind.Device);
+        Assert.AreEqual("Core 110f", core.Title);
+        StringAssert.Contains(core.Subtitle, "Q-SYS");
+        StringAssert.Contains(core.Subtitle, "Exact model");
+        Assert.IsFalse(core.CanSelect);
+        core.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "Q-SYS Designer Software"));
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail.Groups.SelectMany(group => group.Fields)
+            .Any(field => field.Value.Contains("2 GB", StringComparison.OrdinalIgnoreCase)));
+
+        viewModel.SearchText = "NBP1200C";
+        var panel = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "NBP 1200C");
+        StringAssert.Contains(panel.Subtitle, "Control Panel");
+        Assert.IsFalse(panel.CanSelect);
+        panel.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null &&
+            viewModel.SelectedCompatibilityDetail.RelatedSoftware.Any(item => item.ProductName == "Extron Toolbelt"));
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "Extron Global Configurator Plus"));
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail.RelatedSoftware.Any(item => item.ProductName == "Extron Global Scripter"));
+        Assert.AreEqual(0, viewModel.SelectedCount);
     }
 
     [TestMethod]

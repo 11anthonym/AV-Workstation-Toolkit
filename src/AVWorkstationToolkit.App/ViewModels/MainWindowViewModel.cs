@@ -500,9 +500,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private static string HardwareLookupLabel(CompatibilityDeviceSearchResult device) => device.LookupState switch
     {
-        HardwareLookupState.KnownExactModelWithVerifiedRelationships => $"Exact model | {device.Hardware!.Manufacturer} | {device.Hardware.Category}",
+        HardwareLookupState.KnownExactModelWithVerifiedRelationships => $"Exact model | {device.Hardware!.Manufacturer} | {CompatibilityLabel(device.Hardware.Category)}",
         HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => $"Known model | {device.Hardware!.Manufacturer} | software coverage not yet verified",
-        HardwareLookupState.KnownFamilyWithVerifiedRelationships => $"Known family | {device.Hardware!.Manufacturer} | {device.Hardware.Category}",
+        HardwareLookupState.KnownFamilyWithVerifiedRelationships => $"Known family | {device.Hardware!.Manufacturer} | {CompatibilityLabel(device.Hardware.Category)}",
         HardwareLookupState.KnownFamilyWithUnresolvedCoverage => $"Known family | {device.Hardware!.Manufacturer} | software coverage not yet verified",
         _ => device.DeviceFamilyId
     };

@@ -23,6 +23,9 @@ public enum HardwareDeviceCategory
     Amplifier,
     Camera,
     AvOverIp,
+    AvInterface,
+    ControlPanel,
+    PowerDistribution,
     Wireless,
     Intercom,
     Other

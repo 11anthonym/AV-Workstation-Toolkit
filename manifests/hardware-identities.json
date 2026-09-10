@@ -22,6 +22,26 @@
       "CompatibilityDeviceFamilyId": "QSYS.Core"
     },
     {
+      "Id": "RDL.DSeriesBTN21",
+      "Manufacturer": "Radio Design Labs",
+      "Category": "AvInterface",
+      "Name": "RDL D SERIES-BTN21 Bluetooth Audio Interfaces",
+      "Aliases": [ "RDL D-BTN21", "D-BTN21", "RDL Bluetooth Dante interface" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "RDL.DSeriesBTN21"
+    },
+    {
+      "Id": "RDL.DDSeriesBTN44",
+      "Manufacturer": "Radio Design Labs",
+      "Category": "AvInterface",
+      "Name": "RDL DD-BTN44 Dante Button Interfaces",
+      "Aliases": [ "RDL DD-BTN44", "DD-BTN44" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "RDL.DDSeriesBTN44"
+    },
+    {
       "Id": "Biamp.TesiraFamily",
       "Manufacturer": "Biamp",
       "Category": "AudioDsp",
@@ -60,6 +80,16 @@
       "Lifecycle": "Current",
       "CoverageState": "VerifiedSoftwareRelationships",
       "CompatibilityDeviceFamilyId": "Extron.IPCPPro"
+    },
+    {
+      "Id": "Extron.NetworkButtonPanels",
+      "Manufacturer": "Extron",
+      "Category": "ControlPanel",
+      "Name": "Extron Network Button Panels",
+      "Aliases": [ "Extron NBP", "Network Button Panel", "Extron control panel" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "Extron.NetworkButtonPanels"
     },
     {
       "Id": "Extron.IPCPProXi",
@@ -219,6 +249,8 @@
     { "Id": "Visionary.PacketAV5", "Manufacturer": "Visionary Solutions", "Category": "AvOverIp", "Name": "Visionary PacketAV 5-Series Endpoints", "Aliases": [ "Visionary PacketAV 5", "Visionary 5-Series" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Visionary.PacketAV5" },
     { "Id": "Visionary.PacketAV4200", "Manufacturer": "Visionary Solutions", "Category": "AvOverIp", "Name": "Visionary PacketAV E4200/D4200 Endpoints", "Aliases": [ "Visionary 4200", "PacketAV 4200" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Visionary.PacketAV4200" },
     { "Id": "Kramer.KDS7", "Manufacturer": "Kramer", "Category": "AvOverIp", "Name": "Kramer KDS-7 Endpoints", "Aliases": [ "Kramer KDS 7", "KDS-7" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "Kramer.ControlSystems", "Manufacturer": "Kramer", "Category": "ControlProcessor", "Name": "Kramer Control Systems", "Aliases": [ "Kramer room controller", "Kramer control processor" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Kramer.ControlSystems" },
+    { "Id": "MiddleAtlantic.RackLink", "Manufacturer": "Middle Atlantic", "Category": "PowerDistribution", "Name": "Middle Atlantic RackLink Intelligent Power", "Aliases": [ "Middle Atlantic RackLink", "RackLink power management", "RackLink PDU" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
     { "Id": "Matrox.ConvertIP", "Manufacturer": "Matrox Video", "Category": "AvOverIp", "Name": "Matrox ConvertIP Endpoints", "Aliases": [ "Matrox ConvertIP", "ConvertIP" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Matrox.ConvertIP" },
     { "Id": "AVProEdge.MXnet1G", "Manufacturer": "AVPro Edge", "Category": "AvOverIp", "Name": "AVPro Edge MXnet 1G Endpoints", "Aliases": [ "AVPro MXnet 1G", "MXnet 1G" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
     { "Id": "WyreStorm.NetworkHD500", "Manufacturer": "WyreStorm", "Category": "AvOverIp", "Name": "WyreStorm NetworkHD 500 Series Endpoints", "Aliases": [ "NetworkHD 500", "NHD 500" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "WyreStorm.NetworkHD500" },
@@ -279,9 +311,57 @@
       "Id": "QSYS.Core110f",
       "FamilyId": "QSYS.Core",
       "Name": "Core 110f",
-      "Aliases": [ "Q-SYS Core 110f", "Core110f" ],
+      "Aliases": [ "Q-SYS Core 110f", "Core110f", "110F" ],
       "Lifecycle": "Current",
-      "CoverageState": "Unresolved"
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DBTN21",
+      "FamilyId": "RDL.DSeriesBTN21",
+      "Name": "D-BTN21",
+      "Aliases": [ "RDL D-BTN21", "D BTN21" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DBBTN21",
+      "FamilyId": "RDL.DSeriesBTN21",
+      "Name": "DB-BTN21",
+      "Aliases": [ "RDL DB-BTN21", "DB BTN21" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DSBTN21",
+      "FamilyId": "RDL.DSeriesBTN21",
+      "Name": "DS-BTN21",
+      "Aliases": [ "RDL DS-BTN21", "DS BTN21" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DDBTN44",
+      "FamilyId": "RDL.DDSeriesBTN44",
+      "Name": "DD-BTN44",
+      "Aliases": [ "RDL DD-BTN44", "DD BTN44" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DDBBTN44",
+      "FamilyId": "RDL.DDSeriesBTN44",
+      "Name": "DDB-BTN44",
+      "Aliases": [ "RDL DDB-BTN44", "DDB BTN44" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DDSBTN44",
+      "FamilyId": "RDL.DDSeriesBTN44",
+      "Name": "DDS-BTN44",
+      "Aliases": [ "RDL DDS-BTN44", "DDS BTN44" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
     },
     {
       "Id": "AVer.CAM520",
@@ -297,6 +377,118 @@
       "Name": "IPCP Pro 250",
       "Aliases": [ "Extron IPCP Pro 250" ],
       "Lifecycle": "Unknown",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP50",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 50",
+      "Aliases": [ "Extron NBP 50", "NBP50" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP100",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 100",
+      "Aliases": [ "Extron NBP 100", "NBP100" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP200",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 200",
+      "Aliases": [ "Extron NBP 200", "NBP200" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP105D",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 105 D",
+      "Aliases": [ "Extron NBP 105 D", "NBP105D" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP110D",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 110 D",
+      "Aliases": [ "Extron NBP 110 D", "NBP110D" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP1200C",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 1200C",
+      "Aliases": [ "Extron NBP 1200C", "NBP1200C" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP106D",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 106 D",
+      "Aliases": [ "Extron NBP 106 D", "NBP106D" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP108D",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 108 D",
+      "Aliases": [ "Extron NBP 108 D", "NBP108D" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBPVC1D",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP VC1 D",
+      "Aliases": [ "Extron NBP VC1 D", "NBPVC1D" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBPVC2D",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP VC2 D",
+      "Aliases": [ "Extron NBP VC2 D", "NBPVC2D" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP104EU",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 104 EU",
+      "Aliases": [ "Extron NBP 104 EU", "NBP104EU" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBP108EU",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP 108 EU",
+      "Aliases": [ "Extron NBP 108 EU", "NBP108EU" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBPVC1EU",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP VC1 EU",
+      "Aliases": [ "Extron NBP VC1 EU", "NBPVC1EU" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "Extron.NBPVC2EU",
+      "FamilyId": "Extron.NetworkButtonPanels",
+      "Name": "NBP VC2 EU",
+      "Aliases": [ "Extron NBP VC2 EU", "NBPVC2EU" ],
+      "Lifecycle": "Current",
       "CoverageState": "VerifiedSoftwareRelationships"
     },
     {
@@ -632,6 +824,9 @@
     { "Id": "Visionary.E4200", "FamilyId": "Visionary.PacketAV4200", "Name": "E4200", "Aliases": [ "Visionary E4200" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "Visionary.D4200", "FamilyId": "Visionary.PacketAV4200", "Name": "D4200", "Aliases": [ "Visionary D4200" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "Kramer.KDSEN7", "FamilyId": "Kramer.KDS7", "Name": "KDS-EN7", "Aliases": [ "Kramer KDS-EN7", "KDS EN7" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "Kramer.SL240C", "FamilyId": "Kramer.ControlSystems", "Name": "SL-240C", "Aliases": [ "Kramer SL-240C", "SL 240C" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Kramer.RC74DL", "FamilyId": "Kramer.ControlSystems", "Name": "RC-74DL", "Aliases": [ "Kramer RC-74DL", "RC 74DL" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "MiddleAtlantic.RLNK910R", "FamilyId": "MiddleAtlantic.RackLink", "Name": "RLNK-910R-IEC-NS", "Aliases": [ "Middle Atlantic RLNK-910R", "RLNK-910R" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "Kramer.KDSDEC7", "FamilyId": "Kramer.KDS7", "Name": "KDS-DEC7", "Aliases": [ "Kramer KDS-DEC7", "KDS DEC7" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "Kramer.KDSSW3EN7", "FamilyId": "Kramer.KDS7", "Name": "KDS-SW3-EN7", "Aliases": [ "Kramer KDS-SW3-EN7", "KDS SW3 EN7" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "Kramer.WPDEC7", "FamilyId": "Kramer.KDS7", "Name": "WP-DEC7", "Aliases": [ "Kramer WP-DEC7", "WP DEC7" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
