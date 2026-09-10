@@ -13,7 +13,7 @@ public sealed class ProductionCompatibilityCatalogTests
     {
         var catalog = LoadCatalog();
 
-        Assert.HasCount(260, catalog.Products);
+        Assert.HasCount(263, catalog.Products);
         CollectionAssert.AreEquivalent(
             new[]
             {
@@ -23,7 +23,7 @@ public sealed class ProductionCompatibilityCatalogTests
                 "Capture Visualisation", "ChamSys", "Christie", "Cisco", "Clear-Com", "ClearOne", "Colorlight", "Crestron",
                 "d&b audiotechnik", "Datapath", "Dataton", "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron",
                 "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
-                "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Just Add Power", "Kramer", "L-Acoustics", "Lake",
+                "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Just Add Power", "Key Digital", "Kramer", "L-Acoustics", "Lake",
                 "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
                 "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
                 "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Polycom", "Powersoft", "Professional Wireless Systems", "QLC+ Project",
@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(296, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(308, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -432,7 +432,7 @@ public sealed class ProductionCompatibilityCatalogTests
             .Any(item => item.ProductId.Value == "AVer.RoomManagement"));
 
         Assert.AreEqual(CompatibilitySearchMatchKind.PrefixOrToken, service.SearchDevices("CP4").Single().MatchKind);
-        var rmc4 = service.SearchDevices("RMC4").Single();
+        var rmc4 = service.SearchDevices("RMC4").First();
         Assert.AreEqual("Crestron.RMC4", rmc4.Hardware!.Id);
         Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, rmc4.LookupState);
         Assert.IsTrue(service.GetSoftwareForDevice(rmc4).SelectMany(group => group.Software)
@@ -457,12 +457,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(82, hardware.Families);
-        Assert.HasCount(378, hardware.Models);
+        Assert.HasCount(104, hardware.Families);
+        Assert.HasCount(447, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(378, coverage.Models);
-        Assert.AreEqual(330, coverage.VerifiedModels);
-        Assert.AreEqual(48, coverage.UnresolvedModels);
+        Assert.AreEqual(447, coverage.Models);
+        Assert.AreEqual(360, coverage.VerifiedModels);
+        Assert.AreEqual(87, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -521,6 +521,47 @@ public sealed class ProductionCompatibilityCatalogTests
         Assert.AreEqual(HardwareDeviceCategory.PowerDistribution, rackLink.Hardware!.Category);
         Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, rackLink.LookupState);
         Assert.HasCount(0, service.GetSoftwareForDevice(rackLink));
+    }
+
+    [TestMethod]
+    public void SignalDistributionBatchAUsesExactEvidenceScopesAndKeepsNonDesktopHardwareExplicit()
+    {
+        var service = CreateQueryService();
+
+        AssertModelSoftware(service, "DTP2 R 211", "Extron.DTP2R211", "Extron.FirmwareLoader", DeviceSoftwarePurpose.Firmware);
+        AssertModelSoftware(service, "IN1808", "Extron.IN1808", "Extron.PCS", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "XTP II CrossPoint 1600", "Extron.XTPIICrossPoint1600", "Extron.XTPSystemConfiguration", DeviceSoftwarePurpose.Commissioning);
+        AssertModelSoftware(service, "UCX 2x1 HC40", "Lightware.UCX2x1HC40", "Lightware.LDC", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "UCX 2x1 HC40", "Lightware.UCX2x1HC40", "Lightware.LDU2", DeviceSoftwarePurpose.Firmware);
+        AssertModelSoftware(service, "VS 88H2", "Kramer.VS88H2", "Kramer.Network", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "AT OME MS42 HDBT", "Atlona.OMEMS42HDBT", "Atlona.VelocityDeviceManager", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "KD MS8x8G", "KeyDigital.MS8x8G", "KeyDigital.KDMSPro", DeviceSoftwarePurpose.Configuration);
+
+        foreach (var (query, id, manufacturer, lifecycle) in new[]
+        {
+            ("DM MD8X8", "Crestron.DMMD8X8", "Crestron", Lifecycle.Legacy),
+            ("KD PS42", "KeyDigital.PS42", "Key Digital", Lifecycle.Current),
+            ("UHBX SW3 WP", "Hall.UHBXSW3WP", "Hall Technologies", Lifecycle.Current),
+            ("EXT UHD600A 44", "Gefen.UHD600A44", "Gefen", Lifecycle.Legacy),
+            ("DIGI HD60C S", "Intelix.DIGIHD60CS", "Liberty / Intelix", Lifecycle.Legacy),
+            ("MuxLab 500451", "MuxLab.500451", "MuxLab", Lifecycle.Current)
+        })
+        {
+            var result = service.SearchDevices(query).Single(item => item.Hardware?.Id == id);
+            Assert.AreEqual(manufacturer, result.Hardware!.Manufacturer);
+            Assert.AreEqual(HardwareDeviceCategory.SignalDistribution, result.Hardware.Category);
+            Assert.AreEqual(lifecycle, result.Hardware.Lifecycle);
+            Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, result.LookupState);
+            Assert.HasCount(0, service.GetSoftwareForDevice(result));
+        }
+
+        var opus = service.SearchDevices("AT OPUS 46M").Single(item => item.Hardware?.Id == "Atlona.OPUS46M");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, opus.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(opus));
+
+        var crestron = service.SearchDevices("DM MD8X8").Single(item => item.Hardware?.Id == "Crestron.DMMD8X8");
+        Assert.IsFalse(service.GetSoftwareForDevice(crestron).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value is "Crestron.DMNVXTool" or "Crestron.SIMPLWindows"));
     }
 
     [TestMethod]
@@ -851,7 +892,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(260, services.Compatibility.SearchProducts());
+        Assert.HasCount(263, services.Compatibility.SearchProducts());
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -866,7 +907,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(260, compatibility.Products);
+        Assert.HasCount(263, compatibility.Products);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or

@@ -70,6 +70,14 @@ The device catalog now resolves the unambiguous `110F` marking to the exact Q-SY
 
 This bounded follow-up also adds reviewed RDL D/DB/DS-BTN21 and DD/DDB/DDS-BTN44, Extron Network Button Panel, and Kramer SL-240C/RC-74DL identities. RDL Console is limited to the documented Bluetooth-interface configuration workflow. Extron Toolbelt covers device discovery/management while Global Configurator Plus/Professional and Global Scripter cover the separately documented NBP project workflows. Kramer K-Config is limited to RC-74DL, K-Upload to conditional SL-240C firmware service, and Site-CTRL to legacy RC-74DL monitoring; the first-pass assumption that K-Config applied to SL-240C was removed after official source verification. Middle Atlantic RLNK-910R remains a known exact model with intentionally unresolved desktop-software coverage because RackLink's native/browser, mobile, cloud, and control-system surfaces are not a verified Windows desktop product. The report-suggested MXNet SKUs were not attributed to WyreStorm because the supplied evidence did not establish that manufacturer/scope.
 
+## Signal distribution / switching / extension Batch A complete
+
+This bounded pass reviews Extron, Crestron, Lightware, Kramer, Atlona, Key Digital, Hall Technologies, Gefen, Liberty / Intelix, and MuxLab. It adds 22 signal-distribution families and 69 exact models: 30 have verified desktop relationships and 39 deliberately remain unresolved. The verified scopes are limited to Extron PCS/Firmware Loader/XTP System Configuration, Lightware LDC/LDU2, Kramer Network, Atlona Velocity Device Manager, and Key Digital KDMS Pro where official product documentation establishes the exact workflow.
+
+Known hardware without a proven Windows relationship remains useful and visible. Crestron DM matrices/endpoints, Kramer presentation switchers, Atlona Opus, Key Digital, Hall, Gefen, Intelix, and traditional MuxLab devices retain browser, front-panel, protocol, or manual service workflows as descriptive context rather than fabricated software. XTP and DTP2 remain distinct; Lightware Taurus/MMX2 do not inherit UBEX relations; traditional signal products do not inherit DM NVX, OmniStream, or other AVoIP applicability. The batch adds no package, download, credential, firmware-execution, worker, or device-control authority.
+
+Remaining high-value gaps include broader current Key Digital/Hall exact support matrices, Crestron Toolbox qualification for individual DM generations, and controlled verification of legacy browser/USB utilities. Those gaps remain explicit evidence work rather than inferred compatibility.
+
 ## Next coverage requirement
 
 Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.

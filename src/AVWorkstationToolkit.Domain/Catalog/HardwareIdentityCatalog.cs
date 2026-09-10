@@ -24,6 +24,7 @@ public enum HardwareDeviceCategory
     Camera,
     AvOverIp,
     AvInterface,
+    SignalDistribution,
     ControlPanel,
     PowerDistribution,
     Wireless,

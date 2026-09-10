@@ -425,7 +425,7 @@ public sealed class CompiledPresentationTests
         Assert.IsFalse(viewModel.CompatibilitySearchOutcomeVisible);
 
         viewModel.SearchText = "RMC4";
-        var rmc4 = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
+        var rmc4 = viewModel.CompatibilityMatches.First(item => item.Kind == CompatibilitySearchResultKind.Device);
         Assert.AreEqual("RMC4", rmc4.Title);
         StringAssert.Contains(rmc4.Subtitle, "Exact model");
         Assert.IsFalse(rmc4.CanSelect);
@@ -513,6 +513,32 @@ public sealed class CompiledPresentationTests
             viewModel.SelectedCompatibilityDetail.RelatedSoftware.Any(item => item.ProductName == "Extron Toolbelt"));
         Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "Extron Global Configurator Plus"));
         Assert.IsTrue(viewModel.SelectedCompatibilityDetail.RelatedSoftware.Any(item => item.ProductName == "Extron Global Scripter"));
+        Assert.AreEqual(0, viewModel.SelectedCount);
+    }
+
+    [TestMethod]
+    public async Task SignalDistributionResultsRenderVerifiedAndUnresolvedHardwareWithoutSelectionAuthority()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "IN1808";
+        var verified = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "IN1808");
+        StringAssert.Contains(verified.Subtitle, "Signal Distribution");
+        Assert.IsFalse(verified.CanSelect);
+        verified.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "Extron Product Configuration Software"));
+
+        viewModel.SearchText = "KD PS42";
+        var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "KD-PS42");
+        StringAssert.Contains(unresolved.Subtitle, "not yet verified");
+        Assert.IsFalse(unresolved.CanSelect);
+        unresolved.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null &&
+            viewModel.SelectedCompatibilityDetail.Name == "KD-PS42");
+        Assert.HasCount(0, viewModel.SelectedCompatibilityDetail!.RelatedSoftware);
         Assert.AreEqual(0, viewModel.SelectedCount);
     }
 
