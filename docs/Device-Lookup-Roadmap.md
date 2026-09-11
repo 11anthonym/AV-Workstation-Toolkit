@@ -80,7 +80,30 @@ Remaining high-value gaps include broader current Key Digital/Hall exact support
 
 ## Next coverage requirement
 
-Comprehensive model lookup still needs an agreed, evidence-backed commercial-AV model/family coverage ledger. The new machine-readable identity catalog can measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage before that expansion begins.
+## Frozen holistic Priority-1 denominator
+
+The post-signal-distribution baseline is 52 manufacturers, 104 families, 447 exact models, 880 family/model aliases, 10 categories, 360 models with verified software relationships, 87 unresolved models, and 308 `DeviceSoftwareRelation` records. The bounded holistic expansion freezes 53 additional exact identities across seven implementation waves, producing exactly 500 exact models when complete; Wave 8 is a residual audit rather than an open-ended market survey.
+
+| Wave | Frozen exact-model denominator |
+|---|---|
+| 1 — Installed microphones / wireless | Shure MXA920, MXA902, MXA710-2FT, ANIUSB-MATRIX, ULXD4D; Sennheiser TeamConnect Ceiling 2 and TeamConnect Ceiling Medium; Audio-Technica ATND1061DAN |
+| 2 — Wireless presentation / BYOD | Barco CX-20, CX-30, CX-50 Gen2, C-10; Mersive Solstice Pod Gen3; Crestron AM-3200-WF and AM-3100-WF; Extron ShareLink Pro 1100; Kramer VIA Connect2; ScreenBeam 1100 Plus |
+| 3 — Amplifiers / loudspeaker processing | Powersoft Unica 8K8, Mezzo 604 A, T604, X8; LEA Connect 354 and Connect 704; Q-SYS CX-Q 4K4 and CX-Q 8K8; d&b 40D and D80; L-Acoustics LA12X |
+| 4 — Recording / streaming | Blackmagic HyperDeck Studio HD Mini, HyperDeck Studio HD Plus, HyperDeck Studio 4K Pro; Epiphan Pearl Mini and Pearl-2; Magewell Ultra Encode AIO; AJA HELO Plus |
+| 5 — Assistive listening / network audio | ListenWIFI LW-100P and LA-490; Williams AV WaveCAST C and FM T55; Audinate Dante AVIO USB Adapter |
+| 6 — Power / control / utility | Crestron CEN-IO-COM-102, CEN-IO-RY-104, CEN-IO-DIGIN-204; WattBox WB-800-IPVM-12; SurgeX SX-1120-RT; Middle Atlantic RLNK-415R-IEC |
+| 7 — Specialized video processing | Analog Way Aquilon RS alpha and Aquilon C+; tvONE CORIOmaster2; RGB Spectrum Galileo GAL16; VuWall PAK 40; Datapath VSN1172 |
+| 8 — Residual gap sweep | Reconcile the 53 identities above against the manifest; add no model unless a concrete Priority-1 omission is found and documented within the same 500-model ceiling. |
+
+Each denominator entry must end as an exact identity with either an evidence-scoped `DeviceSoftwareRelation`, a documented non-desktop workflow, or explicit unresolved coverage. The frozen list is the completion ledger; protocols, manufacturer similarity, and device identity never imply software applicability.
+
+### Wave progress
+
+- **Wave 1 complete — installed microphones / wireless.** Added eight exact identities across Shure MXA/ULX-D, Sennheiser TeamConnect Ceiling, and Audio-Technica ATND1061 families. Shure Designer/Update Utility, Wireless Workbench, Sennheiser Control Cockpit, and Audio-Technica Digital Microphone Manager are separately evidence-scoped; Dante, media-control, Q-SYS certification, and browser-client surfaces create no inferred relation or execution authority.
+
+## Next coverage requirement
+
+Implement the frozen holistic denominator above without reopening completed category-wide audits. The machine-readable identity catalog continues to measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage.
 
 ## Definition of done
 

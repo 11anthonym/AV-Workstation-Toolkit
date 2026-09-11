@@ -25,6 +25,7 @@ public enum HardwareDeviceCategory
     AvOverIp,
     AvInterface,
     SignalDistribution,
+    InstalledMicrophone,
     ControlPanel,
     PowerDistribution,
     Wireless,

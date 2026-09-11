@@ -302,7 +302,11 @@
     { "Id": "Intelix.DigitalExtension", "Manufacturer": "Liberty / Intelix", "Category": "SignalDistribution", "Name": "Intelix Digital AV Extenders", "Aliases": [ "Intelix extender", "Liberty Intelix extender" ], "Lifecycle": "Legacy", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
     { "Id": "Intelix.Switching", "Manufacturer": "Liberty / Intelix", "Category": "SignalDistribution", "Name": "Intelix Switching and Presentation Products", "Aliases": [ "Intelix switcher", "Liberty Intelix switcher" ], "Lifecycle": "Legacy", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
     { "Id": "MuxLab.HDBTExtension", "Manufacturer": "MuxLab", "Category": "SignalDistribution", "Name": "MuxLab HDBaseT Extenders", "Aliases": [ "MuxLab HDBT extender", "MuxLab HDMI extender" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
-    { "Id": "MuxLab.Matrix", "Manufacturer": "MuxLab", "Category": "SignalDistribution", "Name": "MuxLab Traditional Matrix Switchers", "Aliases": [ "MuxLab matrix", "MuxLab HDBT matrix" ], "Lifecycle": "Legacy", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" }
+    { "Id": "MuxLab.Matrix", "Manufacturer": "MuxLab", "Category": "SignalDistribution", "Name": "MuxLab Traditional Matrix Switchers", "Aliases": [ "MuxLab matrix", "MuxLab HDBT matrix" ], "Lifecycle": "Legacy", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "Shure.MXAInstalled", "Manufacturer": "Shure", "Category": "InstalledMicrophone", "Name": "Shure Microflex Advance Installed Microphones", "Aliases": [ "Shure MXA", "Microflex Advance" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Shure.MXAInstalled" },
+    { "Id": "Shure.ULXDReceivers", "Manufacturer": "Shure", "Category": "Wireless", "Name": "Shure ULX-D Networked Receivers", "Aliases": [ "Shure ULX-D", "ULXD receiver" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Shure.ULXDReceivers" },
+    { "Id": "Sennheiser.TeamConnectCeiling", "Manufacturer": "Sennheiser", "Category": "InstalledMicrophone", "Name": "Sennheiser TeamConnect Ceiling Microphones", "Aliases": [ "TeamConnect Ceiling", "Sennheiser TCC" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Sennheiser.TeamConnectCeiling" },
+    { "Id": "AudioTechnica.ATND1061", "Manufacturer": "Audio-Technica", "Category": "InstalledMicrophone", "Name": "Audio-Technica ATND1061 Beamforming Microphones", "Aliases": [ "Audio-Technica ATND1061", "ATND1061" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "AudioTechnica.ATND1061" }
   ],
   "Models": [
     {
@@ -1038,6 +1042,14 @@
     { "Id": "MuxLab.500454", "FamilyId": "MuxLab.HDBTExtension", "Name": "500454", "Aliases": [ "MuxLab 500454" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "MuxLab.500457", "FamilyId": "MuxLab.HDBTExtension", "Name": "500457", "Aliases": [ "MuxLab 500457" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "MuxLab.500416PoE", "FamilyId": "MuxLab.Matrix", "Name": "500416-PoE", "Aliases": [ "MuxLab 500416-PoE" ], "Lifecycle": "Legacy", "CoverageState": "Unresolved" },
-    { "Id": "MuxLab.500413", "FamilyId": "MuxLab.Matrix", "Name": "500413", "Aliases": [ "MuxLab 500413" ], "Lifecycle": "Current", "CoverageState": "Unresolved" }
+    { "Id": "MuxLab.500413", "FamilyId": "MuxLab.Matrix", "Name": "500413", "Aliases": [ "MuxLab 500413" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "Shure.MXA920", "FamilyId": "Shure.MXAInstalled", "Name": "MXA920", "Aliases": [ "Shure MXA920", "MXA 920" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Shure.MXA902", "FamilyId": "Shure.MXAInstalled", "Name": "MXA902", "Aliases": [ "Shure MXA902", "MXA 902" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Shure.MXA7102FT", "FamilyId": "Shure.MXAInstalled", "Name": "MXA710-2FT", "Aliases": [ "Shure MXA710-2FT", "MXA710 2FT" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Shure.ANIUSBMatrix", "FamilyId": "Shure.MXAInstalled", "Name": "ANIUSB-MATRIX", "Aliases": [ "Shure ANIUSB-MATRIX", "ANIUSB MATRIX" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Shure.ULXD4D", "FamilyId": "Shure.ULXDReceivers", "Name": "ULXD4D", "Aliases": [ "Shure ULXD4D", "ULX-D dual receiver" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Sennheiser.TCC2", "FamilyId": "Sennheiser.TeamConnectCeiling", "Name": "TeamConnect Ceiling 2", "Aliases": [ "Sennheiser TeamConnect Ceiling 2", "TCC2" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Sennheiser.TCCM", "FamilyId": "Sennheiser.TeamConnectCeiling", "Name": "TeamConnect Ceiling Medium", "Aliases": [ "Sennheiser TeamConnect Ceiling Medium", "TCC M" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "AudioTechnica.ATND1061DAN", "FamilyId": "AudioTechnica.ATND1061", "Name": "ATND1061DAN", "Aliases": [ "Audio-Technica ATND1061DAN", "ATND 1061 DAN" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
   ]
 }
