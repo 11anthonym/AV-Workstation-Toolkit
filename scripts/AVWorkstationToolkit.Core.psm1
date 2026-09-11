@@ -1192,7 +1192,9 @@ function Get-AVWorkstationToolkitCatalog {
         if ($package.Provider -eq 'External' -and ($package.Deployment -ne 'ManualHold' -or $package.Maintenance -ne 'Hold')) {
             throw "External package $($package.Id) must remain on manual deployment and maintenance hold."
         }
-        if (($package.Id + ' ' + $package.Name + ' ' + $package.Note) -match $data.ForbiddenPattern) {
+        $isAwarenessOnlySecurityReference = $package.Provider -eq 'External' -and
+            $package.DeploymentClass -eq 'AwarenessOnly' -and $package.DeliveryMode -eq 'Awareness'
+        if (($package.Id + ' ' + $package.Name + ' ' + $package.Note) -match $data.ForbiddenPattern -and -not $isAwarenessOnlySecurityReference) {
             throw "Out-of-scope security/management package detected in catalog: $($package.Id)"
         }
 

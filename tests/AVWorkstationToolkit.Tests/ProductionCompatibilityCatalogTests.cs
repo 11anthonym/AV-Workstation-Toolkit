@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(330, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(333, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -457,12 +457,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(135, hardware.Families);
-        Assert.HasCount(502, hardware.Models);
+        Assert.HasCount(137, hardware.Families);
+        Assert.HasCount(508, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(502, coverage.Models);
-        Assert.AreEqual(396, coverage.VerifiedModels);
-        Assert.AreEqual(106, coverage.UnresolvedModels);
+        Assert.AreEqual(508, coverage.Models);
+        Assert.AreEqual(398, coverage.VerifiedModels);
+        Assert.AreEqual(110, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -482,6 +482,31 @@ public sealed class ProductionCompatibilityCatalogTests
         Assert.IsTrue(service.GetSoftwareForDevice(coreFamily).SelectMany(group => group.Software)
             .Any(software => software.ProductId.Value == "QSYSDesigner"));
         Assert.AreEqual(HardwareDeviceCategory.AudioDsp, core110.Hardware.Category);
+    }
+
+    [TestMethod]
+    public void ExtronMediaPortAndStreamingProcessorsKeepExactHardwareAndDesktopWorkflowScopesSeparate()
+    {
+        var service = CreateQueryService();
+
+        var mediaPort200 = service.SearchDevices("MediaPort 200").Single(item => item.Hardware?.Id == "Extron.MediaPort200");
+        var mediaPort300 = service.SearchDevices("MediaPort300").Single(item => item.Hardware?.Id == "Extron.MediaPort300");
+        Assert.AreEqual(HardwareDeviceCategory.AvInterface, mediaPort200.Hardware!.Category);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, mediaPort200.LookupState);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, mediaPort300.LookupState);
+        Assert.IsTrue(service.GetSoftwareForDevice(mediaPort200).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Extron.PCS" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.AreEqual(Lifecycle.Legacy, mediaPort200.Hardware.Lifecycle);
+        Assert.IsTrue(service.GetSoftwareForDevice(mediaPort300).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Extron.PCS" && item.Purpose == DeviceSoftwarePurpose.Commissioning));
+
+        foreach (var model in new[] { "SMP 111", "SMP351", "SMP352", "Extron SMP 401" })
+        {
+            var result = service.SearchDevices(model).Single(item => item.DeviceFamilyId == "Extron.StreamingMediaProcessors");
+            Assert.AreEqual(HardwareDeviceCategory.RecordingAppliance, result.Hardware!.Category);
+            Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, result.LookupState);
+            Assert.HasCount(0, service.GetSoftwareForDevice(result));
+        }
     }
 
     [TestMethod]

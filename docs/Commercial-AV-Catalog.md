@@ -23,10 +23,10 @@ No earlier state grants a later one. In particular, a catalog record is not an a
 |---|---|---:|---|
 | `manifests/managed-applications.json` | Compiled-runtime exact-ID, approved WinGet applications | 29 | Yes, subject to profile, risk, hold, reboot, and live-state checks |
 | `manifests/external-applications.json` | Operational external detection and reviewed provider behavior | 25 | Never |
-| `catalog/vendors/*.json` | Authoritative, reviewable per-manufacturer awareness sources | 281 | Never |
-| `manifests/commercial-av-catalog.json` | Deterministically compiled and embedded commercial AV awareness artifact | 281 | Never |
+| `catalog/vendors/*.json` | Authoritative, reviewable per-manufacturer awareness sources | 283 | Never |
+| `manifests/commercial-av-catalog.json` | Deterministically compiled and embedded commercial AV awareness artifact | 283 | Never |
 
-The combined catalog has 335 unique records. Seven operational records are independently detectable Crestron child applications delivered through one shared secure parent provider.
+The combined catalog has 337 unique records. Seven operational records are independently detectable Crestron child applications delivered through one shared secure parent provider.
 
 `external-applications.json` remains the small operational boundary. The vendor sources can grow broadly without increasing the automatic execution surface; only the validated compiled artifact is embedded at runtime.
 

@@ -163,6 +163,47 @@
                                       }
                      },
                      {
+                         "Name":  "Crestron Remote Client",
+                         "Id":  "Crestron.RemoteClient",
+                         "Note":  "Windows remote-management client for documented Crestron Flex UC-Engine and Automate VX2 support workflows. It is awareness-only: use only on authorized systems and do not treat it as a device-control, package, or worker action.",
+                         "Metadata":  {
+                                          "Vendor":  "Crestron",
+                                          "ProductFamily":  "Crestron Flex and Automate VX2 service",
+                                          "ApplicationType":  [
+                                                                  "Conferencing",
+                                                                  "FieldUtility"
+                                                              ],
+                                          "Priority":  "UTILITY",
+                                          "Roles":  [
+                                                        "FieldService",
+                                                        "Commissioning",
+                                                        "SystemAdministration"
+                                                    ],
+                                          "DeploymentClass":  "AwarenessOnly",
+                                          "MaintenancePolicy":  "Manual",
+                                          "VersionRule":  "ProjectPinned",
+                                          "CurrentOrLegacy":  "Current",
+                                          "LicensingModel":  [
+                                                                 "DEALER-LICENSE"
+                                                             ],
+                                          "DownloadAccess":  [
+                                                                 "DEALER",
+                                                                 "PORTAL"
+                                                             ],
+                                          "DownloadDifficulty":  "RESTRICTED",
+                                          "Requirements":  {
+                                                               "RequiresDealerAccount":  true
+                                                           },
+                                          "SupportedOS":  [
+                                                              "Windows"
+                                                          ],
+                                          "OfficialProductUri":  "https://www.crestron.com/Products/Catalog/Unified-Communications/Intelligent-Video/Software/Crestron-Remote-Client",
+                                          "ValidationMethod":  [
+                                                                   "OfficialVersionPage"
+                                                               ]
+                                      }
+                     },
+                     {
                          "Name":  "Crestron XiO Cloud",
                          "Id":  "Crestron.XiOCloud",
                          "Note":  "Cloud provisioning and fleet-management awareness; account and subscription entitlements are managed outside AV Workstation Toolkit.",

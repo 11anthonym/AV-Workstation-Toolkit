@@ -110,7 +110,13 @@ Each denominator entry must end as an exact identity with either an evidence-sco
 
 ## Final release-acceptance status
 
-Automated acceptance reconciles the current catalog at 74 manufacturers, 135 families, 502 exact models, 1,022 aliases, 16 represented categories, 396 verified models, 106 explicit unresolved models, and 330 `DeviceSoftwareRelation` records. The frozen holistic denominator remains complete at 53/53. The final audit added two concrete historically required identities omitted from the earlier bounded passes: Shure ULXD4Q has vendor-documented Wireless Workbench configuration/monitoring relationships, while Samsung QM65C is intentionally unresolved because its exact Windows-software applicability has not been verified. Hardware identity remains descriptive and does not inherit software from vendor, protocol, family resemblance, browser, or cloud workflows.
+Automated acceptance reconciles the current catalog at 74 manufacturers, 137 families, 508 exact models, 1,039 aliases, 16 represented categories, 398 verified models, 110 explicit unresolved models, and 333 `DeviceSoftwareRelation` records. The frozen holistic denominator remains complete at 53/53. The final audit added two concrete historically required identities omitted from the earlier bounded passes: Shure ULXD4Q has vendor-documented Wireless Workbench configuration/monitoring relationships, while Samsung QM65C is intentionally unresolved because its exact Windows-software applicability has not been verified. Hardware identity remains descriptive and does not inherit software from vendor, protocol, family resemblance, browser, or cloud workflows.
+
+## Focused catalog maintenance — Extron MediaPort and SMP
+
+Extron MediaPort 200 (legacy) and MediaPort 300 now resolve as exact AV-interface identities. PCS is explicitly scoped to their documented configuration and manual firmware workflows; MediaPort 300 additionally exposes commissioning. Extron SMP 111, SMP 351 (legacy), SMP 352, and SMP 401 now resolve as exact recording/streaming appliances, but remain explicitly unresolved for desktop-software applicability because this pass did not establish an authoritative standalone Windows configuration product. Their presence must not be read as an inferred PCS, browser, firmware, or device-control relationship.
+
+Crestron Remote Client and TightVNC are catalogued as awareness-only support tools. Neither can be selected, delivered, installed, updated, or used to create worker authority. TightVNC's service/listener risk is explicit, and the managed allowlist continues to exclude it.
 
 Automated presentation coverage verifies readable AV acronym labels, exact-result ordering, stable canonical identity, complete scrollable results, explicit unresolved wording, and read-only navigation. Human visual/accessibility acceptance remains a separate gate and must not be inferred from the structural WPF smoke test.
 

@@ -28,7 +28,7 @@ Do not run `winget import` as a discovery or dry-run command; import installs pa
 Both JSON manifests use the backward-compatible schema 3 metadata model:
 
 - `external-applications.json` contains 25 operational external records with reviewed detection, release, and delivery behavior;
-- `commercial-av-catalog.json` contains 281 broad awareness records that describe commercial AV products and built-in Windows capabilities without approving an installer path.
+- `commercial-av-catalog.json` contains 283 broad awareness records that describe commercial AV products and built-in Windows capabilities without approving an installer path.
 
 The authoritative broad-awareness sources live in `catalog\vendors\*.json`. Run `build\Compile-CommercialCatalog.ps1` after a source edit; it validates and normalizes every vendor file and rewrites the tracked runtime artifact. Release builds use `-Check` and fail on drift. AV Workstation Toolkit embeds only `commercial-av-catalog.json` and never loads the loose vendor files at runtime.
 

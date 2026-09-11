@@ -1,0 +1,41 @@
+{
+  "SchemaVersion": 1,
+  "Vendor": "TightVNC",
+  "Packages": [
+    {
+      "Name": "TightVNC remote desktop software",
+      "Id": "TightVNC.RemoteDesktop",
+      "Note": "Remote-support awareness only. The official Windows distribution includes viewer and server components; server/service or listener use requires explicit organizational approval and remains outside AVWT installation, update, and worker authority.",
+      "Metadata": {
+        "Vendor": "TightVNC",
+        "ProductFamily": "TightVNC",
+        "ApplicationType": [ "FieldUtility", "NetworkUtility" ],
+        "Priority": "UTILITY",
+        "Roles": [ "FieldService", "SystemAdministration" ],
+        "DeploymentClass": "AwarenessOnly",
+        "MaintenancePolicy": "Manual",
+        "VersionRule": "ProjectPinned",
+        "CurrentOrLegacy": "Current",
+        "LicensingModel": [ "FREE" ],
+        "DownloadAccess": [ "PUBLIC-DL" ],
+        "DownloadDifficulty": "MODERATE",
+        "SystemImpact": {
+          "InstallsService": true,
+          "OpensListener": true
+        },
+        "Architecture": [ "x86", "x64" ],
+        "SupportedOS": [ "Windows" ],
+        "OfficialProductUri": "https://www.tightvnc.com/download.php",
+        "ValidationMethod": [ "OfficialVersionPage" ],
+        "DistributionPolicy": "LinkOnly",
+        "InstallationForms": [ "EXE", "Installed" ],
+        "Provenance": {
+          "AuthoritativeDomain": "tightvnc.com",
+          "SignatureValidation": "Unknown",
+          "VendorHashAvailability": "Unknown",
+          "DownloadStrategy": "Unknown"
+        }
+      }
+    }
+  ]
+}

@@ -133,9 +133,9 @@ Invoke-Check 'Shipping managed JSON catalog matches the retired PowerShell catal
 Invoke-Check 'Vendor catalog sources compile deterministically to the only runtime artifact' {
     $compilerPath = Join-Path $repositoryRoot 'build\Compile-CommercialCatalog.ps1'
     $compilerOutput = (& $compilerPath -Check | Out-String)
-    Assert-True ($compilerOutput -match 'CATALOG_OK vendors=113 packages=281') 'Catalog compiler did not validate the expected source set.'
+    Assert-True ($compilerOutput -match 'CATALOG_OK vendors=114 packages=283') 'Catalog compiler did not validate the expected source set.'
     $vendorSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'catalog\vendors') -File -Filter '*.json')
-    Assert-Equal 113 $vendorSources.Count 'Vendor source-file count differs.'
+    Assert-Equal 114 $vendorSources.Count 'Vendor source-file count differs.'
     Assert-Equal $expectedAwarenessCount @($vendorSources | ForEach-Object {
         @((Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).Packages)
     }).Count 'Vendor source package count differs from the compiled artifact.'
@@ -243,7 +243,8 @@ Invoke-Check 'Commercial AV catalog covers every modeled engineering discipline 
         'Samsung.ColorExpertLED','LG.LEDAssistant','ZeeVee.ZyPerManagementPlatform',
         'Atlona.VelocityDeviceManager','Kramer.KConfig','Kramer.Network','Kramer.KRouterPlus',
         'Planar.WallDirectorOS','RossVideo.DashBoard','RossVideo.PlatformManager',
-        'LEAProfessional.SharkWare','LEAProfessional.WebUI','LEAProfessional.Cloud'
+        'LEAProfessional.SharkWare','LEAProfessional.WebUI','LEAProfessional.Cloud',
+        'Crestron.RemoteClient','TightVNC.RemoteDesktop'
     )) { Assert-Contains $catalog.Id $id "Critical seed record is missing: $id" }
     Assert-NotContains $catalog.Id 'Oracle.VirtualBox' 'VirtualBox entered the expanded catalog.'
     Assert-NotContains $catalog.Id 'LG.ColorExpertLED' 'Samsung Color Expert LED was misattributed to LG.'
@@ -393,6 +394,19 @@ Invoke-Check 'Module manifest is valid and versioned' {
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Test-AVWorkstationToolkitCatalogFilter' 'Composable desktop catalog filter is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitMetadataVerificationState' 'Metadata verification policy is not exported.'
 }
+Invoke-Check 'Crestron Remote Client and TightVNC remain awareness-only security-scoped records' {
+    $remoteClient = @($externalCatalog | Where-Object Id -eq 'Crestron.RemoteClient')[0]
+    Assert-Equal 'AwarenessOnly' $remoteClient.DeploymentClass 'Crestron Remote Client gained an operational deployment path.'
+    Assert-Equal 'Awareness' $remoteClient.DeliveryMode 'Crestron Remote Client gained a delivery action beyond its official link.'
+    Assert-Contains @($remoteClient.ApplicationType) 'Conferencing' 'Crestron Remote Client conferencing scope is missing.'
+    Assert-True ($remoteClient.Note -match 'Flex UC-Engine') 'Crestron Remote Client is not limited to documented support hardware.'
+
+    $tightVnc = @($externalCatalog | Where-Object Id -eq 'TightVNC.RemoteDesktop')[0]
+    Assert-Equal 'AwarenessOnly' $tightVnc.DeploymentClass 'TightVNC gained an operational deployment path.'
+    Assert-Equal 'Awareness' $tightVnc.DeliveryMode 'TightVNC gained a delivery action beyond its official link.'
+    Assert-True ($tightVnc.InstallsService -eq $true -and $tightVnc.OpensListener -eq $true) 'TightVNC listener/service impact is not explicit.'
+    Assert-True ($winGetManifest.ForbiddenPattern -match 'TightVNC') 'Managed catalog policy no longer excludes TightVNC.'
+}
 Invoke-Check 'Data root is deterministic for source, package, and explicit paths' {
     Assert-Equal $repositoryRoot (Get-AVWorkstationToolkitDataRoot) 'Developer checkout data root differs.'
     $explicitRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-data-{0}' -f [guid]::NewGuid().ToString('N'))
@@ -471,7 +485,8 @@ Invoke-Check 'Removed and prohibited packages are absent from the active catalog
     foreach ($id in @('PDFsam.PDFsam','NetSetMan.NetSetMan','Oracle.VirtualBox')) {
         Assert-NotContains $catalog.Id $id 'Removed package remains active.'
     }
-    $catalogText = ($catalog | ForEach-Object { $_.Id + ' ' + $_.Name + ' ' + $_.Note }) -join "`n"
+    $catalogText = ($catalog | Where-Object { $_.Provider -ne 'External' -or $_.DeploymentClass -ne 'AwarenessOnly' } |
+        ForEach-Object { $_.Id + ' ' + $_.Name + ' ' + $_.Note }) -join "`n"
     $forbiddenPattern = (Microsoft.PowerShell.Utility\Import-PowerShellDataFile -LiteralPath $catalogPath).ForbiddenPattern
     Assert-True ($catalogText -notmatch $forbiddenPattern) 'Security or management software entered the active catalog.'
 }
