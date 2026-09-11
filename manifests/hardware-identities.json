@@ -316,7 +316,11 @@
     { "Id": "LEA.ConnectSeries", "Manufacturer": "LEA Professional", "Category": "Amplifier", "Name": "LEA Professional Connect Series Amplifiers", "Aliases": [ "LEA Connect Series", "LEA Connect amplifier" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "LEA.ConnectSeries" },
     { "Id": "QSYS.CXQAmplifiers", "Manufacturer": "Q-SYS", "Category": "Amplifier", "Name": "Q-SYS CX-Q Network Amplifiers", "Aliases": [ "Q-SYS CX-Q", "CX-Q amplifier" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "QSYS.CXQAmplifiers" },
     { "Id": "dbaudio.Systems", "Manufacturer": "d&b audiotechnik", "Category": "Amplifier", "Name": "d&b Networked Amplifiers", "Aliases": [ "d&b amplifier", "d and b amplifier" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "dbaudio.Systems" },
-    { "Id": "LAcoustics.AmplifiedControllers", "Manufacturer": "L-Acoustics", "Category": "Amplifier", "Name": "L-Acoustics Amplified Controllers", "Aliases": [ "L-Acoustics amplified controller", "LA amplified controller" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "LAcoustics.AmplifiedControllers" }
+    { "Id": "LAcoustics.AmplifiedControllers", "Manufacturer": "L-Acoustics", "Category": "Amplifier", "Name": "L-Acoustics Amplified Controllers", "Aliases": [ "L-Acoustics amplified controller", "LA amplified controller" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "LAcoustics.AmplifiedControllers" },
+    { "Id": "Blackmagic.HyperDeckStudio", "Manufacturer": "Blackmagic Design", "Category": "RecordingAppliance", "Name": "Blackmagic HyperDeck Studio Recorders", "Aliases": [ "Blackmagic HyperDeck Studio", "HyperDeck recorder" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Blackmagic.HyperDeckStudio" },
+    { "Id": "Epiphan.Pearl", "Manufacturer": "Epiphan Video", "Category": "RecordingAppliance", "Name": "Epiphan Pearl Production Systems", "Aliases": [ "Epiphan Pearl", "Pearl streaming appliance" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "Magewell.UltraEncode", "Manufacturer": "Magewell", "Category": "RecordingAppliance", "Name": "Magewell Ultra Encode Appliances", "Aliases": [ "Magewell Ultra Encode", "Ultra Encode" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "AJA.HELOPlus", "Manufacturer": "AJA Video Systems", "Category": "RecordingAppliance", "Name": "AJA HELO Plus Streaming Recorder", "Aliases": [ "AJA HELO Plus", "HELO streaming recorder" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "AJA.HELOPlus" }
   ],
   "Models": [
     {
@@ -1081,6 +1085,13 @@
     { "Id": "QSYS.CXQ8K8", "FamilyId": "QSYS.CXQAmplifiers", "Name": "CX-Q 8K8", "Aliases": [ "Q-SYS CX-Q 8K8" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "dbaudio.40D", "FamilyId": "dbaudio.Systems", "Name": "40D", "Aliases": [ "d&b 40D" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "dbaudio.D80", "FamilyId": "dbaudio.Systems", "Name": "D80", "Aliases": [ "d&b D80" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
-    { "Id": "LAcoustics.LA12X", "FamilyId": "LAcoustics.AmplifiedControllers", "Name": "LA12X", "Aliases": [ "L-Acoustics LA12X" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
+    { "Id": "LAcoustics.LA12X", "FamilyId": "LAcoustics.AmplifiedControllers", "Name": "LA12X", "Aliases": [ "L-Acoustics LA12X" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Blackmagic.HyperDeckStudioHDMini", "FamilyId": "Blackmagic.HyperDeckStudio", "Name": "HyperDeck Studio HD Mini", "Aliases": [ "Blackmagic HyperDeck Studio HD Mini" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Blackmagic.HyperDeckStudioHDPlus", "FamilyId": "Blackmagic.HyperDeckStudio", "Name": "HyperDeck Studio HD Plus", "Aliases": [ "Blackmagic HyperDeck Studio HD Plus" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Blackmagic.HyperDeckStudio4KPro", "FamilyId": "Blackmagic.HyperDeckStudio", "Name": "HyperDeck Studio 4K Pro", "Aliases": [ "Blackmagic HyperDeck Studio 4K Pro" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Epiphan.PearlMini", "FamilyId": "Epiphan.Pearl", "Name": "Pearl Mini", "Aliases": [ "Epiphan Pearl Mini" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "Epiphan.Pearl2", "FamilyId": "Epiphan.Pearl", "Name": "Pearl-2", "Aliases": [ "Epiphan Pearl-2" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "Magewell.UltraEncodeAIO", "FamilyId": "Magewell.UltraEncode", "Name": "Ultra Encode AIO", "Aliases": [ "Magewell Ultra Encode AIO" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "AJA.HELOPlus", "FamilyId": "AJA.HELOPlus", "Name": "HELO Plus", "Aliases": [ "AJA HELO Plus" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
   ]
 }

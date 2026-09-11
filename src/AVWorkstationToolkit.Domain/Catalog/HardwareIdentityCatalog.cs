@@ -27,6 +27,7 @@ public enum HardwareDeviceCategory
     SignalDistribution,
     InstalledMicrophone,
     WirelessPresentation,
+    RecordingAppliance,
     ControlPanel,
     PowerDistribution,
     Wireless,
