@@ -1431,7 +1431,8 @@
   { "Id": "AudioTechnica.DigitalMicrophoneManager", "Vendor": "Audio-Technica", "Name": "Audio-Technica Digital Microphone Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://docs.audio-technica.com/all/DigitalMicrophoneManager-UM-EN_v9.pdf", "Aliases": [ "Digital Microphone Manager", "Audio-Technica DMM", "AT DMM" ] },
   { "Id": "Blackmagic.HyperDeckSetup", "Vendor": "Blackmagic Design", "Name": "Blackmagic HyperDeck Setup", "Lifecycle": "Current", "OfficialSourceUri": "https://www.blackmagicdesign.com/developer/products/hyperdeck/sdk-and-software", "Aliases": [ "HyperDeck Setup", "Blackmagic HyperDeck utility" ] },
   { "Id": "AJA.EMiniSetup", "Vendor": "AJA Video Systems", "Name": "AJA eMini-Setup", "Lifecycle": "Current", "OfficialSourceUri": "https://www.aja.com/products/helo-plus", "Aliases": [ "AJA eMini Setup", "eMini-Setup" ] },
-  { "Id": "ListenTechnologies.ListenWIFIManager", "Vendor": "Listen Technologies", "Name": "ListenWIFI Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://www.listentech.com/listenwifi-support/", "Aliases": [ "ListenWIFI Manager Software", "Listen WiFi Manager" ] }
+  { "Id": "ListenTechnologies.ListenWIFIManager", "Vendor": "Listen Technologies", "Name": "ListenWIFI Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://www.listentech.com/listenwifi-support/", "Aliases": [ "ListenWIFI Manager Software", "Listen WiFi Manager" ] },
+  { "Id": "tvONE.CORIOgrapher", "Vendor": "tvONE", "Name": "tvONE CORIOgrapher", "Lifecycle": "Current", "OfficialSourceUri": "https://tvone.com/products/software/coriographer", "Aliases": [ "CORIOgrapher", "tvONE CORIOgrapher" ] }
   ],
   "ReleaseFamilies": [
     {
@@ -2561,7 +2562,7 @@
   {
     "Id": "Datapath.VideoWalls.Datapath.WallControl10.Configuration",
     "DeviceFamilyId": "Datapath.VideoWalls",
-    "ExactModelIds": [],
+    "ExactModelIds": [ "VSN1172" ],
     "DeviceAliases": [
       "Datapath video wall",
       "WallControl"
@@ -3773,10 +3774,10 @@
       "Confidence": "VendorDocumented",
       "Constraints": "Use for source/display compatibility analysis only; it does not grant hardware write authority."
     },
-    {
-      "Id": "AnalogWay.LivePremier.AnalogWay.LivePremierWebRCS.Configuration",
-      "DeviceFamilyId": "AnalogWay.LivePremier",
-      "ExactModelIds": [],
+  {
+    "Id": "AnalogWay.LivePremier.AnalogWay.LivePremierWebRCS.Configuration",
+    "DeviceFamilyId": "AnalogWay.LivePremier",
+    "ExactModelIds": [ "Aquilon RS alpha", "Aquilon C+" ],
       "DeviceAliases": [ "LivePremier", "Analog Way LivePremier", "Aquilon" ],
       "ProductId": "AnalogWay.LivePremierWebRCS",
       "ReleaseFamilyId": null,
@@ -4624,6 +4625,7 @@
     { "Id": "AJA.HELOPlus.AJA.EMiniSetup.Configuration", "DeviceFamilyId": "AJA.HELOPlus", "ExactModelIds": [ "HELO Plus" ], "DeviceAliases": [ "AJA HELO Plus" ], "ProductId": "AJA.EMiniSetup", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.aja.com/products/helo-plus", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "eMini-Setup provides simple network configuration; the HELO Plus web UI remains the primary full-control surface and is not a desktop Product." },
     { "Id": "ListenTechnologies.ListenWIFI.ListenWIFIManager.Configuration", "DeviceFamilyId": "ListenTechnologies.ListenWIFI", "ExactModelIds": [ "LA-490" ], "DeviceAliases": [ "Listen Technologies LA-490" ], "ProductId": "ListenTechnologies.ListenWIFIManager", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Required", "Lifecycle": "Current", "EvidenceUri": "https://www.listentech.com/shop/product/la-490-listen-bluetooth-ir-beacon/", "EvidenceKind": "VendorProductPage", "Confidence": "VendorDocumented", "Constraints": "ListenWIFI Manager configures the LA-490 by Bluetooth or USB and can update system firmware; the listener mobile app is not a workstation Product." },
     { "Id": "Audinate.DanteAVIO.Audinate.DanteController.Configuration", "DeviceFamilyId": "Audinate.DanteAVIO", "ExactModelIds": [ "Dante AVIO USB Adapter" ], "DeviceAliases": [ "Dante AVIO USB" ], "ProductId": "Audinate.DanteController", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://assets.audinate.com/wp-content/uploads/2020/09/Dante-AVIO-USB-Marketing-Datasheet-v1.2-en.pdf", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "This exact AVIO adapter is managed with Dante Controller. No generic Dante-device inference is created." },
-    { "Id": "Crestron.CENIO.Crestron.Toolbox.Discovery", "DeviceFamilyId": "Crestron.CENIO", "ExactModelIds": [ "CEN-IO-COM-102", "CEN-IO-RY-104", "CEN-IO-DIGIN-204" ], "DeviceAliases": [ "Crestron CEN-IO" ], "ProductId": "Crestron.Toolbox", "ReleaseFamilyId": null, "Purpose": "Discovery", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.crestron.com/getmedia/a025518e-a910-4410-be9b-033031ef6c43/mg_qs_cen-io", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "Toolbox Device Discovery can locate the reviewed CEN-IO modules; subsequent setup uses the embedded web interface. This relation grants no device-control authority." }
+    { "Id": "Crestron.CENIO.Crestron.Toolbox.Discovery", "DeviceFamilyId": "Crestron.CENIO", "ExactModelIds": [ "CEN-IO-COM-102", "CEN-IO-RY-104", "CEN-IO-DIGIN-204" ], "DeviceAliases": [ "Crestron CEN-IO" ], "ProductId": "Crestron.Toolbox", "ReleaseFamilyId": null, "Purpose": "Discovery", "Applicability": "Applicable", "Lifecycle": "Current", "EvidenceUri": "https://www.crestron.com/getmedia/a025518e-a910-4410-be9b-033031ef6c43/mg_qs_cen-io", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "Toolbox Device Discovery can locate the reviewed CEN-IO modules; subsequent setup uses the embedded web interface. This relation grants no device-control authority." },
+    { "Id": "tvONE.CORIOmaster2.tvONE.CORIOgrapher.Configuration", "DeviceFamilyId": "tvONE.CORIOmaster2", "ExactModelIds": [ "CORIOmaster2" ], "DeviceAliases": [ "tvONE CORIOmaster2" ], "ProductId": "tvONE.CORIOgrapher", "ReleaseFamilyId": null, "Purpose": "Configuration", "Applicability": "Required", "Lifecycle": "Legacy", "EvidenceUri": "https://help.tvone.com/products/cm2-series/coriomaster2/Resources/Multimedia/PDF-CM2-547-US.pdf", "EvidenceKind": "VendorSupportArticle", "Confidence": "VendorDocumented", "Constraints": "CORIOgrapher controls the original CORIOmaster2; its software branch and hardware/CPU firmware generation must be matched. This grants no device-control authority to AVWT." }
   ]
 }

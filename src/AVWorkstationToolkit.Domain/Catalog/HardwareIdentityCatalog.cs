@@ -29,6 +29,7 @@ public enum HardwareDeviceCategory
     WirelessPresentation,
     RecordingAppliance,
     AssistiveListening,
+    VideoProcessor,
     ControlPanel,
     PowerDistribution,
     Wireless,

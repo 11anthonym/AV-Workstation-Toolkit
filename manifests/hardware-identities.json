@@ -327,7 +327,12 @@
     { "Id": "Audinate.DanteAVIO", "Manufacturer": "Audinate", "Category": "AvInterface", "Name": "Audinate Dante AVIO Adapters", "Aliases": [ "Dante AVIO", "Audinate AVIO" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Audinate.DanteAVIO" },
     { "Id": "Crestron.CENIO", "Manufacturer": "Crestron", "Category": "ControlPanel", "Name": "Crestron CEN-IO Network I/O Modules", "Aliases": [ "Crestron CEN-IO", "CEN IO module" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Crestron.CENIO" },
     { "Id": "WattBox.IPPower", "Manufacturer": "WattBox", "Category": "PowerDistribution", "Name": "WattBox IP Power Distribution", "Aliases": [ "WattBox IP power", "WattBox IPVM" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
-    { "Id": "SurgeX.RemotePower", "Manufacturer": "SurgeX", "Category": "PowerDistribution", "Name": "SurgeX Remote Power Management", "Aliases": [ "SurgeX remote power", "SurgeX rack power" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" }
+    { "Id": "SurgeX.RemotePower", "Manufacturer": "SurgeX", "Category": "PowerDistribution", "Name": "SurgeX Remote Power Management", "Aliases": [ "SurgeX remote power", "SurgeX rack power" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "AnalogWay.LivePremier", "Manufacturer": "Analog Way", "Category": "VideoProcessor", "Name": "Analog Way LivePremier Processors", "Aliases": [ "Analog Way LivePremier", "Aquilon processor" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "AnalogWay.LivePremier" },
+    { "Id": "tvONE.CORIOmaster2", "Manufacturer": "tvONE", "Category": "VideoProcessor", "Name": "tvONE CORIOmaster2 Video-Wall Processor", "Aliases": [ "tvONE CORIOmaster2", "CORIOmaster 2" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "tvONE.CORIOmaster2" },
+    { "Id": "RGBSpectrum.Galileo", "Manufacturer": "RGB Spectrum", "Category": "VideoProcessor", "Name": "RGB Spectrum Galileo Video-Wall Processors", "Aliases": [ "RGB Spectrum Galileo", "Galileo processor" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "VuWall.PAK", "Manufacturer": "VuWall", "Category": "VideoProcessor", "Name": "VuWall PAK Video-Wall Nodes", "Aliases": [ "VuWall PAK", "PAK video wall" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "Datapath.VideoWalls", "Manufacturer": "Datapath", "Category": "VideoProcessor", "Name": "Datapath VSN Video-Wall Controllers", "Aliases": [ "Datapath VSN", "Datapath video wall" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Datapath.VideoWalls" }
   ],
   "Models": [
     {
@@ -1110,6 +1115,12 @@
     { "Id": "Crestron.CENIODIGIN204", "FamilyId": "Crestron.CENIO", "Name": "CEN-IO-DIGIN-204", "Aliases": [ "Crestron CEN-IO-DIGIN-204" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "WattBox.WB800IPVM12", "FamilyId": "WattBox.IPPower", "Name": "WB-800-IPVM-12", "Aliases": [ "WattBox WB-800-IPVM-12" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "SurgeX.SX1120RT", "FamilyId": "SurgeX.RemotePower", "Name": "SX-1120-RT", "Aliases": [ "SurgeX SX-1120-RT" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
-    { "Id": "MiddleAtlantic.RLNK415RIEC", "FamilyId": "MiddleAtlantic.RackLink", "Name": "RLNK-415R-IEC", "Aliases": [ "Middle Atlantic RLNK-415R-IEC" ], "Lifecycle": "Current", "CoverageState": "Unresolved" }
+    { "Id": "MiddleAtlantic.RLNK415RIEC", "FamilyId": "MiddleAtlantic.RackLink", "Name": "RLNK-415R-IEC", "Aliases": [ "Middle Atlantic RLNK-415R-IEC" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "AnalogWay.AquilonRSAlpha", "FamilyId": "AnalogWay.LivePremier", "Name": "Aquilon RS alpha", "Aliases": [ "Analog Way Aquilon RS alpha" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "AnalogWay.AquilonCPlus", "FamilyId": "AnalogWay.LivePremier", "Name": "Aquilon C+", "Aliases": [ "Analog Way Aquilon C+" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "tvONE.CORIOmaster2", "FamilyId": "tvONE.CORIOmaster2", "Name": "CORIOmaster2", "Aliases": [ "tvONE CORIOmaster2", "CM2-547" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "RGBSpectrum.GalileoGAL16", "FamilyId": "RGBSpectrum.Galileo", "Name": "Galileo GAL16", "Aliases": [ "RGB Spectrum Galileo GAL16", "GAL16" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "VuWall.PAK40", "FamilyId": "VuWall.PAK", "Name": "PAK 40", "Aliases": [ "VuWall PAK 40" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "Datapath.VSN1172", "FamilyId": "Datapath.VideoWalls", "Name": "VSN1172", "Aliases": [ "Datapath VSN1172" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
   ]
 }
