@@ -88,7 +88,7 @@ The post-signal-distribution baseline is 52 manufacturers, 104 families, 447 exa
 |---|---|
 | 1 — Installed microphones / wireless | Shure MXA920, MXA902, MXA710-2FT, ANIUSB-MATRIX, ULXD4D; Sennheiser TeamConnect Ceiling 2 and TeamConnect Ceiling Medium; Audio-Technica ATND1061DAN |
 | 2 — Wireless presentation / BYOD | Barco CX-20, CX-30, CX-50 Gen2, C-10; Mersive Solstice Pod Gen3; Crestron AM-3200-WF and AM-3100-WF; Extron ShareLink Pro 1100; Kramer VIA Connect2; ScreenBeam 1100 Plus |
-| 3 — Amplifiers / loudspeaker processing | Powersoft Unica 8K8, Mezzo 604 A, T604, X8; LEA Connect 354 and Connect 704; Q-SYS CX-Q 4K4 and CX-Q 8K8; d&b 40D and D80; L-Acoustics LA12X |
+| 3 — Amplifiers / loudspeaker processing | Powersoft UNICA 8K8, MEZZO 604 A, T604 A, X8; LEA Connect 354 and Connect 704; Q-SYS CX-Q 4K4 and CX-Q 8K8; d&b 40D and D80; L-Acoustics LA12X |
 | 4 — Recording / streaming | Blackmagic HyperDeck Studio HD Mini, HyperDeck Studio HD Plus, HyperDeck Studio 4K Pro; Epiphan Pearl Mini and Pearl-2; Magewell Ultra Encode AIO; AJA HELO Plus |
 | 5 — Assistive listening / network audio | ListenWIFI LW-100P and LA-490; Williams AV WaveCAST C and FM T55; Audinate Dante AVIO USB Adapter |
 | 6 — Power / control / utility | Crestron CEN-IO-COM-102, CEN-IO-RY-104, CEN-IO-DIGIN-204; WattBox WB-800-IPVM-12; SurgeX SX-1120-RT; Middle Atlantic RLNK-415R-IEC |
@@ -101,6 +101,7 @@ Each denominator entry must end as an exact identity with either an evidence-sco
 
 - **Wave 1 complete — installed microphones / wireless.** Added eight exact identities across Shure MXA/ULX-D, Sennheiser TeamConnect Ceiling, and Audio-Technica ATND1061 families. Shure Designer/Update Utility, Wireless Workbench, Sennheiser Control Cockpit, and Audio-Technica Digital Microphone Manager are separately evidence-scoped; Dante, media-control, Q-SYS certification, and browser-client surfaces create no inferred relation or execution authority.
 - **Wave 2 complete — wireless presentation / BYOD.** Added ten exact identities across ClickShare, Solstice, AirMedia, ShareLink Pro, VIA, and ScreenBeam. Solstice Dashboard, Extron PCS, and ScreenBeam CMS Enterprise are limited to documented management/firmware scopes. ClickShare client/XMS, AirMedia web/XiO Cloud, and VIA client/appliance workflows remain descriptive and do not become configuration products or package authority.
+- **Wave 3 complete — amplifiers / loudspeaker processing.** Added eleven exact identities across Powersoft, LEA Professional, Q-SYS, d&b, and L-Acoustics. ArmoníaPlus, SharkWare, Q-SYS Designer, R1, and LA Network Manager remain evidence-scoped to their reviewed amplifier families; CX-Q is retained as service-relevant legacy hardware, and every firmware/project/Core pairing remains descriptive rather than execution authority.
 
 ## Next coverage requirement
 

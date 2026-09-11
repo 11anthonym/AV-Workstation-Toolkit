@@ -312,7 +312,11 @@
     { "Id": "Crestron.AirMedia", "Manufacturer": "Crestron", "Category": "WirelessPresentation", "Name": "Crestron AirMedia Receivers", "Aliases": [ "Crestron AirMedia", "AirMedia receiver" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
     { "Id": "Extron.ShareLinkPro", "Manufacturer": "Extron", "Category": "WirelessPresentation", "Name": "Extron ShareLink Pro Systems", "Aliases": [ "Extron ShareLink Pro", "ShareLink wireless presentation" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Extron.ShareLinkPro" },
     { "Id": "Kramer.VIA", "Manufacturer": "Kramer", "Category": "WirelessPresentation", "Name": "Kramer VIA Collaboration Devices", "Aliases": [ "Kramer VIA", "VIA wireless presentation" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
-    { "Id": "ScreenBeam.Receivers", "Manufacturer": "ScreenBeam", "Category": "WirelessPresentation", "Name": "ScreenBeam Wireless Display Receivers", "Aliases": [ "ScreenBeam receiver", "ScreenBeam wireless display" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "ScreenBeam.Receivers" }
+    { "Id": "ScreenBeam.Receivers", "Manufacturer": "ScreenBeam", "Category": "WirelessPresentation", "Name": "ScreenBeam Wireless Display Receivers", "Aliases": [ "ScreenBeam receiver", "ScreenBeam wireless display" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "ScreenBeam.Receivers" },
+    { "Id": "LEA.ConnectSeries", "Manufacturer": "LEA Professional", "Category": "Amplifier", "Name": "LEA Professional Connect Series Amplifiers", "Aliases": [ "LEA Connect Series", "LEA Connect amplifier" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "LEA.ConnectSeries" },
+    { "Id": "QSYS.CXQAmplifiers", "Manufacturer": "Q-SYS", "Category": "Amplifier", "Name": "Q-SYS CX-Q Network Amplifiers", "Aliases": [ "Q-SYS CX-Q", "CX-Q amplifier" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "QSYS.CXQAmplifiers" },
+    { "Id": "dbaudio.Systems", "Manufacturer": "d&b audiotechnik", "Category": "Amplifier", "Name": "d&b Networked Amplifiers", "Aliases": [ "d&b amplifier", "d and b amplifier" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "dbaudio.Systems" },
+    { "Id": "LAcoustics.AmplifiedControllers", "Manufacturer": "L-Acoustics", "Category": "Amplifier", "Name": "L-Acoustics Amplified Controllers", "Aliases": [ "L-Acoustics amplified controller", "LA amplified controller" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "LAcoustics.AmplifiedControllers" }
   ],
   "Models": [
     {
@@ -1066,6 +1070,17 @@
     { "Id": "Crestron.AM3100WF", "FamilyId": "Crestron.AirMedia", "Name": "AM-3100-WF", "Aliases": [ "Crestron AM-3100-WF", "AM3100WF" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "Extron.ShareLinkPro1100", "FamilyId": "Extron.ShareLinkPro", "Name": "ShareLink Pro 1100", "Aliases": [ "Extron ShareLink Pro 1100", "ShareLink 1100" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "Kramer.VIAConnect2", "FamilyId": "Kramer.VIA", "Name": "VIA Connect2", "Aliases": [ "Kramer VIA Connect2", "VIA Connect 2", "VIA Connect²" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
-    { "Id": "ScreenBeam.1100Plus", "FamilyId": "ScreenBeam.Receivers", "Name": "ScreenBeam 1100 Plus", "Aliases": [ "ScreenBeam 1100P", "SBWD1100P" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
+    { "Id": "ScreenBeam.1100Plus", "FamilyId": "ScreenBeam.Receivers", "Name": "ScreenBeam 1100 Plus", "Aliases": [ "ScreenBeam 1100P", "SBWD1100P" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Powersoft.Unica8K8", "FamilyId": "Powersoft.AmplifiersControllers", "Name": "UNICA 8K8", "Aliases": [ "Powersoft UNICA 8K8" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Powersoft.Mezzo604A", "FamilyId": "Powersoft.AmplifiersControllers", "Name": "MEZZO 604 A", "Aliases": [ "Powersoft MEZZO 604 A" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Powersoft.T604A", "FamilyId": "Powersoft.AmplifiersControllers", "Name": "T604 A", "Aliases": [ "Powersoft T604 A" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Powersoft.X8", "FamilyId": "Powersoft.AmplifiersControllers", "Name": "X8", "Aliases": [ "Powersoft X8" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "LEAProfessional.Connect354", "FamilyId": "LEA.ConnectSeries", "Name": "Connect 354", "Aliases": [ "LEA Connect 354" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "LEAProfessional.Connect704", "FamilyId": "LEA.ConnectSeries", "Name": "Connect 704", "Aliases": [ "LEA Connect 704" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "QSYS.CXQ4K4", "FamilyId": "QSYS.CXQAmplifiers", "Name": "CX-Q 4K4", "Aliases": [ "Q-SYS CX-Q 4K4" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "QSYS.CXQ8K8", "FamilyId": "QSYS.CXQAmplifiers", "Name": "CX-Q 8K8", "Aliases": [ "Q-SYS CX-Q 8K8" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "dbaudio.40D", "FamilyId": "dbaudio.Systems", "Name": "40D", "Aliases": [ "d&b 40D" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "dbaudio.D80", "FamilyId": "dbaudio.Systems", "Name": "D80", "Aliases": [ "d&b D80" ], "Lifecycle": "Legacy", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "LAcoustics.LA12X", "FamilyId": "LAcoustics.AmplifiedControllers", "Name": "LA12X", "Aliases": [ "L-Acoustics LA12X" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
   ]
 }

@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(321, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(324, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -457,11 +457,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(114, hardware.Families);
-        Assert.HasCount(465, hardware.Models);
+        Assert.HasCount(118, hardware.Families);
+        Assert.HasCount(476, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(465, coverage.Models);
-        Assert.AreEqual(371, coverage.VerifiedModels);
+        Assert.AreEqual(476, coverage.Models);
+        Assert.AreEqual(382, coverage.VerifiedModels);
         Assert.AreEqual(94, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
@@ -606,6 +606,23 @@ public sealed class ProductionCompatibilityCatalogTests
         var clickShare = service.SearchDevices("CX-20").Single(item => item.Hardware?.Id == "Barco.CX20");
         Assert.IsFalse(service.GetSoftwareForDevice(clickShare).SelectMany(group => group.Software)
             .Any(item => item.ProductId.Value == "Barco.ClickShareConfigurator"));
+    }
+
+    [TestMethod]
+    public void HolisticWave3AmplifiersUseOnlyTheirReviewedControlApplications()
+    {
+        var service = CreateQueryService();
+
+        AssertModelSoftware(service, "UNICA 8K8", "Powersoft.Unica8K8", "Powersoft.ArmoniaPlus", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "Connect 704", "LEAProfessional.Connect704", "LEAProfessional.SharkWare", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "CX Q 4K4", "QSYS.CXQ4K4", "QSYSDesigner", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "d&b 40D", "dbaudio.40D", "dbaudio.R1", DeviceSoftwarePurpose.Monitoring);
+        AssertModelSoftware(service, "LA12X", "LAcoustics.LA12X", "LAcoustics.LANetworkManager", DeviceSoftwarePurpose.Monitoring);
+
+        var cxq = service.SearchDevices("CX-Q 8K8").Single(item => item.Hardware?.Id == "QSYS.CXQ8K8");
+        Assert.AreEqual(Lifecycle.Legacy, cxq.Hardware!.Lifecycle);
+        Assert.IsFalse(service.GetSoftwareForDevice(cxq).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value is "Powersoft.ArmoniaPlus" or "dbaudio.R1"));
     }
 
     [TestMethod]
