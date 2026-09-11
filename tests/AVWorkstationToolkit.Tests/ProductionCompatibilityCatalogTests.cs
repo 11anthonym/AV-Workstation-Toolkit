@@ -457,12 +457,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(134, hardware.Families);
-        Assert.HasCount(500, hardware.Models);
+        Assert.HasCount(135, hardware.Families);
+        Assert.HasCount(502, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(500, coverage.Models);
-        Assert.AreEqual(395, coverage.VerifiedModels);
-        Assert.AreEqual(105, coverage.UnresolvedModels);
+        Assert.AreEqual(502, coverage.Models);
+        Assert.AreEqual(396, coverage.VerifiedModels);
+        Assert.AreEqual(106, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -712,6 +712,78 @@ public sealed class ProductionCompatibilityCatalogTests
             Assert.IsTrue(service.SearchDevices(model).Any(result =>
                 result.Hardware is not null && string.Equals(result.Hardware.ExactModel, model, StringComparison.OrdinalIgnoreCase)), model);
         }
+    }
+
+    [TestMethod]
+    public void FinalDeviceLookupAcceptanceCoversEveryRepresentedCategoryAndRequiredHistoricalSearch()
+    {
+        var service = CreateQueryService();
+        var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(RepositoryRoot());
+        var categorySamples = new (HardwareDeviceCategory Category, string Query, string ModelId)[]
+        {
+            (HardwareDeviceCategory.ControlProcessor, "CP4N", "Crestron.CP4N"),
+            (HardwareDeviceCategory.AudioDsp, "Core 110f", "QSYS.Core110f"),
+            (HardwareDeviceCategory.AvOverIp, "DM NVX 363", "Crestron.DMNVX363"),
+            (HardwareDeviceCategory.Camera, "CAM520 Pro2", "AVer.CAM520Pro2"),
+            (HardwareDeviceCategory.Display, "QM 65C", "Samsung.QM65C"),
+            (HardwareDeviceCategory.ControlPanel, "NBP1200C", "Extron.NBP1200C"),
+            (HardwareDeviceCategory.AvInterface, "DD BTN44", "RDL.DDBTN44"),
+            (HardwareDeviceCategory.PowerDistribution, "RLNK 910R", "MiddleAtlantic.RLNK910R"),
+            (HardwareDeviceCategory.SignalDistribution, "DTP2 T 211", "Extron.DTP2T211"),
+            (HardwareDeviceCategory.InstalledMicrophone, "Shure MXA920", "Shure.MXA920"),
+            (HardwareDeviceCategory.WirelessPresentation, "CX 50 Gen2", "Barco.CX50Gen2"),
+            (HardwareDeviceCategory.Amplifier, "UNICA 8K8", "Powersoft.Unica8K8"),
+            (HardwareDeviceCategory.RecordingAppliance, "HyperDeck Studio HD Mini", "Blackmagic.HyperDeckStudioHDMini"),
+            (HardwareDeviceCategory.AssistiveListening, "LA 490", "ListenTechnologies.LA490"),
+            (HardwareDeviceCategory.VideoProcessor, "Aquilon RS alpha", "AnalogWay.AquilonRSAlpha"),
+            (HardwareDeviceCategory.Wireless, "ULX D quad receiver", "Shure.ULXD4Q")
+        };
+
+        CollectionAssert.AreEquivalent(
+            hardware.Families.Select(item => item.Category).Distinct().ToArray(),
+            categorySamples.Select(item => item.Category).Distinct().ToArray());
+        foreach (var sample in categorySamples)
+        {
+            var result = service.SearchDevices(sample.Query).Single(item => item.Hardware?.Id == sample.ModelId);
+            Assert.AreEqual(sample.Category, result.Hardware!.Category, sample.Query);
+        }
+
+        foreach (var (query, modelId) in new (string Query, string ModelId)[]
+        {
+            ("RMC4", "Crestron.RMC4"), ("PRO4", "Crestron.PRO4"), ("110F", "QSYS.Core110f"),
+            ("BLU-100", "BSS.BLU100"), ("Room Bar", "Cisco.RoomBar"), ("ULXD4Q", "Shure.ULXD4Q"),
+            ("TeamConnect Ceiling Medium", "Sennheiser.TCCM"), ("CX-50 Gen2", "Barco.CX50Gen2")
+        })
+            Assert.IsTrue(service.SearchDevices(query).Any(item => item.Hardware?.Id == modelId), query);
+
+        Assert.IsTrue(service.SearchDevices("TesiraFORTÉ").Any(item => item.Hardware?.Family == "Biamp Tesira Processors"));
+        Assert.IsTrue(service.SearchDevices("HyperDeck Studio").Any(item => item.Hardware?.Family == "Blackmagic HyperDeck Studio Recorders"));
+        Assert.AreEqual("Crestron.DMNVX363", service.SearchDevices("DM-NVX-363").First().Hardware!.Id);
+        Assert.AreEqual("Cisco.RoomBar", service.SearchDevices("Room Bar").First().Hardware!.Id);
+    }
+
+    [TestMethod]
+    public void FinalDeviceLookupAcceptanceKeepsCoverageAndSoftwareAuthorityConsistent()
+    {
+        var service = CreateQueryService();
+        var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(RepositoryRoot());
+
+        foreach (var model in hardware.Models)
+        {
+            var result = service.SearchDevices(model.Name).Single(item => item.Hardware?.Id == model.Id.Value);
+            var software = service.GetSoftwareForDevice(result).SelectMany(group => group.Software).ToArray();
+            if (model.CoverageState == HardwareCoverageState.VerifiedSoftwareRelationships)
+                Assert.IsGreaterThan(0, software.Length, model.Id.Value);
+            else
+                Assert.HasCount(0, software, model.Id.Value);
+        }
+
+        var qm65c = service.SearchDevices("Samsung QM65C").Single(item => item.Hardware?.Id == "Samsung.QM65C");
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, qm65c.LookupState);
+        Assert.HasCount(0, service.GetSoftwareForDevice(qm65c));
+        AssertModelSoftware(service, "ULXD4Q", "Shure.ULXD4Q", "Shure.WirelessWorkbench", DeviceSoftwarePurpose.Configuration);
+        Assert.IsFalse(service.GetSoftwareForDevice(qm65c).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value.StartsWith("Samsung.", StringComparison.Ordinal)));
     }
 
     [TestMethod]

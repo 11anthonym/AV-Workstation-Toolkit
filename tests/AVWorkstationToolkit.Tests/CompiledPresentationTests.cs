@@ -486,6 +486,34 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task FinalDeviceLookupPresentationUsesReadableCategoryLabelsAndExplicitUnresolvedLanguage()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries());
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "Core 110f";
+        var dsp = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Core 110f");
+        StringAssert.Contains(dsp.Subtitle, "Audio DSP");
+        Assert.DoesNotContain("Audio Dsp", dsp.Subtitle, StringComparison.Ordinal);
+
+        viewModel.SearchText = "DM NVX 363";
+        var avoip = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "DM-NVX-363");
+        StringAssert.Contains(avoip.Subtitle, "AV-over-IP");
+
+        viewModel.SearchText = "QM65C";
+        var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "QM65C");
+        StringAssert.Contains(unresolved.Subtitle, "not yet verified");
+        StringAssert.Contains(unresolved.MatchDetail, "does not mean no software is required");
+        Assert.IsFalse(unresolved.CanSelect);
+        unresolved.OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail?.Name == "QM65C");
+        Assert.HasCount(0, viewModel.SelectedCompatibilityDetail!.RelatedSoftware);
+        Assert.IsTrue(viewModel.SelectedCompatibilityDetail.Groups.SelectMany(group => group.Fields)
+            .Any(field => field.Value.Contains("does not mean no software is required", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [TestMethod]
     public async Task ShortModelAndControlInterfaceDeviceResultsRetainExactIdentityAndReadOnlyScopes()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),

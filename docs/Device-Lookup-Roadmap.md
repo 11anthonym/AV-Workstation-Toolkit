@@ -108,10 +108,33 @@ Each denominator entry must end as an exact identity with either an evidence-sco
 - **Wave 7 complete — specialized video processing.** Added six exact identities across Analog Way, tvONE, RGB Spectrum, VuWall, and Datapath. Existing LivePremier Web RCS and WallControl scopes are bound to exact reviewed hardware; CORIOgrapher is separately version-scoped to original CORIOmaster2, while Galileo and PAK remain explicit unresolved desktop coverage rather than inheriting vendor or browser-platform software.
 - **Wave 8 complete — residual gap sweep.** Mechanical reconciliation found all 53 frozen Priority-1 identities present exactly once, with no additional model needed beyond the 500-model ceiling. The resulting catalog contains 73 manufacturers, 134 families, 500 exact models, 1,016 aliases, 16 represented categories, 395 verified models, 105 explicit unresolved models, and 330 software/device relations. Priority commercial-AV hardware coverage is complete for the frozen AVWT device-lookup denominator; this is not a claim of universal SKU coverage.
 
-## Next coverage requirement
+## Final release-acceptance status
 
-Implement the frozen holistic denominator above without reopening completed category-wide audits. The machine-readable identity catalog continues to measure known models, aliases, verified and unresolved model coverage, family-only coverage, and category coverage.
+Automated acceptance reconciles the current catalog at 74 manufacturers, 135 families, 502 exact models, 1,022 aliases, 16 represented categories, 396 verified models, 106 explicit unresolved models, and 330 `DeviceSoftwareRelation` records. The frozen holistic denominator remains complete at 53/53. The final audit added two concrete historically required identities omitted from the earlier bounded passes: Shure ULXD4Q has vendor-documented Wireless Workbench configuration/monitoring relationships, while Samsung QM65C is intentionally unresolved because its exact Windows-software applicability has not been verified. Hardware identity remains descriptive and does not inherit software from vendor, protocol, family resemblance, browser, or cloud workflows.
+
+Automated presentation coverage verifies readable AV acronym labels, exact-result ordering, stable canonical identity, complete scrollable results, explicit unresolved wording, and read-only navigation. Human visual/accessibility acceptance remains a separate gate and must not be inferred from the structural WPF smoke test.
+
+## Human interactive acceptance checklist
+
+Run this checklist on the packaged application at normal and high-DPI scaling. Leave every item unchecked until a person exercises it in a real interactive desktop session.
+
+- [ ] Launch AV Workstation Toolkit and confirm the main window renders normally.
+- [ ] Open **Find software & devices** and confirm its persistent device-search hint is visible.
+- [ ] Search `CP4N`, `Core 110f`, `DM-NVX-363`, `CAM520 Pro2`, `QM65C`, and `ULXD4Q`.
+- [ ] Confirm each exact model appears before family, prefix, or substring matches.
+- [ ] Open `ULXD4Q` and confirm Wireless Workbench purposes and evidence are readable.
+- [ ] Open unresolved `QM65C` and confirm it says applicability is not verified—not that no software is needed.
+- [ ] Search `HyperDeck Studio` and confirm the complete longer result set can be reached by scrolling.
+- [ ] Navigate search, result selection, details, and links using only the keyboard.
+- [ ] Confirm visible keyboard focus remains clear on search, results, details, and links.
+- [ ] Check long model names, constraints, and evidence labels for clipping or unusable truncation.
+- [ ] Repeat the key searches at high DPI and after narrowing and widening the window.
+- [ ] Exercise normal package filters and confirm Device Lookup results do not disrupt package filtering.
+- [ ] Switch repeatedly among `CP4N`, `DM-NVX-363`, and `QM65C`; confirm details never retain the prior model's software.
+- [ ] Open one official evidence link and confirm it is a browser-only handoff to the displayed HTTPS destination.
+- [ ] Confirm unresolved and verified result states remain visually distinct and understandable.
+- [ ] Confirm no Device Lookup result can select/install/update software, download firmware, launch a worker, or alter a device.
 
 ## Definition of done
 
-The feature is comprehensive only when an agreed commercial-AV device-family/model ledger has explicit coverage outcomes, evidence-backed software relations where applicable, clearly displayed unresolved cases, and regression tests for exact model, alias, family, and no-result behavior across each covered category.
+Priority catalog coverage is complete when the frozen denominator remains accounted for, every known model has explicit verified or unresolved coverage, relationships remain evidence-scoped through `DeviceSoftwareRelation`, and automated release acceptance passes. Release sign-off additionally requires completing the human checklist above in a meaningful interactive WPF session.
