@@ -692,6 +692,29 @@ public sealed class ProductionCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void HolisticFrozenPriorityOneDenominatorIsComplete()
+    {
+        var service = CreateQueryService();
+        string[] exactModels =
+        [
+            "MXA920", "MXA902", "MXA710-2FT", "ANIUSB-MATRIX", "ULXD4D", "TeamConnect Ceiling 2", "TeamConnect Ceiling Medium", "ATND1061DAN",
+            "CX-20", "CX-30", "CX-50 Gen2", "C-10", "Solstice Pod Gen3", "AM-3200-WF", "AM-3100-WF", "ShareLink Pro 1100", "VIA Connect2", "ScreenBeam 1100 Plus",
+            "UNICA 8K8", "MEZZO 604 A", "T604 A", "X8", "Connect 354", "Connect 704", "CX-Q 4K4", "CX-Q 8K8", "40D", "D80", "LA12X",
+            "HyperDeck Studio HD Mini", "HyperDeck Studio HD Plus", "HyperDeck Studio 4K Pro", "Pearl Mini", "Pearl-2", "Ultra Encode AIO", "HELO Plus",
+            "LW-100P", "LA-490", "WaveCAST C", "FM T55", "Dante AVIO USB Adapter",
+            "CEN-IO-COM-102", "CEN-IO-RY-104", "CEN-IO-DIGIN-204", "WB-800-IPVM-12", "SX-1120-RT", "RLNK-415R-IEC",
+            "Aquilon RS alpha", "Aquilon C+", "CORIOmaster2", "Galileo GAL16", "PAK 40", "VSN1172"
+        ];
+
+        Assert.HasCount(53, exactModels);
+        foreach (string model in exactModels)
+        {
+            Assert.IsTrue(service.SearchDevices(model).Any(result =>
+                result.Hardware is not null && string.Equals(result.Hardware.ExactModel, model, StringComparison.OrdinalIgnoreCase)), model);
+        }
+    }
+
+    [TestMethod]
     public void ControlProcessorCoveragePreservesExactModelsAndSeparateGenerations()
     {
         var service = CreateQueryService();
