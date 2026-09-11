@@ -324,7 +324,10 @@
     { "Id": "ListenTechnologies.ListenEverywhere", "Manufacturer": "Listen Technologies", "Category": "AssistiveListening", "Name": "Listen EVERYWHERE Legacy Servers", "Aliases": [ "Listen EVERYWHERE", "Listen Everywhere server" ], "Lifecycle": "Legacy", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
     { "Id": "ListenTechnologies.ListenWIFI", "Manufacturer": "Listen Technologies", "Category": "AssistiveListening", "Name": "ListenWIFI Systems", "Aliases": [ "ListenWIFI", "Listen WiFi system" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "ListenTechnologies.ListenWIFI" },
     { "Id": "WilliamsAV.AssistiveListening", "Manufacturer": "Williams AV", "Category": "AssistiveListening", "Name": "Williams AV Assistive Listening Transmitters", "Aliases": [ "Williams AV WaveCAST", "Williams AV FM Plus" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
-    { "Id": "Audinate.DanteAVIO", "Manufacturer": "Audinate", "Category": "AvInterface", "Name": "Audinate Dante AVIO Adapters", "Aliases": [ "Dante AVIO", "Audinate AVIO" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Audinate.DanteAVIO" }
+    { "Id": "Audinate.DanteAVIO", "Manufacturer": "Audinate", "Category": "AvInterface", "Name": "Audinate Dante AVIO Adapters", "Aliases": [ "Dante AVIO", "Audinate AVIO" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Audinate.DanteAVIO" },
+    { "Id": "Crestron.CENIO", "Manufacturer": "Crestron", "Category": "ControlPanel", "Name": "Crestron CEN-IO Network I/O Modules", "Aliases": [ "Crestron CEN-IO", "CEN IO module" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships", "CompatibilityDeviceFamilyId": "Crestron.CENIO" },
+    { "Id": "WattBox.IPPower", "Manufacturer": "WattBox", "Category": "PowerDistribution", "Name": "WattBox IP Power Distribution", "Aliases": [ "WattBox IP power", "WattBox IPVM" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" },
+    { "Id": "SurgeX.RemotePower", "Manufacturer": "SurgeX", "Category": "PowerDistribution", "Name": "SurgeX Remote Power Management", "Aliases": [ "SurgeX remote power", "SurgeX rack power" ], "Lifecycle": "Current", "CoverageState": "Unresolved", "CompatibilityDeviceFamilyId": "" }
   ],
   "Models": [
     {
@@ -1101,6 +1104,12 @@
     { "Id": "ListenTechnologies.LA490", "FamilyId": "ListenTechnologies.ListenWIFI", "Name": "LA-490", "Aliases": [ "Listen Technologies LA-490" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
     { "Id": "WilliamsAV.WaveCASTC", "FamilyId": "WilliamsAV.AssistiveListening", "Name": "WaveCAST C", "Aliases": [ "Williams AV WaveCAST C", "WF T5C" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
     { "Id": "WilliamsAV.FMT55", "FamilyId": "WilliamsAV.AssistiveListening", "Name": "FM T55", "Aliases": [ "Williams AV FM T55" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
-    { "Id": "Audinate.DanteAVIOUSB", "FamilyId": "Audinate.DanteAVIO", "Name": "Dante AVIO USB Adapter", "Aliases": [ "Audinate Dante AVIO USB", "ADP-USB-AU-2X2" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" }
+    { "Id": "Audinate.DanteAVIOUSB", "FamilyId": "Audinate.DanteAVIO", "Name": "Dante AVIO USB Adapter", "Aliases": [ "Audinate Dante AVIO USB", "ADP-USB-AU-2X2" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Crestron.CENIOCOM102", "FamilyId": "Crestron.CENIO", "Name": "CEN-IO-COM-102", "Aliases": [ "Crestron CEN-IO-COM-102" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Crestron.CENIORY104", "FamilyId": "Crestron.CENIO", "Name": "CEN-IO-RY-104", "Aliases": [ "Crestron CEN-IO-RY-104" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "Crestron.CENIODIGIN204", "FamilyId": "Crestron.CENIO", "Name": "CEN-IO-DIGIN-204", "Aliases": [ "Crestron CEN-IO-DIGIN-204" ], "Lifecycle": "Current", "CoverageState": "VerifiedSoftwareRelationships" },
+    { "Id": "WattBox.WB800IPVM12", "FamilyId": "WattBox.IPPower", "Name": "WB-800-IPVM-12", "Aliases": [ "WattBox WB-800-IPVM-12" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "SurgeX.SX1120RT", "FamilyId": "SurgeX.RemotePower", "Name": "SX-1120-RT", "Aliases": [ "SurgeX SX-1120-RT" ], "Lifecycle": "Current", "CoverageState": "Unresolved" },
+    { "Id": "MiddleAtlantic.RLNK415RIEC", "FamilyId": "MiddleAtlantic.RackLink", "Name": "RLNK-415R-IEC", "Aliases": [ "Middle Atlantic RLNK-415R-IEC" ], "Lifecycle": "Current", "CoverageState": "Unresolved" }
   ]
 }

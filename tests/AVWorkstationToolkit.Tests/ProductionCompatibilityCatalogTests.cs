@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(329, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(330, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -457,12 +457,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(126, hardware.Families);
-        Assert.HasCount(488, hardware.Models);
+        Assert.HasCount(129, hardware.Families);
+        Assert.HasCount(494, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(488, coverage.Models);
-        Assert.AreEqual(388, coverage.VerifiedModels);
-        Assert.AreEqual(100, coverage.UnresolvedModels);
+        Assert.AreEqual(494, coverage.Models);
+        Assert.AreEqual(391, coverage.VerifiedModels);
+        Assert.AreEqual(103, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -651,6 +651,21 @@ public sealed class ProductionCompatibilityCatalogTests
         AssertModelSoftware(service, "ADP USB AU 2X2", "Audinate.DanteAVIOUSB", "Audinate.DanteController", DeviceSoftwarePurpose.Configuration);
 
         foreach (var (query, id) in new[] { ("LW-100P", "ListenTechnologies.LW100P"), ("WaveCAST C", "WilliamsAV.WaveCASTC"), ("FM T55", "WilliamsAV.FMT55") })
+        {
+            var result = service.SearchDevices(query).Single(item => item.Hardware?.Id == id);
+            Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, result.LookupState);
+            Assert.HasCount(0, service.GetSoftwareForDevice(result));
+        }
+    }
+
+    [TestMethod]
+    public void HolisticWave6UtilityHardwarePreservesEmbeddedAndUnresolvedWorkflows()
+    {
+        var service = CreateQueryService();
+
+        AssertModelSoftware(service, "CEN IO COM 102", "Crestron.CENIOCOM102", "Crestron.Toolbox", DeviceSoftwarePurpose.Discovery);
+
+        foreach (var (query, id) in new[] { ("WB 800 IPVM 12", "WattBox.WB800IPVM12"), ("SX-1120-RT", "SurgeX.SX1120RT"), ("RLNK 415R IEC", "MiddleAtlantic.RLNK415RIEC") })
         {
             var result = service.SearchDevices(query).Single(item => item.Hardware?.Id == id);
             Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, result.LookupState);
