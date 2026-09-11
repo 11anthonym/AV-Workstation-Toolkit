@@ -100,6 +100,7 @@ Each denominator entry must end as an exact identity with either an evidence-sco
 ### Wave progress
 
 - **Wave 1 complete — installed microphones / wireless.** Added eight exact identities across Shure MXA/ULX-D, Sennheiser TeamConnect Ceiling, and Audio-Technica ATND1061 families. Shure Designer/Update Utility, Wireless Workbench, Sennheiser Control Cockpit, and Audio-Technica Digital Microphone Manager are separately evidence-scoped; Dante, media-control, Q-SYS certification, and browser-client surfaces create no inferred relation or execution authority.
+- **Wave 2 complete — wireless presentation / BYOD.** Added ten exact identities across ClickShare, Solstice, AirMedia, ShareLink Pro, VIA, and ScreenBeam. Solstice Dashboard, Extron PCS, and ScreenBeam CMS Enterprise are limited to documented management/firmware scopes. ClickShare client/XMS, AirMedia web/XiO Cloud, and VIA client/appliance workflows remain descriptive and do not become configuration products or package authority.
 
 ## Next coverage requirement
 

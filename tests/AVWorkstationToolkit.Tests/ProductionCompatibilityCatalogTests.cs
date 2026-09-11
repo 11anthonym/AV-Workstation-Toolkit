@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(317, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(321, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -457,12 +457,12 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(108, hardware.Families);
-        Assert.HasCount(455, hardware.Models);
+        Assert.HasCount(114, hardware.Families);
+        Assert.HasCount(465, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(455, coverage.Models);
-        Assert.AreEqual(368, coverage.VerifiedModels);
-        Assert.AreEqual(87, coverage.UnresolvedModels);
+        Assert.AreEqual(465, coverage.Models);
+        Assert.AreEqual(371, coverage.VerifiedModels);
+        Assert.AreEqual(94, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -579,6 +579,33 @@ public sealed class ProductionCompatibilityCatalogTests
         var ulxd = service.SearchDevices("ULXD4D").Single(item => item.Hardware?.Id == "Shure.ULXD4D");
         Assert.IsFalse(service.GetSoftwareForDevice(ulxd).SelectMany(group => group.Software)
             .Any(item => item.ProductId.Value is "Shure.Designer" or "AudioTechnica.WirelessManager"));
+    }
+
+    [TestMethod]
+    public void HolisticWave2WirelessPresentationSeparatesClientsCloudAndManagementTools()
+    {
+        var service = CreateQueryService();
+
+        AssertModelSoftware(service, "Solstice Pod Gen3", "Mersive.SolsticePodGen3", "Mersive.SolsticeDashboard", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "ShareLink 1100", "Extron.ShareLinkPro1100", "Extron.PCS", DeviceSoftwarePurpose.Firmware);
+        AssertModelSoftware(service, "SBWD1100P", "ScreenBeam.1100Plus", "ScreenBeam.CMSEnterprise", DeviceSoftwarePurpose.Monitoring);
+
+        foreach (var (query, id) in new[]
+        {
+            ("ClickShare CX50 Gen2", "Barco.CX50Gen2"),
+            ("AM3200WF", "Crestron.AM3200WF"),
+            ("VIA Connect 2", "Kramer.VIAConnect2")
+        })
+        {
+            var result = service.SearchDevices(query).Single(item => item.Hardware?.Id == id);
+            Assert.AreEqual(HardwareDeviceCategory.WirelessPresentation, result.Hardware!.Category);
+            Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, result.LookupState);
+            Assert.HasCount(0, service.GetSoftwareForDevice(result));
+        }
+
+        var clickShare = service.SearchDevices("CX-20").Single(item => item.Hardware?.Id == "Barco.CX20");
+        Assert.IsFalse(service.GetSoftwareForDevice(clickShare).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "Barco.ClickShareConfigurator"));
     }
 
     [TestMethod]
