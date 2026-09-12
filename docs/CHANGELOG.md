@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-12 — Public reference-catalog feed preparation
+
+- Created the separate public, distribution-only `11anthonym/AVWT-Catalog` GitHub Pages feed with immutable revision layout checks and no signing keys or application source.
+- Fixed the compiled production metadata/signature URLs and exact `11anthonym.github.io` host while retaining fail-closed behavior until the owner supplies the real ECDSA P-256 public key.
+
 ## 2026-09-12 — Signed reference-catalog publisher
 
 - Added the private-side catalog publisher with deterministic snapshot/channel metadata, explicit change-risk acknowledgement, runtime-verifier round trips, and no remote publishing or operational authority.

@@ -19,7 +19,7 @@ dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstation
   --expires-utc 2026-09-19T12:00:00Z `
   --signing-key-id avwt-catalog-2026-a `
   --private-key C:\SecureExternalPath\avwt-catalog-private.pem `
-  --public-base-uri https://catalog.example.org/avwt/
+  --public-base-uri https://11anthonym.github.io/AVWT-Catalog/
 ```
 
 The default output is `artifacts/catalog-feed`, which must not already exist. Output is staged beside that directory and moved into place only after bundle and channel round-trip verification succeeds. Given identical catalog inputs and metadata, payload, change-summary, and manifest bytes are deterministic. ECDSA signing may produce a different valid signature on a later independent run, so the signed bundle and its channel hash become one immutable publication unit and must never be mixed across runs.
@@ -47,8 +47,22 @@ artifacts/catalog-feed/
 
 All four generated files are safe to publish publicly after approval. The bundle already contains its manifest, detached signature, descriptive manifests, and change summary. The private key, private-key backups, signing-service configuration, unpublished review material, and credentials must remain private.
 
-## Future static-feed handoff
+## Public static-feed handoff
 
-A future separately administered static feed or GitHub Pages repository should receive the generated directory without rebuilding or resigning it. Publish the immutable revision directory first, verify its public hash, and update the two stable channel files last. That later automation must use owner-supplied repository credentials and approval controls outside the application repository; none are implemented here.
+The public distribution-only repository is <https://github.com/11anthonym/AVWT-Catalog>; GitHub Pages serves it at <https://11anthonym.github.io/AVWT-Catalog/>. It receives the generated directory without rebuilding or resigning it. Publish the immutable revision directory first, verify its anonymous HTTPS URL and hash, and update the two stable channel files last. The public repository's validation workflow rejects changes to committed revision files and unexpected distribution content. Publisher credentials remain owner-controlled and outside the application.
 
-Publisher success means both the generated bundle and channel signature round-trip through the same runtime verifiers, catalog counts match, and the operational authority manifests remain byte-for-byte unchanged. Live updates additionally require the public origin, compiled public trust anchors and host allowlist, owner-controlled publishing workflow, and packaged-app verification described in [Reference-Catalog-Updates.md](Reference-Catalog-Updates.md).
+## Production key handoff
+
+The intended first production key ID is `avwt-catalog-2026-a`. Anthony must generate the keypair locally in an access-controlled directory outside every Git checkout. One concise OpenSSL 3 procedure is:
+
+```powershell
+$keyRoot = 'C:\SecureExternalPath\AVWT-Catalog'
+New-Item -ItemType Directory -Path $keyRoot -ErrorAction Stop | Out-Null
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out (Join-Path $keyRoot 'avwt-catalog-2026-a-private.pem')
+openssl pkey -in (Join-Path $keyRoot 'avwt-catalog-2026-a-private.pem') -pubout -out (Join-Path $keyRoot 'avwt-catalog-2026-a-public.pem')
+openssl pkey -in (Join-Path $keyRoot 'avwt-catalog-2026-a-private.pem') -check -noout
+```
+
+Restrict and back up the private PEM using the owner's approved secret-storage process. Never paste, print, upload, or add it to either repository. Return only `avwt-catalog-2026-a-public.pem` to the private AVWT repository for review and compilation into `ProductionReferenceCatalogTrustAnchors`. No real Revision 1 may be signed or published before that public-key handoff is complete.
+
+Publisher success means both the generated bundle and channel signature round-trip through the same runtime verifiers, catalog counts match, and the operational authority manifests remain byte-for-byte unchanged. Live updates additionally require the compiled production public trust anchor, owner approval of the first signed snapshot, and packaged-app verification described in [Reference-Catalog-Updates.md](Reference-Catalog-Updates.md). The exact public origin and host allowlist are already source-controlled.

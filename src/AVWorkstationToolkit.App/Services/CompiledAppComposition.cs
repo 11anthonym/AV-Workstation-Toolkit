@@ -76,10 +76,16 @@ public static class CompiledAppComposition
         var dataRoot = production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : canonicalDataRoot;
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
         var version = packagedVersion ?? (File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown");
+        var productionCatalog = production
+            ? ProductionReferenceCatalogConfiguration.Create(version)
+            : new ProductionReferenceCatalogServices(
+                new ReferenceCatalogBundleVerifier(new ReferenceCatalogTrustPolicy(version, new Dictionary<string, string>(StringComparer.Ordinal))),
+                null);
         var catalogUpdates = new ReferenceCatalogStore(
             repositoryRoot,
             dataRoot,
-            new ReferenceCatalogBundleVerifier(new ReferenceCatalogTrustPolicy(version, new Dictionary<string, string>(StringComparer.Ordinal))));
+            productionCatalog.BundleVerifier,
+            productionCatalog.ChannelClient);
         var referenceCatalog = catalogUpdates.LoadActiveOrEmbedded();
         var compatibility = new CompatibilityCatalogQueryService(
             referenceCatalog.Compatibility,

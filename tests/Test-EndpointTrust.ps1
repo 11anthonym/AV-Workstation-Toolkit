@@ -111,6 +111,7 @@ $referenceCatalogSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog') -File -Filter 'ReferenceCatalog*.cs'
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $referenceCatalogSource = $referenceCatalogSource -join "`n"
+$productionReferenceCatalogConfiguration = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\ProductionReferenceCatalogConfiguration.cs') -Raw
 $catalogPublisherSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tools\AVWorkstationToolkit.CatalogPublisher') -File |
     Where-Object { $_.Extension -in @('.cs','.csproj') } |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -263,6 +264,14 @@ if ($referenceCatalogSource -notmatch 'ECDsa' -or
     $referenceCatalogSource -notmatch 'PreviousRevision' -or
     $referenceCatalogSource -notmatch 'quarantine') {
     throw 'The signed reference-catalog boundary lost signature, schema, ZIP, transport, rollback, or recovery controls.'
+}
+if ($productionReferenceCatalogConfiguration -notmatch 'https://11anthonym\.github\.io/AVWT-Catalog/stable/catalog-channel\.json' -or
+    $productionReferenceCatalogConfiguration -notmatch 'https://11anthonym\.github\.io/AVWT-Catalog/stable/catalog-channel\.sig' -or
+    $productionReferenceCatalogConfiguration -notmatch 'ApprovedHost\s*=\s*"11anthonym\.github\.io"' -or
+    $productionReferenceCatalogConfiguration -notmatch 'PrimarySigningKeyId\s*=\s*"avwt-catalog-2026-a"' -or
+    $productionReferenceCatalogConfiguration -notmatch 'TimeSpan\.FromSeconds\(30\)' -or
+    $productionReferenceCatalogConfiguration -match 'GetEnvironmentVariable|IConfiguration|AllowAutoRedirect\s*=\s*true|UseDefaultCredentials\s*=\s*true|http://') {
+    throw 'The production reference-catalog feed lost its exact HTTPS origin, key identity, or bounded source-controlled composition.'
 }
 if ($catalogPublisherSource -match '\bnew\s+ProcessStartInfo|Process\.Start|ShellExecute|HttpClient|SftpClient|WindowsVendorCredentialStore|ActionProtocolStore|WinGetMutationProcessRunner' -or
     $catalogPublisherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|BEGIN (?:EC |)PRIVATE KEY') {

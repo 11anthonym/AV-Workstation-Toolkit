@@ -4,7 +4,7 @@
 
 AV Workstation Toolkit now contains the compiled, non-executing update boundary for descriptive hardware identity and software-compatibility data. The packaged application continues to start immediately from its embedded manifests. At startup it may instead load a previously activated external catalog only after revalidating that revision's signature, hashes, schemas, counts, and cross-references.
 
-The online production channel is intentionally **not configured yet**. This repository is private, and a packaged desktop application cannot safely read a private GitHub release without embedding or soliciting a repository credential. `Help > Catalog updates` therefore reports **Online channel not configured** until the external prerequisites below are supplied. Offline import is implemented but likewise fails closed until at least one production catalog public key is compiled into the signed application.
+The public production distribution origin is fixed at <https://11anthonym.github.io/AVWT-Catalog/>. Production composition contains the exact metadata URL, signature URL, and sole approved host, but `Help > Catalog updates` continues to report **Online channel not configured** until the owner supplies the real ECDSA P-256 public key. Offline import likewise fails closed until that public trust anchor is compiled into the signed application. No repository credential is used or accepted.
 
 ## Trust and authority boundary
 
@@ -55,15 +55,19 @@ Expected states are Current, Checking, Update available, Validating, Completed, 
 
 ## External prerequisites
 
-Before enabling production updates, the repository owner must provide all of the following:
+The public `11anthonym/AVWT-Catalog` repository and HTTPS-enforced GitHub Pages origin now exist. Before enabling production updates, the repository owner must still provide all of the following:
 
-1. A public, unauthenticated, stable HTTPS origin dedicated to reference-catalog metadata, signatures, and bundles. A private GitHub repository/release is not a suitable packaged-client feed.
-2. The exact production `catalog-channel.json` and `catalog-channel.sig` URLs and the complete approved host set.
-3. An ECDSA P-256 catalog-signing public key, its `SigningKeyId`, and preferably a second rollover public key. Only public keys are committed. Private keys must stay in an external protected signing service or CI secret boundary.
-4. A signing/publishing approval policy, initial revision/version, expiration interval, and immutable retention policy for published bundles.
-5. An owner-controlled publishing job that invokes the repository's documented private-side publisher and transfers its already-tested bytes to the public static origin without rebuilding them. It must not reuse the application signing key.
+1. Generate the production catalog keypair outside every Git repository and provide only the public PEM for `SigningKeyId` `avwt-catalog-2026-a`; preferably plan a second rollover public key. The private key must stay in an external protected signing boundary.
+2. Approve the initial revision/version, expiration interval, and immutable retention policy.
+3. Establish the owner-controlled transfer/approval procedure that invokes the private-side publisher and copies its already-tested bytes into the public repository without rebuilding them. It must not reuse the application signing key.
 
-The offline publisher and its immutable output contract are documented in [Reference-Catalog-Publishing.md](Reference-Catalog-Publishing.md). After the remaining owner values are supplied, production composition can instantiate `ReferenceCatalogChannelClient` with the exact policy and trusted public keys. No schema or UI redesign is required.
+The compiled URLs are:
+
+- `https://11anthonym.github.io/AVWT-Catalog/stable/catalog-channel.json`
+- `https://11anthonym.github.io/AVWT-Catalog/stable/catalog-channel.sig`
+- immutable bundles beneath `https://11anthonym.github.io/AVWT-Catalog/catalogs/<revision>/`
+
+The offline publisher and its immutable output contract are documented in [Reference-Catalog-Publishing.md](Reference-Catalog-Publishing.md). Production composition already owns the exact channel policy and will instantiate its client only after the owner-supplied public trust anchor is compiled. No schema or UI redesign is required.
 
 ## Verification
 
