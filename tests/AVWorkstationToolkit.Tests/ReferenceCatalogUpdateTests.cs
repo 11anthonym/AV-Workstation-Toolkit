@@ -33,6 +33,20 @@ public sealed class ReferenceCatalogUpdateTests
     }
 
     [TestMethod]
+    public void ExplicitMissingDataRootIsCreatedWithoutChangingEmbeddedCatalogAuthority()
+    {
+        using var fixture = new BundleFixture();
+        var dataRoot = Path.Combine(fixture.DataRoot, "clean-profile-root");
+        Assert.IsFalse(Directory.Exists(dataRoot));
+
+        var loaded = fixture.CreateStore(dataRootOverride: dataRoot).LoadActiveOrEmbedded();
+
+        Assert.IsTrue(Directory.Exists(dataRoot));
+        Assert.IsTrue(loaded.Source.IsEmbedded);
+        Assert.HasCount(529, loaded.Hardware.Models);
+    }
+
+    [TestMethod]
     public async Task InvalidSignatureHashExtraEntryAndFutureApplicationFailClosed()
     {
         using var fixture = new BundleFixture();
@@ -165,12 +179,12 @@ public sealed class ReferenceCatalogUpdateTests
 
         public string DataRoot => Path.Combine(root, "data");
 
-        public ReferenceCatalogStore CreateStore(bool trusted = true, IReferenceCatalogChannelClient? channel = null)
+        public ReferenceCatalogStore CreateStore(bool trusted = true, IReferenceCatalogChannelClient? channel = null, string? dataRootOverride = null)
         {
             IReadOnlyDictionary<string, string> keys = trusted
                 ? new Dictionary<string, string>(StringComparer.Ordinal) { ["test-2026-a"] = key.ExportSubjectPublicKeyInfoPem() }
                 : new Dictionary<string, string>(StringComparer.Ordinal);
-            return new(RepositoryRoot(), DataRoot, new ReferenceCatalogBundleVerifier(new("1.1.1", keys)), channel);
+            return new(RepositoryRoot(), dataRootOverride ?? DataRoot, new ReferenceCatalogBundleVerifier(new("1.1.1", keys)), channel);
         }
 
         public ReferenceCatalogChannelClient CreateChannel(string bundlePath, string bundleHost = "catalog.avwt.example")

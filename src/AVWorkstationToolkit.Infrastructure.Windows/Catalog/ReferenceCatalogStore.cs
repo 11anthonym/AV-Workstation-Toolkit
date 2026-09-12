@@ -23,8 +23,8 @@ public sealed class ReferenceCatalogStore(
         WriteIndented = true,
         MaxDepth = 8
     };
-    private readonly string embeddedApplicationRoot = RequireRoot(embeddedApplicationRoot, "application");
-    private readonly string root = Path.Combine(RequireRoot(dataRoot, "data"), "ReferenceCatalog");
+    private readonly string embeddedApplicationRoot = RequireExistingRoot(embeddedApplicationRoot, "application");
+    private readonly string root = Path.Combine(RequireDataRoot(dataRoot), "ReferenceCatalog");
     private readonly ReferenceCatalogBundleVerifier verifier = verifier ?? throw new ArgumentNullException(nameof(verifier));
     private readonly IReferenceCatalogChannelClient? channel = channel;
     private VerifiedReferenceCatalogBundle? pending;
@@ -290,12 +290,24 @@ public sealed class ReferenceCatalogStore(
         File.Move(source, target);
     }
 
-    private static string RequireRoot(string value, string description)
+    private static string RequireExistingRoot(string value, string description)
     {
         if (string.IsNullOrWhiteSpace(value) || !Path.IsPathFullyQualified(value)) throw new IOException($"Reference catalog {description} root must be absolute.");
         var full = Path.GetFullPath(value).TrimEnd(Path.DirectorySeparatorChar);
         if (!Directory.Exists(full) || (File.GetAttributes(full) & FileAttributes.ReparsePoint) != 0)
             throw new IOException($"Reference catalog {description} root is unavailable or is a reparse point.");
+        return full;
+    }
+
+    private static string RequireDataRoot(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !Path.IsPathFullyQualified(value))
+            throw new IOException("Reference catalog data root must be absolute.");
+        var full = Path.GetFullPath(value).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        if (string.Equals(full, Path.GetPathRoot(full)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+            throw new IOException("Reference catalog data root cannot be a filesystem root.");
+        Directory.CreateDirectory(full);
+        RejectReparse(full);
         return full;
     }
 
