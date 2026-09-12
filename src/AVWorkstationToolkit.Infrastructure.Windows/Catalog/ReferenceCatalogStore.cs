@@ -47,8 +47,10 @@ public sealed class ReferenceCatalogStore(
                 var verified = verifier.VerifyDirectory(CatalogDirectory(revision));
                 if (verified.Manifest.Revision != revision) throw new CatalogValidationException("Stored reference catalog revision does not match its directory.");
                 if (revision != state.ActiveRevision) WriteState(new(revision, 0, state.SuppressedRevision, DateTimeOffset.UtcNow));
+                var restorableRevision = revision == state.ActiveRevision ? GetValidPreviousRevision(state) : 0;
                 Status = new(ReferenceCatalogUpdateState.Current, revision, verified.Manifest.CatalogVersion, 0, string.Empty,
-                    revision == state.ActiveRevision ? "Signed reference catalog is active." : "Previous signed reference catalog restored after active-catalog validation failed.");
+                    revision == state.ActiveRevision ? "Signed reference catalog is active." : "Previous signed reference catalog restored after active-catalog validation failed.",
+                    RestorableRevision: restorableRevision);
                 return new(verified.Hardware, verified.Compatibility, new(revision, verified.Manifest.CatalogVersion, false, Status.Detail));
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CatalogValidationException or CryptographicException or ReferenceCatalogRequiresNewerApplicationException)
@@ -74,7 +76,8 @@ public sealed class ReferenceCatalogStore(
         try
         {
             Status = Status with { State = ReferenceCatalogUpdateState.Checking, Detail = "Checking the signed reference-catalog channel…" };
-            var available = await channel.GetLatestAsync(Status.CurrentRevision, cancellationToken).ConfigureAwait(false);
+            var state = ReadState();
+            var available = await channel.GetLatestAsync(HighestAcceptedRevision(state), cancellationToken).ConfigureAwait(false);
             if (available is null)
             {
                 pending = null;
@@ -87,11 +90,11 @@ public sealed class ReferenceCatalogStore(
                 !string.Equals(verified.Manifest.CatalogVersion, available.Version, StringComparison.Ordinal) ||
                 !string.Equals(verified.Manifest.MinimumAppVersion, available.MinimumAppVersion, StringComparison.Ordinal))
                 throw new CatalogValidationException("Signed channel metadata does not match the signed reference catalog bundle.");
-            var state = ReadState();
             ValidateRevisionChain(verified.Manifest, state);
             pending = verified;
             Status = new(ReferenceCatalogUpdateState.UpdateAvailable, state.ActiveRevision, Status.CurrentVersion,
-                verified.Manifest.Revision, verified.Manifest.CatalogVersion, "A signed descriptive reference-catalog update is available.", verified.Changes);
+                verified.Manifest.Revision, verified.Manifest.CatalogVersion, "A signed descriptive reference-catalog update is available.", verified.Changes,
+                GetValidPreviousRevision(state));
         }
         catch (ReferenceCatalogRequiresNewerApplicationException exception)
         {
@@ -126,8 +129,10 @@ public sealed class ReferenceCatalogStore(
             var state = ReadState();
             ValidateRevisionChain(pending.Manifest, state);
             Activate(pending, state);
+            var activatedState = ReadState();
             Status = new(ReferenceCatalogUpdateState.Completed, pending.Manifest.Revision, pending.Manifest.CatalogVersion, 0, string.Empty,
-                "Signed reference catalog activated. Restart AV Workstation Toolkit to use it.", pending.Changes);
+                "Signed reference catalog activated on disk. Restart AV Workstation Toolkit to use it for Device Lookup.", pending.Changes,
+                GetValidPreviousRevision(activatedState));
             pending = null;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CatalogValidationException or CryptographicException or InvalidDataException)
@@ -148,8 +153,10 @@ public sealed class ReferenceCatalogStore(
             var state = ReadState();
             ValidateRevisionChain(pending.Manifest, state);
             Activate(pending, state);
+            var activatedState = ReadState();
             Status = new(ReferenceCatalogUpdateState.Completed, pending.Manifest.Revision, pending.Manifest.CatalogVersion, 0, string.Empty,
-                "Signed reference catalog imported and activated.", pending.Changes);
+                "Signed reference catalog imported and activated on disk. Restart AV Workstation Toolkit to use it for Device Lookup.", pending.Changes,
+                GetValidPreviousRevision(activatedState));
             pending = null;
         }
         catch (ReferenceCatalogRequiresNewerApplicationException exception)
@@ -161,6 +168,32 @@ public sealed class ReferenceCatalogStore(
         {
             pending = null;
             Status = Status with { State = ReferenceCatalogUpdateState.Rejected, Detail = $"Reference catalog rejected: {exception.Message}" };
+        }
+        return Task.FromResult(Status);
+    }
+
+    public Task<ReferenceCatalogUpdateStatus> RestorePreviousAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            var state = ReadState();
+            if (state.ActiveRevision <= 0 || GetValidPreviousRevision(state) <= 0)
+                throw new CatalogValidationException("No previous signed reference catalog is available to restore.");
+
+            var previous = verifier.VerifyDirectory(CatalogDirectory(state.PreviousRevision));
+            if (previous.Manifest.Revision != state.PreviousRevision)
+                throw new CatalogValidationException("Stored previous reference catalog revision does not match its directory.");
+
+            WriteState(new(state.PreviousRevision, 0, state.ActiveRevision, DateTimeOffset.UtcNow));
+            pending = null;
+            Status = new(ReferenceCatalogUpdateState.Completed, previous.Manifest.Revision, previous.Manifest.CatalogVersion, 0, string.Empty,
+                "Previous signed reference catalog restored on disk. Restart AV Workstation Toolkit to use it for Device Lookup.");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CatalogValidationException or CryptographicException or InvalidDataException)
+        {
+            pending = null;
+            Status = Status with { State = ReferenceCatalogUpdateState.Rejected, RestorableRevision = 0, Detail = $"Previous reference catalog could not be restored: {exception.Message}" };
         }
         return Task.FromResult(Status);
     }
@@ -185,7 +218,7 @@ public sealed class ReferenceCatalogStore(
             _ = verifier.VerifyDirectory(staging);
             Directory.Move(staging, final);
             moved = true;
-            WriteState(new(bundle.Manifest.Revision, previous.ActiveRevision, previous.SuppressedRevision, DateTimeOffset.UtcNow));
+            WriteState(new(bundle.Manifest.Revision, previous.ActiveRevision, 0, DateTimeOffset.UtcNow));
         }
         catch
         {
@@ -204,10 +237,29 @@ public sealed class ReferenceCatalogStore(
 
     private static void ValidateRevisionChain(ReferenceCatalogBundleManifest manifest, StateDocument state)
     {
-        if (manifest.Revision <= state.ActiveRevision)
+        if (manifest.Revision <= HighestAcceptedRevision(state))
             throw new CatalogValidationException("Reference catalog rollback or same-revision activation is not permitted.");
-        if (state.ActiveRevision > 0 && manifest.PreviousRevision != state.ActiveRevision)
-            throw new CatalogValidationException("Reference catalog PreviousRevision does not match the active revision.");
+    }
+
+    private static long HighestAcceptedRevision(StateDocument state) =>
+        Math.Max(state.ActiveRevision, Math.Max(state.PreviousRevision, state.SuppressedRevision));
+
+    private long GetValidPreviousRevision(StateDocument state)
+    {
+        if (state.PreviousRevision <= 0) return 0;
+        try
+        {
+            var verified = verifier.VerifyDirectory(CatalogDirectory(state.PreviousRevision));
+            if (verified.Manifest.Revision != state.PreviousRevision)
+                throw new CatalogValidationException("Stored previous reference catalog revision does not match its directory.");
+            return state.PreviousRevision;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CatalogValidationException or CryptographicException or ReferenceCatalogRequiresNewerApplicationException)
+        {
+            QuarantineStoredRevision(state.PreviousRevision);
+            WriteState(state with { PreviousRevision = 0 });
+            return 0;
+        }
     }
 
     private StateDocument ReadState()
@@ -231,7 +283,8 @@ public sealed class ReferenceCatalogStore(
             var state = JsonSerializer.Deserialize<StateDocument>(json, StateOptions)
                 ?? throw new CatalogValidationException("Reference catalog state file is empty.");
             if (state.ActiveRevision < 0 || state.PreviousRevision < 0 || state.SuppressedRevision < 0 ||
-                (state.ActiveRevision > 0 && state.ActiveRevision == state.PreviousRevision))
+                (state.PreviousRevision > 0 && (state.ActiveRevision <= 0 || state.PreviousRevision >= state.ActiveRevision)) ||
+                (state.SuppressedRevision > 0 && state.SuppressedRevision <= state.ActiveRevision))
                 throw new CatalogValidationException("Reference catalog state revisions are invalid.");
             return state;
         }

@@ -35,7 +35,8 @@ public sealed record ReferenceCatalogUpdateStatus(
     long AvailableRevision,
     string AvailableVersion,
     string Detail,
-    ReferenceCatalogChangeSummary? Changes = null);
+    ReferenceCatalogChangeSummary? Changes = null,
+    long RestorableRevision = 0);
 
 public sealed record ReferenceCatalogChannelPackage(
     long Revision,
@@ -58,4 +59,5 @@ public interface IReferenceCatalogUpdateService
     Task<ReferenceCatalogUpdateStatus> CheckAsync(CancellationToken cancellationToken = default);
     Task<ReferenceCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default);
     Task<ReferenceCatalogUpdateStatus> ImportAsync(string bundlePath, CancellationToken cancellationToken = default);
+    Task<ReferenceCatalogUpdateStatus> RestorePreviousAsync(CancellationToken cancellationToken = default);
 }

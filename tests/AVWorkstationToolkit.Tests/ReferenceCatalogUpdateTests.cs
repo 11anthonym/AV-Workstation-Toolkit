@@ -22,6 +22,8 @@ public sealed class ReferenceCatalogUpdateTests
         var result = await store.ImportAsync(bundle);
         Assert.AreEqual(ReferenceCatalogUpdateState.Completed, result.State);
         Assert.AreEqual(1L, result.CurrentRevision);
+        StringAssert.Contains(result.Detail, "activated on disk");
+        StringAssert.Contains(result.Detail, "Restart AV Workstation Toolkit");
 
         var loaded = store.LoadActiveOrEmbedded();
         Assert.IsFalse(loaded.Source.IsEmbedded);
@@ -30,6 +32,86 @@ public sealed class ReferenceCatalogUpdateTests
         Assert.HasCount(338, loaded.Compatibility.DeviceSoftwareRelations);
         Assert.IsTrue(Directory.Exists(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "catalogs", "1")));
         Assert.HasCount(0, Directory.GetDirectories(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "staging")));
+    }
+
+    [TestMethod]
+    public async Task CompleteSnapshotsAllowSkippedAndSequentialRevisionsButRejectSameOrLowerRevisions()
+    {
+        using var fixture = new BundleFixture();
+        var skippedStore = fixture.CreateStore();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await skippedStore.ImportAsync(fixture.CreateBundle(43, 42))).State);
+
+        var skipped = await skippedStore.ImportAsync(fixture.CreateBundle(45, 44));
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, skipped.State);
+        Assert.AreEqual(45L, skipped.CurrentRevision);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await skippedStore.ImportAsync(fixture.CreateBundle(45, 44))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await skippedStore.ImportAsync(fixture.CreateBundle(44, 43))).State);
+
+        using var sequentialFixture = new BundleFixture();
+        var sequentialStore = sequentialFixture.CreateStore();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await sequentialStore.ImportAsync(sequentialFixture.CreateBundle(43, 42))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await sequentialStore.ImportAsync(sequentialFixture.CreateBundle(44, 43))).State);
+    }
+
+    [TestMethod]
+    public async Task RestorePersistsSuppressesRolledBackRevisionAndAllowsNewerRevision()
+    {
+        using var fixture = new BundleFixture();
+        var store = fixture.CreateStore();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(43, 42))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(45, 44))).State);
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(43L, store.Status.RestorableRevision);
+
+        var restored = await store.RestorePreviousAsync();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, restored.State);
+        Assert.AreEqual(43L, restored.CurrentRevision);
+        Assert.AreEqual(0L, restored.RestorableRevision);
+        StringAssert.Contains(restored.Detail, "Restart AV Workstation Toolkit");
+
+        var restarted = fixture.CreateStore();
+        Assert.AreEqual(43L, restarted.LoadActiveOrEmbedded().Source.Revision);
+        Assert.AreEqual(0L, restarted.Status.RestorableRevision);
+
+        var suppressedBundle = fixture.CreateBundle(45, 44);
+        using var suppressedChannel = fixture.CreateChannel(suppressedBundle, revision: 45, previousRevision: 44);
+        var suppressedStore = fixture.CreateStore(channel: suppressedChannel);
+        _ = suppressedStore.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Current, (await suppressedStore.CheckAsync()).State);
+
+        var newerBundle = fixture.CreateBundle(46, 45);
+        using var newerChannel = fixture.CreateChannel(newerBundle, revision: 46, previousRevision: 45);
+        var newerStore = fixture.CreateStore(channel: newerChannel);
+        _ = newerStore.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await newerStore.CheckAsync()).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await newerStore.InstallAvailableAsync()).State);
+        Assert.AreEqual(46L, newerStore.Status.CurrentRevision);
+    }
+
+    [TestMethod]
+    public async Task CorruptPreviousCannotBeRestoredAndCorruptRestoredCatalogFallsBackToEmbedded()
+    {
+        using var fixture = new BundleFixture();
+        var store = fixture.CreateStore();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(43, 42))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(45, 44))).State);
+        File.AppendAllText(fixture.StoredHardwarePath(43), " ", Encoding.UTF8);
+
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(0L, store.Status.RestorableRevision);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.RestorePreviousAsync()).State);
+
+        using var fallbackFixture = new BundleFixture();
+        var fallbackStore = fallbackFixture.CreateStore();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fallbackStore.ImportAsync(fallbackFixture.CreateBundle(43, 42))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fallbackStore.ImportAsync(fallbackFixture.CreateBundle(45, 44))).State);
+        _ = fallbackStore.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fallbackStore.RestorePreviousAsync()).State);
+        File.AppendAllText(fallbackFixture.StoredHardwarePath(43), " ", Encoding.UTF8);
+
+        var fallback = fallbackFixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.IsTrue(fallback.Source.IsEmbedded);
+        Assert.AreEqual(0L, fallback.Source.Revision);
     }
 
     [TestMethod]
@@ -149,6 +231,8 @@ public sealed class ReferenceCatalogUpdateTests
         var installed = await store.InstallAvailableAsync();
         Assert.AreEqual(ReferenceCatalogUpdateState.Completed, installed.State);
         Assert.AreEqual(1L, installed.CurrentRevision);
+        StringAssert.Contains(installed.Detail, "activated on disk");
+        StringAssert.Contains(installed.Detail, "Restart AV Workstation Toolkit");
     }
 
     [TestMethod]
@@ -187,19 +271,19 @@ public sealed class ReferenceCatalogUpdateTests
             return new(RepositoryRoot(), dataRootOverride ?? DataRoot, new ReferenceCatalogBundleVerifier(new("1.1.1", keys)), channel);
         }
 
-        public ReferenceCatalogChannelClient CreateChannel(string bundlePath, string bundleHost = "catalog.avwt.example")
+        public ReferenceCatalogChannelClient CreateChannel(string bundlePath, string bundleHost = "catalog.avwt.example", long revision = 1, long previousRevision = 0)
         {
             var bundle = File.ReadAllBytes(bundlePath);
             var metadataUri = new Uri("https://catalog.avwt.example/catalog-channel.json");
             var signatureUri = new Uri("https://catalog.avwt.example/catalog-channel.sig");
-            var bundleUri = new Uri($"https://{bundleHost}/catalog-1.avwtcatalog");
+            var bundleUri = new Uri($"https://{bundleHost}/catalog-{revision}.avwtcatalog");
             var metadata = JsonSerializer.SerializeToUtf8Bytes(new
             {
                 CatalogId = ReferenceCatalogBundleNames.CatalogId,
                 SchemaVersion = 1,
-                CatalogVersion = "2026.9.12.1",
-                Revision = 1,
-                PreviousRevision = 0,
+                CatalogVersion = $"2026.9.12.{revision}",
+                Revision = revision,
+                PreviousRevision = previousRevision,
                 MinimumAppVersion = "1.1.1",
                 CreatedUtc = DateTimeOffset.UtcNow.AddMinutes(-1),
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7),
@@ -221,6 +305,9 @@ public sealed class ReferenceCatalogUpdateTests
                 TimeSpan.FromSeconds(10));
             return new(policy, handler);
         }
+
+        public string StoredHardwarePath(long revision) =>
+            Path.Combine(DataRoot, "ReferenceCatalog", "catalogs", revision.ToString(System.Globalization.CultureInfo.InvariantCulture), ReferenceCatalogBundleNames.Hardware);
 
         public string CreateBundle(
             long revision,

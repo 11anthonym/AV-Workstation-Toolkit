@@ -15,11 +15,13 @@ public sealed class CatalogUpdateViewModel : ObservableObject
         status = service.Status;
         CheckNowCommand = new AsyncRelayCommand(CheckAsync, () => !IsBusy);
         InstallCommand = new AsyncRelayCommand(InstallAsync, () => !IsBusy && Status.State == ReferenceCatalogUpdateState.UpdateAvailable);
+        RestoreCommand = new AsyncRelayCommand(RestoreAsync, () => !IsBusy && Status.RestorableRevision > 0);
         ImportCommand = new RelayCommand(_ => ImportRequested?.Invoke(), _ => !IsBusy);
     }
 
     public AsyncRelayCommand CheckNowCommand { get; }
     public AsyncRelayCommand InstallCommand { get; }
+    public AsyncRelayCommand RestoreCommand { get; }
     public RelayCommand ImportCommand { get; }
     public event Action? ImportRequested;
 
@@ -33,7 +35,9 @@ public sealed class CatalogUpdateViewModel : ObservableObject
             OnPropertyChanged(nameof(CurrentLabel));
             OnPropertyChanged(nameof(AvailableLabel));
             OnPropertyChanged(nameof(ChangeSummary));
+            OnPropertyChanged(nameof(CanRestorePrevious));
             InstallCommand.RaiseCanExecuteChanged();
+            RestoreCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -45,6 +49,7 @@ public sealed class CatalogUpdateViewModel : ObservableObject
             if (!SetProperty(ref isBusy, value)) return;
             CheckNowCommand.RaiseCanExecuteChanged();
             InstallCommand.RaiseCanExecuteChanged();
+            RestoreCommand.RaiseCanExecuteChanged();
             ImportCommand.RaiseCanExecuteChanged();
         }
     }
@@ -54,7 +59,7 @@ public sealed class CatalogUpdateViewModel : ObservableObject
         ReferenceCatalogUpdateState.NotConfigured => "Online channel not configured",
         ReferenceCatalogUpdateState.RequiresNewerApp => "Application update required",
         ReferenceCatalogUpdateState.UpdateAvailable => "Signed catalog update available",
-        ReferenceCatalogUpdateState.Completed => "Catalog updated",
+        ReferenceCatalogUpdateState.Completed => "Catalog change saved",
         ReferenceCatalogUpdateState.Rejected => "Catalog rejected",
         ReferenceCatalogUpdateState.Offline => "Catalog service offline",
         _ => Status.State.ToString()
@@ -62,6 +67,7 @@ public sealed class CatalogUpdateViewModel : ObservableObject
     public string CurrentLabel => Status.CurrentRevision > 0 ? $"Revision {Status.CurrentRevision} · {Status.CurrentVersion}" : "Embedded catalog";
     public string AvailableLabel => Status.AvailableRevision > 0 ? $"Revision {Status.AvailableRevision} · {Status.AvailableVersion}" : "No verified update pending";
     public string ChangeSummary => Status.Changes?.Summary ?? string.Empty;
+    public bool CanRestorePrevious => Status.RestorableRevision > 0;
 
     public async Task CheckAsync()
     {
@@ -76,6 +82,11 @@ public sealed class CatalogUpdateViewModel : ObservableObject
     public async Task ImportAsync(string path)
     {
         await RunAsync(token => service.ImportAsync(path, token)).ConfigureAwait(true);
+    }
+
+    public async Task RestoreAsync()
+    {
+        await RunAsync(token => service.RestorePreviousAsync(token)).ConfigureAwait(true);
     }
 
     private async Task RunAsync(Func<CancellationToken, Task<ReferenceCatalogUpdateStatus>> operation)

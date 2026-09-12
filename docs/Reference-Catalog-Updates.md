@@ -24,7 +24,7 @@ The strict parsers reject unknown properties, invalid types, duplicate JSON prop
 
 - Detached ECDSA P-256/SHA-256 signatures use fixed-width IEEE P1363 encoding.
 - `SigningKeyId` must resolve to an exact public key compiled into the signed application. The private key is never present in this repository or the application.
-- The manifest hashes exactly the three approved JSON payloads with SHA-256 and carries a monotonically increasing `Revision`, `PreviousRevision`, schema/compatibility epochs, UTC creation time, record counts, and `MinimumAppVersion`.
+- The manifest hashes exactly the three approved JSON payloads with SHA-256 and carries a monotonically increasing `Revision`, `PreviousRevision`, schema/compatibility epochs, UTC creation time, record counts, and `MinimumAppVersion`. Each bundle is a complete snapshot, so clients may skip publisher revisions; `PreviousRevision` remains signed publisher history rather than an intermediate-install requirement. Activation still requires a revision greater than every revision the client has accepted.
 - ZIP input is limited to five exact direct-child entries, 4 MiB compressed, 2 MiB per entry, and 3 MiB total expanded content. Nested paths, extra files, duplicate names, empty content, invalid UTF-8, and reparse points are rejected.
 - A configured online channel uses two exact source-controlled HTTPS URLs for metadata and its detached signature. Redirects, ambient credentials, arbitrary headers, caller-selected hosts, non-default ports, and unrestricted destinations are prohibited. Signed channel metadata names one `.avwtcatalog` URL on the compiled allowlist and its SHA-256. Responses and timeouts are bounded; expired or implausibly future metadata is rejected.
 - The downloaded bundle is verified in memory. It is not activated until its channel identity, bundle signature, hashes, JSON, cross-references, compatibility version, and revision chain all pass.
@@ -41,7 +41,9 @@ ReferenceCatalog\
 └── quarantine\
 ```
 
-Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, and then atomically replaces `state.json`. Existing revisions are never overwritten. Rollback and same-revision import are rejected. On startup, a damaged active revision is quarantined; the previous signed revision is attempted, then the embedded catalog is used. Malformed state also fails closed to the embedded catalog.
+When a valid previous signed revision exists, **Restore previous catalog** changes only the atomic active-state pointer. The rolled-back revision is suppressed so it is not immediately offered again, while any newer signed revision remains eligible. Online installation, offline import, and restore become effective for Device Lookup after the application restarts; startup revalidates the selected stored catalog before use.
+
+Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, and then atomically replaces `state.json`. Existing revisions are never overwritten. Same/lower-revision activation is rejected; the only rollback is the explicit restore of a retained, revalidated previous revision. On startup, a damaged active revision is quarantined; the previous signed revision is attempted, then the embedded catalog is used. Malformed state also fails closed to the embedded catalog.
 
 The update operation writes descriptive JSON and state only. It does not call WinGet, a worker, an installer, PowerShell, a shell, vendor delivery, Credential Manager, or firmware tooling.
 

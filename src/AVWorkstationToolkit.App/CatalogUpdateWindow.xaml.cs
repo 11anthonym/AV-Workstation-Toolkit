@@ -31,8 +31,8 @@ public partial class CatalogUpdateWindow : System.Windows.Window
     internal void VerifySmokeContract()
     {
         if (CheckNowButton.Command != viewModel.CheckNowCommand || UpdateCatalogButton.Command != viewModel.InstallCommand ||
-            ImportButton.Command != viewModel.ImportCommand || !CheckNowButton.Focusable ||
-            !UpdateCatalogButton.Focusable || !ImportButton.Focusable)
+            ImportButton.Command != viewModel.ImportCommand || RestoreButton.Command != viewModel.RestoreCommand || !CheckNowButton.Focusable ||
+            !UpdateCatalogButton.Focusable || !ImportButton.Focusable || !RestoreButton.Focusable)
             throw new InvalidOperationException("Reference catalog update controls are not bound or keyboard accessible.");
     }
 }

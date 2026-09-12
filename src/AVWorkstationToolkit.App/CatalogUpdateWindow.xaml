@@ -6,6 +6,7 @@
         Icon="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.ico"
         AutomationProperties.Name="Reference catalog updates">
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style TargetType="Button"><Setter Property="Foreground" Value="#E8EEF8"/><Setter Property="Background" Value="#1D2A40"/><Setter Property="BorderBrush" Value="#344663"/><Setter Property="Padding" Value="14,8"/><Setter Property="Margin" Value="0,0,8,0"/><Setter Property="MinHeight" Value="36"/></Style>
     </Window.Resources>
     <Grid Margin="24">
@@ -16,17 +17,18 @@
             <StackPanel>
                 <TextBlock Text="{Binding StateLabel}" FontWeight="SemiBold" FontSize="16"/>
                 <TextBlock Text="{Binding Status.Detail}" Foreground="#AAB8CA" Margin="0,5,0,12" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
-                <TextBlock Text="Current" Foreground="#7F92AA" FontSize="11" FontWeight="Bold"/><TextBlock Text="{Binding CurrentLabel}" Margin="0,2,0,8"/>
+                <TextBlock Text="Selected catalog" Foreground="#7F92AA" FontSize="11" FontWeight="Bold"/><TextBlock Text="{Binding CurrentLabel}" Margin="0,2,0,8"/>
                 <TextBlock Text="Available" Foreground="#7F92AA" FontSize="11" FontWeight="Bold"/><TextBlock Text="{Binding AvailableLabel}" Margin="0,2,0,8"/>
                 <TextBlock Text="{Binding ChangeSummary}" TextWrapping="Wrap" Foreground="#C5D4E8"/>
             </StackPanel>
         </Border>
-        <TextBlock Grid.Row="3" Margin="0,16,0,0" Foreground="#94A4BB" TextWrapping="Wrap" Text="Offline import accepts only a bounded .avwtcatalog file signed by a public key embedded in this application. A successful import takes effect after AV Workstation Toolkit is restarted."/>
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+        <TextBlock Grid.Row="3" Margin="0,16,0,0" Foreground="#94A4BB" TextWrapping="Wrap" Text="Online updates and offline imports are activated on disk only after signature and catalog validation. The selected catalog becomes effective for Device Lookup after AV Workstation Toolkit is restarted."/>
+        <WrapPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CheckNowButton" Content="Check now" Command="{Binding CheckNowCommand}" AutomationProperties.Name="Check for signed reference catalog updates"/>
             <Button x:Name="UpdateCatalogButton" Content="Update catalog" Command="{Binding InstallCommand}" AutomationProperties.Name="Download validate and activate signed reference catalog update"/>
             <Button x:Name="ImportButton" Content="Import signed catalog…" Command="{Binding ImportCommand}" AutomationProperties.Name="Import signed reference catalog"/>
+            <Button x:Name="RestoreButton" Content="Restore previous catalog" Command="{Binding RestoreCommand}" Visibility="{Binding CanRestorePrevious, Converter={StaticResource BooleanToVisibilityConverter}}" AutomationProperties.Name="Restore previous signed reference catalog"/>
             <Button Content="Close" IsCancel="True" Margin="0"/>
-        </StackPanel>
+        </WrapPanel>
     </Grid>
 </Window>
