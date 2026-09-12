@@ -31,7 +31,7 @@ public sealed class ProductionCompatibilityCatalogTests
             },
             catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
         Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(333, catalog.DeviceSoftwareRelations);
+        Assert.HasCount(338, catalog.DeviceSoftwareRelations);
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
     }
@@ -457,11 +457,11 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(137, hardware.Families);
-        Assert.HasCount(508, hardware.Models);
+        Assert.HasCount(143, hardware.Families);
+        Assert.HasCount(529, hardware.Models);
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(508, coverage.Models);
-        Assert.AreEqual(398, coverage.VerifiedModels);
+        Assert.AreEqual(529, coverage.Models);
+        Assert.AreEqual(419, coverage.VerifiedModels);
         Assert.AreEqual(110, coverage.UnresolvedModels);
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
@@ -507,6 +507,56 @@ public sealed class ProductionCompatibilityCatalogTests
             Assert.AreEqual(HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet, result.LookupState);
             Assert.HasCount(0, service.GetSoftwareForDevice(result));
         }
+    }
+
+    [TestMethod]
+    public void DigitalSignageAndAvNetworkHardwareUseExactVendorScopedDesktopRelationships()
+    {
+        var service = CreateQueryService();
+
+        var brightSign = service.SearchDevices("BrightSign XT245").Single(item => item.Hardware?.Id == "BrightSign.XT245");
+        Assert.AreEqual(HardwareDeviceCategory.DigitalSignage, brightSign.Hardware!.Category);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, brightSign.LookupState);
+        Assert.IsTrue(service.GetSoftwareForDevice(brightSign).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "BrightSign.BrightAuthorConnected" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+
+        var luminex = service.SearchDevices("GigaCore10t").Single(item => item.Hardware?.Id == "Luminex.GigaCore10t");
+        Assert.AreEqual(HardwareDeviceCategory.NetworkInfrastructure, luminex.Hardware!.Category);
+        var luminexSoftware = service.GetSoftwareForDevice(luminex).SelectMany(group => group.Software).ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { DeviceSoftwarePurpose.Configuration, DeviceSoftwarePurpose.Monitoring, DeviceSoftwarePurpose.Firmware },
+            luminexSoftware.Where(item => item.ProductId.Value == "Luminex.Araneo").Select(item => item.Purpose).ToArray());
+
+        var netgear = service.SearchDevices("GSM4212UX").Single(item => item.Hardware?.Id == "NETGEAR.GSM4212UX");
+        Assert.AreEqual(HardwareDeviceCategory.NetworkInfrastructure, netgear.Hardware!.Category);
+        var netgearSoftware = service.GetSoftwareForDevice(netgear).SelectMany(group => group.Software).ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { DeviceSoftwarePurpose.Configuration, DeviceSoftwarePurpose.Discovery, DeviceSoftwarePurpose.Monitoring, DeviceSoftwarePurpose.Firmware },
+            netgearSoftware.Where(item => item.ProductId.Value == "NETGEAR.EngageController").Select(item => item.Purpose).ToArray());
+
+        Assert.IsFalse(netgearSoftware.Any(item => item.ProductId.Value == "Luminex.Araneo"));
+    }
+
+    [TestMethod]
+    public void IntercomMatricesResolveOnlyToTheirVendorDocumentedConfigurationTools()
+    {
+        var service = CreateQueryService();
+
+        var eclipse = service.SearchDevices("Eclipse HX Delta").Single(item => item.Hardware?.Id == "ClearCom.EclipseHXDelta");
+        Assert.AreEqual(HardwareDeviceCategory.Intercom, eclipse.Hardware!.Category);
+        Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, eclipse.LookupState);
+        var eclipseSoftware = service.GetSoftwareForDevice(eclipse).SelectMany(group => group.Software).Select(item => item.ProductId.Value).ToArray();
+        CollectionAssert.IsSubsetOf(new[] { "ClearCom.EHX", "ClearCom.DynamEC" }, eclipseSoftware);
+
+        var freeSpeak = service.SearchDevices("FreeSpeak 2 Base II").Single(item => item.Hardware?.Id == "ClearCom.FreeSpeakIIBaseII");
+        Assert.IsTrue(service.GetSoftwareForDevice(freeSpeak).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "ClearCom.FreeSpeakIIConfigurationEditor" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+
+        var odin = service.SearchDevices("RTS ODIN").Single(item => item.Hardware?.Id == "RTS.ODIN");
+        Assert.IsTrue(service.GetSoftwareForDevice(odin).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value == "RTS.NEOIntercomManagementSuite" && item.Purpose == DeviceSoftwarePurpose.Configuration));
+        Assert.IsFalse(service.GetSoftwareForDevice(odin).SelectMany(group => group.Software)
+            .Any(item => item.ProductId.Value.StartsWith("ClearCom.", StringComparison.Ordinal)));
     }
 
     [TestMethod]
@@ -761,7 +811,10 @@ public sealed class ProductionCompatibilityCatalogTests
             (HardwareDeviceCategory.RecordingAppliance, "HyperDeck Studio HD Mini", "Blackmagic.HyperDeckStudioHDMini"),
             (HardwareDeviceCategory.AssistiveListening, "LA 490", "ListenTechnologies.LA490"),
             (HardwareDeviceCategory.VideoProcessor, "Aquilon RS alpha", "AnalogWay.AquilonRSAlpha"),
-            (HardwareDeviceCategory.Wireless, "ULX D quad receiver", "Shure.ULXD4Q")
+            (HardwareDeviceCategory.Wireless, "ULX D quad receiver", "Shure.ULXD4Q"),
+            (HardwareDeviceCategory.DigitalSignage, "BrightSign LS425", "BrightSign.LS425"),
+            (HardwareDeviceCategory.NetworkInfrastructure, "GSM4212P", "NETGEAR.GSM4212P"),
+            (HardwareDeviceCategory.Intercom, "Eclipse HX Delta", "ClearCom.EclipseHXDelta")
         };
 
         CollectionAssert.AreEquivalent(

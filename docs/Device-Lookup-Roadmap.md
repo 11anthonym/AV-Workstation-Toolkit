@@ -110,13 +110,23 @@ Each denominator entry must end as an exact identity with either an evidence-sco
 
 ## Final release-acceptance status
 
-Automated acceptance reconciles the current catalog at 74 manufacturers, 137 families, 508 exact models, 1,039 aliases, 16 represented categories, 398 verified models, 110 explicit unresolved models, and 333 `DeviceSoftwareRelation` records. The frozen holistic denominator remains complete at 53/53. The final audit added two concrete historically required identities omitted from the earlier bounded passes: Shure ULXD4Q has vendor-documented Wireless Workbench configuration/monitoring relationships, while Samsung QM65C is intentionally unresolved because its exact Windows-software applicability has not been verified. Hardware identity remains descriptive and does not inherit software from vendor, protocol, family resemblance, browser, or cloud workflows.
+Automated acceptance reconciles the current catalog at 79 manufacturers, 143 families, 529 exact models, 1,093 aliases, 19 represented categories, 419 verified models, 110 explicit unresolved models, and 338 `DeviceSoftwareRelation` records. The frozen holistic denominator remains complete at 53/53. The final audit added two concrete historically required identities omitted from the earlier bounded passes: Shure ULXD4Q has vendor-documented Wireless Workbench configuration/monitoring relationships, while Samsung QM65C is intentionally unresolved because its exact Windows-software applicability has not been verified. Hardware identity remains descriptive and does not inherit software from vendor, protocol, family resemblance, browser, or cloud workflows.
 
 ## Focused catalog maintenance — Extron MediaPort and SMP
 
 Extron MediaPort 200 (legacy) and MediaPort 300 now resolve as exact AV-interface identities. PCS is explicitly scoped to their documented configuration and manual firmware workflows; MediaPort 300 additionally exposes commissioning. Extron SMP 111, SMP 351 (legacy), SMP 352, and SMP 401 now resolve as exact recording/streaming appliances, but remain explicitly unresolved for desktop-software applicability because this pass did not establish an authoritative standalone Windows configuration product. Their presence must not be read as an inferred PCS, browser, firmware, or device-control relationship.
 
 Crestron Remote Client and TightVNC are catalogued as awareness-only support tools. Neither can be selected, delivered, installed, updated, or used to create worker authority. TightVNC's service/listener risk is explicit, and the managed allowlist continues to exclude it.
+
+## Post-acceptance device/software evidence maintenance — signage and AV networks
+
+BrightSign Series 5 players LS425, HD225, HD1025, XT245, and XC2055 now resolve as exact digital-signage hardware. BrightAuthor:connected configuration and commissioning are constrained to these reviewed models; BrightSignOS and legacy BrightAuthor Classic remain descriptive vendor workflow records and do not create an AVWT firmware or deployment route.
+
+Luminex GigaCore 10t, 10t-IP, and 30i now resolve as exact AV-network infrastructure. Araneo configuration, monitoring, and conditional firmware guidance are scoped only to these reviewed switches. NETGEAR M4250, M4300, M4350, and M4500 representatives resolve through their printed model/SKU aliases to the exact vendor-listed Engage Controller scope for discovery, configuration, monitoring, and conditional firmware guidance. Built-in switch web UIs, AV profiles, device firmware, and all cross-vendor endpoints remain separate technician workflows.
+
+## Post-acceptance device/software evidence maintenance — intercom matrices
+
+Clear-Com Eclipse HX-Delta, HX-Median, and HX-Omega now resolve as exact intercom-matrix identities with existing EHX and Dynam-EC configuration relationships. FreeSpeak II Base II resolves separately to the legacy FreeSpeak II Configuration Editor. RTS ADAM, ADAM-M, ODIN, and OMS resolve as exact vendor-scoped digital-matrix/OMNEO identities for NEO Intercom Management Suite configuration. Intercom protocols, keypanels, firmware, and connected systems are not inferred as desktop-software relationships; firmware and live configuration remain technician-controlled outside AVWT.
 
 Automated presentation coverage verifies readable AV acronym labels, exact-result ordering, stable canonical identity, complete scrollable results, explicit unresolved wording, and read-only navigation. Human visual/accessibility acceptance remains a separate gate and must not be inferred from the structural WPF smoke test.
 

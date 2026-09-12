@@ -294,6 +294,8 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
         if (value is HardwareDeviceCategory.AudioDsp) return "Audio DSP";
         if (value is HardwareDeviceCategory.AvOverIp) return "AV-over-IP";
         if (value is HardwareDeviceCategory.AvInterface) return "AV interface";
+        if (value is HardwareDeviceCategory.DigitalSignage) return "Digital signage";
+        if (value is HardwareDeviceCategory.NetworkInfrastructure) return "Network infrastructure";
         var text = value.ToString();
         return string.Concat(text.Select((character, index) => index > 0 && char.IsUpper(character) && char.IsLower(text[index - 1])
             ? $" {character}" : character.ToString()));

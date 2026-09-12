@@ -34,6 +34,8 @@ public enum HardwareDeviceCategory
     PowerDistribution,
     Wireless,
     Intercom,
+    DigitalSignage,
+    NetworkInfrastructure,
     Other
 }
 
