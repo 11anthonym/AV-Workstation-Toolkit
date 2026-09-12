@@ -52,6 +52,7 @@ public partial class App : System.Windows.Application
             IPackageDeliveryWorkflow? packageDelivery = null;
             IApplicationMenuWorkflow? applicationMenu = null;
             CompatibilityCatalogQueryService? compatibility = null;
+            IReferenceCatalogUpdateService? referenceCatalogUpdates = null;
             var productVersion = packagedContext?.Version ?? "Unknown";
             var executionMode = packagedContext is null ? "Source compiled runtime" : "Packaged compiled runtime";
             if (packagedContext is not null)
@@ -70,6 +71,7 @@ public partial class App : System.Windows.Application
                 packageDelivery = services.PackageDelivery;
                 applicationMenu = services.ApplicationMenu;
                 compatibility = services.Compatibility;
+                referenceCatalogUpdates = services.ReferenceCatalogUpdates;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
@@ -96,11 +98,12 @@ public partial class App : System.Windows.Application
                 packageDelivery = services.PackageDelivery;
                 applicationMenu = services.ApplicationMenu;
                 compatibility = services.Compatibility;
+                referenceCatalogUpdates = services.ReferenceCatalogUpdates;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
             var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
-                applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility);
+                applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility, referenceCatalogUpdates: referenceCatalogUpdates);
             var window = new MainWindow(viewModel, productVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();

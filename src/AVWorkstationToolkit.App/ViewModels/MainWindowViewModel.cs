@@ -24,6 +24,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IPackageDeliveryWorkflow? packageDeliveryWorkflow;
     private readonly IApplicationMenuWorkflow? applicationMenuWorkflow;
     private readonly CompatibilityCatalogQueryService? compatibilityService;
+    private readonly IReferenceCatalogUpdateService? referenceCatalogUpdates;
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
@@ -71,7 +72,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IPackageDeliveryWorkflow? packageDeliveryWorkflow = null,
         IApplicationMenuWorkflow? applicationMenuWorkflow = null,
         bool liveRehearsalMode = false,
-        CompatibilityCatalogQueryService? compatibilityService = null)
+        CompatibilityCatalogQueryService? compatibilityService = null,
+        IReferenceCatalogUpdateService? referenceCatalogUpdates = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -82,6 +84,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.packageDeliveryWorkflow = packageDeliveryWorkflow;
         this.applicationMenuWorkflow = applicationMenuWorkflow;
         this.compatibilityService = compatibilityService;
+        this.referenceCatalogUpdates = referenceCatalogUpdates;
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -122,6 +125,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ExportPlanCommand = new RelayCommand(_ => ExportPlan(), _ => plan is not null && !IsBusy && applicationMenuWorkflow is not null);
         OpenLogsCommand = new RelayCommand(_ => OpenLogs(), _ => !IsBusy && applicationMenuWorkflow is not null);
         SafetySecurityCommand = new RelayCommand(_ => SafetySecurityRequested?.Invoke());
+        CatalogUpdatesCommand = new RelayCommand(_ => CatalogUpdatesRequested?.Invoke(referenceCatalogUpdates!), _ => referenceCatalogUpdates is not null);
         AboutCommand = new RelayCommand(_ => AboutRequested?.Invoke());
     }
 
@@ -146,12 +150,14 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand ExportPlanCommand { get; }
     public RelayCommand OpenLogsCommand { get; }
     public RelayCommand SafetySecurityCommand { get; }
+    public RelayCommand CatalogUpdatesCommand { get; }
     public RelayCommand AboutCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
     public event Action<CatalogDetailViewModel>? DetailRequested;
     public event Action<CompatibilityDetailViewModel>? CompatibilityDetailRequested;
     public event Action<DiagnosticsViewModel>? DiagnosticsRequested;
     public event Action? SafetySecurityRequested;
+    public event Action<IReferenceCatalogUpdateService>? CatalogUpdatesRequested;
     public event Action? AboutRequested;
 
     public bool IsBusy

@@ -19,7 +19,9 @@ Packaged execution keeps application-owned mutable state beneath
 - user-exported plans, diagnostics, and workstation snapshots;
 - trusted SFTP host fingerprints;
 - downloaded vendor payloads and their hash/publisher metadata, when an
-  operator explicitly requests an allowed download.
+  operator explicitly requests an allowed download;
+- signed descriptive reference-catalog revisions, validation state, staging,
+  and quarantine evidence when catalog updates are configured or imported.
 
 The installer deliberately leaves this per-user evidence after uninstall so
 an operator can review retention requirements. A packaged launch can read a
@@ -41,6 +43,7 @@ installed software, devices, services, drivers, listeners, and network state.
 | Vendor page handoff | Explicit **Open vendor download** action | Catalogued official HTTPS URI opened in the user's default browser | Browser-controlled request data | Vendor web page |
 | Controlled HTTPS package download | Explicit confirmation for an eligible manual external package | Catalogued HTTPS source and allowlisted redirect hosts | Normal TLS/HTTP request metadata and product user agent | One size-bounded installer written first as a scoped temporary cache file, then accepted only after publisher validation |
 | SFTP catalog metadata | Startup/manual refresh for the configured parent-provider catalog | Catalogued HTTPS catalog endpoint | Normal TLS/HTTP request metadata | Size-bounded product metadata |
+| Signed reference-catalog check/update | Explicit **Check now** or **Update catalog** action after an owner configures the production channel | Two exact signed-metadata URLs and one signed-bundle URL on a compiled HTTPS host allowlist | Normal TLS/HTTP GET request metadata; no inventory, credentials, diagnostics, or user data | Bounded signed metadata/signature and a bounded descriptive `.avwtcatalog` bundle |
 | SFTP host probe | Explicit authenticated-provider workflow | Catalogued SFTP host and port | SSH negotiation without a saved password | Presented SSH host key/fingerprint |
 | Authenticated SFTP test or download | Explicit operator action after host-key approval and credential entry or saved-credential selection | Catalogued SFTP host, port, remote root, and allowlisted product path | Username and password through encrypted SSH authentication, plus the bounded file request | Authentication result or one size-bounded installer |
 | WinGet install/update | Explicit approved package action | WinGet's pinned `winget` source and package-specific installer path | One exact allowlisted package ID and normal WinGet/source request data | Package metadata and the publisher's installer through WinGet |
@@ -49,6 +52,13 @@ installed software, devices, services, drivers, listeners, and network state.
 AV Workstation Toolkit has no runtime GitHub update checker. Repository and
 release links are opened only through the user's browser. It has no generic
 HTTP upload, POST, PUT, PATCH, web-hook, telemetry, or analytics path.
+
+The signed reference-catalog transport is currently fail-closed and
+unconfigured because this repository is private and the application must not
+embed a GitHub credential. If enabled later, it can contact only the exact
+public HTTPS origins compiled into the signed application, follows no
+redirects, uses no ambient credentials, and runs only after an explicit user
+check. Offline import performs no network request.
 
 Because startup can automatically query WinGet and configured official vendor
 release pages, the project does not use the broader statement that every

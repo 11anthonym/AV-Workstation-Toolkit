@@ -71,6 +71,7 @@ Normal packaged operation can create or update only bounded application-owned co
 │   └── requests            constrained requests, progress, result, cancel, and WinGet logs
 ├── reports                 exported plan and sanitized diagnostics JSON
 ├── vendor-cache            bounded downloads, `.download` staging, hashes, and verified files
+├── ReferenceCatalog        signed descriptive catalog revisions, atomic state, staging, and quarantine
 ├── trusted-sftp-hosts.json pinned host identities
 ├── snapshots               optional read-only workstation evidence bundles
 └── launcher-error.log      launcher failures when startup cannot continue

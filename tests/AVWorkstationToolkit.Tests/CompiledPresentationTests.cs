@@ -654,6 +654,27 @@ public sealed class CompiledPresentationTests
         Assert.AreEqual(catalog.Items.Count, catalog.Items.Select(item => item.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count());
     }
 
+    [TestMethod]
+    public async Task CatalogUpdateMenuAndViewModelUseTypedNonExecutingUpdateService()
+    {
+        var service = new RecordingReferenceCatalogUpdateService();
+        using var main = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), referenceCatalogUpdates: service);
+        IReferenceCatalogUpdateService? requested = null;
+        main.CatalogUpdatesRequested += value => requested = value;
+        Assert.IsTrue(main.CatalogUpdatesCommand.CanExecute(null));
+        main.CatalogUpdatesCommand.Execute(null);
+        Assert.AreSame(service, requested);
+
+        var updates = new CatalogUpdateViewModel(service);
+        await updates.CheckAsync();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, updates.Status.State);
+        Assert.IsTrue(updates.InstallCommand.CanExecute(null));
+        await updates.InstallAsync();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, updates.Status.State);
+        Assert.AreEqual(1, service.InstallCalls);
+        Assert.IsFalse(updates.IsBusy);
+    }
+
     private static WorkstationPlan CreatePlan(
         PackageStatus updateStatus = PackageStatus.UpdateAvailable,
         bool rebootPending = false,
@@ -804,5 +825,26 @@ public sealed class CompiledPresentationTests
             OpenLogsCalls++;
             return "C:\\fixture\\logs";
         }
+    }
+
+    private sealed class RecordingReferenceCatalogUpdateService : IReferenceCatalogUpdateService
+    {
+        public int InstallCalls { get; private set; }
+        public ReferenceCatalogUpdateStatus Status { get; private set; } = new(ReferenceCatalogUpdateState.Current, 0, "Embedded", 0, string.Empty, "Current");
+        public ReferenceCatalogSet LoadActiveOrEmbedded() => throw new AssertFailedException("Presentation commands must not reload catalog data directly.");
+        public Task<ReferenceCatalogUpdateStatus> CheckAsync(CancellationToken cancellationToken = default)
+        {
+            Status = new(ReferenceCatalogUpdateState.UpdateAvailable, 0, "Embedded", 1, "2026.9.12.1", "Available",
+                new(0, 0, 1, 1, 0, 0, 0, "One exact model added."));
+            return Task.FromResult(Status);
+        }
+        public Task<ReferenceCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default)
+        {
+            InstallCalls++;
+            Status = new(ReferenceCatalogUpdateState.Completed, 1, "2026.9.12.1", 0, string.Empty, "Installed");
+            return Task.FromResult(Status);
+        }
+        public Task<ReferenceCatalogUpdateStatus> ImportAsync(string bundlePath, CancellationToken cancellationToken = default) =>
+            throw new AssertFailedException("The update command must not use the offline import path.");
     }
 }

@@ -48,6 +48,7 @@ flowchart LR
 | `build/Compile-CommercialCatalog.ps1` | Strict UTF-8 source compilation, normalization, duplicate checks, policy invariants, and compiled-artifact drift detection |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV metadata for role, discipline, lifecycle, licensing, access, platform, and system impact |
 | `manifests/process-launch-policy.json` | Embedded regression contract for every process category AV Workstation Toolkit intentionally starts; descriptive only and never an execution-authority input |
+| `ReferenceCatalog` under the per-user data root | Optional signed descriptive hardware/software catalog revisions, atomic state, and quarantine; never a package or execution authority input |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Explicit redistribution gate plus payload hash and signer capture for authorized offline bundles |
 | `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavioral characterization oracle and repository tooling; not packaged |
 | `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization fixture; not packaged |
@@ -89,6 +90,7 @@ The normal endpoint process tree, file/registry/network behavior, false-positive
 24. Schema 3 metadata uses validated vocabularies and explicit unknowns. Licensing, access, lifecycle, platform, and system impact cannot be smuggled into uncontrolled fields or interpreted as deployment approval.
 25. `Awareness` rows and records with no Windows detection mode can be searched and linked to official pages but can never become install/update actions.
 26. A `ParentProvider` child must reference an existing authenticated provider and one product in its allowlist. Host, feed, remote root, size, and publisher controls are inherited; independent child credentials are impossible.
+27. An external reference catalog is loaded only after ECDSA signature, SHA-256, strict schema, identity, count, cross-reference, application-version, revision-chain, size, path, and reparse checks. Failure falls back to a previous signed or embedded catalog. Catalog updates contain no package, delivery, credential, command, or worker authority.
 
 Catalog validation fails closed on missing fields, duplicate IDs, unknown profiles/risks, and product terms matching the security/management exclusion pattern.
 

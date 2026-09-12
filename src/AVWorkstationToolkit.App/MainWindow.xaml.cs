@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AVWorkstationToolkit.App.ViewModels;
+using AVWorkstationToolkit.Application.Compatibility;
 
 namespace AVWorkstationToolkit.App;
 
@@ -32,6 +33,7 @@ public partial class MainWindow : Window
         viewModel.CompatibilityDetailRequested += ShowCompatibilityDetail;
         viewModel.DiagnosticsRequested += ShowDiagnostics;
         viewModel.SafetySecurityRequested += ShowSafetySecurity;
+        viewModel.CatalogUpdatesRequested += ShowCatalogUpdates;
         viewModel.AboutRequested += ShowAbout;
         Loaded += MainWindow_Loaded;
         Closed += (_, _) =>
@@ -40,6 +42,7 @@ public partial class MainWindow : Window
             viewModel.CompatibilityDetailRequested -= ShowCompatibilityDetail;
             viewModel.DiagnosticsRequested -= ShowDiagnostics;
             viewModel.SafetySecurityRequested -= ShowSafetySecurity;
+            viewModel.CatalogUpdatesRequested -= ShowCatalogUpdates;
             viewModel.AboutRequested -= ShowAbout;
             viewModel.Dispose();
         };
@@ -76,7 +79,7 @@ public partial class MainWindow : Window
             "BrandMark", "TopMenu", "RebootBanner", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
             "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
-            "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
+            "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
         {
@@ -170,7 +173,7 @@ public partial class MainWindow : Window
             "BrandMark", "TopMenu", "SidebarScroll", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog", "FollowActivityCheckBox",
             "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
-            "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "AboutMenuItem"
+            "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
         {
@@ -184,7 +187,8 @@ public partial class MainWindow : Window
         if (FindSoftwareAndDevicesHeading.Text != "FIND SOFTWARE & DEVICES" ||
             !FindSoftwareAndDevicesHint.Text.Contains("device model", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Compiled production smoke did not expose the software and device search guidance.");
-        if (!ExportPlanMenuItem.IsEnabled || !OpenLogsMenuItem.IsEnabled || !SafetySecurityMenuItem.IsEnabled || !AboutMenuItem.IsEnabled)
+        if (!ExportPlanMenuItem.IsEnabled || !OpenLogsMenuItem.IsEnabled || !SafetySecurityMenuItem.IsEnabled ||
+            !CatalogUpdatesMenuItem.IsEnabled || !AboutMenuItem.IsEnabled)
             throw new InvalidOperationException("Compiled production smoke found a required application menu command disabled.");
         new SafetySecurityWindow().VerifySmokeContract();
         new AboutWindow(productVersion, executionMode).VerifySmokeContract();
@@ -393,6 +397,12 @@ public partial class MainWindow : Window
     {
         if (!allowDialogs) return;
         new SafetySecurityWindow { Owner = this }.ShowDialog();
+    }
+
+    private void ShowCatalogUpdates(IReferenceCatalogUpdateService service)
+    {
+        if (!allowDialogs) return;
+        new CatalogUpdateWindow(new CatalogUpdateViewModel(service)) { Owner = this }.ShowDialog();
     }
 
     private void ShowAbout()

@@ -105,6 +105,12 @@ $compiledReadOnlySurfaceSource = @(
 $compiledReadOnlySurfaceSource = $compiledReadOnlySurfaceSource -join "`n"
 $compiledVendorSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors') -File -Filter '*.cs' |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+$referenceCatalogSource = @(
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain\Catalog') -File -Filter 'ReferenceCatalog*.cs'
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Compatibility') -File -Filter 'ReferenceCatalog*.cs'
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog') -File -Filter 'ReferenceCatalog*.cs'
+) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
+$referenceCatalogSource = $referenceCatalogSource -join "`n"
 $protocolStorePath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionProtocolStore.cs'
 $protocolStoreSource = Get-Content -LiteralPath $protocolStorePath -Raw
 $workerProtocolPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionWorkerFileProtocol.cs'
@@ -239,6 +245,21 @@ if ($compiledVendorSource -notmatch 'AllowAutoRedirect\s*=\s*false' -or
     $compiledVendorSource.IndexOf('ProbeHostFingerprintAsync',[StringComparison]::Ordinal) -gt $compiledVendorSource.IndexOf('credentials.Read',[StringComparison]::Ordinal) -or
     $compiledVendorSource -notmatch 'WinVerifyTrust|IAuthenticodeSignatureInspector') {
     throw 'The compiled vendor boundary lost redirect, host-key-before-credential, or signature-verification controls.'
+}
+if ($referenceCatalogSource -match 'ProcessStartInfo|Process\.Start|ShellExecute|System\.Management\.Automation|WindowsVendorCredentialStore|ActionProtocolStore|WinGetMutationProcessRunner' -or
+    $referenceCatalogSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall)async\s*\(') {
+    throw 'The signed descriptive reference-catalog boundary gained process, credential, worker, or package-mutation authority.'
+}
+if ($referenceCatalogSource -notmatch 'ECDsa' -or
+    $referenceCatalogSource -notmatch 'CryptographicOperations\.FixedTimeEquals' -or
+    $referenceCatalogSource -notmatch 'UnmappedMemberHandling\s*=\s*JsonUnmappedMemberHandling\.Disallow' -or
+    $referenceCatalogSource -notmatch 'entry\.FullName\s*!=\s*entry\.Name' -or
+    $referenceCatalogSource -notmatch 'MaximumBundleBytes' -or
+    $referenceCatalogSource -notmatch 'AllowAutoRedirect\s*=\s*false' -or
+    $referenceCatalogSource -notmatch 'UseDefaultCredentials\s*=\s*false' -or
+    $referenceCatalogSource -notmatch 'PreviousRevision' -or
+    $referenceCatalogSource -notmatch 'quarantine') {
+    throw 'The signed reference-catalog boundary lost signature, schema, ZIP, transport, rollback, or recovery controls.'
 }
 $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw

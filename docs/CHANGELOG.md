@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-12 — Signed reference-catalog update boundary
+
+- Added a compiled ECDSA P-256 signed `.avwtcatalog` verifier, strict manifest/channel schemas, bounded HTTPS and ZIP handling, anti-rollback revision chaining, atomic per-user activation, startup revalidation, quarantine, previous-revision recovery, and embedded fallback.
+- Added `Help > Catalog updates` with asynchronous check, update, and signed offline-import commands; descriptive catalog updates remain unable to change package, download, credential, worker, or execution authority.
+- Left production online updates fail-closed and unconfigured until the owner supplies a public unauthenticated HTTPS origin and externally protected catalog signing keys; the private repository is not used as a credentialed desktop feed.
+
 ## 2026-09-05 — SignPath release-path preparation
 
 - Replaced tagged CI's secret PFX import with a least-privilege, immutable-pinned GitHub Actions to SignPath workflow that signs the worker, deep-signs the launcher inside the MSI, and signs the MSI envelope.

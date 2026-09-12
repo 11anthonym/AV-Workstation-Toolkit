@@ -1879,7 +1879,7 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     } | ForEach-Object {
         $_.FullName.Substring($repositoryRoot.Length).TrimStart('\').Replace('\','/')
     } | Sort-Object -Unique)
-    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorExternalReleaseInventory.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
+    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Catalog/ReferenceCatalogChannelClient.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorExternalReleaseInventory.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
     $migrationHttps = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorHttpsDownloader.cs') -Raw
     $migrationSftp = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorSftpDeliveryService.cs') -Raw
     Assert-True ($migrationHttps -match 'AllowAutoRedirect\s*=\s*false' -and $migrationHttps -match 'AllowedHosts\.Contains' -and
@@ -1890,6 +1890,7 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     Assert-True ($privacy -match 'no\s+telemetry, analytics, advertising, crash-reporting service' -and
         $privacy -match 'Automatic during startup refresh' -and
         $privacy -match 'no runtime GitHub update checker' -and
+        $privacy -match 'signed reference-catalog transport is currently fail-closed and\s+unconfigured' -and
         $privacy -match 'no generic\s+HTTP upload, POST, PUT, PATCH' -and
         $privacy -match 'encrypted SSH protocol') 'Privacy policy does not describe the audited telemetry, startup-network, upload, or credential behavior.'
     Assert-True ($privacy -notmatch 'This program will not transfer any information to other networked systems unless specifically requested') 'Privacy policy makes a false user-request-only network claim despite automatic startup checks.'
