@@ -111,6 +111,9 @@ $referenceCatalogSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog') -File -Filter 'ReferenceCatalog*.cs'
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $referenceCatalogSource = $referenceCatalogSource -join "`n"
+$catalogPublisherSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tools\AVWorkstationToolkit.CatalogPublisher') -File |
+    Where-Object { $_.Extension -in @('.cs','.csproj') } |
+    ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 $protocolStorePath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionProtocolStore.cs'
 $protocolStoreSource = Get-Content -LiteralPath $protocolStorePath -Raw
 $workerProtocolPath = Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ActionWorkerFileProtocol.cs'
@@ -261,6 +264,17 @@ if ($referenceCatalogSource -notmatch 'ECDsa' -or
     $referenceCatalogSource -notmatch 'quarantine') {
     throw 'The signed reference-catalog boundary lost signature, schema, ZIP, transport, rollback, or recovery controls.'
 }
+if ($catalogPublisherSource -match '\bnew\s+ProcessStartInfo|Process\.Start|ShellExecute|HttpClient|SftpClient|WindowsVendorCredentialStore|ActionProtocolStore|WinGetMutationProcessRunner' -or
+    $catalogPublisherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|BEGIN (?:EC |)PRIVATE KEY') {
+    throw 'The private catalog publisher gained process, network, credential, worker, package, or embedded-key authority.'
+}
+if ($catalogPublisherSource -notmatch 'ReferenceCatalogBundleVerifier' -or
+    $catalogPublisherSource -notmatch 'ReferenceCatalogChannelVerifier' -or
+    $catalogPublisherSource -notmatch 'AcknowledgeRisk' -or
+    $catalogPublisherSource -notmatch 'managed-applications\.json' -or
+    $catalogPublisherSource -notmatch 'private key must remain outside the repository') {
+    throw 'The private catalog publisher lost round-trip, change-acknowledgement, authority-isolation, or key-containment controls.'
+}
 $shippingCompositionSource = @(
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
     Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
@@ -285,6 +299,9 @@ if ($shippingCompositionSource -notmatch 'AVWorkstationToolkit\.Worker' -or
     $launcherSource -match '(?i)LegacyPowerShellRecovery|--vendor-bridge|powershell\.exe' -or
     $projectSource -match 'AVWorkstationToolkit\.Payload\.(?:app|scripts)/') {
     throw 'The release composition does not contain only the compiled App/worker and reviewed data runtime.'
+}
+if ($shippingCompositionSource -match 'AVWorkstationToolkit\.CatalogPublisher') {
+    throw 'The private reference-catalog publisher entered production package composition.'
 }
 if ($readOnlyRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $readOnlyRunnerSource -notmatch 'RedirectStandardOutput\s*=\s*true' -or

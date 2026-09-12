@@ -192,6 +192,14 @@
           "AVWorkstationToolkit.Domain": "[1.0.0, )"
         }
       },
+      "avworkstationtoolkit.catalogpublisher": {
+        "type": "Project",
+        "dependencies": {
+          "AVWorkstationToolkit.Application": "[1.0.0, )",
+          "AVWorkstationToolkit.Domain": "[1.0.0, )",
+          "AVWorkstationToolkit.Infrastructure.Windows": "[1.0.0, )"
+        }
+      },
       "avworkstationtoolkit.development": {
         "type": "Project",
         "dependencies": {

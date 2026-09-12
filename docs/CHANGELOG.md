@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026-09-12 — Signed reference-catalog publisher
+
+- Added the private-side catalog publisher with deterministic snapshot/channel metadata, explicit change-risk acknowledgement, runtime-verifier round trips, and no remote publishing or operational authority.
+
 ## 2026-09-12 — Signed reference-catalog update boundary
 
 - Added a compiled ECDSA P-256 signed `.avwtcatalog` verifier, strict manifest/channel schemas, bounded HTTPS and ZIP handling, anti-rollback revision chaining, atomic per-user activation, startup revalidation, quarantine, previous-revision recovery, and embedded fallback.

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -9,17 +10,8 @@
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MSTest" Version="4.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AVWorkstationToolkit.Development\AVWorkstationToolkit.Development.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Domain\AVWorkstationToolkit.Domain.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />
     <ProjectReference Include="..\..\src\AVWorkstationToolkit.Infrastructure.Windows\AVWorkstationToolkit.Infrastructure.Windows.csproj" />
-    <ProjectReference Include="..\..\src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj" />
-    <ProjectReference Include="..\..\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstationToolkit.CatalogPublisher.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 </Project>

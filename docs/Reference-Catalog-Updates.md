@@ -61,12 +61,12 @@ Before enabling production updates, the repository owner must provide all of the
 2. The exact production `catalog-channel.json` and `catalog-channel.sig` URLs and the complete approved host set.
 3. An ECDSA P-256 catalog-signing public key, its `SigningKeyId`, and preferably a second rollover public key. Only public keys are committed. Private keys must stay in an external protected signing service or CI secret boundary.
 4. A signing/publishing approval policy, initial revision/version, expiration interval, and immutable retention policy for published bundles.
-5. A source-controlled publishing job that runs existing manifest/schema/authority tests, generates `catalog-changes.json`, verifies `PreviousRevision`, signs metadata with the external private key, and publishes the exact tested bytes. It must not reuse the application signing key.
+5. An owner-controlled publishing job that invokes the repository's documented private-side publisher and transfers its already-tested bytes to the public static origin without rebuilding them. It must not reuse the application signing key.
 
-After those values are supplied, production composition can instantiate `ReferenceCatalogChannelClient` with the exact policy and trusted public keys. This is the only remaining repository integration step; no schema or UI redesign is required.
+The offline publisher and its immutable output contract are documented in [Reference-Catalog-Publishing.md](Reference-Catalog-Publishing.md). After the remaining owner values are supplied, production composition can instantiate `ReferenceCatalogChannelClient` with the exact policy and trusted public keys. No schema or UI redesign is required.
 
 ## Verification
 
-Automated coverage exercises successful signed import, signed online check/download/activation, offline behavior, rollback, invalid signature, corrupt hash, unsafe/extra ZIP entries, oversized input, unknown execution-shaped JSON, unsupported application version, unapproved bundle origin, active-file tampering, malformed state, previous/embedded fallback, and the actual WPF menu/ViewModel command path.
+Automated coverage exercises publisher bootstrap and previous-catalog builds, deterministic unsigned payloads, change/risk analysis, runtime bundle/channel round trips, successful signed import, signed online check/download/activation, offline behavior, rollback, invalid signature, corrupt hash, unsafe/extra ZIP entries, oversized input, unknown execution-shaped JSON, unsupported application version, unapproved bundle origin, active-file tampering, malformed state, previous/embedded fallback, and the actual WPF menu/ViewModel command path.
 
 Human packaged-app verification remains pending: open `Help > Catalog updates`, verify the disabled/unconfigured online state, keyboard access, resize/high-DPI layout, rejection of an unsigned test bundle, and—after real trust anchors are provided—a successful signed update followed by restart and exact-model lookup.
