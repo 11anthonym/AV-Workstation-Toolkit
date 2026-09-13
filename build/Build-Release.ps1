@@ -37,6 +37,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Release-PathPolicy.ps1')
 
 if ($TimestampServer.Scheme -ne [Uri]::UriSchemeHttps -or -not [string]::IsNullOrEmpty($TimestampServer.UserInfo)) {
     throw 'TimestampServer must be an absolute HTTPS URI without embedded credentials.'
@@ -65,7 +66,7 @@ if ($BuildChannel -eq 'Production' -and [string]::IsNullOrWhiteSpace($ReferenceC
     throw 'Production release builds require a signed embedded .avwtcatalog baseline.'
 }
 if (-not [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) {
-    if (-not [IO.Path]::IsPathFullyQualified($ReferenceCatalogBaselinePath)) {
+    if (-not (Test-FullyQualifiedWindowsPath -Path $ReferenceCatalogBaselinePath)) {
         throw 'ReferenceCatalogBaselinePath must be an absolute input path.'
     }
     $ReferenceCatalogBaselinePath = [IO.Path]::GetFullPath($ReferenceCatalogBaselinePath)

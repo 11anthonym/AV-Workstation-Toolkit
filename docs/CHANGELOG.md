@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-13 — Windows PowerShell 5.1 release-path compatibility
+
+- Replaced the unavailable `.NET Path.IsPathFullyQualified` release check with a Windows PowerShell 5.1-compatible strict drive/UNC path policy while preserving baseline reparse, extension, size, and fail-closed validation.
+- Added an actual `powershell.exe` regression covering accepted drive/UNC inputs and rejected relative, drive-relative, root-relative, malformed, and device-namespace paths.
+
 ## 2026-09-13 — Production reference-catalog public trust handoff
 
 - Compiled the owner-supplied ECDSA P-256 public key under the fixed `avwt-catalog-2026-a` identity and enabled the exact GitHub Pages metadata/signature channel in production composition.

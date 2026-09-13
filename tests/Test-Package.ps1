@@ -196,7 +196,7 @@ try {
         Assert-Equal 0 ([int]$manifest.NuGetAudit.VulnerablePackages) 'Release reports vulnerable NuGet packages.'
         Assert-Equal 'net10.0-windows' ([string]$manifest.Launcher.TargetFramework) 'Release launcher target framework differs.'
         Assert-Equal '10.0.11' ([string]$manifest.Launcher.RuntimeFrameworkVersion) 'Release launcher runtime patch differs.'
-        Assert-Equal 8 ([int]$manifest.EmbeddedPayloadFiles) 'Release manifest embedded payload count differs from seven manifests plus the compiled worker.'
+        Assert-Equal 9 ([int]$manifest.EmbeddedPayloadFiles) 'Release manifest embedded payload count differs from seven manifests plus the compiled worker and signed reference-catalog baseline.'
         Assert-Equal (Split-Path -Leaf $sbomPath) ([string]$manifest.Sbom.Name) 'Release SBOM filename differs.'
         Assert-Equal (Get-FileHash -LiteralPath $sbomPath -Algorithm SHA256).Hash ([string]$manifest.Sbom.Sha256) 'Release SBOM hash differs.'
         Assert-Equal (Split-Path -Leaf $checksumPath) ([string]$manifest.Checksums.Name) 'Release checksum filename differs.'

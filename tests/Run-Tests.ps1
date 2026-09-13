@@ -1555,6 +1555,9 @@ Invoke-Check 'Clone build entry point and tagged-release workflow publish the st
     Assert-True (Test-Path -LiteralPath $buildEntryPath -PathType Leaf) 'Root one-command build entry point is missing.'
     $buildEntry = Get-Content -LiteralPath $buildEntryPath -Raw
     Assert-True ($buildEntry -match '(?i)build\\Build-Release\.ps1' -and $buildEntry -match '(?i)WindowsPowerShell\\v1\.0\\powershell\.exe') 'Root build entry point does not invoke the reviewed build script with inbox Windows PowerShell.'
+
+    $releasePathPolicyOutput = (& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $repositoryRoot 'tests\Test-ReleasePathPolicy.ps1') 2>&1 | Out-String)
+    Assert-True ($LASTEXITCODE -eq 0 -and $releasePathPolicyOutput -match 'RELEASE_PATH_POLICY_OK powershell=5\.1') 'Release path policy did not pass under Windows PowerShell 5.1.'
     Assert-True ($buildEntry -match '(?i)-ExecutionPolicy\s+RemoteSigned' -and $buildEntry -notmatch '(?i)-ExecutionPolicy\s+Bypass') 'Root build entry point weakens PowerShell execution policy.'
     Assert-True ($buildEntry -match '(?i)set\s+"PSModulePath="') 'Root build entry point can inherit an incompatible PowerShell 7 module path.'
     $releaseWorkflow = Get-Content -LiteralPath (Join-Path $repositoryRoot '.github\workflows\release.yml') -Raw
