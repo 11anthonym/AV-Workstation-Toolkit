@@ -240,15 +240,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         : compatibilityMatches.Count == 1 ? "1 compatibility match" : $"{compatibilityMatches.Count} compatibility matches";
     internal Task SearchCompletion => searchCompletion;
     internal static int LiveCompatibilityResultLimit => CompatibilityResultLimit;
-    public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) RebuildVisible(); } }
-    public bool FieldProfile { get => fieldProfile; set { if (SetProperty(ref fieldProfile, value)) RebuildVisible(); } }
-    public bool DeveloperProfile { get => developerProfile; set { if (SetProperty(ref developerProfile, value)) RebuildVisible(); } }
-    public bool OptionalProfile { get => optionalProfile; set { if (SetProperty(ref optionalProfile, value)) RebuildVisible(); } }
-    public FilterOption<PackagePriority?> SelectedPriority { get => selectedPriority; set { if (SetProperty(ref selectedPriority, value)) RebuildVisible(); } }
-    public FilterOption<CatalogPreset> SelectedCatalogPreset { get => selectedCatalogPreset; set { if (SetProperty(ref selectedCatalogPreset, value)) RebuildVisible(); } }
-    public FilterOption<string> SelectedManufacturer { get => selectedManufacturer; set { if (SetProperty(ref selectedManufacturer, value)) RebuildVisible(); } }
-    public FilterOption<CatalogDiscipline> SelectedDiscipline { get => selectedDiscipline; set { if (SetProperty(ref selectedDiscipline, value)) RebuildVisible(); } }
-    public FilterOption<PackageRole?> SelectedRole { get => selectedRole; set { if (SetProperty(ref selectedRole, value)) RebuildVisible(); } }
+    public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) SearchStateChanged(); } }
+    public bool FieldProfile { get => fieldProfile; set { if (SetProperty(ref fieldProfile, value)) SearchStateChanged(); } }
+    public bool DeveloperProfile { get => developerProfile; set { if (SetProperty(ref developerProfile, value)) SearchStateChanged(); } }
+    public bool OptionalProfile { get => optionalProfile; set { if (SetProperty(ref optionalProfile, value)) SearchStateChanged(); } }
+    public FilterOption<PackagePriority?> SelectedPriority { get => selectedPriority; set { if (SetProperty(ref selectedPriority, value)) SearchStateChanged(); } }
+    public FilterOption<CatalogPreset> SelectedCatalogPreset { get => selectedCatalogPreset; set { if (SetProperty(ref selectedCatalogPreset, value)) SearchStateChanged(); } }
+    public FilterOption<string> SelectedManufacturer { get => selectedManufacturer; set { if (SetProperty(ref selectedManufacturer, value)) SearchStateChanged(); } }
+    public FilterOption<CatalogDiscipline> SelectedDiscipline { get => selectedDiscipline; set { if (SetProperty(ref selectedDiscipline, value)) SearchStateChanged(); } }
+    public FilterOption<PackageRole?> SelectedRole { get => selectedRole; set { if (SetProperty(ref selectedRole, value)) SearchStateChanged(); } }
 
     public QuickView QuickView
     {
@@ -382,7 +382,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         sortMemberPath = memberPath;
         OnPropertyChanged(nameof(SortMemberPath));
         OnPropertyChanged(nameof(SortDirection));
-        RebuildVisible();
+        SearchStateChanged();
     }
 
     public void ClearSelection()
@@ -402,6 +402,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ApplyPlan(WorkstationPlan result, IReadOnlySet<string> selectedIds, string? selectedRowId)
     {
+        InvalidatePendingSearch();
         RiskAcknowledged = false;
         var retainedManufacturer = SelectedManufacturer.Value;
         plan = result;
@@ -420,8 +421,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ManufacturerOptions.Add(new("All manufacturers", "All"));
         foreach (var vendor in CatalogQueryService.Manufacturers(result.Packages.Select(item => item.Package)))
             ManufacturerOptions.Add(new(vendor, vendor));
-        SelectedManufacturer = ManufacturerOptions.FirstOrDefault(item => item.Value.Equals(retainedManufacturer, StringComparison.OrdinalIgnoreCase))
-            ?? ManufacturerOptions[0];
+        SetProperty(ref selectedManufacturer,
+            ManufacturerOptions.FirstOrDefault(item => item.Value.Equals(retainedManufacturer, StringComparison.OrdinalIgnoreCase))
+                ?? ManufacturerOptions[0],
+            nameof(SelectedManufacturer));
         RebuildVisible();
         SelectedRow = selectedRowId is null
             ? null
@@ -431,6 +434,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(WarningVisible));
         OnPropertyChanged(nameof(WarningText));
         DiagnosticsCommand.RaiseCanExecuteChanged();
+        ScheduleSearch(useTextDebounce: false);
     }
 
     private void RebuildVisible()
@@ -470,7 +474,20 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         UpdateStatusText();
     }
 
-    private void ScheduleSearch()
+    private void SearchStateChanged()
+    {
+        ScheduleSearch(useTextDebounce: false, rebuildVisibleImmediately: true);
+    }
+
+    private void InvalidatePendingSearch()
+    {
+        Interlocked.Increment(ref searchGeneration);
+        var previous = Interlocked.Exchange(ref searchCancellation, null);
+        previous?.Cancel();
+        previous?.Dispose();
+    }
+
+    private void ScheduleSearch(bool useTextDebounce = true, bool rebuildVisibleImmediately = false)
     {
         var query = SearchText.Trim();
         var generation = Interlocked.Increment(ref searchGeneration);
@@ -478,16 +495,21 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         var previous = Interlocked.Exchange(ref searchCancellation, current);
         previous?.Cancel();
         previous?.Dispose();
+        if (rebuildVisibleImmediately) RebuildVisible();
         SearchInProgress = query.Length >= 2;
         NotifySearchPresentationChanged();
-        searchCompletion = RunSearchAsync(CreateSearchRequest(query), generation, current.Token);
+        searchCompletion = RunSearchAsync(CreateSearchRequest(query), generation, useTextDebounce, current.Token);
     }
 
-    private async Task RunSearchAsync(SearchRequest request, long generation, CancellationToken cancellationToken)
+    private async Task RunSearchAsync(
+        SearchRequest request,
+        long generation,
+        bool useTextDebounce,
+        CancellationToken cancellationToken)
     {
         try
         {
-            if (request.Query.Length >= 2 && searchDebounce > TimeSpan.Zero)
+            if (useTextDebounce && request.Query.Length >= 2 && searchDebounce > TimeSpan.Zero)
                 await Task.Delay(searchDebounce, cancellationToken).ConfigureAwait(false);
             var result = await Task.Run(() => ComputeSearch(request, cancellationToken), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -698,13 +720,17 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void SetQuickView(QuickView view)
     {
+        InvalidatePendingSearch();
         QuickView = view;
         RebuildVisible();
-        if (view == QuickView.All) return;
-        foreach (var item in packages) item.Selected = false;
-        var action = view == QuickView.Missing ? PackageAction.Install : PackageAction.Update;
-        foreach (var item in visiblePackages.Where(item => item.CanSelect && item.Action == action)) item.Selected = true;
-        UpdateSelectionState();
+        if (view != QuickView.All)
+        {
+            foreach (var item in packages) item.Selected = false;
+            var action = view == QuickView.Missing ? PackageAction.Install : PackageAction.Update;
+            foreach (var item in visiblePackages.Where(item => item.CanSelect && item.Action == action)) item.Selected = true;
+            UpdateSelectionState();
+        }
+        ScheduleSearch(useTextDebounce: false);
     }
 
     private void UpdateSelectionState()

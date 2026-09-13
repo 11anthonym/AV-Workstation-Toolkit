@@ -86,6 +86,103 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task InFlightSearchCannotOverwriteNewProfileAndFilterState()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Fixture";
+        var staleSearch = viewModel.SearchCompletion;
+
+        viewModel.StandardProfile = false;
+        viewModel.SelectedManufacturer = viewModel.ManufacturerOptions.Single(item => item.Value == "Vendor B");
+        viewModel.SelectedDiscipline = viewModel.DisciplineOptions.Single(item => item.Value == CatalogDiscipline.Control);
+        viewModel.SelectedRole = viewModel.RoleOptions.Single(item => item.Value == PackageRole.ControlProgramming);
+        viewModel.SelectedCatalogPreset = viewModel.CatalogPresetOptions.Single(item => item.Value == CatalogPreset.P1);
+        await viewModel.SearchCompletion;
+        await staleSearch;
+
+        Assert.HasCount(1, viewModel.VisiblePackages);
+        Assert.AreEqual("Fixture.Update", viewModel.VisiblePackages[0].Id);
+    }
+
+    [TestMethod]
+    public async Task InFlightSearchCannotOverwriteNewSortOrder()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Fixture";
+        var staleSearch = viewModel.SearchCompletion;
+
+        viewModel.SetSort("VendorSortKey", ListSortDirection.Descending);
+        await viewModel.SearchCompletion;
+        await staleSearch;
+
+        var vendors = viewModel.VisiblePackages.Select(item => item.VendorSortKey).ToArray();
+        CollectionAssert.AreEqual(vendors.OrderByDescending(value => value, StringComparer.OrdinalIgnoreCase).ToArray(), vendors);
+    }
+
+    [TestMethod]
+    public async Task RefreshInvalidatesSearchUsingPreviousPackageSnapshot()
+    {
+        using var viewModel = new MainWindowViewModel(
+            new QueueCoordinator(CreatePlan(), CreatePlan(updateStatus: PackageStatus.Current)),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "update";
+        var staleSearch = viewModel.SearchCompletion;
+
+        await viewModel.RefreshAsync();
+        await viewModel.SearchCompletion;
+        await staleSearch;
+
+        var refreshed = viewModel.Packages.Single(item => item.Id == "Fixture.Update");
+        Assert.AreEqual(PackageStatus.Current, refreshed.Status);
+        Assert.AreSame(refreshed, viewModel.VisiblePackages.Single());
+    }
+
+    [TestMethod]
+    public async Task QuickViewInvalidatesInFlightSearchBeforeSelectingCurrentRows()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Fixture";
+        var staleSearch = viewModel.SearchCompletion;
+
+        viewModel.QuickViewCommand.Execute("Missing");
+        await viewModel.SearchCompletion;
+        await staleSearch;
+
+        Assert.IsTrue(viewModel.IsMissingQuickView);
+        Assert.IsTrue(viewModel.VisiblePackages.Any(item => item.Id == "Fixture.Missing"));
+        Assert.IsFalse(viewModel.VisiblePackages.Any(item => item.Id == "Fixture.Update"));
+        Assert.AreEqual("Fixture.Missing", viewModel.Packages.Single(item => item.Selected).Id);
+    }
+
+    [TestMethod]
+    public async Task RapidTextAndStateChangesApplyOnlyNewestCompleteRequest()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(80));
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "Fixture";
+        viewModel.SelectedManufacturer = viewModel.ManufacturerOptions.Single(item => item.Value == "Vendor B");
+        viewModel.SearchText = "update";
+        viewModel.SelectedPriority = viewModel.PriorityOptions.Single(item => item.Value == PackagePriority.P1);
+        viewModel.SelectedDiscipline = viewModel.DisciplineOptions.Single(item => item.Value == CatalogDiscipline.Control);
+        viewModel.SelectedRole = viewModel.RoleOptions.Single(item => item.Value == PackageRole.ControlProgramming);
+        viewModel.SetSort("ApplicationSortKey", ListSortDirection.Ascending);
+
+        await viewModel.SearchCompletion;
+
+        Assert.HasCount(1, viewModel.VisiblePackages);
+        Assert.AreEqual("Fixture.Update", viewModel.VisiblePackages[0].Id);
+        Assert.AreEqual("update", viewModel.SearchText);
+    }
+
+    [TestMethod]
     public async Task SuccessfulRefreshBuildsVisibleRowsAndSummary()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()));
