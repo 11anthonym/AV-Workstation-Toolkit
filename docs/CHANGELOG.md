@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-12 — Offline-first reference-catalog lifecycle hardening
+
+- Added production signed-embedded-baseline packaging, deterministic highest-compatible local selection, app-downgrade retention, quiet 24-hour background freshness checks, and offline import parity.
+- Serialized per-user catalog mutations, recovered complete interrupted activations, bounded stale staging/quarantine/obsolete compatible snapshots, and kept valid-but-incompatible signed catalogs out of quarantine.
+
 ## 2026-09-12 — Public reference-catalog feed preparation
 
 - Created the separate public, distribution-only `11anthonym/AVWT-Catalog` GitHub Pages feed with immutable revision layout checks and no signing keys or application source.

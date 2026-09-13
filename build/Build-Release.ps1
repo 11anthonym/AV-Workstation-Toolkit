@@ -24,6 +24,7 @@ param(
     [string]$SignedLauncherPath,
     [string]$SignedMsiPath,
     [string]$ExpectedSignerSubject,
+    [string]$ReferenceCatalogBaselinePath,
     [switch]$RequireSignature,
     [ValidateSet('Development','ReleaseCandidate','Production')]
     [string]$BuildChannel = 'Development',
@@ -55,8 +56,25 @@ if (($RequireSignature -or $BuildChannel -eq 'Production') -and
     [string]::IsNullOrWhiteSpace($ExpectedSignerSubject)) {
     throw 'Externally signed production artifacts require ExpectedSignerSubject.'
 }
-
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$canonicalReferenceCatalogBaseline = Join-Path $repositoryRoot 'catalog\reference\AVWT-Reference-Catalog.avwtcatalog'
+if ([string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath) -and (Test-Path -LiteralPath $canonicalReferenceCatalogBaseline -PathType Leaf)) {
+    $ReferenceCatalogBaselinePath = $canonicalReferenceCatalogBaseline
+}
+if ($BuildChannel -eq 'Production' -and [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) {
+    throw 'Production release builds require a signed embedded .avwtcatalog baseline.'
+}
+if (-not [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) {
+    if (-not [IO.Path]::IsPathFullyQualified($ReferenceCatalogBaselinePath)) {
+        throw 'ReferenceCatalogBaselinePath must be an absolute input path.'
+    }
+    $ReferenceCatalogBaselinePath = [IO.Path]::GetFullPath($ReferenceCatalogBaselinePath)
+    $baseline = Get-Item -LiteralPath $ReferenceCatalogBaselinePath -Force -ErrorAction Stop
+    if ($baseline.PSIsContainer -or $baseline.Extension -ine '.avwtcatalog' -or $baseline.Length -le 0 -or $baseline.Length -gt 4MB -or
+        ($baseline.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw 'ReferenceCatalogBaselinePath must identify a non-empty, direct .avwtcatalog file no larger than 4 MiB and not a reparse point.'
+    }
+}
 $versionPath = Join-Path $repositoryRoot 'VERSION'
 if ([string]::IsNullOrWhiteSpace($Version)) {
     $Version = (Get-Content -LiteralPath $versionPath -Raw).Trim()
@@ -423,6 +441,7 @@ if ($null -ne $certificate) {
 $embeddedPayloadFiles = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File -Filter '*.json'
     Get-Item -LiteralPath $workerPayloadPath
+    if (-not [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) { Get-Item -LiteralPath $ReferenceCatalogBaselinePath }
 )
 if ($embeddedPayloadFiles.Count -lt 6) {
     throw "The standalone executable would embed too few runtime files: $($embeddedPayloadFiles.Count)"
@@ -433,7 +452,8 @@ if ([string]::IsNullOrWhiteSpace($SignedLauncherPath)) {
     & $dotnetPath publish $launcherProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
         -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
         -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None `
-        "-p:WorkerPayloadPath=$workerPayloadPath" -o $stagingRoot
+        "-p:WorkerPayloadPath=$workerPayloadPath" `
+        "-p:ReferenceCatalogBaselinePath=$ReferenceCatalogBaselinePath" -o $stagingRoot
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit launcher publish failed.' }
 }
 else {

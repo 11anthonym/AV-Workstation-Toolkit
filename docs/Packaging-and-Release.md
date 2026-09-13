@@ -138,6 +138,7 @@ The repository contains no private key. To sign with an organization-approved co
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 `
   -CertificateThumbprint <approved-certificate-thumbprint> `
   -CertificateStore Auto `
+  -ReferenceCatalogBaselinePath C:\ApprovedCatalog\AVWT-Reference-Catalog.avwtcatalog `
   -RequireSignature `
   -BuildChannel Production
 

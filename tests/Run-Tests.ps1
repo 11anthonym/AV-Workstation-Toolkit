@@ -1488,6 +1488,7 @@ Invoke-Check 'Packaged launcher is compiled-only and retires stale legacy runtim
     Assert-True ($project -match '<UseWPF>true</UseWPF>' -and $project -match '<PublishTrimmed>false</PublishTrimmed>' -and
         $project -match 'ProjectReference Include="\.\.\\AVWorkstationToolkit\.App' -and
         $project -match 'WorkerPayloadPath' -and $project -match 'AVWorkstationToolkit\.Payload\.worker/AVWorkstationToolkit\.Worker\.exe' -and
+        $project -match 'ReferenceCatalogBaselinePath' -and $project -match 'AVWorkstationToolkit\.Payload\.reference-catalog/AVWT-Reference-Catalog\.avwtcatalog' -and
         $project -match '<EmbeddedResource' -and $project -match 'AVWorkstationToolkit\.Payload\.manifests/' -and
         $project -notmatch 'AVWorkstationToolkit\.Payload\.(?:app|scripts)/') 'Launcher project does not embed only the compiled App/worker and reviewed data resources.'
     Assert-True ($source -match 'GetManifestResourceNames' -and $source -match 'GetManifestResourceStream' -and $source -match 'SHA256\.HashData') 'Launcher does not extract and verify its embedded runtime.'

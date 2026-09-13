@@ -108,7 +108,7 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-Endpo
 Signed-release verification:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 -CertificateThumbprint <approved-thumbprint> -RequireSignature -BuildChannel Production
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 -CertificateThumbprint <approved-thumbprint> -ReferenceCatalogBaselinePath C:\ApprovedCatalog\AVWT-Reference-Catalog.avwtcatalog -RequireSignature -BuildChannel Production
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-Package.ps1 -RequireSignature
 ```
 

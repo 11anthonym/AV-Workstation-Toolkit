@@ -107,6 +107,8 @@ public partial class App : System.Windows.Application
             var window = new MainWindow(viewModel, productVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();
+            if (!smoke && !readOnlyCheck && referenceCatalogUpdates is not null)
+                _ = CheckCatalogFreshnessAfterStartupAsync(referenceCatalogUpdates);
             if (smoke)
             {
                 await viewModel.RefreshAsync().ConfigureAwait(true);
@@ -138,6 +140,20 @@ public partial class App : System.Windows.Application
     {
         using var identity = WindowsIdentity.GetCurrent();
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    private static async Task CheckCatalogFreshnessAfterStartupAsync(IReferenceCatalogUpdateService service)
+    {
+        try
+        {
+            // Local Device Lookup is already constructed and visible before any channel I/O begins.
+            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            _ = await service.CheckInBackgroundIfDueAsync().ConfigureAwait(false);
+        }
+        catch
+        {
+            // Automatic freshness is best-effort. Manual Check now remains available for diagnostics.
+        }
     }
 
 }

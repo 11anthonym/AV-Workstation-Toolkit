@@ -2,7 +2,9 @@
 
 ## Status
 
-AV Workstation Toolkit now contains the compiled, non-executing update boundary for descriptive hardware identity and software-compatibility data. The packaged application continues to start immediately from its embedded manifests. At startup it may instead load a previously activated external catalog only after revalidating that revision's signature, hashes, schemas, counts, and cross-references.
+AV Workstation Toolkit contains a compiled, non-executing update boundary for descriptive hardware identity and software-compatibility data. Device Lookup is offline-first: startup selects and fully validates local data before any network work is scheduled. Installed catalogs do not expire. A channel check can make newer reference data available after restart, but it is never required for startup or continued use.
+
+A production release must embed a complete signed `.avwtcatalog` at `reference-catalog/AVWT-Reference-Catalog.avwtcatalog`. It uses the same bundle verifier, signing-key allowlist, schema, revision, `CatalogVersion`, and `MinimumAppVersion` contract as imported/downloaded snapshots. The exact publicly distributable bundle may be reviewed into `catalog/reference/AVWT-Reference-Catalog.avwtcatalog`, or supplied explicitly with `-ReferenceCatalogBaselinePath`; `Build-Release.ps1 -BuildChannel Production` fails when neither is present. Development and CI builds may omit it and use the raw embedded manifests as an explicitly labelled **Development bootstrap** only; that path is not production-ready. No production private key is generated, stored, or consumed by the application build.
 
 The public production distribution origin is fixed at <https://11anthonym.github.io/AVWT-Catalog/>. Production composition contains the exact metadata URL, signature URL, and sole approved host, but `Help > Catalog updates` continues to report **Online channel not configured** until the owner supplies the real ECDSA P-256 public key. Offline import likewise fails closed until that public trust anchor is compiled into the signed application. No repository credential is used or accepted.
 
@@ -41,15 +43,42 @@ ReferenceCatalog\
 └── quarantine\
 ```
 
-When a valid previous signed revision exists, **Restore previous catalog** changes only the atomic active-state pointer. The rolled-back revision is suppressed so it is not immediately offered again, while any newer signed revision remains eligible. Online installation, offline import, and restore become effective for Device Lookup after the application restarts; startup revalidates the selected stored catalog before use.
+When a valid previous signed revision exists, **Restore previous catalog** changes only the atomic active-state pointer. The rolled-back revision is suppressed so it is not immediately selected or offered again, while a revision newer than the suppressed revision remains eligible. A prior local revision can be restored after a newer embedded baseline is introduced, and the signed embedded baseline can itself be the restore target. Online installation, offline import, and restore become effective for Device Lookup after the application restarts; startup revalidates the selected complete snapshot before use.
 
-Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, and then atomically replaces `state.json`. Existing revisions are never overwritten. Same/lower-revision activation is rejected; the only rollback is the explicit restore of a retained, revalidated previous revision. On startup, a damaged active revision is quarantined; the previous signed revision is attempted, then the embedded catalog is used. Malformed state also fails closed to the embedded catalog.
+Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, and then atomically replaces `state.json`. Existing revisions are never overwritten. Same/lower-revision activation is rejected; the only rollback is explicit restore. A per-user named mutex serializes install, import, restore, state replacement, quarantine, and cleanup across AVWT processes; downloads and removable/network-share reads occur before that lock is acquired. A complete directory left by interruption before the state-pointer write is recovered by the next local scan. Orphan staging and state-temporary files are removed under the lock, corrupt data alone is quarantined, and quarantine is bounded to eight entries. Active, previous, suppressed, selected, all valid-but-incompatible, and the three newest other compatible local revisions are retained; only older verified compatible snapshots outside that safety set are obsolete. A newer catalog that is merely incompatible with the running older app is never deleted.
+
+### Deterministic local selection
+
+Startup performs no HTTP operation and never merges revisions:
+
+1. Read the atomic per-user state. Quarantine malformed state, not signed catalogs.
+2. Fully verify the embedded signed baseline when present.
+3. Enumerate every retained positive revision and verify its signature, payload hashes, strict schemas, cross-references, counts, and app compatibility.
+4. Quarantine only tampered, corrupt, or structurally invalid revisions. A fully valid catalog whose `MinimumAppVersion` is newer than the running application remains in place as **valid but incompatible**.
+5. Exclude the explicitly suppressed rollback revision and older alternatives, except the explicitly selected active revision. Revisions newer than the suppressed revision remain eligible.
+6. Choose the highest compatible eligible complete snapshot across embedded and retained catalogs. A newer embedded baseline therefore outranks obsolete cached data; a newer compatible retained catalog outranks the embedded baseline.
+7. If no signed embedded baseline exists, development/bootstrap builds use their embedded raw manifests. A packaged signed baseline that exists but cannot be validated is a release error and never falls through to mutable raw data.
+
+Revision state and retained directories remain under the user profile. Replacing, moving, or deleting the standalone EXE neither moves nor deletes that state. Running the EXE from another folder or USB on the same account sees the same compatible per-user catalog; running it on a clean offline profile uses its embedded signed baseline. Catalog updates require no elevation and never write beside the executable.
+
+### Lifecycle decision matrix
+
+| Scenario | Effective catalog | Retention / network behavior |
+|---|---|---|
+| First launch, clean profile, offline | Signed embedded baseline | No request is made; Device Lookup is immediately usable. |
+| Compatible retained revision is newer | Highest compatible retained revision | Revalidated locally on every startup. |
+| App upgrade embeds a newer baseline | Newer embedded revision | Older signed local data remains available for explicit restore. |
+| Older app encounters newer valid local revision | Highest other compatible local/embedded revision | Newer incompatible revision stays intact and becomes eligible again after app upgrade. |
+| Active revision is corrupt | Previous/other compatible signed revision, then embedded baseline | Corrupt revision is quarantined; valid incompatible data is not. |
+| Online channel unavailable, invalid, expired, future-dated, or captive | Existing effective local catalog | Automatic failure is quiet/non-destructive; manual Check now reports failure. |
+| Signed import from USB, disk, or accessible share | Current catalog until restart | Exact normal verification/rollback/authority rules apply; tamper leaves current catalog untouched. |
+| Explicit restore | Valid prior local or embedded signed revision after restart | Rolled-back revision is suppressed; a genuinely newer revision remains offerable. |
 
 The update operation writes descriptive JSON and state only. It does not call WinGet, a worker, an installer, PowerShell, a shell, vendor delivery, Credential Manager, or firmware tooling.
 
 ## User flow
 
-`Help > Catalog updates` displays current and available revisions and a signed change summary. `Check now` is asynchronous. `Update catalog` is enabled only after a channel bundle has been downloaded and fully verified. `Import signed catalog` accepts only `.avwtcatalog`. A completed activation takes effect after restart so all read-only lookup projections switch together; partial in-memory merges are not allowed.
+`Help > Catalog updates` displays current and available revisions and a signed change summary. `Check now` is asynchronous. After the main window and local Device Lookup are available, a quiet background freshness check may run if no attempt has been recorded in approximately 24 hours. A failed attempt is recorded to prevent retry loops; an implausibly future timestamp suppresses automatic I/O rather than causing a storm. Automatic checking never activates or switches the running projection. `Update catalog` is enabled only after a channel bundle has been downloaded and fully verified. `Import signed catalog` accepts only `.avwtcatalog` from USB, local disk, or a normally accessible network share. A completed activation takes effect after restart so all read-only lookup projections switch together; partial in-memory merges are not allowed.
 
 Expected states are Current, Checking, Update available, Validating, Completed, Offline, Rejected, Application update required, and Online channel not configured. Offline or rejected updates leave the active catalog unchanged.
 

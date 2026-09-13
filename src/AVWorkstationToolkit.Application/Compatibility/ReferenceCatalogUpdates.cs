@@ -57,6 +57,8 @@ public interface IReferenceCatalogUpdateService
     ReferenceCatalogUpdateStatus Status { get; }
     ReferenceCatalogSet LoadActiveOrEmbedded();
     Task<ReferenceCatalogUpdateStatus> CheckAsync(CancellationToken cancellationToken = default);
+    Task<ReferenceCatalogUpdateStatus> CheckInBackgroundIfDueAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Status);
     Task<ReferenceCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default);
     Task<ReferenceCatalogUpdateStatus> ImportAsync(string bundlePath, CancellationToken cancellationToken = default);
     Task<ReferenceCatalogUpdateStatus> RestorePreviousAsync(CancellationToken cancellationToken = default);

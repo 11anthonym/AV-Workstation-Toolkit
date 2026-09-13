@@ -33,6 +33,7 @@
     <Copyright>Copyright © AV Workstation Toolkit contributors</Copyright>
     <NeutralLanguage>en-US</NeutralLanguage>
     <DotNetRuntimeNoticeRoot Condition="'$(DotNetRuntimeNoticeRoot)' == ''">$(NuGetPackageRoot)microsoft.netcore.app.runtime.win-x64\$(RuntimeFrameworkVersion)</DotNetRuntimeNoticeRoot>
+    <ReferenceCatalogBaselinePath Condition="'$(ReferenceCatalogBaselinePath)' == '' and Exists('..\..\catalog\reference\AVWT-Reference-Catalog.avwtcatalog')">..\..\catalog\reference\AVWT-Reference-Catalog.avwtcatalog</ReferenceCatalogBaselinePath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -53,6 +54,9 @@
     <EmbeddedResource Include="$(WorkerPayloadPath)" Condition="'$(WorkerPayloadPath)' != '' and Exists('$(WorkerPayloadPath)')">
       <LogicalName>AVWorkstationToolkit.Payload.worker/AVWorkstationToolkit.Worker.exe</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(ReferenceCatalogBaselinePath)" Condition="'$(ReferenceCatalogBaselinePath)' != '' and Exists('$(ReferenceCatalogBaselinePath)')">
+      <LogicalName>AVWorkstationToolkit.Payload.reference-catalog/AVWT-Reference-Catalog.avwtcatalog</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="$(DotNetRuntimeNoticeRoot)\LICENSE.TXT">
       <LogicalName>AVWorkstationToolkit.Payload.notices/DOTNET-LICENSE.txt</LogicalName>
     </EmbeddedResource>
@@ -69,5 +73,6 @@
     <Error Condition="!Exists('$(DotNetRuntimeNoticeRoot)\LICENSE.TXT')" Text="The .NET $(RuntimeFrameworkVersion) runtime license file is unavailable. Restore the locked release dependencies before building." />
     <Error Condition="!Exists('$(DotNetRuntimeNoticeRoot)\THIRD-PARTY-NOTICES.TXT')" Text="The .NET $(RuntimeFrameworkVersion) third-party notice file is unavailable. Restore the locked release dependencies before building." />
     <Error Condition="'$(WorkerPayloadPath)' != '' and !Exists('$(WorkerPayloadPath)')" Text="The reviewed compiled worker payload is unavailable." />
+    <Error Condition="'$(ReferenceCatalogBaselinePath)' != '' and !Exists('$(ReferenceCatalogBaselinePath)')" Text="The signed embedded reference-catalog baseline is unavailable." />
   </Target>
 </Project>

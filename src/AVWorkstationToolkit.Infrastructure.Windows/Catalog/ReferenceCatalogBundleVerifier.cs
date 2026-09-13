@@ -74,7 +74,6 @@ public sealed class ReferenceCatalogBundleVerifier
         var manifestBytes = files[ReferenceCatalogBundleNames.Manifest];
         var manifest = new ReferenceCatalogManifestParser().ParseManifest(Decode(manifestBytes, "manifest"));
         VerifySignature(manifest, manifestBytes, files[ReferenceCatalogBundleNames.Signature]);
-        EnsureCompatibleApplication(manifest.MinimumAppVersion);
         foreach (var payloadName in ReferenceCatalogBundleNames.PayloadFiles)
         {
             var actual = Convert.ToHexString(SHA256.HashData(files[payloadName]));
@@ -87,6 +86,9 @@ public sealed class ReferenceCatalogBundleVerifier
         var changes = new ReferenceCatalogManifestParser().ParseChanges(Decode(files[ReferenceCatalogBundleNames.Changes], "change summary"));
         _ = new CompatibilityCatalogQueryService(compatibility, new UnresolvedInstalledVersionEvidenceProvider(), hardware);
         ValidateCounts(manifest.Counts, hardware, compatibility);
+        // Compatibility is deliberately checked last. Reaching the specialized exception therefore
+        // means the signed snapshot is cryptographically and structurally valid, not corrupt.
+        EnsureCompatibleApplication(manifest.MinimumAppVersion, manifest.Revision);
         return new(manifest, changes, hardware, compatibility,
             files.ToDictionary(item => item.Key, item => item.Value.ToArray(), StringComparer.Ordinal));
     }
@@ -158,11 +160,11 @@ public sealed class ReferenceCatalogBundleVerifier
         catch (CryptographicException exception) { throw new CatalogValidationException($"Reference catalog signature verification failed: {exception.Message}"); }
     }
 
-    private void EnsureCompatibleApplication(string minimumVersion)
+    private void EnsureCompatibleApplication(string minimumVersion, long revision)
     {
         if (!Version.TryParse(policy.ApplicationVersion, out var application) || !Version.TryParse(minimumVersion, out var minimum))
             throw new CatalogValidationException("Reference catalog application-version policy is invalid.");
-        if (application < minimum) throw new ReferenceCatalogRequiresNewerApplicationException(minimumVersion);
+        if (application < minimum) throw new ReferenceCatalogRequiresNewerApplicationException(minimumVersion, revision);
     }
 
     private static void ValidateCounts(ReferenceCatalogCounts counts, HardwareIdentityCatalog hardware, SoftwareCompatibilityCatalog compatibility)
@@ -189,8 +191,9 @@ public sealed class ReferenceCatalogBundleVerifier
     }
 }
 
-public sealed class ReferenceCatalogRequiresNewerApplicationException(string minimumVersion)
+public sealed class ReferenceCatalogRequiresNewerApplicationException(string minimumVersion, long revision = 0)
     : Exception($"Reference catalog requires AV Workstation Toolkit {minimumVersion} or newer.")
 {
     public string MinimumVersion { get; } = minimumVersion;
+    public long Revision { get; } = revision;
 }

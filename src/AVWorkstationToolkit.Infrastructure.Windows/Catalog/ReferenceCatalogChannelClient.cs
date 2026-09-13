@@ -21,6 +21,7 @@ public sealed class ReferenceCatalogChannelClient : IReferenceCatalogChannelClie
     internal const int MaximumSignatureBytes = 1024;
     private readonly ReferenceCatalogChannelPolicy policy;
     private readonly HttpClient client;
+    private readonly TimeProvider timeProvider;
 
     public ReferenceCatalogChannelClient(ReferenceCatalogChannelPolicy policy)
         : this(policy, new HttpClientHandler
@@ -28,14 +29,19 @@ public sealed class ReferenceCatalogChannelClient : IReferenceCatalogChannelClie
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.None,
             UseDefaultCredentials = false
-        }, ownsHandler: true)
+        }, ownsHandler: true, TimeProvider.System)
     {
     }
 
-    internal ReferenceCatalogChannelClient(ReferenceCatalogChannelPolicy policy, HttpMessageHandler handler, bool ownsHandler = true)
+    internal ReferenceCatalogChannelClient(
+        ReferenceCatalogChannelPolicy policy,
+        HttpMessageHandler handler,
+        bool ownsHandler = true,
+        TimeProvider? timeProvider = null)
     {
         this.policy = ValidatePolicy(policy);
         client = new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler)), ownsHandler) { Timeout = policy.Timeout };
+        this.timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<ReferenceCatalogChannelPackage?> GetLatestAsync(long currentRevision, CancellationToken cancellationToken = default)
@@ -43,7 +49,7 @@ public sealed class ReferenceCatalogChannelClient : IReferenceCatalogChannelClie
         if (currentRevision < 0) throw new ArgumentOutOfRangeException(nameof(currentRevision));
         var metadataBytes = await GetExactAsync(policy.MetadataUri, MaximumMetadataBytes, cancellationToken).ConfigureAwait(false);
         var signatureBytes = await GetExactAsync(policy.SignatureUri, MaximumSignatureBytes, cancellationToken).ConfigureAwait(false);
-        var raw = new ReferenceCatalogChannelVerifier(policy.TrustedPublicKeys).Verify(metadataBytes, signatureBytes, DateTimeOffset.UtcNow);
+        var raw = new ReferenceCatalogChannelVerifier(policy.TrustedPublicKeys).Verify(metadataBytes, signatureBytes, timeProvider.GetUtcNow());
         if (raw.Revision <= currentRevision) return null;
 
         var bundleUri = raw.BundleUri;
