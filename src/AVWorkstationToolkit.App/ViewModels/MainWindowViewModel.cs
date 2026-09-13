@@ -11,6 +11,7 @@ using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.Application.Compatibility;
+using System.Windows.Threading;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
@@ -31,7 +32,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
     private readonly TimeSpan searchDebounce;
-    private readonly SynchronizationContext? uiContext;
+    private readonly Dispatcher? uiDispatcher;
     private IReadOnlyList<PackageRowViewModel> visiblePackages = [];
     private IReadOnlyList<CompatibilitySearchResultViewModel> compatibilityMatches = [];
     private IReadOnlyList<PackageRowViewModel> packageSearchSnapshot = [];
@@ -98,7 +99,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.referenceCatalogUpdates = referenceCatalogUpdates;
         this.searchDebounce = searchDebounce ?? DefaultSearchDebounce;
         if (this.searchDebounce < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(searchDebounce));
-        uiContext = SynchronizationContext.Current;
+        uiDispatcher = System.Windows.Application.Current?.Dispatcher;
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -443,14 +444,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ApplyVisibleRows(ComputeVisibleRows(CreateSearchRequest(SearchText)));
     }
 
-    private IReadOnlyList<PackageRowViewModel> ComputeVisibleRows(SearchRequest request)
+    private IReadOnlyList<PackageRowViewModel> ComputeVisibleRows(
+        SearchRequest request,
+        CancellationToken cancellationToken = default)
     {
         if (!request.HasPlan) return [];
+        cancellationToken.ThrowIfCancellationRequested();
         var profiles = new HashSet<PackageProfile>();
         if (request.StandardProfile) profiles.Add(PackageProfile.Standard);
         if (request.FieldProfile) profiles.Add(PackageProfile.Field);
         if (request.DeveloperProfile) profiles.Add(PackageProfile.Developer);
         if (request.OptionalProfile) profiles.Add(PackageProfile.Optional);
+        var rowsByPackage = request.PackageRows.ToDictionary(row => row.Package.Id, StringComparer.Ordinal);
         IEnumerable<PackageRowViewModel> rows = profiles.Count == 0 ? [] : queryService.Apply(
             request.PackageRows.Select(item => new CatalogQueryItem(item.Package, item.Status, item.State.Installed, item.State.AvailableVersion)),
             new CatalogQuery(
@@ -462,12 +467,14 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 request.Query,
                 request.QuickView,
                 request.CatalogPreset))
-            .Select(item => request.PackageRows.First(row => ReferenceEquals(row.Package, item.Package)));
+            .Select(item => rowsByPackage[item.Package.Id]);
+        cancellationToken.ThrowIfCancellationRequested();
         return ApplySort(rows, request.SortMemberPath, request.SortDirection).ToArray();
     }
 
     private void ApplyVisibleRows(IReadOnlyList<PackageRowViewModel> rows)
     {
+        if (visiblePackages.SequenceEqual(rows)) return;
         visiblePackages = rows;
         OnPropertyChanged(nameof(VisiblePackages));
         if (SelectedRow is not null && !visiblePackages.Contains(SelectedRow)) SelectedRow = null;
@@ -496,8 +503,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         previous?.Cancel();
         previous?.Dispose();
         if (rebuildVisibleImmediately) RebuildVisible();
-        SearchInProgress = query.Length >= 2;
-        NotifySearchPresentationChanged();
+        var progressChanged = SearchInProgress != (useTextDebounce || query.Length > 0);
+        SearchInProgress = useTextDebounce || query.Length > 0;
+        if (!progressChanged) NotifySearchPresentationChanged();
         searchCompletion = RunSearchAsync(CreateSearchRequest(query), generation, useTextDebounce, current.Token);
     }
 
@@ -509,7 +517,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         try
         {
-            if (useTextDebounce && request.Query.Length >= 2 && searchDebounce > TimeSpan.Zero)
+            if (useTextDebounce && searchDebounce > TimeSpan.Zero)
                 await Task.Delay(searchDebounce, cancellationToken).ConfigureAwait(false);
             var result = await Task.Run(() => ComputeSearch(request, cancellationToken), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
@@ -526,7 +534,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private SearchResult ComputeSearch(SearchRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var rows = ComputeVisibleRows(request);
+        var rows = ComputeVisibleRows(request, cancellationToken);
         if (compatibilityService is null || request.Query.Length < 2)
             return new SearchResult(rows, [], 0, CompatibilitySearchOutcome.NoDeviceOrCatalogMatch);
 
@@ -626,18 +634,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private Task RunOnUiContextAsync(Action action)
     {
-        if (uiContext is null || ReferenceEquals(SynchronizationContext.Current, uiContext))
+        if (uiDispatcher is null || uiDispatcher.CheckAccess())
         {
             action();
             return Task.CompletedTask;
         }
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        uiContext.Post(_ =>
-        {
-            try { action(); completion.SetResult(); }
-            catch (Exception exception) { completion.SetException(exception); }
-        }, null);
-        return completion.Task;
+        return uiDispatcher.InvokeAsync(action, DispatcherPriority.Background).Task;
     }
 
     private static string DeviceMatchLabel(CompatibilitySearchMatchKind kind) => kind switch

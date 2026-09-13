@@ -19,6 +19,26 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class CompiledPresentationTests
 {
     [TestMethod]
+    public void WindowPlacementFitsOversizedWindowInsideUsableWorkArea()
+    {
+        var fitted = WindowWorkAreaPlacement.Fit(
+            new WindowWorkAreaPlacement.PixelBounds(-128, -90, 1280, 860),
+            new WindowWorkAreaPlacement.PixelBounds(0, 40, 1024, 680));
+
+        Assert.AreEqual(new WindowWorkAreaPlacement.PixelBounds(0, 40, 1024, 680), fitted);
+    }
+
+    [TestMethod]
+    public void WindowPlacementCentersNormalWindowOnMonitorWithNegativeCoordinates()
+    {
+        var fitted = WindowWorkAreaPlacement.Fit(
+            new WindowWorkAreaPlacement.PixelBounds(0, 0, 800, 600),
+            new WindowWorkAreaPlacement.PixelBounds(-1920, 0, 1920, 1040));
+
+        Assert.AreEqual(new WindowWorkAreaPlacement.PixelBounds(-1360, 220, 800, 600), fitted);
+    }
+
+    [TestMethod]
     public async Task SearchTextSetterIsImmediateAndDebouncesCatalogWork()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
@@ -39,6 +59,34 @@ public sealed class CompiledPresentationTests
         await viewModel.SearchCompletion;
         Assert.IsFalse(viewModel.SearchInProgress);
         Assert.AreEqual("DM-NVX-363", viewModel.CompatibilityMatches.First().Title);
+    }
+
+    [TestMethod]
+    public async Task FirstCharacterAndClearBothStayOffTheTypingPathUntilDebounceCompletes()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "Z";
+
+        Assert.IsTrue(viewModel.SearchInProgress);
+        Assert.HasCount(6, viewModel.VisiblePackages);
+        await Task.Delay(40);
+        Assert.HasCount(6, viewModel.VisiblePackages, "A one-character query rebuilt rows before the debounce interval.");
+        await viewModel.SearchCompletion;
+        Assert.HasCount(1, viewModel.VisiblePackages);
+        Assert.AreEqual("Fixture.Awareness", viewModel.VisiblePackages[0].Id);
+
+        viewModel.SearchText = string.Empty;
+
+        Assert.IsTrue(viewModel.SearchInProgress);
+        Assert.HasCount(1, viewModel.VisiblePackages);
+        await Task.Delay(40);
+        Assert.HasCount(1, viewModel.VisiblePackages, "Clearing search rebuilt rows on the typing path.");
+        await viewModel.SearchCompletion;
+        Assert.HasCount(6, viewModel.VisiblePackages);
+        Assert.AreEqual(string.Empty, viewModel.SearchStatusText);
     }
 
     [TestMethod]

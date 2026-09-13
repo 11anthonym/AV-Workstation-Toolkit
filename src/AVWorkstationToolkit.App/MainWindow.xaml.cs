@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.App.ViewModels;
 using AVWorkstationToolkit.Application.Compatibility;
 
@@ -35,6 +36,7 @@ public partial class MainWindow : Window
         viewModel.SafetySecurityRequested += ShowSafetySecurity;
         viewModel.CatalogUpdatesRequested += ShowCatalogUpdates;
         viewModel.AboutRequested += ShowAbout;
+        SourceInitialized += (_, _) => WindowWorkAreaPlacement.TryFitToCurrentMonitor(this);
         Loaded += MainWindow_Loaded;
         Closed += (_, _) =>
         {
@@ -50,6 +52,7 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        WindowWorkAreaPlacement.TryFitToCurrentMonitor(this);
         if (autoRefresh && DataContext is MainWindowViewModel viewModel)
             await viewModel.RefreshAsync().ConfigureAwait(true);
     }
@@ -91,6 +94,8 @@ public partial class MainWindow : Window
         Measure(new Size(1280, 860));
         Arrange(new Rect(0, 0, 1280, 860));
         UpdateLayout();
+        if (!WindowWorkAreaPlacement.IsTitleBarWithinCurrentWorkArea(this))
+            throw new InvalidOperationException("Compiled WPF smoke found the main window title bar outside the current monitor work area.");
         if (PackageGrid.ActualWidth <= 0 || PackageGrid.ActualHeight <= 0 || !PackageGrid.IsVisible)
             throw new InvalidOperationException("Compiled WPF smoke did not produce a visible package grid.");
         if (viewModel.VisiblePackages.Any(item => item.Package.Authority == AVWorkstationToolkit.Domain.Catalog.CatalogAuthority.AwarenessOnly && item.SelectionEnabled))
@@ -182,6 +187,8 @@ public partial class MainWindow : Window
         {
             if (FindName(name) is null) throw new InvalidOperationException($"Compiled production smoke could not find required control '{name}'.");
         }
+        if (!WindowWorkAreaPlacement.IsTitleBarWithinCurrentWorkArea(this))
+            throw new InvalidOperationException("Compiled production smoke found the main window title bar outside the current monitor work area.");
         VerifyBrandingContract();
         if (DataContext is not MainWindowViewModel viewModel || viewModel.Packages.Count < 300 || !viewModel.MigrationActionMode)
             throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");

@@ -5,6 +5,8 @@
 - Moved package and compatibility search off the WPF typing path behind a 175 ms cancellable debounce, with newest-query-only dispatcher updates and a small accessible search status.
 - Added immutable compatibility search indexes, a single combined search pass, direct matched-relation counts, and a 24-result live presentation bound without changing ranking or execution authority.
 - Invalidated and immediately recomputed pending searches when filters, profiles, presets, quick views, sort order, or refreshed package snapshots change, preventing stale background results from restoring obsolete rows.
+- Debounced first-character and clear-query row rebuilding, removed a quadratic package-row remap, avoided identical result-list replacement, and applied completed searches below input/render dispatcher priority so queued typing remains responsive.
+- Fit the initial compiled WPF window to the current monitor work area, including secondary-monitor coordinates and smaller taskbar-constrained viewports, so native title-bar controls remain reachable.
 
 ## 2026-09-13 — Windows PowerShell 5.1 release-path compatibility
 
