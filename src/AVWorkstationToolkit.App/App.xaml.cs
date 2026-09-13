@@ -112,7 +112,7 @@ public partial class App : System.Windows.Application
             if (smoke)
             {
                 await viewModel.RefreshAsync().ConfigureAwait(true);
-                if (packagedContext is null) window.VerifySmokeContract();
+                if (packagedContext is null) await window.VerifySmokeContractAsync().ConfigureAwait(true);
                 else await window.VerifyProductionSmokeContractAsync().ConfigureAwait(true);
                 window.Close();
                 Shutdown(0);

@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-13 — Responsive compiled search
+
+- Moved package and compatibility search off the WPF typing path behind a 175 ms cancellable debounce, with newest-query-only dispatcher updates and a small accessible search status.
+- Added immutable compatibility search indexes, a single combined search pass, direct matched-relation counts, and a 24-result live presentation bound without changing ranking or execution authority.
+
 ## 2026-09-13 — Windows PowerShell 5.1 release-path compatibility
 
 - Replaced the unavailable `.NET Path.IsPathFullyQualified` release check with a Windows PowerShell 5.1-compatible strict drive/UNC path policy while preserving baseline reparse, extension, size, and fail-closed validation.

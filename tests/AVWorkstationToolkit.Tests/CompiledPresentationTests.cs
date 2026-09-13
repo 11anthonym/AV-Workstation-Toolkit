@@ -11,12 +11,80 @@ using System.Text.Json;
 using AVWorkstationToolkit.Application.Compatibility;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Vendors;
+using System.Diagnostics;
 
 namespace AVWorkstationToolkit.Tests;
 
 [TestClass]
 public sealed class CompiledPresentationTests
 {
+    [TestMethod]
+    public async Task SearchTextSetterIsImmediateAndDebouncesCatalogWork()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+        await viewModel.RefreshAsync();
+        var stopwatch = Stopwatch.StartNew();
+
+        viewModel.SearchText = "DM-NVX-363";
+
+        stopwatch.Stop();
+        Assert.IsLessThan(75, stopwatch.ElapsedMilliseconds, "The typing path performed synchronous catalog work.");
+        Assert.IsTrue(viewModel.SearchInProgress);
+        Assert.AreEqual("Searching...", viewModel.SearchStatusText);
+        Assert.IsEmpty(viewModel.CompatibilityMatches);
+        await Task.Delay(40);
+        Assert.IsEmpty(viewModel.CompatibilityMatches, "The compatibility search ran before the debounce interval.");
+
+        await viewModel.SearchCompletion;
+        Assert.IsFalse(viewModel.SearchInProgress);
+        Assert.AreEqual("DM-NVX-363", viewModel.CompatibilityMatches.First().Title);
+    }
+
+    [TestMethod]
+    public async Task RapidTypingCancelsStaleSearchAndOnlyNewestQueryApplies()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(80));
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "CP4N";
+        var staleSearch = viewModel.SearchCompletion;
+        await Task.Delay(20);
+        viewModel.SearchText = "Core 110f";
+        await Task.Delay(20);
+        viewModel.SearchText = "CAM520 Pro2";
+        await viewModel.SearchCompletion;
+        await staleSearch;
+
+        Assert.IsFalse(viewModel.SearchInProgress);
+        Assert.IsTrue(viewModel.CompatibilityMatches.Any(item => item.Title == "CAM520 Pro2"));
+        Assert.IsFalse(viewModel.CompatibilityMatches.Any(item => item.Title is "CP4N" or "Core 110f"));
+    }
+
+    [TestMethod]
+    public async Task SearchBoundsResultsAndClearingOrShortQueriesResetState()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "e";
+        await viewModel.SearchCompletion;
+        Assert.IsEmpty(viewModel.CompatibilityMatches);
+        Assert.AreEqual("Type at least 2 characters to search devices.", viewModel.SearchStatusText);
+
+        viewModel.SearchText = "software";
+        await viewModel.SearchCompletion;
+        Assert.IsLessThanOrEqualTo(MainWindowViewModel.LiveCompatibilityResultLimit, viewModel.CompatibilityMatches.Count);
+
+        viewModel.SearchText = string.Empty;
+        await viewModel.SearchCompletion;
+        Assert.IsEmpty(viewModel.CompatibilityMatches);
+        Assert.AreEqual(string.Empty, viewModel.SearchStatusText);
+        Assert.HasCount(viewModel.Packages.Count, viewModel.VisiblePackages);
+    }
+
     [TestMethod]
     public async Task SuccessfulRefreshBuildsVisibleRowsAndSummary()
     {
@@ -38,6 +106,7 @@ public sealed class CompiledPresentationTests
         viewModel.SelectedDiscipline = viewModel.DisciplineOptions.Single(item => item.Value == CatalogDiscipline.Control);
         viewModel.SelectedRole = viewModel.RoleOptions.Single(item => item.Value == PackageRole.ControlProgramming);
         viewModel.SearchText = "update";
+        await viewModel.SearchCompletion;
         Assert.HasCount(1, viewModel.VisiblePackages);
         Assert.AreEqual("Fixture.Update", viewModel.VisiblePackages[0].Id);
         viewModel.FieldProfile = false;
@@ -289,6 +358,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "CP4N";
+        await viewModel.SearchCompletion;
 
         var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device &&
             item.Title.Equals("CP4N", StringComparison.Ordinal));
@@ -319,6 +389,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = search;
+        await viewModel.SearchCompletion;
 
         Assert.IsTrue(viewModel.CompatibilityMatches.Any(item => item.Kind == CompatibilitySearchResultKind.Device));
         Assert.IsTrue(viewModel.CompatibilityMatches.All(item => !item.CanSelect));
@@ -332,6 +403,7 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "DM-NVX";
+        await viewModel.SearchCompletion;
         var match = viewModel.CompatibilityMatches.First(item => item.Kind == CompatibilitySearchResultKind.Device &&
             item.Title.Equals("Crestron DM NVX Endpoints", StringComparison.Ordinal));
         match.OpenCommand.Execute(null);
@@ -350,6 +422,7 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "PTZApp2";
+        await viewModel.SearchCompletion;
 
         var match = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
         Assert.AreEqual("PTZApp2", match.Title);
@@ -370,6 +443,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "CAM520 Pro2";
+        await viewModel.SearchCompletion;
         var aver = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "CAM520 Pro2");
         Assert.IsFalse(aver.CanSelect);
         aver.OpenCommand.Execute(null);
@@ -377,6 +451,7 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "AVer Room Management"));
 
         viewModel.SearchText = "Poly Studio X52";
+        await viewModel.SearchCompletion;
         var poly = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Poly Studio X52");
         StringAssert.Contains(poly.Subtitle, "not yet verified");
         Assert.IsFalse(poly.CanSelect);
@@ -395,6 +470,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "Move 4K 20X";
+        await viewModel.SearchCompletion;
         var ptzOptics = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Move 4K 20X");
         Assert.IsFalse(ptzOptics.CanSelect);
         ptzOptics.OpenCommand.Execute(null);
@@ -402,6 +478,7 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "PTZOptics Camera Management Platform"));
 
         viewModel.SearchText = "Neat Board 50";
+        await viewModel.SearchCompletion;
         var neat = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Neat Board 50");
         StringAssert.Contains(neat.Subtitle, "not yet verified");
         Assert.IsFalse(neat.CanSelect);
@@ -420,11 +497,15 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "DSP";
+        await viewModel.SearchCompletion;
         var expected = CreateCompatibilityQueries().SearchDevices("DSP").Count + CreateCompatibilityQueries().SearchProducts("DSP").Count;
-        Assert.HasCount(expected, viewModel.CompatibilityMatches);
+        Assert.HasCount(Math.Min(expected, MainWindowViewModel.LiveCompatibilityResultLimit), viewModel.CompatibilityMatches);
+        if (expected > MainWindowViewModel.LiveCompatibilityResultLimit)
+            StringAssert.Contains(viewModel.CompatibilityMatchSummary, $"of {expected}");
         Assert.IsFalse(viewModel.CompatibilitySearchOutcomeVisible);
 
         viewModel.SearchText = "RMC4";
+        await viewModel.SearchCompletion;
         var rmc4 = viewModel.CompatibilityMatches.First(item => item.Kind == CompatibilitySearchResultKind.Device);
         Assert.AreEqual("RMC4", rmc4.Title);
         StringAssert.Contains(rmc4.Subtitle, "Exact model");
@@ -441,6 +522,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "UDX4K22";
+        await viewModel.SearchCompletion;
         var device = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "UDX-4K22");
         StringAssert.Contains(device.Subtitle, "Exact model");
         Assert.IsFalse(device.CanSelect);
@@ -460,6 +542,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "CP 4N";
+        await viewModel.SearchCompletion;
         var verified = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
         Assert.AreEqual("CP4N", verified.Title);
         StringAssert.Contains(verified.Subtitle, "Exact model");
@@ -472,6 +555,7 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(verifiedDetail.RelatedSoftware.Any(item => item.ProductName == "Crestron SIMPL Windows"));
 
         viewModel.SearchText = "RLNK-910R";
+        await viewModel.SearchCompletion;
         var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device);
         Assert.AreEqual("RLNK-910R-IEC-NS", unresolved.Title);
         StringAssert.Contains(unresolved.Subtitle, "not yet verified");
@@ -493,15 +577,18 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "Core 110f";
+        await viewModel.SearchCompletion;
         var dsp = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "Core 110f");
         StringAssert.Contains(dsp.Subtitle, "Audio DSP");
         Assert.DoesNotContain("Audio Dsp", dsp.Subtitle, StringComparison.Ordinal);
 
         viewModel.SearchText = "DM NVX 363";
+        await viewModel.SearchCompletion;
         var avoip = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "DM-NVX-363");
         StringAssert.Contains(avoip.Subtitle, "AV-over-IP");
 
         viewModel.SearchText = "QM65C";
+        await viewModel.SearchCompletion;
         var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "QM65C");
         StringAssert.Contains(unresolved.Subtitle, "not yet verified");
         StringAssert.Contains(unresolved.MatchDetail, "does not mean no software is required");
@@ -521,6 +608,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "110F";
+        await viewModel.SearchCompletion;
         var core = viewModel.CompatibilityMatches.First(item => item.Kind == CompatibilitySearchResultKind.Device);
         Assert.AreEqual("Core 110f", core.Title);
         StringAssert.Contains(core.Subtitle, "Q-SYS");
@@ -533,6 +621,7 @@ public sealed class CompiledPresentationTests
             .Any(field => field.Value.Contains("2 GB", StringComparison.OrdinalIgnoreCase)));
 
         viewModel.SearchText = "NBP1200C";
+        await viewModel.SearchCompletion;
         var panel = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "NBP 1200C");
         StringAssert.Contains(panel.Subtitle, "Control Panel");
         Assert.IsFalse(panel.CanSelect);
@@ -552,6 +641,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
 
         viewModel.SearchText = "IN1808";
+        await viewModel.SearchCompletion;
         var verified = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "IN1808");
         StringAssert.Contains(verified.Subtitle, "Signal Distribution");
         Assert.IsFalse(verified.CanSelect);
@@ -560,6 +650,7 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(viewModel.SelectedCompatibilityDetail!.RelatedSoftware.Any(item => item.ProductName == "Extron Product Configuration Software"));
 
         viewModel.SearchText = "KD PS42";
+        await viewModel.SearchCompletion;
         var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "KD-PS42");
         StringAssert.Contains(unresolved.Subtitle, "not yet verified");
         Assert.IsFalse(unresolved.CanSelect);
@@ -577,6 +668,7 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "CP4N";
+        await viewModel.SearchCompletion;
         viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device).OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
         var deviceDetail = viewModel.SelectedCompatibilityDetail!;
@@ -597,6 +689,7 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "Q-SYS Designer";
+        await viewModel.SearchCompletion;
 
         Assert.HasCount(1, viewModel.CompatibilityMatches.Where(item => item.Kind == CompatibilitySearchResultKind.Software));
         viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Software).OpenCommand.Execute(null);
@@ -617,6 +710,7 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "Crestron Toolbox Software";
+        await viewModel.SearchCompletion;
         viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Software).OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
 
@@ -639,6 +733,7 @@ public sealed class CompiledPresentationTests
             compatibilityService: CreateCompatibilityQueries());
         await viewModel.RefreshAsync();
         viewModel.SearchText = "update";
+        await viewModel.SearchCompletion;
         Assert.AreEqual("Fixture.Update", viewModel.VisiblePackages.Single().Id);
         Assert.IsTrue(viewModel.CompatibilityMatches.Any(item => item.Title == "Green-GO Update Connection"));
     }

@@ -72,11 +72,11 @@ public partial class MainWindow : Window
         PackageGrid.Columns[7].Width = wide ? new DataGridLength(2, DataGridLengthUnitType.Star) : new DataGridLength(220);
     }
 
-    internal void VerifySmokeContract()
+    internal async Task VerifySmokeContractAsync()
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "RebootBanner", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
+            "BrandMark", "TopMenu", "RebootBanner", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "SearchStatus", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
             "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "AboutMenuItem"
@@ -103,16 +103,19 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke did not expose the software and device search guidance.");
 
         viewModel.SearchText = "CP4N";
+        await viewModel.SearchCompletion.ConfigureAwait(true);
         UpdateLayout();
         if (!CompatibilityMatchesPanel.IsVisible || CompatibilitySearchResults.Items.Count == 0 ||
             viewModel.CompatibilityMatches.Any(item => item.CanSelect))
             throw new InvalidOperationException("Compiled WPF smoke did not render read-only device matches through Find Apps.");
         viewModel.SearchText = "RLNK-910R";
+        await viewModel.SearchCompletion.ConfigureAwait(true);
         var unresolvedHardware = viewModel.CompatibilityMatches.SingleOrDefault(item => item.Kind == CompatibilitySearchResultKind.Device)
             ?? throw new InvalidOperationException("Compiled WPF smoke did not surface the known RackLink hardware identity.");
         if (!unresolvedHardware.Subtitle.Contains("not yet verified", StringComparison.OrdinalIgnoreCase) || unresolvedHardware.CanSelect)
             throw new InvalidOperationException("Compiled WPF smoke did not preserve explicit unresolved hardware coverage.");
         viewModel.SearchText = string.Empty;
+        await viewModel.SearchCompletion.ConfigureAwait(true);
         UpdateLayout();
 
         var selectable = viewModel.VisiblePackages.FirstOrDefault(item => item.SelectionEnabled)
@@ -170,7 +173,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "SidebarScroll", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
+            "BrandMark", "TopMenu", "SidebarScroll", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "SearchStatus", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog", "FollowActivityCheckBox",
             "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "AboutMenuItem"
@@ -194,9 +197,11 @@ public partial class MainWindow : Window
         new AboutWindow(productVersion, executionMode).VerifySmokeContract();
 
         viewModel.SearchText = "Crestron";
+        await viewModel.SearchCompletion.ConfigureAwait(true);
         if (viewModel.VisiblePackages.Count == 0)
             throw new InvalidOperationException("Compiled production smoke filtering produced no matching catalog rows.");
         viewModel.SearchText = "CP4N";
+        await viewModel.SearchCompletion.ConfigureAwait(true);
         var deviceMatch = viewModel.CompatibilityMatches.SingleOrDefault(item => item.Kind == CompatibilitySearchResultKind.Device)
             ?? throw new InvalidOperationException("Compiled production smoke did not surface CP4N from the Find Apps device search.");
         if (deviceMatch.CanSelect || !CompatibilityMatchesPanel.IsVisible)
@@ -220,6 +225,7 @@ public partial class MainWindow : Window
         compatibilityWindow.VerifyCompatibilitySmokeContract("Crestron.SIMPLWindows");
         compatibilityWindow.Close();
         viewModel.SearchText = string.Empty;
+        await viewModel.SearchCompletion.ConfigureAwait(true);
         viewModel.QuickViewCommand.Execute("Missing");
         if (!viewModel.IsMissingQuickView)
             throw new InvalidOperationException("Compiled production smoke could not activate the Missing quick view.");

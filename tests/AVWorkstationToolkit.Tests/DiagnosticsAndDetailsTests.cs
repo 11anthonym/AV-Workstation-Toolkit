@@ -131,6 +131,7 @@ public sealed class DiagnosticsAndDetailsTests
         await viewModel.RefreshAsync();
         Assert.AreEqual(package.Id, viewModel.SelectedRow?.Id);
         viewModel.SearchText = "does-not-match";
+        await viewModel.SearchCompletion;
         Assert.IsNull(viewModel.SelectedRow);
         Assert.IsNull(viewModel.SelectedDetail);
     }

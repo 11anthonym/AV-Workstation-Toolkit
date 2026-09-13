@@ -75,6 +75,11 @@ public enum CompatibilitySearchOutcome
     NoDeviceOrCatalogMatch
 }
 
+public sealed record CompatibilityCatalogSearchResult(
+    IReadOnlyList<CompatibilityDeviceSearchResult> Devices,
+    IReadOnlyList<CompatibilityProductSummary> Products,
+    CompatibilitySearchOutcome Outcome);
+
 public enum HardwareLookupState
 {
     RelationOnly,
@@ -149,6 +154,10 @@ public sealed class CompatibilityCatalogQueryService
     private readonly SoftwareCompatibilityCatalog catalog;
     private readonly IInstalledVersionEvidenceProvider installedVersionEvidence;
     private readonly HardwareIdentityCatalog? hardwareCatalog;
+    private readonly ProductSearchEntry[] productSearchIndex;
+    private readonly RelationSearchGroup[] relationSearchIndex;
+    private readonly HardwareSearchEntry[] hardwareModelSearchIndex;
+    private readonly HardwareSearchEntry[] hardwareFamilySearchIndex;
 
     public CompatibilityCatalogQueryService(
         SoftwareCompatibilityCatalog catalog,
@@ -158,21 +167,42 @@ public sealed class CompatibilityCatalogQueryService
         this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         this.installedVersionEvidence = installedVersionEvidence ?? throw new ArgumentNullException(nameof(installedVersionEvidence));
         this.hardwareCatalog = hardwareCatalog;
+        productSearchIndex = catalog.Products.Select(product =>
+            new ProductSearchEntry(product, ProductTerms(product).Select(IndexedSearchTerm.Create).ToArray())).ToArray();
+        relationSearchIndex = catalog.DeviceSoftwareRelations
+            .GroupBy(relation => relation.DeviceFamilyId, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new RelationSearchGroup(
+                group.Key,
+                group.ToArray(),
+                IndexedSearchTerm.Create(group.Key),
+                group.SelectMany(relation => relation.ExactModelIds.Concat(relation.DeviceAliases)
+                    .Select(term => new RelationSearchTerm(relation, IndexedSearchTerm.Create(term)))).ToArray()))
+            .ToArray();
+        hardwareModelSearchIndex = hardwareCatalog?.Models.Select(model =>
+        {
+            var family = hardwareCatalog.GetRequiredFamily(model.FamilyId);
+            return new HardwareSearchEntry(family, model,
+                new[] { model.Name }.Concat(model.Aliases).Select(IndexedSearchTerm.Create).ToArray());
+        }).ToArray() ?? [];
+        hardwareFamilySearchIndex = hardwareCatalog?.Families.Select(family =>
+            new HardwareSearchEntry(family, null,
+                new[] { family.Id.Value, family.Name }.Concat(family.Aliases).Select(IndexedSearchTerm.Create).ToArray())).ToArray() ?? [];
         if (hardwareCatalog is not null) ValidateHardwareCoverage(hardwareCatalog);
     }
 
     public IReadOnlyList<CompatibilityProductSummary> SearchProducts(string? productOrAlias = null)
     {
         var query = productOrAlias?.Trim();
-        return catalog.Products
-            .Where(product => string.IsNullOrEmpty(query) || ProductTerms(product).Any(term => MatchDeviceTerm(term, query, isDeviceFamily: false) is not null))
-            .OrderBy(product => string.IsNullOrEmpty(query)
+        var queryIndex = SearchQuery.Create(query);
+        return productSearchIndex
+            .Where(entry => queryIndex is null || entry.Terms.Any(term => term.Match(queryIndex, isDeviceFamily: false) is not null))
+            .OrderBy(entry => queryIndex is null
                 ? CompatibilitySearchMatchKind.Substring
-                : ProductTerms(product).Select(term => MatchDeviceTerm(term, query, isDeviceFamily: false))
+                : entry.Terms.Select(term => term.Match(queryIndex, isDeviceFamily: false))
                     .Where(rank => rank is not null).Select(rank => rank!.Value).DefaultIfEmpty(CompatibilitySearchMatchKind.Substring).Min())
-            .ThenBy(product => product.Vendor, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(product => product.Name, StringComparer.OrdinalIgnoreCase)
-            .Select(ToSummary)
+            .ThenBy(entry => entry.Product.Vendor, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(entry => entry.Product.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(entry => ToSummary(entry.Product))
             .ToArray();
     }
 
@@ -231,8 +261,7 @@ public sealed class CompatibilityCatalogQueryService
 
     private IReadOnlyList<CompatibilityDeviceSearchResult> SearchRelationDevices(string? query)
     {
-        var grouped = catalog.DeviceSoftwareRelations
-            .GroupBy(relation => relation.DeviceFamilyId, StringComparer.OrdinalIgnoreCase)
+        var grouped = relationSearchIndex
             .Select(group => ToDeviceSearchResult(group, query))
             .Where(result => result is not null)
             .Cast<CompatibilityDeviceSearchResult>();
@@ -245,14 +274,33 @@ public sealed class CompatibilityCatalogQueryService
 
     public CompatibilitySearchOutcome GetSearchOutcome(string? search)
     {
+        return Search(search).Outcome;
+    }
+
+    public CompatibilityCatalogSearchResult Search(string? search, CancellationToken cancellationToken = default)
+    {
         var query = search?.Trim() ?? string.Empty;
-        if (query.Length == 0) return CompatibilitySearchOutcome.NoDeviceOrCatalogMatch;
+        if (query.Length == 0)
+            return new CompatibilityCatalogSearchResult([], [], CompatibilitySearchOutcome.NoDeviceOrCatalogMatch);
+        cancellationToken.ThrowIfCancellationRequested();
         var devices = SearchDevices(query);
+        cancellationToken.ThrowIfCancellationRequested();
+        var products = SearchProducts(query);
+        cancellationToken.ThrowIfCancellationRequested();
+        var outcome = GetSearchOutcome(query, devices, products);
+        return new CompatibilityCatalogSearchResult(devices, products, outcome);
+    }
+
+    private static CompatibilitySearchOutcome GetSearchOutcome(
+        string query,
+        IReadOnlyList<CompatibilityDeviceSearchResult> devices,
+        IReadOnlyList<CompatibilityProductSummary> products)
+    {
         if (devices.Any(device =>
             device.LookupState is (HardwareLookupState.RelationOnly or HardwareLookupState.KnownExactModelWithVerifiedRelationships or HardwareLookupState.KnownFamilyWithVerifiedRelationships) &&
             device.MatchKind is (CompatibilitySearchMatchKind.ExactModelOrAlias or CompatibilitySearchMatchKind.ExactDeviceFamily or CompatibilitySearchMatchKind.NormalizedExact)))
             return CompatibilitySearchOutcome.ExactVerifiedRelationship;
-        if (devices.Count > 0 || SearchProducts(query).Count > 0)
+        if (devices.Count > 0 || products.Count > 0)
             return CompatibilitySearchOutcome.KnownFamilyOrAliasMatch;
         return LooksLikeModel(query)
             ? CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog
@@ -329,16 +377,16 @@ public sealed class CompatibilityCatalogQueryService
     private IEnumerable<HardwareSearchMatch> SearchHardware(string query)
     {
         if (hardwareCatalog is null) return [];
-        var modelMatches = hardwareCatalog.Models.Select(model =>
+        var queryIndex = SearchQuery.Create(query)!;
+        var modelMatches = hardwareModelSearchIndex.Select(entry =>
         {
-            var family = hardwareCatalog.GetRequiredFamily(model.FamilyId);
-            var match = BestMatch(new[] { model.Name }.Concat(model.Aliases), query, isDeviceFamily: false);
-            return match is null ? null : new HardwareSearchMatch(family, model, match.Value.Kind, match.Value.Term);
+            var match = BestMatch(entry.Terms, queryIndex, isDeviceFamily: false);
+            return match is null ? null : new HardwareSearchMatch(entry.Family, entry.Model, match.Value.Kind, match.Value.Term);
         }).Where(match => match is not null).Cast<HardwareSearchMatch>().ToArray();
-        var familyMatches = hardwareCatalog.Families.Select(family =>
+        var familyMatches = hardwareFamilySearchIndex.Select(entry =>
         {
-            var match = BestMatch(new[] { family.Id.Value, family.Name }.Concat(family.Aliases), query, isDeviceFamily: true);
-            return match is null ? null : new HardwareSearchMatch(family, null, match.Value.Kind, match.Value.Term);
+            var match = BestMatch(entry.Terms, queryIndex, isDeviceFamily: true);
+            return match is null ? null : new HardwareSearchMatch(entry.Family, null, match.Value.Kind, match.Value.Term);
         }).Where(match => match is not null).Cast<HardwareSearchMatch>()
             .Where(familyMatch => !modelMatches.Any(modelMatch => modelMatch.Family.Id == familyMatch.Family.Id && modelMatch.MatchKind <= familyMatch.MatchKind))
             .ToArray();
@@ -403,9 +451,12 @@ public sealed class CompatibilityCatalogQueryService
         }
     }
 
-    private static (CompatibilitySearchMatchKind Kind, string Term)? BestMatch(IEnumerable<string> terms, string query, bool isDeviceFamily)
+    private static (CompatibilitySearchMatchKind Kind, string Term)? BestMatch(
+        IEnumerable<IndexedSearchTerm> terms,
+        SearchQuery query,
+        bool isDeviceFamily)
     {
-        var matches = terms.Select(term => (Term: term, Kind: MatchDeviceTerm(term, query, isDeviceFamily)))
+        var matches = terms.Select(term => (Term: term.Original, Kind: term.Match(query, isDeviceFamily)))
             .Where(match => match.Kind is not null)
             .Select(match => (match.Kind!.Value, match.Term)).ToArray();
         return matches.Length == 0 ? null : matches.OrderBy(match => match.Value).ThenBy(match => match.Term, StringComparer.OrdinalIgnoreCase).First();
@@ -426,54 +477,42 @@ public sealed class CompatibilityCatalogQueryService
         product.Aliases);
 
     private static CompatibilityDeviceSearchResult? ToDeviceSearchResult(
-        IGrouping<string, DeviceSoftwareRelation> relations,
+        RelationSearchGroup group,
         string? query)
     {
+        var relations = group.Relations;
         var models = DistinctSorted(relations.SelectMany(item => item.ExactModelIds));
         var aliases = DistinctSorted(relations.SelectMany(item => item.DeviceAliases));
         if (string.IsNullOrEmpty(query))
-            return new CompatibilityDeviceSearchResult(relations.Key, models, aliases,
+            return new CompatibilityDeviceSearchResult(group.DeviceFamilyId, models, aliases,
                 relations.Select(item => item.Id).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
-                CompatibilitySearchMatchKind.Substring, relations.Key);
+                CompatibilitySearchMatchKind.Substring, group.DeviceFamilyId);
 
+        var queryIndex = SearchQuery.Create(query)!;
         var candidates = new List<(DeviceSoftwareRelation Relation, string Term, CompatibilitySearchMatchKind? Rank)>();
-        foreach (var relation in relations)
-        {
-            candidates.Add((relation, relations.Key, MatchDeviceTerm(relations.Key, query, isDeviceFamily: true)));
-            candidates.AddRange(relation.ExactModelIds.Concat(relation.DeviceAliases)
-                .Select(term => (relation, term, MatchDeviceTerm(term, query, isDeviceFamily: false))));
-        }
+        var familyRank = group.FamilyTerm.Match(queryIndex, isDeviceFamily: true);
+        candidates.AddRange(group.Terms.Select(term =>
+            (term.Relation, term.Term.Original, Rank: term.Term.Match(queryIndex, isDeviceFamily: false))));
         var matched = candidates.Where(candidate => candidate.Rank is not null).Select(candidate =>
             (candidate.Relation, candidate.Term, Rank: candidate.Rank!.Value)).ToArray();
-        if (matched.Length == 0) return null;
-        var rank = matched.Min(candidate => candidate.Rank);
-        var scopedRelations = rank == CompatibilitySearchMatchKind.ExactDeviceFamily
+        if (matched.Length == 0 && familyRank is null) return null;
+        var rank = matched.Select(candidate => candidate.Rank).Append(familyRank ?? CompatibilitySearchMatchKind.Substring).Min();
+        var familyIsBest = familyRank == rank;
+        var scopedRelations = familyIsBest
             ? relations.ToArray()
             : matched.Where(candidate => candidate.Rank == rank).Select(candidate => candidate.Relation)
                 .DistinctBy(relation => relation.Id, StringComparer.OrdinalIgnoreCase).ToArray();
-        return new CompatibilityDeviceSearchResult(relations.Key, models, aliases,
+        var matchedTerm = familyIsBest
+            ? group.FamilyTerm.Original
+            : matched.Where(candidate => candidate.Rank == rank).Select(candidate => candidate.Term)
+                .OrderBy(term => term, StringComparer.OrdinalIgnoreCase).First();
+        return new CompatibilityDeviceSearchResult(group.DeviceFamilyId, models, aliases,
             scopedRelations.Select(item => item.Id).OrderBy(value => value, StringComparer.Ordinal).ToArray(), rank,
-            matched.Where(candidate => candidate.Rank == rank).Select(candidate => candidate.Term)
-                .OrderBy(term => term, StringComparer.OrdinalIgnoreCase).First());
+            matchedTerm);
     }
 
     private static IEnumerable<string> ProductTerms(Product product) =>
         new[] { product.Id.Value, product.Name, product.Vendor }.Concat(product.Aliases);
-
-    private static CompatibilitySearchMatchKind? MatchDeviceTerm(string term, string query, bool isDeviceFamily)
-    {
-        if (term.Equals(query, StringComparison.OrdinalIgnoreCase))
-            return isDeviceFamily ? CompatibilitySearchMatchKind.ExactDeviceFamily : CompatibilitySearchMatchKind.ExactModelOrAlias;
-        var normalizedTerm = NormalizeSearch(term);
-        var normalizedQuery = NormalizeSearch(query);
-        if (normalizedTerm.Equals(normalizedQuery, StringComparison.OrdinalIgnoreCase)) return CompatibilitySearchMatchKind.NormalizedExact;
-        if (normalizedTerm.StartsWith(normalizedQuery, StringComparison.OrdinalIgnoreCase) ||
-            Tokenize(term).Any(token => token.StartsWith(normalizedQuery, StringComparison.OrdinalIgnoreCase)))
-            return CompatibilitySearchMatchKind.PrefixOrToken;
-        return normalizedTerm.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase)
-            ? CompatibilitySearchMatchKind.Substring
-            : null;
-    }
 
     private static string NormalizeSearch(string value) => string.Concat(value.Trim().Where(character => !char.IsWhiteSpace(character) && character is not '-' and not '_'));
 
@@ -483,4 +522,40 @@ public sealed class CompatibilityCatalogQueryService
 
     private static IReadOnlyList<string> DistinctSorted(IEnumerable<string> values) =>
         values.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(value => value, StringComparer.OrdinalIgnoreCase).ToArray();
+
+    private sealed record ProductSearchEntry(Product Product, IndexedSearchTerm[] Terms);
+    private sealed record RelationSearchTerm(DeviceSoftwareRelation Relation, IndexedSearchTerm Term);
+    private sealed record RelationSearchGroup(
+        string DeviceFamilyId,
+        DeviceSoftwareRelation[] Relations,
+        IndexedSearchTerm FamilyTerm,
+        RelationSearchTerm[] Terms);
+    private sealed record HardwareSearchEntry(HardwareFamily Family, HardwareModel? Model, IndexedSearchTerm[] Terms);
+    private sealed record SearchQuery(string Original, string Normalized)
+    {
+        public static SearchQuery? Create(string? value)
+        {
+            var original = value?.Trim() ?? string.Empty;
+            return original.Length == 0 ? null : new SearchQuery(original, NormalizeSearch(original));
+        }
+    }
+    private sealed record IndexedSearchTerm(string Original, string Normalized, string[] Tokens)
+    {
+        public static IndexedSearchTerm Create(string value) =>
+            new(value, NormalizeSearch(value), Tokenize(value).ToArray());
+
+        public CompatibilitySearchMatchKind? Match(SearchQuery query, bool isDeviceFamily)
+        {
+            if (Original.Equals(query.Original, StringComparison.OrdinalIgnoreCase))
+                return isDeviceFamily ? CompatibilitySearchMatchKind.ExactDeviceFamily : CompatibilitySearchMatchKind.ExactModelOrAlias;
+            if (Normalized.Equals(query.Normalized, StringComparison.OrdinalIgnoreCase))
+                return CompatibilitySearchMatchKind.NormalizedExact;
+            if (Normalized.StartsWith(query.Normalized, StringComparison.OrdinalIgnoreCase) ||
+                Tokens.Any(token => token.StartsWith(query.Normalized, StringComparison.OrdinalIgnoreCase)))
+                return CompatibilitySearchMatchKind.PrefixOrToken;
+            return Normalized.Contains(query.Normalized, StringComparison.OrdinalIgnoreCase)
+                ? CompatibilitySearchMatchKind.Substring
+                : null;
+        }
+    }
 }

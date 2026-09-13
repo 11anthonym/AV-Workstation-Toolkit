@@ -53,6 +53,7 @@ public static class PresentationParityEvaluator
             viewModel.SelectedDiscipline = viewModel.DisciplineOptions.Single(item => item.Value == CatalogTokens.Parse<CatalogDiscipline>(presentationCase.Discipline, "Discipline"));
             viewModel.SelectedRole = viewModel.RoleOptions.Single(item => item.Value?.ToToken() == presentationCase.Role || item.Value is null && presentationCase.Role == "All");
             viewModel.SearchText = presentationCase.Search;
+            await viewModel.SearchCompletion;
             viewModel.QuickViewCommand.Execute(presentationCase.QuickView);
             foreach (var id in presentationCase.SelectedIds)
             {

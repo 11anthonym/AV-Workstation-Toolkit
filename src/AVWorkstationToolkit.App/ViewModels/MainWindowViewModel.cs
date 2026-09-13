@@ -16,6 +16,8 @@ namespace AVWorkstationToolkit.App.ViewModels;
 
 public sealed class MainWindowViewModel : ObservableObject, IDisposable
 {
+    private const int CompatibilityResultLimit = 24;
+    private static readonly TimeSpan DefaultSearchDebounce = TimeSpan.FromMilliseconds(175);
     private readonly IWorkstationPlanningCoordinator coordinator;
     private readonly IReadOnlyDiagnosticsService diagnosticsService;
     private readonly CatalogDetailService detailService;
@@ -28,10 +30,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly ObservableCollection<PackageRowViewModel> packages = [];
-    private readonly ObservableCollection<PackageRowViewModel> visiblePackages = [];
-    private readonly ObservableCollection<CompatibilitySearchResultViewModel> compatibilityMatches = [];
+    private readonly TimeSpan searchDebounce;
+    private readonly SynchronizationContext? uiContext;
+    private IReadOnlyList<PackageRowViewModel> visiblePackages = [];
+    private IReadOnlyList<CompatibilitySearchResultViewModel> compatibilityMatches = [];
+    private IReadOnlyList<PackageRowViewModel> packageSearchSnapshot = [];
     private CancellationTokenSource? refreshCancellation;
+    private CancellationTokenSource? searchCancellation;
     private long refreshGeneration;
+    private long searchGeneration;
     private WorkstationPlan? plan;
     private PackageCatalog? planCatalog;
     private DiagnosticsViewModel? diagnostics;
@@ -40,6 +47,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private CompatibilitySearchOutcome compatibilitySearchOutcome = CompatibilitySearchOutcome.NoDeviceOrCatalogMatch;
     private bool isBusy;
     private string searchText = string.Empty;
+    private bool searchInProgress;
+    private int compatibilityTotalMatchCount;
+    private Task searchCompletion = Task.CompletedTask;
     private bool standardProfile = true;
     private bool fieldProfile = true;
     private bool developerProfile = true;
@@ -73,7 +83,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IApplicationMenuWorkflow? applicationMenuWorkflow = null,
         bool liveRehearsalMode = false,
         CompatibilityCatalogQueryService? compatibilityService = null,
-        IReferenceCatalogUpdateService? referenceCatalogUpdates = null)
+        IReferenceCatalogUpdateService? referenceCatalogUpdates = null,
+        TimeSpan? searchDebounce = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -85,6 +96,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.applicationMenuWorkflow = applicationMenuWorkflow;
         this.compatibilityService = compatibilityService;
         this.referenceCatalogUpdates = referenceCatalogUpdates;
+        this.searchDebounce = searchDebounce ?? DefaultSearchDebounce;
+        if (this.searchDebounce < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(searchDebounce));
+        uiContext = SynchronizationContext.Current;
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -130,8 +144,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     public ReadOnlyObservableCollection<PackageRowViewModel> Packages => new(packages);
-    public ReadOnlyObservableCollection<PackageRowViewModel> VisiblePackages => new(visiblePackages);
-    public ReadOnlyObservableCollection<CompatibilitySearchResultViewModel> CompatibilityMatches => new(compatibilityMatches);
+    public IReadOnlyList<PackageRowViewModel> VisiblePackages => visiblePackages;
+    public IReadOnlyList<CompatibilitySearchResultViewModel> CompatibilityMatches => compatibilityMatches;
     public IReadOnlyList<FilterOption<PackagePriority?>> PriorityOptions { get; }
     public IReadOnlyList<FilterOption<CatalogPreset>> CatalogPresetOptions { get; }
     public ObservableCollection<FilterOption<string>> ManufacturerOptions { get; }
@@ -197,12 +211,22 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             if (!SetProperty(ref searchText, value ?? string.Empty)) return;
-            RebuildVisible();
-            RebuildCompatibilityMatches();
+            ScheduleSearch();
         }
     }
-    public bool CompatibilityMatchesVisible => compatibilityMatches.Count > 0;
-    public bool CompatibilitySearchOutcomeVisible => SearchText.Trim().Length >= 2 && compatibilityMatches.Count == 0;
+    public bool SearchInProgress { get => searchInProgress; private set { if (SetProperty(ref searchInProgress, value)) NotifySearchPresentationChanged(); } }
+    public bool SearchStatusVisible => SearchInProgress || SearchText.Trim().Length > 0;
+    public string SearchStatusText => SearchInProgress
+        ? "Searching..."
+        : SearchText.Trim().Length < 2
+            ? SearchText.Trim().Length == 0 ? string.Empty : "Type at least 2 characters to search devices."
+            : compatibilityTotalMatchCount > 0
+                ? compatibilityTotalMatchCount == 1 ? "1 compatibility match" : $"{compatibilityTotalMatchCount} compatibility matches"
+                : visiblePackages.Count == 1 ? "1 application match"
+                : visiblePackages.Count > 1 ? $"{visiblePackages.Count} application matches"
+                : "No matches";
+    public bool CompatibilityMatchesVisible => !SearchInProgress && compatibilityMatches.Count > 0;
+    public bool CompatibilitySearchOutcomeVisible => !SearchInProgress && SearchText.Trim().Length >= 2 && compatibilityMatches.Count == 0;
     public string CompatibilitySearchOutcomeText => compatibilitySearchOutcome switch
     {
         CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog =>
@@ -211,9 +235,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             "No software or device catalog match was found. This does not mean the device has no required software.",
         _ => string.Empty
     };
-    public string CompatibilityMatchSummary => compatibilityMatches.Count == 1
-        ? "1 compatibility match"
-        : $"{compatibilityMatches.Count} compatibility matches";
+    public string CompatibilityMatchSummary => compatibilityTotalMatchCount > compatibilityMatches.Count
+        ? $"{compatibilityMatches.Count} of {compatibilityTotalMatchCount} matches"
+        : compatibilityMatches.Count == 1 ? "1 compatibility match" : $"{compatibilityMatches.Count} compatibility matches";
+    internal Task SearchCompletion => searchCompletion;
+    internal static int LiveCompatibilityResultLimit => CompatibilityResultLimit;
     public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) RebuildVisible(); } }
     public bool FieldProfile { get => fieldProfile; set { if (SetProperty(ref fieldProfile, value)) RebuildVisible(); } }
     public bool DeveloperProfile { get => developerProfile; set { if (SetProperty(ref developerProfile, value)) RebuildVisible(); } }
@@ -370,6 +396,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         if (actionCoordinator is not null) actionCoordinator.StateChanged -= ActionCoordinator_StateChanged;
         refreshCancellation?.Cancel();
         refreshCancellation?.Dispose();
+        searchCancellation?.Cancel();
+        searchCancellation?.Dispose();
     }
 
     private void ApplyPlan(WorkstationPlan result, IReadOnlySet<string> selectedIds, string? selectedRowId)
@@ -387,6 +415,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             packages.Add(row);
             if (selectedIds.Contains(row.Id) && row.CanSelect) row.RestoreSelection();
         }
+        packageSearchSnapshot = packages.ToArray();
         ManufacturerOptions.Clear();
         ManufacturerOptions.Add(new("All manufacturers", "All"));
         foreach (var vendor in CatalogQueryService.Manufacturers(result.Packages.Select(item => item.Package)))
@@ -407,66 +436,117 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void RebuildVisible()
     {
         if (plan is null) return;
+        ApplyVisibleRows(ComputeVisibleRows(CreateSearchRequest(SearchText)));
+    }
+
+    private IReadOnlyList<PackageRowViewModel> ComputeVisibleRows(SearchRequest request)
+    {
+        if (!request.HasPlan) return [];
         var profiles = new HashSet<PackageProfile>();
-        if (StandardProfile) profiles.Add(PackageProfile.Standard);
-        if (FieldProfile) profiles.Add(PackageProfile.Field);
-        if (DeveloperProfile) profiles.Add(PackageProfile.Developer);
-        if (OptionalProfile) profiles.Add(PackageProfile.Optional);
+        if (request.StandardProfile) profiles.Add(PackageProfile.Standard);
+        if (request.FieldProfile) profiles.Add(PackageProfile.Field);
+        if (request.DeveloperProfile) profiles.Add(PackageProfile.Developer);
+        if (request.OptionalProfile) profiles.Add(PackageProfile.Optional);
         IEnumerable<PackageRowViewModel> rows = profiles.Count == 0 ? [] : queryService.Apply(
-            packages.Select(item => new CatalogQueryItem(item.Package, item.Status, item.State.Installed, item.State.AvailableVersion)),
+            request.PackageRows.Select(item => new CatalogQueryItem(item.Package, item.Status, item.State.Installed, item.State.AvailableVersion)),
             new CatalogQuery(
                 profiles,
-                SelectedPriority.Value is null ? new HashSet<PackagePriority>() : new HashSet<PackagePriority> { SelectedPriority.Value.Value },
-                SelectedManufacturer.Value,
-                SelectedDiscipline.Value,
-                SelectedRole.Value is null ? new HashSet<PackageRole>() : new HashSet<PackageRole> { SelectedRole.Value.Value },
-                SearchText,
-                QuickView,
-                SelectedCatalogPreset.Value))
-            .Select(item => packages.First(row => ReferenceEquals(row.Package, item.Package)));
-        rows = ApplySort(rows);
-        visiblePackages.Clear();
-        foreach (var row in rows) visiblePackages.Add(row);
+                request.Priority is null ? new HashSet<PackagePriority>() : new HashSet<PackagePriority> { request.Priority.Value },
+                request.Manufacturer,
+                request.Discipline,
+                request.Role is null ? new HashSet<PackageRole>() : new HashSet<PackageRole> { request.Role.Value },
+                request.Query,
+                request.QuickView,
+                request.CatalogPreset))
+            .Select(item => request.PackageRows.First(row => ReferenceEquals(row.Package, item.Package)));
+        return ApplySort(rows, request.SortMemberPath, request.SortDirection).ToArray();
+    }
+
+    private void ApplyVisibleRows(IReadOnlyList<PackageRowViewModel> rows)
+    {
+        visiblePackages = rows;
+        OnPropertyChanged(nameof(VisiblePackages));
         if (SelectedRow is not null && !visiblePackages.Contains(SelectedRow)) SelectedRow = null;
         UpdateStatusText();
     }
 
-    private void RebuildCompatibilityMatches()
+    private void ScheduleSearch()
     {
-        compatibilityMatches.Clear();
         var query = SearchText.Trim();
-        if (compatibilityService is null || query.Length < 2)
-        {
-            compatibilitySearchOutcome = CompatibilitySearchOutcome.NoDeviceOrCatalogMatch;
-            NotifyCompatibilityMatchesChanged();
-            return;
-        }
+        var generation = Interlocked.Increment(ref searchGeneration);
+        var current = new CancellationTokenSource();
+        var previous = Interlocked.Exchange(ref searchCancellation, current);
+        previous?.Cancel();
+        previous?.Dispose();
+        SearchInProgress = query.Length >= 2;
+        NotifySearchPresentationChanged();
+        searchCompletion = RunSearchAsync(CreateSearchRequest(query), generation, current.Token);
+    }
 
-        var devices = compatibilityService.SearchDevices(query);
-        compatibilitySearchOutcome = compatibilityService.GetSearchOutcome(query);
-        foreach (var device in devices)
+    private async Task RunSearchAsync(SearchRequest request, long generation, CancellationToken cancellationToken)
+    {
+        try
         {
-            var displayName = CompatibilityDetailViewModel.DeviceDisplayName(device, query);
-            var softwareCount = compatibilityService.GetSoftwareForDevice(device).Sum(group => group.Software.Count);
-            compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
+            if (request.Query.Length >= 2 && searchDebounce > TimeSpan.Zero)
+                await Task.Delay(searchDebounce, cancellationToken).ConfigureAwait(false);
+            var result = await Task.Run(() => ComputeSearch(request, cancellationToken), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            await RunOnUiContextAsync(() =>
+            {
+                if (generation != Volatile.Read(ref searchGeneration) || cancellationToken.IsCancellationRequested) return;
+                ApplySearchResult(result);
+                SearchInProgress = false;
+            }).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+    }
+
+    private SearchResult ComputeSearch(SearchRequest request, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var rows = ComputeVisibleRows(request);
+        if (compatibilityService is null || request.Query.Length < 2)
+            return new SearchResult(rows, [], 0, CompatibilitySearchOutcome.NoDeviceOrCatalogMatch);
+
+        var search = compatibilityService.Search(request.Query, cancellationToken);
+        var matches = new List<CompatibilitySearchResultViewModel>(Math.Min(
+            CompatibilityResultLimit, search.Devices.Count + search.Products.Count));
+        foreach (var device in search.Devices)
+        {
+            if (matches.Count == CompatibilityResultLimit) break;
+            cancellationToken.ThrowIfCancellationRequested();
+            var displayName = CompatibilityDetailViewModel.DeviceDisplayName(device, request.Query);
+            matches.Add(new CompatibilitySearchResultViewModel(
                 CompatibilitySearchResultKind.Device,
                 displayName,
-                $"{HardwareLookupLabel(device)} | {DeviceMatchLabel(device.MatchKind)} | {softwareCount} reviewed software relationship(s)",
+                $"{HardwareLookupLabel(device)} | {DeviceMatchLabel(device.MatchKind)} | {device.MatchedRelationIds.Count} reviewed software relationship(s)",
                 device.LookupState is HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet or HardwareLookupState.KnownFamilyWithUnresolvedCoverage
                     ? "Known hardware identity; software coverage is not yet verified. This does not mean no software is required."
                     : "View software grouped by field-service purpose. This read-only result cannot be selected for install or update.",
                 () => OpenCompatibilityDeviceAsync(device, displayName)));
         }
 
-        foreach (var product in compatibilityService.SearchProducts(query))
+        foreach (var product in search.Products)
         {
-            compatibilityMatches.Add(new CompatibilitySearchResultViewModel(
+            if (matches.Count == CompatibilityResultLimit) break;
+            cancellationToken.ThrowIfCancellationRequested();
+            matches.Add(new CompatibilitySearchResultViewModel(
                 CompatibilitySearchResultKind.Software,
                 product.Name,
                 $"{product.Vendor} | {CompatibilityLabel(product.Lifecycle)}",
                 "View release families, installed evidence, and applicable devices.",
                 () => OpenCompatibilityProductAsync(product.Id)));
         }
+        return new SearchResult(rows, matches, search.Devices.Count + search.Products.Count, search.Outcome);
+    }
+
+    private void ApplySearchResult(SearchResult result)
+    {
+        ApplyVisibleRows(result.VisibleRows);
+        compatibilityMatches = result.CompatibilityMatches;
+        compatibilityTotalMatchCount = result.TotalCompatibilityMatches;
+        compatibilitySearchOutcome = result.Outcome;
+        OnPropertyChanged(nameof(CompatibilityMatches));
         NotifyCompatibilityMatchesChanged();
     }
 
@@ -493,6 +573,49 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CompatibilityMatchSummary));
         OnPropertyChanged(nameof(CompatibilitySearchOutcomeVisible));
         OnPropertyChanged(nameof(CompatibilitySearchOutcomeText));
+        OnPropertyChanged(nameof(SearchStatusText));
+        OnPropertyChanged(nameof(SearchStatusVisible));
+    }
+
+    private void NotifySearchPresentationChanged()
+    {
+        OnPropertyChanged(nameof(CompatibilityMatchesVisible));
+        OnPropertyChanged(nameof(CompatibilitySearchOutcomeVisible));
+        OnPropertyChanged(nameof(SearchStatusText));
+        OnPropertyChanged(nameof(SearchStatusVisible));
+    }
+
+    private SearchRequest CreateSearchRequest(string query) => new(
+        query,
+        plan is not null,
+        packageSearchSnapshot,
+        StandardProfile,
+        FieldProfile,
+        DeveloperProfile,
+        OptionalProfile,
+        SelectedPriority.Value,
+        SelectedManufacturer.Value,
+        SelectedDiscipline.Value,
+        SelectedRole.Value,
+        QuickView,
+        SelectedCatalogPreset.Value,
+        sortMemberPath,
+        sortDirection);
+
+    private Task RunOnUiContextAsync(Action action)
+    {
+        if (uiContext is null || ReferenceEquals(SynchronizationContext.Current, uiContext))
+        {
+            action();
+            return Task.CompletedTask;
+        }
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        uiContext.Post(_ =>
+        {
+            try { action(); completion.SetResult(); }
+            catch (Exception exception) { completion.SetException(exception); }
+        }, null);
+        return completion.Task;
     }
 
     private static string DeviceMatchLabel(CompatibilitySearchMatchKind kind) => kind switch
@@ -525,10 +648,16 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             ? $" {character}" : character.ToString()));
     }
 
-    private IEnumerable<PackageRowViewModel> ApplySort(IEnumerable<PackageRowViewModel> rows)
+    private IEnumerable<PackageRowViewModel> ApplySort(IEnumerable<PackageRowViewModel> rows) =>
+        ApplySort(rows, sortMemberPath, sortDirection);
+
+    private static IEnumerable<PackageRowViewModel> ApplySort(
+        IEnumerable<PackageRowViewModel> rows,
+        string requestedSortMemberPath,
+        ListSortDirection? requestedSortDirection)
     {
-        if (sortDirection is null || sortMemberPath.Length == 0) return rows.OrderBy(item => item.Order);
-        Func<PackageRowViewModel, object> key = sortMemberPath switch
+        if (requestedSortDirection is null || requestedSortMemberPath.Length == 0) return rows.OrderBy(item => item.Order);
+        Func<PackageRowViewModel, object> key = requestedSortMemberPath switch
         {
             "ApplicationSortKey" => item => item.ApplicationSortKey,
             "VendorSortKey" => item => item.VendorSortKey,
@@ -538,11 +667,34 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             "RiskSortKey" => item => item.RiskSortKey,
             _ => item => item.Order
         };
-        var ordered = sortDirection == ListSortDirection.Ascending
+        var ordered = requestedSortDirection == ListSortDirection.Ascending
             ? rows.OrderBy(key, ObjectComparer.Instance)
             : rows.OrderByDescending(key, ObjectComparer.Instance);
         return ordered.ThenBy(item => item.StableSortKey, StringComparer.Ordinal);
     }
+
+    private sealed record SearchRequest(
+        string Query,
+        bool HasPlan,
+        IReadOnlyList<PackageRowViewModel> PackageRows,
+        bool StandardProfile,
+        bool FieldProfile,
+        bool DeveloperProfile,
+        bool OptionalProfile,
+        PackagePriority? Priority,
+        string Manufacturer,
+        CatalogDiscipline Discipline,
+        PackageRole? Role,
+        QuickView QuickView,
+        CatalogPreset CatalogPreset,
+        string SortMemberPath,
+        ListSortDirection? SortDirection);
+
+    private sealed record SearchResult(
+        IReadOnlyList<PackageRowViewModel> VisibleRows,
+        IReadOnlyList<CompatibilitySearchResultViewModel> CompatibilityMatches,
+        int TotalCompatibilityMatches,
+        CompatibilitySearchOutcome Outcome);
 
     private void SetQuickView(QuickView view)
     {
