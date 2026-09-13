@@ -42,8 +42,16 @@ public static class ProductionReferenceCatalogConfiguration
 
 internal static class ProductionReferenceCatalogTrustAnchors
 {
-    // Add only owner-supplied ECDSA P-256 PUBLIC keys here after out-of-repository key generation.
-    // The empty set deliberately keeps online checks and signed imports fail-closed until that handoff.
+    // Owner-supplied ECDSA P-256 PUBLIC keys only. Private catalog-signing material is never
+    // accepted by application configuration or stored in this repository.
     internal static IReadOnlyDictionary<string, string> All { get; } =
-        new Dictionary<string, string>(StringComparer.Ordinal).ToFrozenDictionary(StringComparer.Ordinal);
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [ProductionReferenceCatalogConfiguration.PrimarySigningKeyId] = """
+                -----BEGIN PUBLIC KEY-----
+                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEE2/FcXCiFW4yGRPtdHrvNAtWXspc
+                dKXqz4Q23rPV8jFbGbKVmle4Cvj99AEdH5n63sCFf1/d44BnjdkE4R8Quw==
+                -----END PUBLIC KEY-----
+                """
+        }.ToFrozenDictionary(StringComparer.Ordinal);
 }

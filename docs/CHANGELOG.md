@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-13 — Production reference-catalog public trust handoff
+
+- Compiled the owner-supplied ECDSA P-256 public key under the fixed `avwt-catalog-2026-a` identity and enabled the exact GitHub Pages metadata/signature channel in production composition.
+- Added production-key identity, curve, fingerprint, and unrelated-signature rejection coverage while keeping all test signing keys isolated from production configuration.
+- Documented the owner-only Revision 1 publisher command; no production private key was accessed and no production catalog was signed or published.
+
 ## 2026-09-12 — Offline-first reference-catalog lifecycle hardening
 
 - Added production signed-embedded-baseline packaging, deterministic highest-compatible local selection, app-downgrade retention, quiet 24-hour background freshness checks, and offline import parity.
