@@ -32,7 +32,10 @@ public partial class DiagnosticsWindow : Window
     {
         if (Icon is null || DataContext is not DiagnosticsViewModel viewModel || viewModel.Snapshot.Catalog.Total != 3 ||
             !DiagnosticsText.Text.Contains("[Catalog]", StringComparison.Ordinal) ||
-            !DiagnosticsText.Text.Contains("[Warnings and errors]", StringComparison.Ordinal))
+            !DiagnosticsText.Text.Contains("[Warnings and errors]", StringComparison.Ordinal) ||
+            viewModel.HasIssues && (!IssuesPanel.IsVisible || DiagnosticsIssues.Items.Count != viewModel.Issues.Count ||
+                string.IsNullOrWhiteSpace(IssuesSummary.Text)) ||
+            !viewModel.HasIssues && IssuesPanel.IsVisible)
             throw new InvalidOperationException("Compiled diagnostics surface did not bind the deterministic sanitized snapshot.");
     }
 }

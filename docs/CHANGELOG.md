@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-14 — Actionable inventory warnings and diagnostics
+
+- Replaced the generic inventory-warning banner with check-specific severity, impact, sanitized technical detail, `View details`, and `Check again` actions; pending restart and provider failures can no longer hide one another.
+- Added readable diagnostic issue cards that explain what failed, what remains usable, the safe next action, and the underlying detail while retaining copy/export of the full sanitized snapshot.
+- Prevented a failed or malformed WinGet update check from presenting installed managed applications as `Current`; their state is now explicitly `Check unavailable` and non-actionable until update evidence succeeds.
+
 ## 2026-09-13 — Responsive compiled search
 
 - Moved package and compatibility search off the WPF typing path behind a 175 ms cancellable debounce, with newest-query-only dispatcher updates and a small accessible search status.

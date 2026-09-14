@@ -117,6 +117,49 @@ public sealed class DiagnosticsAndDetailsTests
     }
 
     [TestMethod]
+    public async Task DiagnosticsPresentationExplainsFailedCheckImpactAndNextAction()
+    {
+        var catalog = LoadCatalog();
+        var package = catalog.Items.First(item => item.Provider == ProviderKind.WinGet);
+        var providers = CompleteProviders() with
+        {
+            WinGetUpdateQuality = ProviderQuality.Malformed,
+            WinGetUpdateFailure = ProviderFailureKind.MalformedOutput,
+            WinGetUpdateDetail = "WinGet update output contains a malformed package row.",
+            Warnings = ["WinGet update check failed."]
+        };
+        var service = new ReadOnlyDiagnosticsService(new FixedRuntimeProvider(), new("1.1.1", "Test", "Unknown", "Unknown"));
+        var snapshot = await service.ComposeAsync(Plan(
+            [State(package, PackageStatus.CheckUnavailable, true, "1.0", InventoryQuality.Unavailable)], providers));
+
+        var viewModel = new DiagnosticsViewModel(snapshot);
+        var issue = viewModel.Issues.Single(item => item.Title == "Update availability check failed");
+
+        Assert.AreEqual("CHECK FAILED", issue.SeverityLabel);
+        StringAssert.Contains(issue.Explanation, "cannot verify which managed apps are current");
+        StringAssert.Contains(issue.RecommendedAction, "Check again");
+        StringAssert.Contains(issue.TechnicalDetail, "malformed package row");
+        StringAssert.Contains(viewModel.IssueSummary, "failed check");
+        Assert.DoesNotContain("InventoryUnavailable", issue.Title, StringComparison.Ordinal);
+    }
+
+    [TestMethod]
+    public async Task DiagnosticTextUsesStableBulletsForInventorySources()
+    {
+        var catalog = LoadCatalog();
+        var package = catalog.GetRequired("Crestron.Toolbox");
+        var providers = CompleteProviders() with
+        {
+            ExternalSources = [new(RegistryInventorySource.Hklm64, true, 1, "Registry source read successfully.")]
+        };
+        var service = new ReadOnlyDiagnosticsService(new FixedRuntimeProvider(), new("1.1.1", "Test", "Unknown", "Unknown"));
+        var snapshot = await service.ComposeAsync(Plan([State(package, PackageStatus.Inventory, true, "3.0")], providers));
+
+        StringAssert.Contains(snapshot.Text, "- HKLM 64-bit uninstall inventory:");
+        Assert.DoesNotContain("\n  HKLM", snapshot.Text, StringComparison.Ordinal);
+    }
+
+    [TestMethod]
     public async Task DetailSelectionIsRetainedByIdentityAndClearedWhenFilteredOut()
     {
         var catalog = LoadCatalog();

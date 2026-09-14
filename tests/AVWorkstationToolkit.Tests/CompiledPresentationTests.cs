@@ -456,6 +456,58 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task WinGetUpdateFailureExplainsCauseImpactAndDiagnosticsPath()
+    {
+        var original = CreatePlan();
+        var states = original.Packages.Select(item => item.Package.Provider == ProviderKind.WinGet && item.Installed
+            ? item with
+            {
+                Status = PackageStatus.CheckUnavailable,
+                StatusDetail = "Installed version detected, but update availability could not be verified.",
+                ReasonCode = "WingetUpdateCheckUnavailable",
+                Action = PackageAction.None,
+                InventoryQuality = InventoryQuality.Unavailable
+            }
+            : item).ToArray();
+        var providers = original.Providers with
+        {
+            WinGetUpdateQuality = ProviderQuality.Malformed,
+            Warnings = ["WinGet update check: WinGet update output contains a malformed package row."],
+            WinGetUpdateFailure = ProviderFailureKind.MalformedOutput,
+            WinGetUpdateDetail = "WinGet update output contains a malformed package row."
+        };
+        var plan = original with { Packages = states, Summary = Summarize(states), Providers = providers };
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(plan));
+        DiagnosticsViewModel? requested = null;
+        viewModel.DiagnosticsRequested += value => requested = value;
+
+        await viewModel.RefreshAsync();
+
+        Assert.IsTrue(viewModel.WarningVisible);
+        Assert.AreEqual("CHECK FAILED", viewModel.WarningSeverityText);
+        Assert.AreEqual("Update availability check failed", viewModel.WarningTitle);
+        StringAssert.Contains(viewModel.WarningText, "not marked Current");
+        StringAssert.Contains(viewModel.WarningDetailText, "malformed package row");
+        StringAssert.Contains(viewModel.ActivityText, "Update availability check failed");
+        StringAssert.Contains(viewModel.Diagnostics!.Text, "Request: (none)");
+        viewModel.DiagnosticsCommand.Execute(null);
+        Assert.AreSame(viewModel.Diagnostics, requested);
+    }
+
+    [TestMethod]
+    public async Task PendingRestartDoesNotHideProviderFailureDetail()
+    {
+        var original = CreatePlan(rebootPending: true, inventoryWarning: true);
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(original));
+
+        await viewModel.RefreshAsync();
+
+        Assert.AreEqual("Several system checks need attention", viewModel.WarningTitle);
+        StringAssert.Contains(viewModel.WarningDetailText, "Pending restart");
+        StringAssert.Contains(viewModel.WarningDetailText, "External application inventory");
+    }
+
+    [TestMethod]
     public async Task CompiledActionButtonsRefuseMutation()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()));

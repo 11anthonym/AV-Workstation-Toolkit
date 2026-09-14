@@ -29,6 +29,35 @@ public sealed class WorkstationPlanningCoordinatorTests
     }
 
     [TestMethod]
+    public async Task MalformedWinGetUpdateInventoryCannotPresentInstalledPackageAsCurrent()
+    {
+        var catalog = new CatalogParser(new DateOnly(2026, 8, 28)).NormalizeManagedCatalog(
+            [new("Standard", "Fixture", "Fixture.Managed", "Fixture", "None", "fixture", null, null)], "NeverMatch");
+        var coordinator = new WorkstationPlanningCoordinator(
+            catalog,
+            new InstalledProvider(new(ProviderQuality.Complete, ProviderFailureKind.None,
+                [new("Fixture.Managed", "1.0")], "installed inventory loaded", string.Empty)),
+            new UpdateProvider(new(ProviderQuality.Malformed, ProviderFailureKind.MalformedOutput, [],
+                "WinGet update output contains a malformed package row.", string.Empty)),
+            new RegistryProvider(Registry(ProviderQuality.Complete)),
+            new RebootProvider(new(false, [], ProviderQuality.Complete, ProviderFailureKind.None, "clear")));
+
+        var plan = await coordinator.RefreshAsync();
+        var state = plan.Packages.Single();
+
+        Assert.IsTrue(state.Installed);
+        Assert.AreEqual("1.0", state.InstalledVersion);
+        Assert.AreEqual(PackageStatus.CheckUnavailable, state.Status);
+        Assert.AreEqual("WingetUpdateCheckUnavailable", state.ReasonCode);
+        Assert.AreEqual(PackageAction.None, state.Action);
+        Assert.AreEqual(InventoryQuality.Unavailable, state.InventoryQuality);
+        Assert.IsFalse(state.CanSelect);
+        Assert.AreEqual(0, plan.Summary.Current);
+        Assert.AreEqual(1, plan.Summary.CheckUnavailable);
+        Assert.HasCount(1, plan.Providers.Warnings);
+    }
+
+    [TestMethod]
     public async Task PartialExternalInventoryProducesExplicitIncompleteState()
     {
         const string externalJson = """

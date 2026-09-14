@@ -4,6 +4,7 @@ using System.Windows.Input;
 using AVWorkstationToolkit.App.Commands;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Diagnostics;
+using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Application.Actions;
@@ -67,6 +68,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string activityText = string.Empty;
     private string activityState = "Ready";
     private string statusText = "Loading catalog and workstation state...";
+    private PlanWarningPresentation warningPresentation = PlanWarningPresentation.None;
     private int mutationRefusalCount;
     private bool actionActive;
     private bool riskAcknowledged;
@@ -318,10 +320,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update) && !SelectedRiskNeedsAcknowledgement(PackageAction.Update);
     public bool RiskAcknowledgementRequired => packages.Any(item => item.Selected && item.Risk != PackageRisk.None);
     public bool RiskAcknowledgementVisible => MigrationActionMode && RiskAcknowledgementRequired;
-    public bool WarningVisible => plan is not null && (plan.Reboot.Pending || plan.Providers.Warnings.Count > 0);
-    public string WarningText => plan is null ? string.Empty : plan.Reboot.Pending
-        ? "Restart recommended. Windows is waiting for a restart to finish an update. You can still select most apps, but system-level changes remain paused until you restart."
-        : $"Workstation inventory completed with warnings. {plan.Providers.Warnings.Count} subsystem warning(s) may make some states incomplete.";
+    public bool WarningVisible => warningPresentation.Visible;
+    public string WarningSeverityText => warningPresentation.SeverityText;
+    public string WarningTitle => warningPresentation.Title;
+    public string WarningText => warningPresentation.Message;
+    public string WarningDetailText => warningPresentation.Detail;
+    public string WarningBackground => warningPresentation.Background;
+    public string WarningBorder => warningPresentation.Border;
+    public string WarningAccent => warningPresentation.Accent;
+    public string WarningAutomationText => warningPresentation.AutomationText;
     public int MutationRefusalCount => mutationRefusalCount;
     internal int RefreshInvocationCount => refreshInvocationCount;
     public string SortMemberPath => sortMemberPath;
@@ -352,7 +359,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             if (generation != Volatile.Read(ref refreshGeneration)) return;
             ApplyPlan(result, selectedIds, selectedRowId);
             Diagnostics = new DiagnosticsViewModel(refreshedDiagnostics, ActionDiagnosticText(), diagnosticsExportService);
-            AppendActivity(result.Providers.Warnings.Count == 0 ? "Plan ready." : "Plan ready with inventory warnings.");
+            AppendActivity(WarningVisible
+                ? $"{WarningSeverityText} {WarningTitle}. {WarningDetailText}"
+                : "Plan ready.");
         }
         catch (OperationCanceledException) when (generation != Volatile.Read(ref refreshGeneration) || cancellation.IsCancellationRequested)
         {
@@ -407,6 +416,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         RiskAcknowledged = false;
         var retainedManufacturer = SelectedManufacturer.Value;
         plan = result;
+        warningPresentation = CreateWarningPresentation(result);
         planCatalog = new PackageCatalog(result.Packages.Select(item => item.Package));
         packages.Clear();
         var order = 0;
@@ -433,7 +443,14 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CurrentCount));
         OnPropertyChanged(nameof(ActionCount));
         OnPropertyChanged(nameof(WarningVisible));
+        OnPropertyChanged(nameof(WarningSeverityText));
+        OnPropertyChanged(nameof(WarningTitle));
         OnPropertyChanged(nameof(WarningText));
+        OnPropertyChanged(nameof(WarningDetailText));
+        OnPropertyChanged(nameof(WarningBackground));
+        OnPropertyChanged(nameof(WarningBorder));
+        OnPropertyChanged(nameof(WarningAccent));
+        OnPropertyChanged(nameof(WarningAutomationText));
         DiagnosticsCommand.RaiseCanExecuteChanged();
         ScheduleSearch(useTextDebounce: false);
     }
@@ -847,7 +864,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             "[Compiled managed action]",
             $"State: {snapshot.State}",
-            $"Request: {snapshot.RequestId}",
+            $"Request: {(string.IsNullOrWhiteSpace(snapshot.RequestId) ? "(none)" : snapshot.RequestId)}",
             $"Status: {snapshot.Status}",
             $"Progress records: {snapshot.Progress.Count}"
         };
@@ -931,6 +948,75 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     private static QuickView ParseQuickView(object? value) => Enum.TryParse<QuickView>(value?.ToString(), out var parsed) ? parsed : QuickView.All;
+
+    private static PlanWarningPresentation CreateWarningPresentation(WorkstationPlan value)
+    {
+        var checks = new List<(string Name, ProviderQuality Quality, string Detail)>();
+        AddCheck("WinGet installed inventory", value.Providers.WinGetInventoryQuality, value.Providers.WinGetInventoryDetail);
+        AddCheck("WinGet update check", value.Providers.WinGetUpdateQuality, value.Providers.WinGetUpdateDetail);
+        AddCheck("External application inventory", value.Providers.ExternalInventoryQuality, value.Providers.ExternalInventoryDetail);
+        AddCheck("Restart detection", value.Providers.RebootQuality, value.Providers.RebootDetail);
+
+        if (!value.Reboot.Pending && checks.Count == 0) return PlanWarningPresentation.None;
+
+        var malformed = checks.Any(item => item.Quality == ProviderQuality.Malformed);
+        var issueCount = checks.Count + (value.Reboot.Pending ? 1 : 0);
+        var title = issueCount > 1 ? "Several system checks need attention"
+            : value.Reboot.Pending ? "Restart recommended"
+            : checks[0].Name switch
+            {
+                "WinGet update check" => malformed ? "Update availability check failed" : "Update availability is unavailable",
+                "WinGet installed inventory" => malformed ? "Installed application inventory check failed" : "Installed application inventory is unavailable",
+                "External application inventory" => "Some external application inventory is incomplete",
+                "Restart detection" => "Restart status could not be checked",
+                _ => "A system check needs attention"
+            };
+        var message = issueCount > 1
+            ? "Some workstation states may be incomplete. AV Workstation Toolkit keeps uncertain items non-actionable and does not treat an unchecked state as current."
+            : value.Reboot.Pending
+                ? "Windows is waiting for a restart to finish an update. Most low-risk actions remain available, but system-level changes stay paused until you restart."
+                : checks[0].Name switch
+                {
+                    "WinGet update check" => "Installed application inventory succeeded, but update status is unavailable. Installed managed apps are not marked Current until this check succeeds.",
+                    "WinGet installed inventory" => "AV Workstation Toolkit could not verify which managed applications are installed, so managed install and update actions remain unavailable.",
+                    "External application inventory" => "One or more Windows inventory sources could not be read. Affected external application states remain incomplete and non-actionable.",
+                    "Restart detection" => "AV Workstation Toolkit could not determine whether Windows is waiting for a restart. Risk-bearing actions remain constrained by existing policy.",
+                    _ => "A workstation check did not complete. Uncertain states remain non-actionable."
+                };
+        var details = checks.Select(item => $"{item.Name}: {CleanDetail(item.Detail)}").ToList();
+        if (value.Reboot.Pending) details.Insert(0, $"Pending restart: {CleanDetail(value.Reboot.Summary)}");
+        var detail = string.Join("  |  ", details);
+        var severity = malformed ? "CHECK FAILED" : "ATTENTION";
+        return new(true, severity, title, message, detail,
+            malformed ? "#321719" : "#3A2B0B",
+            malformed ? "#A43F48" : "#8A6513",
+            malformed ? "#FF8D96" : "#F8C555");
+
+        void AddCheck(string name, ProviderQuality quality, string detail)
+        {
+            if (quality != ProviderQuality.Complete) checks.Add((name, quality, detail));
+        }
+
+        static string CleanDetail(string detail) => string.IsNullOrWhiteSpace(detail)
+            ? "No additional detail was provided."
+            : DiagnosticsRedactor.Sanitize(detail).Trim();
+    }
+
+    private sealed record PlanWarningPresentation(
+        bool Visible,
+        string SeverityText,
+        string Title,
+        string Message,
+        string Detail,
+        string Background,
+        string Border,
+        string Accent)
+    {
+        public static PlanWarningPresentation None { get; } = new(false, string.Empty, string.Empty, string.Empty, string.Empty,
+            "#3A2B0B", "#8A6513", "#F8C555");
+        public string AutomationText => string.Join(". ", new[] { SeverityText, Title, Message, Detail }.Where(value => value.Length > 0));
+    }
+
     private static string StageText(PlanningRefreshStage stage) => stage switch
     {
         PlanningRefreshStage.ReadingWinGetInventory => "Reading WinGet inventory...",

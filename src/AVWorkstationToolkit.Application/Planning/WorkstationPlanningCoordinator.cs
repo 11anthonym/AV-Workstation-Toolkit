@@ -199,7 +199,27 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
                         : "No validated catalog release version is available."));
             }
 
-            return planningService.Evaluate(package, evidence);
+            var state = planningService.Evaluate(package, evidence);
+            if (package.Provider == ProviderKind.WinGet && state.Installed &&
+                updates.Quality != ProviderQuality.Complete && state.Status == PackageStatus.Current)
+            {
+                var detail = string.IsNullOrWhiteSpace(updates.Detail)
+                    ? "Installed version detected, but update availability could not be verified."
+                    : $"Installed version detected, but update availability could not be verified. {updates.Detail}";
+                return state with
+                {
+                    UpgradeAvailable = false,
+                    Status = PackageStatus.CheckUnavailable,
+                    StatusDetail = detail,
+                    ReasonCode = "WingetUpdateCheckUnavailable",
+                    Action = PackageAction.None,
+                    InventoryQuality = updates.Quality == ProviderQuality.Partial
+                        ? InventoryQuality.Partial
+                        : InventoryQuality.Unavailable
+                };
+            }
+
+            return state;
         }).ToArray();
     }
 

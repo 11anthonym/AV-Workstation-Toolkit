@@ -79,7 +79,7 @@ public partial class MainWindow : Window
     {
         var required = new[]
         {
-            "BrandMark", "TopMenu", "RebootBanner", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "SearchStatus", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
+            "BrandMark", "TopMenu", "RebootBanner", "WarningSeverity", "WarningTitle", "WarningDetail", "WarningDetailsButton", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "SearchStatus", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
             "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "AboutMenuItem"
@@ -163,6 +163,9 @@ public partial class MainWindow : Window
         diagnosticsWindow.Close();
         if (!viewModel.WarningVisible || !RebootBanner.IsVisible)
             throw new InvalidOperationException("Compiled WPF smoke did not present the deterministic reboot/provider warning.");
+        if (string.IsNullOrWhiteSpace(WarningTitle.Text) || string.IsNullOrWhiteSpace(WarningDetail.Text) ||
+            WarningDetailsButton.Command != viewModel.DiagnosticsCommand)
+            throw new InvalidOperationException("Compiled WPF smoke did not expose warning cause, detail, and diagnostics navigation.");
 
         new SafetySecurityWindow().VerifySmokeContract();
         new AboutWindow(productVersion, executionMode).VerifySmokeContract();

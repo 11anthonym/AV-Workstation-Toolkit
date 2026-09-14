@@ -147,7 +147,7 @@ public sealed class ReadOnlyDiagnosticsService(
         text.AppendLine("[External inventory]");
         text.AppendLine($"Quality: {value.ExternalInventoryState}");
         foreach (var source in value.RegistrySources)
-            text.AppendLine($"  {source.Label}: {source.State} ({source.EntryCount} entries) - {source.Detail}");
+            text.AppendLine($"- {source.Label}: {source.State} ({source.EntryCount} entries) - {source.Detail}");
         text.AppendLine();
         text.AppendLine("[Catalog]");
         text.AppendLine($"Records: {value.Catalog.Total}; WinGet managed: {value.Catalog.WinGetManaged}; operational external: {value.Catalog.OperationalExternal}; awareness: {value.Catalog.Awareness}");
