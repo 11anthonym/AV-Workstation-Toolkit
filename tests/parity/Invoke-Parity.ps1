@@ -8,6 +8,31 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $solutionPath = Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx'
 $integrationDll = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.dll'
 
+function ConvertTo-PresentationBehaviorContract {
+    param([Parameter(Mandatory)]$Result)
+
+    # Display copy is intentionally allowed to evolve independently after the
+    # compiled UI cutover. Keep parity strict for the state that drives what the
+    # user can see and do; dedicated presentation tests own the exact C# wording.
+    [ordered]@{
+        SchemaVersion = [int]$Result.SchemaVersion
+        ScenarioId = [string]$Result.ScenarioId
+        Cases = @($Result.Cases | ForEach-Object {
+            [ordered]@{
+                Id = [string]$_.Id
+                VisibleIds = @($_.VisibleIds | ForEach-Object { [string]$_ })
+                SelectedIds = @($_.SelectedIds | ForEach-Object { [string]$_ })
+                InstallCount = [int]$_.InstallCount
+                UpdateCount = [int]$_.UpdateCount
+                InstallEnabled = [bool]$_.InstallEnabled
+                UpdateEnabled = [bool]$_.UpdateEnabled
+                QuickView = [string]$_.QuickView
+                WarningVisible = [bool]$_.WarningVisible
+            }
+        })
+    }
+}
+
 if (-not $NoBuild) {
     & dotnet restore $solutionPath --locked-mode --nologo
     if ($LASTEXITCODE -ne 0) { throw 'Locked restore for the migration solution failed.' }
@@ -84,8 +109,8 @@ foreach ($fixture in @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'pres
     if ($LASTEXITCODE -ne 0) { throw "C# presentation adapter failed for $($fixture.Name)." }
     $legacyObject = $legacy | ConvertFrom-Json -ErrorAction Stop
     $compiledObject = $compiled | ConvertFrom-Json -ErrorAction Stop
-    $legacyCanonical = $legacyObject | ConvertTo-Json -Depth 20 -Compress
-    $compiledCanonical = $compiledObject | ConvertTo-Json -Depth 20 -Compress
+    $legacyCanonical = ConvertTo-PresentationBehaviorContract $legacyObject | ConvertTo-Json -Depth 20 -Compress
+    $compiledCanonical = ConvertTo-PresentationBehaviorContract $compiledObject | ConvertTo-Json -Depth 20 -Compress
     if ($legacyCanonical -cne $compiledCanonical) { throw "Presentation parity mismatch for $($fixture.Name).`r`nLEGACY: $legacyCanonical`r`nCSHARP: $compiledCanonical" }
     $cases = @($legacyObject.Cases).Count
     $presentationScenarioCount++

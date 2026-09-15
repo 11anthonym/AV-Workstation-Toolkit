@@ -2157,7 +2157,10 @@ if (-not $CoreOnly) {
         }
         finally { $ErrorActionPreference = $oldPreference }
         Assert-True ($exitCode -ne 0) 'Out-of-bound request returned success.'
-        Assert-True ($output -match 'direct children of the resolved AV Workstation Toolkit logs\\requests directory') 'Expected request-boundary rejection was not reported.'
+        # Windows PowerShell formats native child-process error records to the
+        # current host width and can wrap the trailing logs\requests path. Match
+        # the unique invariant prefix rather than depending on console layout.
+        Assert-True ($output -match 'Request files must be direct children of the resolved AV Workstation Toolkit') 'Expected request-boundary rejection was not reported.'
     }
     Invoke-Check 'Worker rejects unknown request properties before live planning' {
         $worker = Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1'
