@@ -4,9 +4,9 @@
         Title="AV Workstation Toolkit diagnostics" Width="820" Height="720" MinWidth="580" MinHeight="460"
         Icon="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.ico"
         WindowStartupLocation="CenterOwner" Background="#0A0F1C" Foreground="#E8EEF8"
-        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Read-only sanitized diagnostics">
+        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="App checks and troubleshooting details">
     <Grid Margin="20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <StackPanel><TextBlock Text="Diagnostics" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Read-only, sanitized runtime and inventory health" Foreground="#94A4BB" Margin="0,5,0,12"/></StackPanel>
+        <StackPanel><TextBlock Text="Diagnostics" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="App checks and troubleshooting details" Foreground="#94A4BB" Margin="0,5,0,12"/></StackPanel>
         <Border x:Name="IssuesPanel" Grid.Row="1" Background="#101A2A" BorderBrush="#30415D" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12" Visibility="{Binding HasIssues, Converter={StaticResource BooleanToVisibilityConverter}}" AutomationProperties.Name="Diagnostic warnings and failed checks">
             <StackPanel><TextBlock x:Name="IssuesSummary" Text="{Binding IssueSummary}" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,8"/>
                 <ScrollViewer MaxHeight="255" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><ItemsControl x:Name="DiagnosticsIssues" ItemsSource="{Binding Issues}"><ItemsControl.ItemTemplate><DataTemplate>
@@ -19,7 +19,7 @@
                 </DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
             </StackPanel>
         </Border>
-        <TextBox x:Name="DiagnosticsText" Grid.Row="2" Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#0C1423" Foreground="#DDE6F3" BorderBrush="#30415D" Padding="14" FontFamily="Consolas" FontSize="11.5" AutomationProperties.Name="Sanitized diagnostic details"/>
-        <Grid Grid.Row="3" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding State}" Foreground="#94A4BB"/><TextBlock Text="{Binding Status}" Foreground="#94A4BB" TextWrapping="Wrap"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal"><Button Content="Copy diagnostics" Padding="12,7" Margin="0,0,8,0" Click="Copy_Click" AutomationProperties.Name="Copy sanitized diagnostics"/><Button Content="Export diagnostics" Padding="12,7" Margin="0,0,8,0" Command="{Binding ExportCommand}" AutomationProperties.Name="Export sanitized diagnostics"/><Button Content="Close" IsDefault="True" IsCancel="True" Padding="16,7" Click="Close_Click"/></StackPanel></Grid>
+        <TextBox x:Name="DiagnosticsText" Grid.Row="2" Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#0C1423" Foreground="#DDE6F3" BorderBrush="#30415D" Padding="14" FontFamily="Consolas" FontSize="11.5" AutomationProperties.Name="Technical diagnostic details"/>
+        <Grid Grid.Row="3" Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{Binding State}" Foreground="#94A4BB"/><TextBlock Text="{Binding Status}" Foreground="#94A4BB" TextWrapping="Wrap"/></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal"><Button Content="Copy diagnostics" Padding="12,7" Margin="0,0,8,0" Click="Copy_Click" AutomationProperties.Name="Copy diagnostics with sensitive values removed"/><Button Content="Export diagnostics" Padding="12,7" Margin="0,0,8,0" Command="{Binding ExportCommand}" AutomationProperties.Name="Export diagnostics with sensitive values removed"/><Button Content="Close" IsDefault="True" IsCancel="True" Padding="16,7" Click="Close_Click"/></StackPanel></Grid>
     </Grid>
 </Window>

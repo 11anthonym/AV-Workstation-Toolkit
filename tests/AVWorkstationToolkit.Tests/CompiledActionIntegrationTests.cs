@@ -47,6 +47,7 @@ public sealed class CompiledActionIntegrationTests
         var store = new FakeProtocolStore(ActionResultStatus.Succeeded);
         var planning = new QueuePlanningCoordinator(refreshed);
         var coordinator = Coordinator(store, planning);
+        Assert.AreEqual("No installation or update is running.", coordinator.Snapshot.Status);
 
         var result = await coordinator.StartAsync(ManagedRequestAction.Install, current.Packages, current, false, false);
 
@@ -84,6 +85,7 @@ public sealed class CompiledActionIntegrationTests
 
         Assert.IsTrue(await coordinator.RequestCancellationAsync());
         Assert.AreEqual(CompiledActionState.CancellationRequested, coordinator.Snapshot.State);
+        StringAssert.Contains(coordinator.Snapshot.Status, "current app may finish");
         store.CompleteCancellation();
         Assert.AreEqual(ActionResultStatus.Cancelled, (await running).Result.Status);
         Assert.AreEqual(CompiledActionState.Cancelled, coordinator.Snapshot.State);

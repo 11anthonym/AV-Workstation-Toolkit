@@ -20,11 +20,11 @@ public partial class DiagnosticsWindow : Window
         try
         {
             Clipboard.SetText(viewModel.Text);
-            viewModel.Status = "Sanitized diagnostics copied to the clipboard.";
+            viewModel.Status = "Diagnostics copied to the clipboard. Sensitive values were removed.";
         }
         catch (Exception exception)
         {
-            viewModel.Status = $"Copy failed: {AVWorkstationToolkit.Application.Diagnostics.DiagnosticsRedactor.Sanitize(exception.Message)}";
+            viewModel.Status = $"Couldn't copy diagnostics. {AVWorkstationToolkit.Application.Diagnostics.DiagnosticsRedactor.Sanitize(exception.Message)}";
         }
     }
 

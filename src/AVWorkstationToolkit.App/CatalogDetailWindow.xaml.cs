@@ -37,7 +37,7 @@ public partial class CatalogDetailWindow : Window
     {
         UnsubscribeCompatibility();
         DataContext = viewModel;
-        Title = $"Application details - {viewModel.Name}";
+        Title = $"{viewModel.DetailType} details - {viewModel.Name}";
         compatibilityViewModel = viewModel as CompatibilityDetailViewModel;
         if (compatibilityViewModel is not null) compatibilityViewModel.NavigationRequested += NavigateCompatibility;
     }

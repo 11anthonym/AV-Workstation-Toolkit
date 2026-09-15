@@ -29,6 +29,10 @@ public sealed class ActionWorkerOrchestratorTests
         Assert.AreEqual(1, executor.CallCount);
         Assert.AreEqual(PackageOutcomeStatus.Succeeded, result.Packages.Single().Status);
         Assert.IsTrue(protocol.Progress.Any(item => item.Stage == "Verified"));
+        Assert.IsTrue(protocol.Progress.Any(item => item.Message == "Preparing to install 1 app."));
+        Assert.IsTrue(protocol.Progress.Any(item => item.Message == "Installing Vendor.One."));
+        Assert.IsTrue(protocol.Progress.Any(item => item.Message == "Installed and verified."));
+        Assert.AreEqual("All selected apps were completed and verified.", protocol.Result?.Message);
     }
 
     [TestMethod]
@@ -47,6 +51,9 @@ public sealed class ActionWorkerOrchestratorTests
             new[] { PackageOutcomeStatus.Failed, PackageOutcomeStatus.Unverified },
             result.Packages.Select(item => item.Status).ToArray());
         Assert.AreEqual(2, executor.CallCount);
+        Assert.IsTrue(protocol.Progress.Any(item => item.Message.Contains("Exit code: 17", StringComparison.Ordinal)));
+        Assert.IsTrue(protocol.Progress.Any(item => item.Message == "WinGet finished, but AVWT couldn't confirm the installed version."));
+        Assert.AreEqual("2 apps couldn't be completed or verified.", protocol.Result?.Message);
     }
 
     [TestMethod]

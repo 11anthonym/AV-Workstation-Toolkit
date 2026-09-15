@@ -31,8 +31,8 @@ public sealed class ExternalProviderReadModelService
         if (package.Provider != ProviderKind.External)
             return new(package.Id, DiagnosticEvidenceState.Available, DiagnosticEvidenceState.Unknown,
                 DiagnosticEvidenceState.Unknown, DiagnosticEvidenceState.Unknown, false, string.Empty,
-                state.AvailableVersion, "Managed package release evidence is supplied by WinGet.",
-                "Managed package delivery is outside the external-provider model.", "Not applicable.");
+                state.AvailableVersion, "WinGet provides version information for this app.",
+                "AVWT installs this supported app through WinGet.", "Not applicable.");
 
         var inventory = state.InventoryQuality switch
         {
@@ -56,12 +56,12 @@ public sealed class ExternalProviderReadModelService
         };
         var releaseDetail = releaseEvidence?.Detail ?? (package.ReleaseMode switch
         {
-            ReleaseMode.InventoryOnly => "Inventory-only provider; no online version comparison is performed.",
+            ReleaseMode.InventoryOnly => "AVWT checks whether this app is installed but doesn't check its latest version online.",
             ReleaseMode.VendorPage => package.KnownVersion.Length > 0
-                ? $"Validated catalog baseline {package.KnownVersion} is available; live vendor metadata was not requested by the compiled application."
-                : "Vendor metadata was not requested and no validated catalog baseline is available.",
-            ReleaseMode.ParentCatalog => "Parent-provider metadata was not requested; any validated catalog baseline remains read-only.",
-            _ => "Release evidence is unknown."
+                ? $"The software catalog lists version {package.KnownVersion}. AVWT hasn't checked the vendor for a newer version."
+                : "AVWT hasn't checked the vendor for a newer version, and the software catalog doesn't list a version.",
+            ReleaseMode.ParentCatalog => "The vendor's product list wasn't checked. Any version in the software catalog is for reference only.",
+            _ => "Version information isn't available."
         });
         var details = package.MetadataDetails;
         var parentValid = package.ParentProviderId.Length > 0 && TryGet(catalog, package.ParentProviderId, out var parent) &&
@@ -80,35 +80,35 @@ public sealed class ExternalProviderReadModelService
             _ => DiagnosticEvidenceState.Unavailable
         };
         var deliveryDetail = details.MetadataQuarantined
-            ? $"Metadata is quarantined: {details.MetadataQuarantineReason}"
+            ? $"Some download information is restricted because it didn't pass verification: {details.MetadataQuarantineReason}"
             : package.DeliveryMode switch
             {
                 DeliveryMode.VendorPage => delivery == DiagnosticEvidenceState.Available
-                    ? "Validated official vendor-page handoff metadata is available."
-                    : "Validated vendor-page handoff metadata is unavailable.",
+                    ? "AVWT can open the approved official vendor page."
+                    : "An approved official vendor page isn't available.",
                 DeliveryMode.Awareness => delivery == DiagnosticEvidenceState.Available
-                    ? "Validated official product-page metadata is available; the record remains awareness-only."
-                    : "No validated official product-page metadata is available.",
+                    ? "AVWT can open the approved official product page. This item is for reference only."
+                    : "An approved official product page isn't available.",
                 DeliveryMode.ParentProvider => parentValid
                     ? releaseEvidence?.Products.Count > 0
-                        ? "Parent-provider relationship and allowlisted product evidence are valid; credentials have not been accessed."
+                        ? "The vendor lists an approved package for this app. AVWT hasn't accessed your sign-in."
                         : releaseEvidence is null
-                            ? "Parent-provider relationship is valid; authenticated availability was not checked."
-                            : "Parent-provider relationship is valid, but current product evidence is unavailable."
-                    : "Parent-provider relationship is unavailable.",
+                            ? "The approved vendor source is configured, but package availability was not checked."
+                            : "The approved vendor source is configured, but its current product list isn't available."
+                    : "The approved vendor source for this app isn't available.",
                 DeliveryMode.AuthenticatedSftp => releaseEvidence?.Products.Count > 0
-                    ? $"Authenticated provider configuration and {releaseEvidence.Products.Count} allowlisted catalog product(s) are available; no credential was accessed."
-                    : "Authenticated provider configuration exists; no credential was accessed and current catalog evidence is unavailable.",
+                    ? $"The vendor lists {releaseEvidence.Products.Count} approved package{(releaseEvidence.Products.Count == 1 ? string.Empty : "s")}. AVWT hasn't accessed your sign-in."
+                    : "The approved vendor source is configured. AVWT hasn't accessed your sign-in, and the current product list isn't available.",
                 DeliveryMode.DirectDownload => !string.IsNullOrWhiteSpace(releaseEvidence?.DownloadUri)
-                    ? "The current direct-download URI was derived from catalog-authorized vendor release evidence."
-                    : "Direct-download policy exists, but no current validated payload URI is available; the official page remains available.",
-                DeliveryMode.Bundled => "Bundled delivery policy exists; payload/cache presence was not inspected.",
-                DeliveryMode.InventoryOnly => "Inventory-only provider has no delivery action.",
-                _ => "Delivery evidence is unknown."
+                    ? "An approved vendor download is available. AVWT will verify the downloaded file before showing it."
+                    : "A current approved download isn't available. You can still open the official vendor page.",
+                DeliveryMode.Bundled => "This app uses a packaged download. AVWT hasn't checked whether a saved copy is available.",
+                DeliveryMode.InventoryOnly => "AVWT checks this app's installation status but doesn't download it.",
+                _ => "Download information isn't available."
             };
         const DiagnosticEvidenceState cacheState = DiagnosticEvidenceState.Unknown;
         var cacheDetail = package.DeliveryMode is DeliveryMode.DirectDownload or DeliveryMode.ParentProvider or DeliveryMode.Bundled
-            ? "Cache presence and verification were not inspected by this read-only migration phase."
+            ? "AVWT hasn't checked for a previously downloaded and verified copy."
             : "Not applicable.";
         return new(package.Id, inventory, release, delivery, cacheState, parentValid, package.ParentProviderId,
             state.AvailableVersion.Length > 0 ? state.AvailableVersion : package.KnownVersion,

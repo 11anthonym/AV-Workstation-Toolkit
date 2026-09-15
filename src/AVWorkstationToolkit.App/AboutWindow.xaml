@@ -10,7 +10,7 @@
             <Image x:Name="BrandMark" Width="64" Height="64" Source="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.png" Stretch="Uniform" HorizontalAlignment="Center" AutomationProperties.Name="AV Workstation Toolkit application mark"/>
             <TextBlock x:Name="ProductTitle" Text="AV Workstation Toolkit" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,0"/>
             <TextBlock x:Name="IdentityText" Foreground="#8FB9EC" HorizontalAlignment="Center" Margin="0,6,0,0"/>
-            <TextBlock x:Name="DescriptionText" Text="Local commercial-AV workstation management, inventory, catalog knowledge, and diagnostics." Foreground="#B8C6D8" TextWrapping="Wrap" TextAlignment="Center" LineHeight="20" Margin="0,18,0,0"/>
+            <TextBlock x:Name="DescriptionText" Text="Find software for AV devices, check installed apps, and manage supported updates." Foreground="#B8C6D8" TextWrapping="Wrap" TextAlignment="Center" LineHeight="20" Margin="0,18,0,0"/>
         </StackPanel>
         <Button Grid.Row="1" Content="Close" IsDefault="True" IsCancel="True" MinWidth="90" HorizontalAlignment="Right" Margin="0,16,0,0" Padding="16,7" Click="Close_Click"/>
     </Grid>

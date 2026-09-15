@@ -32,6 +32,8 @@ public sealed class CatalogUpdateViewModel : ObservableObject
         {
             if (!SetProperty(ref status, value)) return;
             OnPropertyChanged(nameof(StateLabel));
+            OnPropertyChanged(nameof(DetailLabel));
+            OnPropertyChanged(nameof(TechnicalDetail));
             OnPropertyChanged(nameof(CurrentLabel));
             OnPropertyChanged(nameof(AvailableLabel));
             OnPropertyChanged(nameof(ChangeSummary));
@@ -56,16 +58,34 @@ public sealed class CatalogUpdateViewModel : ObservableObject
 
     public string StateLabel => Status.State switch
     {
-        ReferenceCatalogUpdateState.NotConfigured => "Online channel not configured",
-        ReferenceCatalogUpdateState.RequiresNewerApp => "Application update required",
-        ReferenceCatalogUpdateState.UpdateAvailable => "Signed catalog update available",
-        ReferenceCatalogUpdateState.Completed => "Catalog change saved",
-        ReferenceCatalogUpdateState.Rejected => "Catalog rejected",
-        ReferenceCatalogUpdateState.Offline => "Catalog service offline",
-        _ => Status.State.ToString()
+        ReferenceCatalogUpdateState.Idle => "Device catalog ready",
+        ReferenceCatalogUpdateState.Checking => "Checking for updates…",
+        ReferenceCatalogUpdateState.Current => "Device catalog is up to date",
+        ReferenceCatalogUpdateState.UpdateAvailable => "Device catalog update available",
+        ReferenceCatalogUpdateState.Downloading => "Downloading device catalog…",
+        ReferenceCatalogUpdateState.Validating => "Checking device catalog…",
+        ReferenceCatalogUpdateState.Completed => "Device catalog saved",
+        ReferenceCatalogUpdateState.Rejected => "Device catalog wasn't accepted",
+        ReferenceCatalogUpdateState.Offline => "Couldn't check for catalog updates",
+        ReferenceCatalogUpdateState.RequiresNewerApp => "AV Workstation Toolkit update required",
+        ReferenceCatalogUpdateState.NotConfigured => "Online catalog updates aren't configured",
+        _ => "Device catalog status"
     };
-    public string CurrentLabel => Status.CurrentRevision > 0 ? $"Revision {Status.CurrentRevision} · {Status.CurrentVersion}" : "Embedded catalog";
-    public string AvailableLabel => Status.AvailableRevision > 0 ? $"Revision {Status.AvailableRevision} · {Status.AvailableVersion}" : "No verified update pending";
+    public string DetailLabel => Status.State switch
+    {
+        ReferenceCatalogUpdateState.Completed => "Saved. Restart AV Workstation Toolkit to use this device catalog.",
+        ReferenceCatalogUpdateState.Rejected => "Your current device catalog is unchanged.",
+        ReferenceCatalogUpdateState.Offline => "Your saved device catalog is still available.",
+        ReferenceCatalogUpdateState.RequiresNewerApp => "This catalog needs a newer version of AV Workstation Toolkit. Your current catalog is unchanged.",
+        ReferenceCatalogUpdateState.UpdateAvailable => "A newer signed device catalog is ready to download.",
+        ReferenceCatalogUpdateState.Checking => "Your saved device catalog remains available while this check runs.",
+        ReferenceCatalogUpdateState.Validating => "The catalog is being checked before it is saved.",
+        ReferenceCatalogUpdateState.NotConfigured => "Your saved device catalog is still available.",
+        _ => "Device Lookup works with the catalog already saved on this PC."
+    };
+    public string TechnicalDetail => string.IsNullOrWhiteSpace(Status.Detail) ? string.Empty : $"Details: {Status.Detail}";
+    public string CurrentLabel => Status.CurrentRevision > 0 ? $"Revision {Status.CurrentRevision} · {Status.CurrentVersion}" : "Built-in device catalog";
+    public string AvailableLabel => Status.AvailableRevision > 0 ? $"Revision {Status.AvailableRevision} · {Status.AvailableVersion}" : "No update ready";
     public string ChangeSummary => Status.Changes?.Summary ?? string.Empty;
     public bool CanRestorePrevious => Status.RestorableRevision > 0;
 

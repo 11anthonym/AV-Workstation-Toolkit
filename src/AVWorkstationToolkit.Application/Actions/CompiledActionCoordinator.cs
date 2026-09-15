@@ -53,7 +53,7 @@ public sealed record CompiledActionRunResult(ActionFinalResult Result, Workstati
 /// <summary>
 /// Compiled UI action coordinator. Authority comes from the current typed plan
 /// and the independent worker. The coordinator only persists
-/// an authorized request, starts the fixed migration worker, observes correlated
+/// an authorized request, starts the fixed packaged worker, observes correlated
 /// artifacts, records cancellation intent, and refreshes read-only state.
 /// </summary>
 public sealed class CompiledActionCoordinator
@@ -102,7 +102,7 @@ public sealed class CompiledActionCoordinator
     public event EventHandler<CompiledActionSnapshot>? StateChanged;
 
     public CompiledActionSnapshot Snapshot { get; private set; } =
-        new(CompiledActionState.Idle, string.Empty, "Managed action worker is idle.", [], null);
+        new(CompiledActionState.Idle, string.Empty, "No installation or update is running.", [], null);
 
     public async Task<CompiledActionRunResult> StartAsync(
         ManagedRequestAction action,
@@ -123,7 +123,7 @@ public sealed class CompiledActionCoordinator
         ICompiledWorkerSession? session = null;
         try
         {
-            SetSnapshot(CompiledActionState.Preparing, string.Empty, "Validating selected managed packages.", [], null);
+            SetSnapshot(CompiledActionState.Preparing, string.Empty, "Checking the selected apps before starting.", [], null);
             var expected = action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update;
             var ids = selectedPackages.Where(item => item.Action == expected).Select(item => item.Package.Id).ToArray();
             if (ids.Length != selectedPackages.Count)
@@ -135,7 +135,8 @@ public sealed class CompiledActionCoordinator
             lifecycle.MarkPersisted();
             lifecycle.MarkAwaitingWorker();
             session = await launcher.LaunchAsync(paths, cancellationToken).ConfigureAwait(false);
-            SetSnapshot(CompiledActionState.Running, request.RequestId, "The isolated compiled worker is running.", [], null);
+            SetSnapshot(CompiledActionState.Running, request.RequestId,
+                "Installation is running. You can close this window without stopping it.", [], null);
 
             var result = await ObserveAsync(request, session, cancellationToken).ConfigureAwait(false);
             var refreshedPlan = await planning.RefreshAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -151,7 +152,7 @@ public sealed class CompiledActionCoordinator
         catch (OperationCanceledException)
         {
             SetSnapshot(CompiledActionState.Failed, lifecycle?.Request.RequestId ?? string.Empty,
-                "Action observation stopped; the independent worker was not terminated.", Snapshot.Progress, Snapshot.Result);
+                "This window stopped waiting, but the installation continues in the background.", Snapshot.Progress, Snapshot.Result);
             throw;
         }
         catch (Exception exception)
@@ -179,7 +180,7 @@ public sealed class CompiledActionCoordinator
         if (current.State is ActionLifecycleState.Persisted or ActionLifecycleState.AwaitingWorker or ActionLifecycleState.Running)
             current.RequestCancellation(current.Request.RequestId);
         SetSnapshot(CompiledActionState.CancellationRequested, current.Request.RequestId,
-            "Cancellation requested; the worker will stop between packages.", Snapshot.Progress, Snapshot.Result);
+            "Stop requested. The current app may finish before the remaining apps are skipped.", Snapshot.Progress, Snapshot.Result);
         return created;
     }
 
@@ -222,10 +223,10 @@ public sealed class CompiledActionCoordinator
             }
 
             if (session.HasExited)
-                throw new InvalidOperationException($"The compiled worker exited with code {session.ExitCode?.ToString() ?? "unknown"} without a correlated final result.");
+                throw new InvalidOperationException($"The installation process stopped before it saved a final result. Exit code: {session.ExitCode?.ToString() ?? "unknown"}.");
             await Task.Delay(pollInterval, timeProvider, cancellationToken).ConfigureAwait(false);
         }
-        throw new TimeoutException("The compiled worker did not produce a final result within the bounded observation period.");
+        throw new TimeoutException("The installation process didn't save a final result within the allowed time.");
     }
 
     private void SetSnapshot(

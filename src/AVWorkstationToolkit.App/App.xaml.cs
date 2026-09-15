@@ -129,7 +129,9 @@ public partial class App : System.Windows.Application
         catch (Exception exception)
         {
             if (!smoke)
-                MessageBox.Show(exception.Message, "AV Workstation Toolkit startup failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"AV Workstation Toolkit couldn't start.\n\n{DiagnosticsRedactor.Sanitize(exception.Message)}\n\nTry opening it again. If the problem continues, include this message when reporting it.",
+                    "Couldn't start AV Workstation Toolkit", MessageBoxButton.OK, MessageBoxImage.Error);
             else
                 Console.Error.WriteLine(exception.Message);
             Shutdown(1);

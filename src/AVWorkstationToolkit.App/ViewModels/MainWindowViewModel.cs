@@ -67,12 +67,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private ListSortDirection? sortDirection;
     private string activityText = string.Empty;
     private string activityState = "Ready";
-    private string statusText = "Loading catalog and workstation state...";
+    private string statusText = "Loading software and device information...";
     private PlanWarningPresentation warningPresentation = PlanWarningPresentation.None;
     private int mutationRefusalCount;
     private bool actionActive;
     private bool riskAcknowledged;
-    private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "Migration action mode is idle.", [], null);
+    private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "No installation or update is running.", [], null);
     private int refreshInvocationCount;
 
     public MainWindowViewModel(
@@ -111,13 +111,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ];
         CatalogPresetOptions =
         [
-            new("All catalog", CatalogPreset.All), new("P1 field candidates", CatalogPreset.P1),
+            new("All apps", CatalogPreset.All), new("Priority 1 apps", CatalogPreset.P1),
             new("Obtain before onsite", CatalogPreset.Onsite), new("Free tools", CatalogPreset.Free),
             new("Free public downloads", CatalogPreset.FreePublic), new("Dealer login required", CatalogPreset.Dealer),
             new("Licensed software", CatalogPreset.Licensed), new("Drivers", CatalogPreset.Drivers),
-            new("Services / listeners", CatalogPreset.Services), new("Firmware utilities", CatalogPreset.Firmware),
-            new("Current software", CatalogPreset.Current), new("Legacy / transition", CatalogPreset.Legacy),
-            new("Known, not managed", CatalogPreset.Unmanaged), new("Installed, source limited", CatalogPreset.InstalledSourceLimited)
+            new("Background services / network listeners", CatalogPreset.Services), new("Firmware tools", CatalogPreset.Firmware),
+            new("Current software", CatalogPreset.Current), new("Legacy / transition software", CatalogPreset.Legacy),
+            new("Not installed through AVWT", CatalogPreset.Unmanaged), new("Installed — limited version information", CatalogPreset.InstalledSourceLimited)
         ];
         DisciplineOptions = Enum.GetValues<CatalogDiscipline>()
             .Select(value => new FilterOption<CatalogDiscipline>(DisciplineLabel(value), value)).ToArray();
@@ -220,27 +220,29 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public bool SearchInProgress { get => searchInProgress; private set { if (SetProperty(ref searchInProgress, value)) NotifySearchPresentationChanged(); } }
     public bool SearchStatusVisible => SearchInProgress || SearchText.Trim().Length > 0;
     public string SearchStatusText => SearchInProgress
-        ? "Searching..."
+        ? "Searching…"
         : SearchText.Trim().Length < 2
-            ? SearchText.Trim().Length == 0 ? string.Empty : "Type at least 2 characters to search devices."
+            ? SearchText.Trim().Length == 0 ? string.Empty : "Type at least 2 characters to search devices and software."
             : compatibilityTotalMatchCount > 0
-                ? compatibilityTotalMatchCount == 1 ? "1 compatibility match" : $"{compatibilityTotalMatchCount} compatibility matches"
-                : visiblePackages.Count == 1 ? "1 application match"
-                : visiblePackages.Count > 1 ? $"{visiblePackages.Count} application matches"
+                ? compatibilityTotalMatchCount == 1 ? "1 device or software result" : $"{compatibilityTotalMatchCount} device or software results"
+                : visiblePackages.Count == 1 ? "1 app match"
+                : visiblePackages.Count > 1 ? $"{visiblePackages.Count} app matches"
                 : "No matches";
     public bool CompatibilityMatchesVisible => !SearchInProgress && compatibilityMatches.Count > 0;
-    public bool CompatibilitySearchOutcomeVisible => !SearchInProgress && SearchText.Trim().Length >= 2 && compatibilityMatches.Count == 0;
+    public bool CompatibilitySearchOutcomeVisible => !SearchInProgress && SearchText.Trim().Length >= 2 &&
+        compatibilityMatches.Count == 0 &&
+        (compatibilitySearchOutcome == CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog || visiblePackages.Count == 0);
     public string CompatibilitySearchOutcomeText => compatibilitySearchOutcome switch
     {
         CompatibilitySearchOutcome.NoVerifiedRelationshipInCurrentCatalog =>
-            "No verified device/software relationship is recorded for this model in the current catalog.",
+            "This device is listed, but we haven't verified which software applies. This doesn't mean no software is needed.",
         CompatibilitySearchOutcome.NoDeviceOrCatalogMatch =>
-            "No software or device catalog match was found. This does not mean the device has no required software.",
+            "No match was found in this catalog. Try the full model number or manufacturer; this doesn't mean no software exists.",
         _ => string.Empty
     };
     public string CompatibilityMatchSummary => compatibilityTotalMatchCount > compatibilityMatches.Count
-        ? $"{compatibilityMatches.Count} of {compatibilityTotalMatchCount} matches"
-        : compatibilityMatches.Count == 1 ? "1 compatibility match" : $"{compatibilityMatches.Count} compatibility matches";
+        ? $"Showing {compatibilityMatches.Count} of {compatibilityTotalMatchCount} results"
+        : compatibilityMatches.Count == 1 ? "1 result" : $"{compatibilityMatches.Count} results";
     internal Task SearchCompletion => searchCompletion;
     internal static int LiveCompatibilityResultLimit => CompatibilityResultLimit;
     public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) SearchStateChanged(); } }
@@ -265,7 +267,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(IsUpdatesQuickView));
         }
     }
-    public string QuickViewText => QuickView switch { QuickView.Missing => "Showing: Missing apps", QuickView.Updates => "Showing: Available updates", _ => "Showing: All apps" };
+    public string QuickViewText => QuickView switch { QuickView.Missing => "Showing: Not installed", QuickView.Updates => "Showing: Updates available", _ => "Showing: All apps" };
     public bool IsAllQuickView => QuickView == QuickView.All;
     public bool IsMissingQuickView => QuickView == QuickView.Missing;
     public bool IsUpdatesQuickView => QuickView == QuickView.Updates;
@@ -280,6 +282,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 SelectedDetail = null;
             DetailsCommand.RaiseCanExecuteChanged();
             GetPackageCommand.RaiseCanExecuteChanged();
+            OnPropertyChanged(nameof(GetPackageButtonText));
         }
     }
 
@@ -315,7 +318,31 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public int SelectedCount => InstallCount + UpdateCount;
     public string InstallButtonText => InstallCount == 0 ? "Install selected" : $"Install selected ({InstallCount})";
     public string UpdateButtonText => UpdateCount == 0 ? "Update selected" : $"Update selected ({UpdateCount})";
-    public string SelectionSummary => SelectedCount == 0 ? "Nothing selected" : $"{SelectedCount} selected | {InstallCount} install | {UpdateCount} update";
+    public string SelectionSummary => SelectedCount == 0 ? "Nothing selected" : $"{SelectedCount} selected · {InstallCount} to install · {UpdateCount} to update";
+    public string GetPackageButtonText => SelectedRow?.Package.DeliveryMode switch
+    {
+        DeliveryMode.VendorPage or DeliveryMode.Awareness or DeliveryMode.Bundled => "Open vendor page",
+        DeliveryMode.DirectDownload or DeliveryMode.AuthenticatedSftp or DeliveryMode.ParentProvider => "Download package",
+        _ => "Get package"
+    };
+    public string RiskAcknowledgementText
+    {
+        get
+        {
+            var selected = packages.Where(item => item.Selected && item.Risk != PackageRisk.None).ToArray();
+            if (selected.Length == 0) return "I understand these changes and want to continue.";
+            var names = string.Join(", ", selected.Take(3).Select(item => item.Name));
+            if (selected.Length > 3) names += $", and {selected.Length - 3} more";
+            var effects = string.Join(", ", selected.Select(item => item.Risk switch
+            {
+                PackageRisk.Driver => "install a driver",
+                PackageRisk.Service => "add a background service",
+                PackageRisk.Listener => "accept network connections",
+                _ => string.Empty
+            }).Where(value => value.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase));
+            return $"I understand that {names} may {effects}. Continue with this operation.";
+        }
+    }
     public bool CanInstall => !IsBusy && !actionActive && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install) && !SelectedRiskNeedsAcknowledgement(PackageAction.Install);
     public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update) && !SelectedRiskNeedsAcknowledgement(PackageAction.Update);
     public bool RiskAcknowledgementRequired => packages.Any(item => item.Selected && item.Risk != PackageRisk.None);
@@ -345,7 +372,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         var selectedIds = packages.Where(item => item.Selected).Select(item => item.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var selectedRowId = SelectedRow?.Id;
         IsBusy = true;
-        AppendActivity("Refreshing allowlisted application state.");
+        AppendActivity("Refreshing app status.");
         var progress = new Progress<PlanningRefreshStage>(stage =>
         {
             if (generation != Volatile.Read(ref refreshGeneration)) return;
@@ -361,7 +388,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             Diagnostics = new DiagnosticsViewModel(refreshedDiagnostics, ActionDiagnosticText(), diagnosticsExportService);
             AppendActivity(WarningVisible
                 ? $"{WarningSeverityText} {WarningTitle}. {WarningDetailText}"
-                : "Plan ready.");
+                : "App status ready.");
         }
         catch (OperationCanceledException) when (generation != Volatile.Read(ref refreshGeneration) || cancellation.IsCancellationRequested)
         {
@@ -370,9 +397,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         catch (Exception exception)
         {
             if (generation != Volatile.Read(ref refreshGeneration)) return;
-            StatusText = "Refresh failed. Existing plan data was retained.";
+            StatusText = "Refresh failed. Previously loaded results are still shown.";
             ActivityState = "Refresh failed";
-            AppendActivity($"ERROR {Sanitize(exception.Message)}");
+            AppendActivity($"Couldn't refresh app status. {Sanitize(exception.Message)}");
         }
         finally
         {
@@ -566,10 +593,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             matches.Add(new CompatibilitySearchResultViewModel(
                 CompatibilitySearchResultKind.Device,
                 displayName,
-                $"{HardwareLookupLabel(device)} | {DeviceMatchLabel(device.MatchKind)} | {device.MatchedRelationIds.Count} reviewed software relationship(s)",
+                $"{HardwareLookupLabel(device)} | {DeviceMatchLabel(device.MatchKind)} | {device.MatchedRelationIds.Count} documented software link(s)",
                 device.LookupState is HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet or HardwareLookupState.KnownFamilyWithUnresolvedCoverage
-                    ? "Known hardware identity; software coverage is not yet verified. This does not mean no software is required."
-                    : "View software grouped by field-service purpose. This read-only result cannot be selected for install or update.",
+                    ? "This device is listed, but its software support hasn't been verified. This doesn't mean no software is needed. It can't be selected for install or update."
+                    : "View software grouped by purpose. Device results can't be selected for install or update.",
                 () => OpenCompatibilityDeviceAsync(device, displayName)));
         }
 
@@ -581,7 +608,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 CompatibilitySearchResultKind.Software,
                 product.Name,
                 $"{product.Vendor} | {CompatibilityLabel(product.Lifecycle)}",
-                "View release families, installed evidence, and applicable devices.",
+                "View version information and the devices this software supports.",
                 () => OpenCompatibilityProductAsync(product.Id)));
         }
         return new SearchResult(rows, matches, search.Devices.Count + search.Products.Count, search.Outcome);
@@ -661,19 +688,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private static string DeviceMatchLabel(CompatibilitySearchMatchKind kind) => kind switch
     {
-        CompatibilitySearchMatchKind.ExactModelOrAlias => "Exact verified model or alias",
-        CompatibilitySearchMatchKind.ExactDeviceFamily => "Exact verified device family",
-        CompatibilitySearchMatchKind.NormalizedExact => "Verified normalized model or alias",
-        CompatibilitySearchMatchKind.PrefixOrToken => "Verified family or alias match",
-        _ => "Verified related match"
+        CompatibilitySearchMatchKind.ExactModelOrAlias => "Exact model or alias",
+        CompatibilitySearchMatchKind.ExactDeviceFamily => "Exact device family",
+        CompatibilitySearchMatchKind.NormalizedExact => "Model match",
+        CompatibilitySearchMatchKind.PrefixOrToken => "Family or alias match",
+        _ => "Related match"
     };
 
     private static string HardwareLookupLabel(CompatibilityDeviceSearchResult device) => device.LookupState switch
     {
         HardwareLookupState.KnownExactModelWithVerifiedRelationships => $"Exact model | {device.Hardware!.Manufacturer} | {CompatibilityLabel(device.Hardware.Category)}",
-        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => $"Known model | {device.Hardware!.Manufacturer} | software coverage not yet verified",
+        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => $"Known model | {device.Hardware!.Manufacturer} | software support not yet verified",
         HardwareLookupState.KnownFamilyWithVerifiedRelationships => $"Known family | {device.Hardware!.Manufacturer} | {CompatibilityLabel(device.Hardware.Category)}",
-        HardwareLookupState.KnownFamilyWithUnresolvedCoverage => $"Known family | {device.Hardware!.Manufacturer} | software coverage not yet verified",
+        HardwareLookupState.KnownFamilyWithUnresolvedCoverage => $"Known family | {device.Hardware!.Manufacturer} | software support not yet verified",
         _ => device.DeviceFamilyId
     };
 
@@ -765,6 +792,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanUpdate));
         OnPropertyChanged(nameof(RiskAcknowledgementRequired));
         OnPropertyChanged(nameof(RiskAcknowledgementVisible));
+        OnPropertyChanged(nameof(RiskAcknowledgementText));
         RaiseCommandStates();
     }
 
@@ -777,8 +805,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void RefuseMutation(PackageAction action)
     {
         mutationRefusalCount++;
-        AppendActivity($"READ-ONLY This source preview did not run {action.ToString().ToLowerInvariant()}. Packaged production actions require the independently validating compiled worker.");
-        ActivityState = "Read-only preview";
+        AppendActivity($"Preview only: {action.ToString().ToLowerInvariant()} was not started. Install and update actions are available only in the packaged app.");
+        ActivityState = "Preview only";
     }
 
     private async Task RunActionAsync(ManagedRequestAction action)
@@ -798,11 +826,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledgedForThisRun, dryRun: false).ConfigureAwait(true);
             ApplyPlan(completed.RefreshedPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), SelectedRow?.Id);
             Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(completed.RefreshedPlan).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
-            AppendActivity($"ACTION {completed.Result.Status}: {completed.Result.Message}");
+            AppendActivity($"{ActionStateLabel(ActionSnapshot.State)}: {completed.Result.Message}");
         }
         catch (Exception exception)
         {
-            AppendActivity($"ACTION ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+            var verb = action == ManagedRequestAction.Install ? "install" : "update";
+            AppendActivity($"Couldn't {verb} the selected apps. {DiagnosticsRedactor.Sanitize(exception.Message)}");
         }
     }
 
@@ -810,7 +839,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (actionCoordinator is null) return;
         if (await actionCoordinator.RequestCancellationAsync().ConfigureAwait(true))
-            AppendActivity("Cancellation intent recorded. The independent worker will stop between packages.");
+            AppendActivity("Stop requested. The current app may finish before the remaining apps are skipped.");
     }
 
     private bool CanGetPackage() => !IsBusy && !actionActive && plan is not null && SelectedRow is not null &&
@@ -820,15 +849,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (!CanGetPackage() || packageDeliveryWorkflow is null || SelectedRow is null || plan is null) return;
         IsBusy = true;
-        ActivityState = "Getting package";
+        ActivityState = "Opening package options";
         try
         {
             var outcome = await packageDeliveryWorkflow.DeliverAsync(SelectedRow.State, plan).ConfigureAwait(true);
-            AppendActivity($"PACKAGE {(outcome.Completed ? "READY" : "NOT READY")} {outcome.Detail}");
+            AppendActivity(outcome.Detail);
         }
         catch (Exception exception)
         {
-            AppendActivity($"PACKAGE ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+            AppendActivity($"Couldn't get the package. {DiagnosticsRedactor.Sanitize(exception.Message)}");
         }
         finally
         {
@@ -843,8 +872,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             ActionSnapshot = snapshot;
             actionActive = snapshot.State is CompiledActionState.Preparing or CompiledActionState.Running or CompiledActionState.CancellationRequested;
-            ActivityState = snapshot.State.ToString();
-            AppendActivity($"ACTION {snapshot.State}: {snapshot.Status}");
+            ActivityState = ActionStateLabel(snapshot.State);
+            AppendActivity($"{ActionStateLabel(snapshot.State)}: {snapshot.Status}");
             foreach (var item in packages) item.SetBusy(IsBusy || actionActive);
             OnPropertyChanged(nameof(ActionProgressVisible));
             OnPropertyChanged(nameof(CanCancelAction));
@@ -882,14 +911,14 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         ExternalReleaseEvidence? release = null;
         plan?.ExternalReleases?.TryGetValue(SelectedRow.Id, out release);
         SelectedDetail = new CatalogDetailViewModel(detailService.Create(SelectedRow.State, planCatalog, release), handoffService);
-        AppendActivity($"DETAILS {SelectedRow.Name} | {SelectedRow.Vendor} | {SelectedRow.StatusLabel} | {SelectedRow.StatusDetail}");
+        AppendActivity($"Opened details for {SelectedRow.Name}: {SelectedRow.StatusLabel}. {SelectedRow.StatusDetail}");
         DetailRequested?.Invoke(SelectedDetail);
     }
 
     private void ShowDiagnostics()
     {
         if (plan is null || Diagnostics is null) return;
-        AppendActivity($"DIAGNOSTICS packages={plan.Summary.Total}; warnings={Diagnostics.WarningCount}; errors={Diagnostics.ErrorCount}; rebootPending={plan.Reboot.Pending}; compiledActions={(actionCoordinator is null ? "unavailable" : "available")}");
+        AppendActivity($"Opened diagnostics: {Diagnostics.IssueSummary}.");
         DiagnosticsRequested?.Invoke(Diagnostics);
     }
 
@@ -903,7 +932,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            AppendActivity($"PLAN EXPORT ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+            AppendActivity($"Couldn't export app status. {DiagnosticsRedactor.Sanitize(exception.Message)}");
         }
     }
 
@@ -912,18 +941,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         if (applicationMenuWorkflow is null) return;
         try
         {
-            AppendActivity($"Opened logs: {applicationMenuWorkflow.OpenLogs()}");
+            AppendActivity($"Opened the log folder: {applicationMenuWorkflow.OpenLogs()}");
         }
         catch (Exception exception)
         {
-            AppendActivity($"OPEN LOGS ERROR {DiagnosticsRedactor.Sanitize(exception.Message)}");
+            AppendActivity($"Couldn't open the log folder. {DiagnosticsRedactor.Sanitize(exception.Message)}");
         }
     }
 
     private void UpdateStatusText()
     {
         if (plan is null) return;
-        StatusText = $"{visiblePackages.Count} shown of {plan.Summary.Total} | {plan.Summary.Current} current | {plan.Summary.ManagedActions} managed actions | {plan.Summary.ManualActions} manual | {plan.Summary.Inventory + plan.Summary.NotDetected} inventory | {plan.Summary.InventoryWarnings} warnings | {plan.Summary.Awareness} awareness";
+        StatusText = $"{visiblePackages.Count} of {plan.Summary.Total} apps · {plan.Summary.Current} up to date · {CountLabel(plan.Summary.ManagedActions, "install or update action")} · {CountLabel(plan.Summary.ManualActions, "vendor step")} · {plan.Summary.Inventory + plan.Summary.NotDetected} inventory only · {CountLabel(plan.Summary.InventoryWarnings, "incomplete check")} · {plan.Summary.Awareness} information only";
     }
 
     private void AppendActivity(string message)
@@ -961,27 +990,29 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
         var malformed = checks.Any(item => item.Quality == ProviderQuality.Malformed);
         var issueCount = checks.Count + (value.Reboot.Pending ? 1 : 0);
-        var title = issueCount > 1 ? "Several system checks need attention"
+        var title = issueCount > 1 ? "Several checks need attention"
             : value.Reboot.Pending ? "Restart recommended"
             : checks[0].Name switch
             {
-                "WinGet update check" => malformed ? "Update availability check failed" : "Update availability is unavailable",
-                "WinGet installed inventory" => malformed ? "Installed application inventory check failed" : "Installed application inventory is unavailable",
-                "External application inventory" => "Some external application inventory is incomplete",
-                "Restart detection" => "Restart status could not be checked",
-                _ => "A system check needs attention"
+                "WinGet update check" => "Couldn't check for updates",
+                "WinGet installed inventory" => "Couldn't check installed apps",
+                "External application inventory" => "Some installed apps couldn't be checked",
+                "Restart detection" => "Couldn't check restart status",
+                _ => "A check needs attention"
             };
         var message = issueCount > 1
-            ? "Some workstation states may be incomplete. AV Workstation Toolkit keeps uncertain items non-actionable and does not treat an unchecked state as current."
+            ? "Some app information is incomplete. Review the details below; uncertain apps can't be installed or updated."
             : value.Reboot.Pending
                 ? "Windows is waiting for a restart to finish an update. Most low-risk actions remain available, but system-level changes stay paused until you restart."
                 : checks[0].Name switch
                 {
-                    "WinGet update check" => "Installed application inventory succeeded, but update status is unavailable. Installed managed apps are not marked Current until this check succeeds.",
-                    "WinGet installed inventory" => "AV Workstation Toolkit could not verify which managed applications are installed, so managed install and update actions remain unavailable.",
-                    "External application inventory" => "One or more Windows inventory sources could not be read. Affected external application states remain incomplete and non-actionable.",
-                    "Restart detection" => "AV Workstation Toolkit could not determine whether Windows is waiting for a restart. Risk-bearing actions remain constrained by existing policy.",
-                    _ => "A workstation check did not complete. Uncertain states remain non-actionable."
+                    "WinGet update check" => value.Providers.WinGetInventoryQuality == ProviderQuality.Complete
+                        ? "Installed versions are still shown, but update availability is unknown. Try checking again."
+                        : "Update availability is unknown. Installation information may also be incomplete. Try checking again.",
+                    "WinGet installed inventory" => "AVWT couldn't confirm which managed apps are installed. Install and update actions stay unavailable for uncertain items.",
+                    "External application inventory" => "AVWT couldn't read one or more Windows app lists. Affected app statuses remain incomplete.",
+                    "Restart detection" => "AVWT couldn't determine whether Windows is waiting for a restart. System-level changes remain restricted.",
+                    _ => "A check didn't finish. Uncertain apps can't be installed or updated."
                 };
         var details = checks.Select(item => $"{item.Name}: {CleanDetail(item.Detail)}").ToList();
         if (value.Reboot.Pending) details.Insert(0, $"Pending restart: {CleanDetail(value.Reboot.Summary)}");
@@ -1019,15 +1050,27 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private static string StageText(PlanningRefreshStage stage) => stage switch
     {
-        PlanningRefreshStage.ReadingWinGetInventory => "Reading WinGet inventory...",
-        PlanningRefreshStage.ReadingWinGetUpdates => "Reading WinGet updates...",
-        PlanningRefreshStage.ReadingExternalInventory => "Reading installed AV software...",
-        PlanningRefreshStage.ReadingExternalReleases => "Checking official vendor releases...",
-        PlanningRefreshStage.CheckingRebootState => "Checking reboot state...",
-        PlanningRefreshStage.BuildingPlan => "Building workstation plan...",
+        PlanningRefreshStage.ReadingWinGetInventory => "Checking installed managed apps…",
+        PlanningRefreshStage.ReadingWinGetUpdates => "Checking for managed app updates…",
+        PlanningRefreshStage.ReadingExternalInventory => "Checking installed AV software…",
+        PlanningRefreshStage.ReadingExternalReleases => "Checking vendor releases…",
+        PlanningRefreshStage.CheckingRebootState => "Checking restart status…",
+        PlanningRefreshStage.BuildingPlan => "Preparing app status…",
         _ => "Ready"
     };
+    private static string ActionStateLabel(CompiledActionState state) => state switch
+    {
+        CompiledActionState.Idle => "Ready",
+        CompiledActionState.Preparing => "Preparing selected apps",
+        CompiledActionState.Running => "Installation in progress",
+        CompiledActionState.CancellationRequested => "Stop requested",
+        CompiledActionState.Completed => "Completed",
+        CompiledActionState.Failed => "Failed",
+        CompiledActionState.Cancelled => "Stopped",
+        _ => "Action status"
+    };
     private static string Sanitize(string value) => new(DiagnosticsRedactor.Sanitize(value).Take(4000).ToArray());
+    private static string CountLabel(int count, string singular) => count == 1 ? $"1 {singular}" : $"{count} {singular}s";
     private static string SplitWords(string value) => System.Text.RegularExpressions.Regex.Replace(value, "(?<!^)([A-Z])", " $1", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
     private static string DisciplineLabel(CatalogDiscipline value) => value switch
     {

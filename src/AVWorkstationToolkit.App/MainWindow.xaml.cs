@@ -102,7 +102,7 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke exposed awareness selection authority.");
         VerifyClosedComboBoxLabels();
         VerifyF5Binding(viewModel, invoke: true);
-        if (FindSoftwareAndDevicesHeading.Text != "FIND SOFTWARE & DEVICES" ||
+        if (FindSoftwareAndDevicesHeading.Text != "Find software & devices" ||
             !FindSoftwareAndDevicesHint.Text.Contains("device model", StringComparison.OrdinalIgnoreCase) ||
             !System.Windows.Automation.AutomationProperties.GetHelpText(SearchBox).Contains("device model", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Compiled WPF smoke did not expose the software and device search guidance.");
@@ -150,7 +150,7 @@ public partial class MainWindow : Window
         detailWindow.UpdateLayout();
         detailWindow.VerifySmokeContract(awareness.Id);
         detail.ProductIntentCommand.Execute(null);
-        if (!detail.IntentStatus.StartsWith("READ-ONLY", StringComparison.Ordinal))
+        if (!detail.IntentStatus.StartsWith("Preview only", StringComparison.Ordinal))
             throw new InvalidOperationException("Compiled official URI intent did not remain read-only.");
         detailWindow.Close();
 
@@ -197,7 +197,7 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled production smoke did not load the complete actionable production composition.");
         VerifyClosedComboBoxLabels();
         VerifyF5Binding(viewModel, invoke: false);
-        if (FindSoftwareAndDevicesHeading.Text != "FIND SOFTWARE & DEVICES" ||
+        if (FindSoftwareAndDevicesHeading.Text != "Find software & devices" ||
             !FindSoftwareAndDevicesHint.Text.Contains("device model", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Compiled production smoke did not expose the software and device search guidance.");
         if (!ExportPlanMenuItem.IsEnabled || !OpenLogsMenuItem.IsEnabled || !SafetySecurityMenuItem.IsEnabled ||

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-14 — Plain-language application copy
+
+- Reworked the compiled UI around technician tasks and outcomes, replacing implementation terms such as worker, handoff, evidence, and payload in routine status, action, download, diagnostics, catalog-update, and detail text.
+- Corrected unknown-state presentation so a detected app with no version says `Version unknown`, failed inventory says `Couldn't check`, and only confirmed absence says `Not installed`.
+- Added specific warning explanations and next steps, route-aware package buttons, per-operation system-impact confirmation, readable detail labels, and regression coverage without changing package, vendor, credential, worker, or execution authority.
+
 ## 2026-09-14 — Actionable inventory warnings and diagnostics
 
 - Replaced the generic inventory-warning banner with check-specific severity, impact, sanitized technical detail, `View details`, and `Check again` actions; pending restart and provider failures can no longer hide one another.

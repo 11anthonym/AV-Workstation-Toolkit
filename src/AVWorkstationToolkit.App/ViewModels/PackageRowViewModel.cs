@@ -1,6 +1,7 @@
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.Domain.Versions;
+using AVWorkstationToolkit.Application.Details;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
@@ -23,9 +24,21 @@ public sealed class PackageRowViewModel : ObservableObject
     public string Id => Package.Id;
     public string Name => Package.Name;
     public string Vendor => Package.Vendor;
-    public string Priority => Package.Priority.ToToken();
+    public string Priority => Package.Priority switch
+    {
+        PackagePriority.P1 => "Priority 1",
+        PackagePriority.P2 => "Priority 2",
+        PackagePriority.Dev => "Developer",
+        _ => "Utility"
+    };
     public PackageRisk Risk => Package.Risk;
-    public string RiskLabel => Risk == PackageRisk.None ? "Low" : Risk.ToString();
+    public string RiskLabel => Risk switch
+    {
+        PackageRisk.Driver => "Driver change",
+        PackageRisk.Service => "Background service",
+        PackageRisk.Listener => "Accepts network connections",
+        _ => "Low impact"
+    };
     public string RiskForeground => Risk switch
     {
         PackageRisk.Driver => "#FFB86B",
@@ -35,19 +48,8 @@ public sealed class PackageRowViewModel : ObservableObject
     };
     public string Note => Package.Note;
     public PackageStatus Status => State.Status;
-    public string StatusDetail => State.StatusDetail;
-    public string StatusLabel => Status switch
-    {
-        PackageStatus.UpdateAvailable => "Update available",
-        PackageStatus.ManualUpdate => "Manual update",
-        PackageStatus.Inventory => "Detected",
-        PackageStatus.NotDetected => "Not detected",
-        PackageStatus.InventoryIncomplete => "Inventory incomplete",
-        PackageStatus.InventoryUnavailable => "Inventory unavailable",
-        PackageStatus.CheckUnavailable => "Check unavailable",
-        PackageStatus.Awareness => "Catalog only",
-        _ => Status.ToString()
-    };
+    public string StatusDetail => PackageStatePresentation.Detail(State);
+    public string StatusLabel => PackageStatePresentation.Status(State);
     public string StatusBrush => Status switch
     {
         PackageStatus.Current => "#11372D",
@@ -84,16 +86,17 @@ public sealed class PackageRowViewModel : ObservableObject
         PackageStatus.Error => "#FF9AAA",
         _ => "#B8C3D2"
     };
-    public string VersionLabel => Status == PackageStatus.Awareness
-        ? (Package.KnownVersion.Length == 0 ? "Not evaluated" : $"Known: {Package.KnownVersion}")
-        : State.InstalledVersion.Length == 0 ? "Not installed" : State.InstalledVersion;
-    public string AvailableLabel => State.AvailableVersion.Length == 0 ? string.Empty : $"-> {State.AvailableVersion}";
+    public string VersionLabel => Status == PackageStatus.Awareness && Package.KnownVersion.Length > 0
+        ? $"Catalog: {Package.KnownVersion}"
+        : PackageStatePresentation.InstalledVersion(State);
+    public string AvailableLabel => State.AvailableVersion.Length == 0 ? string.Empty
+        : Status is PackageStatus.UpdateAvailable or PackageStatus.ManualUpdate
+            ? $"Available: {State.AvailableVersion}"
+            : $"Catalog: {State.AvailableVersion}";
     public PackageAction Action => State.Action;
     public bool CanSelect => State.CanSelect && Package.HasManagedExecutionAuthority;
     public bool SelectionEnabled => CanSelect && !busy;
-    public string SelectionHint => CanSelect
-        ? Action == PackageAction.Update ? "Select this managed application for update." : "Select this managed application for installation."
-        : $"Selection is unavailable because this item has no currently permitted automated action. {StatusDetail}".Trim();
+    public string SelectionHint => PackageStatePresentation.SelectionHint(State);
 
     public bool Selected
     {
@@ -131,7 +134,7 @@ public sealed class PackageRowViewModel : ObservableObject
     {
         get
         {
-            var version = VersionLabel.StartsWith("Known: ", StringComparison.Ordinal) ? VersionLabel[7..] : VersionLabel;
+            var version = VersionLabel.StartsWith("Catalog: ", StringComparison.Ordinal) ? VersionLabel[9..] : VersionLabel;
             return AVWorkstationToolkit.Domain.Versions.VersionSortKey.Create(version);
         }
     }

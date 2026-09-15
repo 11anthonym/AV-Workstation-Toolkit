@@ -51,7 +51,7 @@ public sealed class CompiledPresentationTests
         stopwatch.Stop();
         Assert.IsLessThan(75, stopwatch.ElapsedMilliseconds, "The typing path performed synchronous catalog work.");
         Assert.IsTrue(viewModel.SearchInProgress);
-        Assert.AreEqual("Searching...", viewModel.SearchStatusText);
+        Assert.AreEqual("Searching…", viewModel.SearchStatusText);
         Assert.IsEmpty(viewModel.CompatibilityMatches);
         await Task.Delay(40);
         Assert.IsEmpty(viewModel.CompatibilityMatches, "The compatibility search ran before the debounce interval.");
@@ -120,7 +120,7 @@ public sealed class CompiledPresentationTests
         viewModel.SearchText = "e";
         await viewModel.SearchCompletion;
         Assert.IsEmpty(viewModel.CompatibilityMatches);
-        Assert.AreEqual("Type at least 2 characters to search devices.", viewModel.SearchStatusText);
+        Assert.AreEqual("Type at least 2 characters to search devices and software.", viewModel.SearchStatusText);
 
         viewModel.SearchText = "software";
         await viewModel.SearchCompletion;
@@ -237,7 +237,7 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
         Assert.HasCount(6, viewModel.Packages);
         Assert.HasCount(6, viewModel.VisiblePackages);
-        Assert.AreEqual("6 shown of 6 | 1 current | 2 managed actions | 1 manual | 1 inventory | 0 warnings | 1 awareness", viewModel.StatusText);
+        Assert.AreEqual("6 of 6 apps · 1 up to date · 2 install or update actions · 1 vendor step · 1 inventory only · 0 incomplete checks · 1 information only", viewModel.StatusText);
         Assert.IsFalse(viewModel.IsBusy);
     }
 
@@ -294,14 +294,18 @@ public sealed class CompiledPresentationTests
         await viewModel.RefreshAsync();
         var install = viewModel.Packages.Single(item => item.Id == "Fixture.Missing");
         var update = viewModel.Packages.Single(item => item.Id == "Fixture.Update");
+        Assert.AreEqual("Priority 1", update.Priority);
+        Assert.AreEqual("Driver change", update.RiskLabel);
         install.Selected = true;
         update.Selected = true;
-        Assert.AreEqual("2 selected | 1 install | 1 update", viewModel.SelectionSummary);
+        Assert.AreEqual("2 selected · 1 to install · 1 to update", viewModel.SelectionSummary);
         Assert.AreEqual("Install selected (1)", viewModel.InstallButtonText);
         Assert.AreEqual("Update selected (1)", viewModel.UpdateButtonText);
         Assert.IsTrue(viewModel.CanInstall);
         Assert.IsFalse(viewModel.CanUpdate);
         Assert.IsTrue(viewModel.RiskAcknowledgementRequired);
+        StringAssert.Contains(viewModel.RiskAcknowledgementText, "Gamma update");
+        StringAssert.Contains(viewModel.RiskAcknowledgementText, "install a driver");
         viewModel.RiskAcknowledged = true;
         Assert.IsTrue(viewModel.CanUpdate);
         update.Selected = false;
@@ -354,8 +358,8 @@ public sealed class CompiledPresentationTests
         Assert.AreEqual(1, menu.OpenLogsCalls);
         Assert.AreEqual(1, safety);
         Assert.AreEqual(1, about);
-        StringAssert.Contains(viewModel.ActivityText, "Exported application plan");
-        StringAssert.Contains(viewModel.ActivityText, "Opened logs");
+        StringAssert.Contains(viewModel.ActivityText, "Exported app status");
+        StringAssert.Contains(viewModel.ActivityText, "Opened the log folder");
     }
 
     [TestMethod]
@@ -485,10 +489,10 @@ public sealed class CompiledPresentationTests
 
         Assert.IsTrue(viewModel.WarningVisible);
         Assert.AreEqual("CHECK FAILED", viewModel.WarningSeverityText);
-        Assert.AreEqual("Update availability check failed", viewModel.WarningTitle);
-        StringAssert.Contains(viewModel.WarningText, "not marked Current");
+        Assert.AreEqual("Couldn't check for updates", viewModel.WarningTitle);
+        StringAssert.Contains(viewModel.WarningText, "update availability is unknown");
         StringAssert.Contains(viewModel.WarningDetailText, "malformed package row");
-        StringAssert.Contains(viewModel.ActivityText, "Update availability check failed");
+        StringAssert.Contains(viewModel.ActivityText, "Couldn't check for updates");
         StringAssert.Contains(viewModel.Diagnostics!.Text, "Request: (none)");
         viewModel.DiagnosticsCommand.Execute(null);
         Assert.AreSame(viewModel.Diagnostics, requested);
@@ -502,7 +506,7 @@ public sealed class CompiledPresentationTests
 
         await viewModel.RefreshAsync();
 
-        Assert.AreEqual("Several system checks need attention", viewModel.WarningTitle);
+        Assert.AreEqual("Several checks need attention", viewModel.WarningTitle);
         StringAssert.Contains(viewModel.WarningDetailText, "Pending restart");
         StringAssert.Contains(viewModel.WarningDetailText, "External application inventory");
     }
@@ -515,7 +519,7 @@ public sealed class CompiledPresentationTests
         viewModel.Packages.Single(item => item.Id == "Fixture.Missing").Selected = true;
         viewModel.InstallCommand.Execute(null);
         Assert.AreEqual(1, viewModel.MutationRefusalCount);
-        StringAssert.Contains(viewModel.ActivityText, "READ-ONLY");
+        StringAssert.Contains(viewModel.ActivityText, "Preview only");
         Assert.AreEqual(1, viewModel.InstallCount);
     }
 
@@ -538,13 +542,14 @@ public sealed class CompiledPresentationTests
         viewModel.SelectedRow = viewModel.VisiblePackages.Single();
 
         Assert.IsTrue(viewModel.GetPackageCommand.CanExecute(null));
+        Assert.AreEqual("Download package", viewModel.GetPackageButtonText);
         viewModel.GetPackageCommand.Execute(null);
         for (var attempt = 0; attempt < 20 && delivery.Calls == 0; attempt++) await Task.Delay(10);
 
         Assert.AreEqual(1, delivery.Calls);
         Assert.AreEqual(package.Id, delivery.PackageId);
         Assert.IsNull(viewModel.SelectedDetail);
-        StringAssert.Contains(viewModel.ActivityText, "PACKAGE READY");
+        StringAssert.Contains(viewModel.ActivityText, "Vendor workflow invoked");
     }
 
     [TestMethod]
@@ -654,8 +659,8 @@ public sealed class CompiledPresentationTests
         Assert.IsFalse(poly.CanSelect);
         poly.OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null && viewModel.SelectedCompatibilityDetail.RelatedSoftware.Count == 0);
-        var coverage = viewModel.SelectedCompatibilityDetail!.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
-        StringAssert.Contains(coverage.Value, "no verified software relationship");
+        var coverage = viewModel.SelectedCompatibilityDetail!.Groups.Single(group => group.Name == "Software for this device").Fields.Single();
+        StringAssert.Contains(coverage.Value, "haven't verified which software applies");
         Assert.AreEqual(0, viewModel.SelectedCount);
     }
 
@@ -681,8 +686,8 @@ public sealed class CompiledPresentationTests
         Assert.IsFalse(neat.CanSelect);
         neat.OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null && viewModel.SelectedCompatibilityDetail.RelatedSoftware.Count == 0);
-        var coverage = viewModel.SelectedCompatibilityDetail!.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
-        StringAssert.Contains(coverage.Value, "does not mean no software is required");
+        var coverage = viewModel.SelectedCompatibilityDetail!.Groups.Single(group => group.Name == "Software for this device").Fields.Single();
+        StringAssert.Contains(coverage.Value, "doesn't mean no software is needed");
         Assert.AreEqual(0, viewModel.SelectedCount);
     }
 
@@ -761,9 +766,9 @@ public sealed class CompiledPresentationTests
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null && viewModel.SelectedCompatibilityDetail != verifiedDetail);
         var unresolvedDetail = viewModel.SelectedCompatibilityDetail!;
         Assert.HasCount(0, unresolvedDetail.RelatedSoftware);
-        var coverage = unresolvedDetail.Groups.Single(group => group.Name == "Software coverage").Fields.Single();
-        StringAssert.Contains(coverage.Value, "no verified software relationship");
-        StringAssert.Contains(coverage.Value, "does not mean no software is required");
+        var coverage = unresolvedDetail.Groups.Single(group => group.Name == "Software for this device").Fields.Single();
+        StringAssert.Contains(coverage.Value, "haven't verified which software applies");
+        StringAssert.Contains(coverage.Value, "doesn't mean no software is needed");
     }
 
     [TestMethod]
@@ -788,13 +793,13 @@ public sealed class CompiledPresentationTests
         await viewModel.SearchCompletion;
         var unresolved = viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device && item.Title == "QM65C");
         StringAssert.Contains(unresolved.Subtitle, "not yet verified");
-        StringAssert.Contains(unresolved.MatchDetail, "does not mean no software is required");
+        StringAssert.Contains(unresolved.MatchDetail, "doesn't mean no software is needed");
         Assert.IsFalse(unresolved.CanSelect);
         unresolved.OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail?.Name == "QM65C");
         Assert.HasCount(0, viewModel.SelectedCompatibilityDetail!.RelatedSoftware);
         Assert.IsTrue(viewModel.SelectedCompatibilityDetail.Groups.SelectMany(group => group.Fields)
-            .Any(field => field.Value.Contains("does not mean no software is required", StringComparison.OrdinalIgnoreCase)));
+            .Any(field => field.Value.Contains("doesn't mean no software is needed", StringComparison.OrdinalIgnoreCase)));
     }
 
     [TestMethod]
@@ -892,10 +897,10 @@ public sealed class CompiledPresentationTests
         viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Software).OpenCommand.Execute(null);
         await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
         var detail = viewModel.SelectedCompatibilityDetail!;
-        var families = detail.Groups.Single(group => group.Name == "Release families").Fields;
+        var families = detail.Groups.Single(group => group.Name == "Version branches").Fields;
         CollectionAssert.AreEqual(new[] { "Current — Current", "LTS — LTS", "Archived — Archived" }, families.Select(field => field.Label).ToArray());
-        var installed = detail.Groups.Single(group => group.Name == "Installed-version evidence").Fields.Single();
-        StringAssert.StartsWith(installed.Value, "Unknown / Not yet verified");
+        var installed = detail.Groups.Single(group => group.Name == "Versions found on this PC").Fields.Single();
+        StringAssert.StartsWith(installed.Value, "We haven't verified");
         Assert.DoesNotContain("Not installed", installed.Value, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -914,7 +919,7 @@ public sealed class CompiledPresentationTests
         var detail = viewModel.SelectedCompatibilityDetail!;
         Assert.IsTrue(detail.Groups.Any(group => group.Name == "CP4N"));
         Assert.IsTrue(detail.Groups.Any(group => group.Name.Contains("DM NVX", StringComparison.OrdinalIgnoreCase)));
-        var evidence = detail.Links.First(link => link.Label.Contains("evidence", StringComparison.OrdinalIgnoreCase));
+        var evidence = detail.Links.First(link => link.Label.Contains("documentation", StringComparison.OrdinalIgnoreCase));
         evidence.Command.Execute(null);
 
         Assert.IsNotNull(handoff.Intent);
@@ -963,6 +968,8 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(updates.InstallCommand.CanExecute(null));
         await updates.InstallAsync();
         Assert.AreEqual(ReferenceCatalogUpdateState.Completed, updates.Status.State);
+        Assert.AreEqual("Device catalog saved", updates.StateLabel);
+        StringAssert.Contains(updates.DetailLabel, "Restart AV Workstation Toolkit");
         Assert.AreEqual(1, service.InstallCalls);
         Assert.IsTrue(updates.RestoreCommand.CanExecute(null));
         await updates.RestoreAsync();
@@ -1114,7 +1121,7 @@ public sealed class CompiledPresentationTests
         public PlanExportOutcome ExportPlan(WorkstationPlan plan)
         {
             ExportCalls++;
-            return new(true, "C:\\fixture\\plan.json", "Exported application plan: C:\\fixture\\plan.json");
+            return new(true, "C:\\fixture\\plan.json", "Exported app status: C:\\fixture\\plan.json");
         }
         public string OpenLogs()
         {

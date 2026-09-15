@@ -69,10 +69,9 @@ public sealed record PackageExecutionResult(
 public sealed record ActionWorkerRunResult(ActionResultStatus Status, int ExitCode, IReadOnlyList<ActionPackageOutcome> Packages);
 
 /// <summary>
-/// Non-shipping worker orchestration. It independently reauthorizes the complete
-/// request and every individual package, but delegates package behavior to an
-/// injected executor. Test-mode worker composition intentionally supplies only
-/// its deterministic fake; the real migration executor is not composed there.
+/// Worker orchestration. It independently reauthorizes the complete request and
+/// every individual package, then delegates package behavior to the configured
+/// constrained executor.
 /// </summary>
 public sealed class ActionWorkerOrchestrator
 {
@@ -109,7 +108,7 @@ public sealed class ActionWorkerOrchestrator
 
         var outcomes = new List<ActionPackageOutcome>();
         await ProgressAsync(request, ActionProgressLevel.Info, "Preflight", string.Empty,
-            $"Preparing {request.Action.ToString().ToLowerInvariant()} request for {request.PackageIds.Count} package(s).", cancellationToken).ConfigureAwait(false);
+            $"Preparing to {ActionVerb(request.Action)} {PackageCount(request.PackageIds.Count)}.", cancellationToken).ConfigureAwait(false);
 
         AuthorizedActionRequest initiallyAuthorized;
         try
@@ -154,13 +153,13 @@ public sealed class ActionWorkerOrchestrator
             var startedAt = timeProvider.GetUtcNow();
             var arguments = ReviewedArgumentEvidence(package, request.Action);
             await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
-                $"{request.Action}: {package.Package.Name}", cancellationToken).ConfigureAwait(false);
+                $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
 
             if (request.DryRun)
             {
                 outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.Planned, 0, false, startedAt, arguments));
                 await ProgressAsync(request, ActionProgressLevel.Success, "Planned", package.Package.Id,
-                    "Dry run validated; no change executed.", cancellationToken).ConfigureAwait(false);
+                    "Safety checks passed. No change was made during this test run.", cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
@@ -199,11 +198,11 @@ public sealed class ActionWorkerOrchestrator
 
             var (level, stage, message) = status switch
             {
-                PackageOutcomeStatus.Succeeded => (ActionProgressLevel.Success, "Verified", $"Verified {request.Action.ToString().ToLowerInvariant()}."),
-                PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "winget returned success, but post-action verification failed."),
+                PackageOutcomeStatus.Succeeded => (ActionProgressLevel.Success, "Verified", $"{ActionPastTense(request.Action)} and verified."),
+                PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "WinGet finished, but AVWT couldn't confirm the installed version."),
                 PackageOutcomeStatus.Failed when execution.Disposition == PackageExecutionDisposition.TimedOut =>
-                    (ActionProgressLevel.Error, "Failed", "winget execution exceeded the bounded timeout."),
-                _ => (ActionProgressLevel.Error, "Failed", $"The injected executor failed with code {execution.ExitCode}.")
+                    (ActionProgressLevel.Error, "Failed", "WinGet didn't finish within the allowed time."),
+                _ => (ActionProgressLevel.Error, "Failed", $"WinGet couldn't complete the change. Exit code: {execution.ExitCode}.")
             };
             await ProgressAsync(request, level, stage, package.Package.Id, message, cancellationToken).ConfigureAwait(false);
         }
@@ -212,14 +211,17 @@ public sealed class ActionWorkerOrchestrator
         var blocked = outcomes.Any(item => item.Status == PackageOutcomeStatus.Blocked);
         var cancellationPresent = cancellationObserved || await protocol.IsCancellationRequestedAsync(cancellationToken).ConfigureAwait(false);
         if (failed)
+        {
+            var failedCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
             return await CompleteAsync(request, ActionResultStatus.Failed, 1,
-                $"{outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified)} package(s) failed or could not be verified.", outcomes, cancellationToken).ConfigureAwait(false);
+                $"{PackageCount(failedCount)} couldn't be completed or verified.", outcomes, cancellationToken).ConfigureAwait(false);
+        }
         if (blocked)
             return await CompleteAsync(request, ActionResultStatus.Blocked, 3, blockReason, outcomes, cancellationToken).ConfigureAwait(false);
         if (cancellationPresent)
             return await CompleteAsync(request, ActionResultStatus.Cancelled, 2, "Stopped after the current package.", outcomes, cancellationToken).ConfigureAwait(false);
 
-        var successMessage = request.DryRun ? "Dry run completed." : "All requested packages completed and were verified.";
+        var successMessage = request.DryRun ? "Test run completed. No changes were made." : "All selected apps were completed and verified.";
         await ProgressAsync(request, ActionProgressLevel.Success, "Complete", string.Empty, successMessage, cancellationToken).ConfigureAwait(false);
         return await CompleteAsync(request, ActionResultStatus.Succeeded, 0, successMessage, outcomes, cancellationToken).ConfigureAwait(false);
     }
@@ -291,4 +293,9 @@ public sealed class ActionWorkerOrchestrator
             _ => false
         };
     }
+
+    private static string ActionVerb(ManagedRequestAction action) => action == ManagedRequestAction.Install ? "install" : "update";
+    private static string ActionInProgress(ManagedRequestAction action) => action == ManagedRequestAction.Install ? "Installing" : "Updating";
+    private static string ActionPastTense(ManagedRequestAction action) => action == ManagedRequestAction.Install ? "Installed" : "Updated";
+    private static string PackageCount(int count) => count == 1 ? "1 app" : $"{count} apps";
 }

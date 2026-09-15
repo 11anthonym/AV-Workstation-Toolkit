@@ -1,10 +1,10 @@
 <Window x:Class="AVWorkstationToolkit.App.CatalogDetailWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Application details" Width="760" Height="700" MinWidth="560" MinHeight="460"
+        Title="Software details" Width="760" Height="700" MinWidth="560" MinHeight="460"
         Icon="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.ico"
         WindowStartupLocation="CenterOwner" Background="#0A0F1C" Foreground="#E8EEF8"
-        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Read-only application details">
+        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Software and device details">
     <Grid Margin="20">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <StackPanel><TextBlock x:Name="DetailTitle" Text="{Binding Name}" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="{Binding Subtitle}" Foreground="#94A4BB" Margin="0,5,0,12"/></StackPanel>
@@ -12,7 +12,7 @@
             <StackPanel>
                 <ItemsControl x:Name="DetailGroups" ItemsSource="{Binding Groups}"><ItemsControl.ItemTemplate><DataTemplate><Border Background="#0C1423" BorderBrush="#30415D" BorderThickness="1" CornerRadius="7" Margin="0,0,0,10" Padding="13"><StackPanel><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" Foreground="#8FB9EC" Margin="0,0,0,8"/><ItemsControl ItemsSource="{Binding Fields}"><ItemsControl.ItemTemplate><DataTemplate><Grid Margin="0,2"><Grid.ColumnDefinitions><ColumnDefinition Width="180"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Label}" Foreground="#94A4BB"/><TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                 <Border x:Name="RelatedSoftwarePanel" Background="#101C2D" BorderBrush="#34506F" BorderThickness="1" CornerRadius="7" Margin="0,0,0,10" Padding="13" Visibility="{Binding HasRelatedSoftware, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel><TextBlock Text="Relevant software" FontWeight="SemiBold" FontSize="15" Foreground="#8FB9EC"/><TextBlock Text="Open a product to see its release families, installed evidence, and applicable devices." Foreground="#94A4BB" Margin="0,3,0,8" TextWrapping="Wrap"/>
+                    <StackPanel><TextBlock Text="Software for this device" FontWeight="SemiBold" FontSize="15" Foreground="#8FB9EC"/><TextBlock Text="Open a product to see version information and the devices it supports." Foreground="#94A4BB" Margin="0,3,0,8" TextWrapping="Wrap"/>
                         <ItemsControl x:Name="RelatedSoftwareLinks" ItemsSource="{Binding RelatedSoftware}"><ItemsControl.ItemTemplate><DataTemplate><Button Command="{Binding OpenCommand}" HorizontalContentAlignment="Left" Margin="0,3,0,0" Padding="10,7"><StackPanel><TextBlock Text="{Binding ProductName}" FontWeight="SemiBold"/><TextBlock Text="{Binding Purpose}" Foreground="#8FB9EC" FontSize="11"/><TextBlock Text="{Binding Summary}" Foreground="#B9C8DB" FontSize="11" TextWrapping="Wrap"/></StackPanel></Button></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                     </StackPanel>
                 </Border>

@@ -40,19 +40,19 @@ public sealed class ApplicationMenuWorkflow(
         var stamp = timeProvider.GetLocalNow().ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
         var dialog = new SaveFileDialog
         {
-            Title = "Export application plan",
+            Title = "Export app status",
             Filter = "JSON report (*.json)|*.json",
             AddExtension = true,
             DefaultExt = ".json",
             InitialDirectory = reports,
-            FileName = $"AppPlan-{stamp}.json",
+            FileName = $"AppStatus-{stamp}.json",
             OverwritePrompt = true
         };
         if (dialog.ShowDialog(System.Windows.Application.Current?.MainWindow) != true)
-            return new(false, string.Empty, "Plan export cancelled.");
+            return new(false, string.Empty, "App status export cancelled.");
         var path = Path.GetFullPath(dialog.FileName);
         if (!Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("The plan export must use a .json filename.");
+            throw new InvalidDataException("The app status export must use a .json filename.");
         if (File.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
             throw new IOException("The selected plan export file is a reparse point.");
         var parent = Path.GetDirectoryName(path) ?? throw new IOException("The selected plan export directory is unavailable.");
@@ -68,7 +68,7 @@ public sealed class ApplicationMenuWorkflow(
                 stream.Flush(flushToDisk: true);
             }
             File.Move(temporary, path, overwrite: true);
-            return new(true, path, $"Exported application plan: {path}");
+            return new(true, path, $"Exported app status: {path}");
         }
         finally
         {

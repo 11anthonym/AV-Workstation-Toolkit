@@ -36,7 +36,7 @@ public sealed class DiagnosticsAndDetailsTests
         var detail = new CatalogDetailService().Create(state, catalog);
 
         CollectionAssert.AreEqual(
-            new[] { "Identity", "Workstation state", "Policy and compatibility", "Access and platform", "System impact", "Metadata verification / provenance", "Official source" },
+            new[] { "About this software", "On this PC", "Installation and compatibility", "Access and system requirements", "System impact", "Source and verification details", "Official links" },
             detail.Groups.Select(group => group.Name).ToArray());
         Assert.AreEqual(package.Id, detail.ProductIntent?.PackageId);
         Assert.AreEqual(Uri.UriSchemeHttps, detail.ProductIntent?.Uri.Scheme);
@@ -133,10 +133,10 @@ public sealed class DiagnosticsAndDetailsTests
             [State(package, PackageStatus.CheckUnavailable, true, "1.0", InventoryQuality.Unavailable)], providers));
 
         var viewModel = new DiagnosticsViewModel(snapshot);
-        var issue = viewModel.Issues.Single(item => item.Title == "Update availability check failed");
+        var issue = viewModel.Issues.Single(item => item.Title == "Couldn't check for updates");
 
         Assert.AreEqual("CHECK FAILED", issue.SeverityLabel);
-        StringAssert.Contains(issue.Explanation, "cannot verify which managed apps are current");
+        StringAssert.Contains(issue.Explanation, "update availability is unknown");
         StringAssert.Contains(issue.RecommendedAction, "Check again");
         StringAssert.Contains(issue.TechnicalDetail, "malformed package row");
         StringAssert.Contains(viewModel.IssueSummary, "failed check");
@@ -157,6 +157,64 @@ public sealed class DiagnosticsAndDetailsTests
 
         StringAssert.Contains(snapshot.Text, "- HKLM 64-bit uninstall inventory:");
         Assert.DoesNotContain("\n  HKLM", snapshot.Text, StringComparison.Ordinal);
+    }
+
+    [TestMethod]
+    public void PackagePresentationDoesNotTurnUnknownInstallationEvidenceIntoNotInstalled()
+    {
+        var catalog = LoadCatalog();
+        var package = catalog.GetRequired("Crestron.Toolbox");
+        var detectedWithoutVersion = State(package, PackageStatus.Inventory, installed: true, installedVersion: string.Empty);
+        var unavailable = State(package, PackageStatus.InventoryUnavailable, installed: false, quality: InventoryQuality.Unavailable);
+        var confirmedMissing = State(package, PackageStatus.NotDetected, installed: false);
+
+        Assert.AreEqual("Version unknown", new PackageRowViewModel(detectedWithoutVersion, 0, () => { }).VersionLabel);
+        Assert.AreEqual("Couldn't check", new PackageRowViewModel(unavailable, 0, () => { }).VersionLabel);
+        Assert.AreEqual("Couldn't check installation", new PackageRowViewModel(unavailable, 0, () => { }).StatusLabel);
+        Assert.AreEqual("Not installed", new PackageRowViewModel(confirmedMissing, 0, () => { }).VersionLabel);
+
+        var workstationFields = new CatalogDetailService().Create(unavailable, catalog).Groups
+            .Single(group => group.Name == "On this PC").Fields;
+        Assert.AreEqual("Couldn't check", workstationFields.Single(field => field.Label == "Installed").Value);
+        Assert.AreEqual("Couldn't check", workstationFields.Single(field => field.Label == "Installed version").Value);
+    }
+
+    [TestMethod]
+    public async Task UpdateWarningDoesNotClaimInstalledInventorySurvivedWhenThatCheckAlsoFailed()
+    {
+        var catalog = LoadCatalog();
+        var package = catalog.Items.First(item => item.Provider == ProviderKind.WinGet);
+        var providers = CompleteProviders() with
+        {
+            WinGetInventoryQuality = ProviderQuality.Unavailable,
+            WinGetUpdateQuality = ProviderQuality.Malformed,
+            WinGetInventoryDetail = "WinGet installed inventory unavailable.",
+            WinGetUpdateDetail = "WinGet update output contains a malformed package row."
+        };
+        var service = new ReadOnlyDiagnosticsService(new FixedRuntimeProvider(), new("1.1.1", "Test", "Unknown", "Unknown"));
+        var snapshot = await service.ComposeAsync(Plan(
+            [State(package, PackageStatus.InventoryUnavailable, installed: false, quality: InventoryQuality.Unavailable)], providers));
+
+        var issue = new DiagnosticsViewModel(snapshot).Issues.Single(item => item.Title == "Couldn't check for updates");
+
+        StringAssert.Contains(issue.Explanation, "Installation information may also be incomplete");
+        Assert.DoesNotContain("still shown", issue.Explanation, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("repair", issue.RecommendedAction, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [TestMethod]
+    public async Task StaleSoftwareMetadataMessageDoesNotPromiseDeviceCatalogUpdateWillFixIt()
+    {
+        var catalog = LoadCatalog();
+        var package = catalog.Items.First(item => item.MetadataDetails.MetadataVerificationState == MetadataVerificationState.VerificationRequired);
+        var service = new ReadOnlyDiagnosticsService(new FixedRuntimeProvider(), new("1.1.1", "Test", "Unknown", "Unknown"));
+        var snapshot = await service.ComposeAsync(Plan([State(package, PackageStatus.Awareness, installed: false)], CompleteProviders()));
+
+        var issue = new DiagnosticsViewModel(snapshot).Issues.Single(item => item.Title == "Some software catalog information needs review");
+
+        StringAssert.Contains(issue.Explanation, "doesn't change what AVWT can install or download");
+        Assert.DoesNotContain("catalog update", issue.RecommendedAction, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("download", issue.RecommendedAction, StringComparison.OrdinalIgnoreCase);
     }
 
     [TestMethod]
@@ -189,14 +247,15 @@ public sealed class DiagnosticsAndDetailsTests
 
         viewModel.ProductIntentCommand.Execute(null);
 
-        Assert.StartsWith("READ-ONLY", viewModel.IntentStatus, StringComparison.Ordinal);
-        StringAssert.Contains(viewModel.IntentStatus, package.Id);
+        Assert.StartsWith("Preview only", viewModel.IntentStatus, StringComparison.Ordinal);
+        StringAssert.Contains(viewModel.IntentStatus, "official link");
+        Assert.DoesNotContain(package.Id, viewModel.IntentStatus, StringComparison.Ordinal);
     }
 
     private static PackageCatalog LoadCatalog() => new RepositoryCatalogLoader().Load(RepositoryRootLocator.Find());
 
     private static PackageState State(PackageDefinition package, PackageStatus status, bool installed, string installedVersion = "", InventoryQuality quality = InventoryQuality.Complete) =>
-        new(package, installed, installedVersion, installed ? [installedVersion] : [], package.KnownVersion, false,
+        new(package, installed, installedVersion, installed && installedVersion.Length > 0 ? [installedVersion] : [], package.KnownVersion, false,
             status, status.ToString(), status.ToString(), PackageAction.None, quality);
 
     private static WorkstationPlan Plan(IReadOnlyList<PackageState> states, ProviderRefreshSummary providers)

@@ -20,8 +20,8 @@ public partial class CatalogUpdateWindow : System.Windows.Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Import signed AV Workstation Toolkit reference catalog",
-            Filter = "AVWT reference catalogs (*.avwtcatalog)|*.avwtcatalog",
+            Title = "Import a signed AV Workstation Toolkit device catalog",
+            Filter = "AVWT device catalogs (*.avwtcatalog)|*.avwtcatalog",
             CheckFileExists = true,
             Multiselect = false
         };

@@ -10,6 +10,7 @@ namespace AVWorkstationToolkit.App.ViewModels;
 public interface IReadOnlyDetailViewModel
 {
     string ContextId { get; }
+    string DetailType { get; }
     string Name { get; }
     string Subtitle { get; }
     IReadOnlyList<CatalogDetailGroup> Groups { get; }
@@ -49,12 +50,13 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
 {
     private readonly CompatibilityCatalogQueryService queries;
     private readonly IValidatedUserHandoffService? handoffs;
-    private string intentStatus = "Compatibility information is descriptive. Links open reviewed HTTPS evidence only.";
+    private string intentStatus = "This information is for reference. Links open vendor documentation in your browser.";
 
     private CompatibilityDetailViewModel(
         CompatibilityCatalogQueryService queries,
         IValidatedUserHandoffService? handoffs,
         string contextId,
+        string detailType,
         string name,
         string subtitle,
         IReadOnlyList<CatalogDetailGroup> groups,
@@ -64,6 +66,7 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
         this.queries = queries;
         this.handoffs = handoffs;
         ContextId = contextId;
+        DetailType = detailType;
         Name = name;
         Subtitle = subtitle;
         Groups = groups;
@@ -72,6 +75,7 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
     }
 
     public string ContextId { get; }
+    public string DetailType { get; }
     public string Name { get; }
     public string Subtitle { get; }
     public IReadOnlyList<CatalogDetailGroup> Groups { get; }
@@ -96,10 +100,10 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
         {
             Group("Product", ("Vendor", product.Vendor), ("Lifecycle", Label(product.Lifecycle)),
                 ("Aliases", Values(product.Aliases))),
-            Group("Installed-version evidence", installed.Select(item =>
+            Group("Versions found on this PC", installed.Select(item =>
                 (InstalledLabel(item), InstalledValue(item))).ToArray()),
-            Group("Release families", families.Count == 0
-                ? [("Status", "No verified release-family records are available.")]
+            Group("Version branches", families.Count == 0
+                ? [("Status", "No documented version branches are listed.")]
                 : families.Select(item => ($"{Label(item.Kind)} — {item.Branch}",
                     $"{Label(item.Lifecycle)}. {TextOrUnknown(item.Constraints)}")).ToArray())
         };
@@ -107,19 +111,19 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
         {
             groups.Add(Group(DeviceName(device), device.Purposes.Select(purpose =>
                 (Label(purpose.Purpose), RelationSummary(purpose.Applicability, purpose.Confidence,
-                    purpose.ReleaseFamilyId, purpose.Constraints))).ToArray()));
+                    ReleaseFamilyText(queries, product.Id, purpose.ReleaseFamilyId), purpose.Constraints))).ToArray()));
         }
 
-        var viewModel = new CompatibilityDetailViewModel(queries, handoffs, product.Id.Value, product.Name,
-            $"{product.Vendor} | {Label(product.Lifecycle)} | Read-only compatibility record", groups, [], []);
+        var viewModel = new CompatibilityDetailViewModel(queries, handoffs, product.Id.Value, "Software", product.Name,
+            $"{product.Vendor} · {Label(product.Lifecycle)} · Software reference", groups, [], []);
         viewModel.LinksInternal.Add(viewModel.CreateLink("Official product page", product.OfficialSourceUri,
             OpenOfficialUriIntent.FromCompatibilityProduct(product)));
         foreach (var family in families)
-            viewModel.AddUniqueLink($"{Label(family.Kind)} release evidence", family.EvidenceUri,
+            viewModel.AddUniqueLink($"{Label(family.Kind)} versions — {EvidenceLabel(family.EvidenceKind)}", family.EvidenceUri,
                 OpenOfficialUriIntent.FromCompatibilityRelease(product.Id, family));
         foreach (var device in devices)
             foreach (var purpose in device.Purposes)
-                viewModel.AddUniqueLink($"{DeviceName(device)} — {Label(purpose.Purpose)} evidence", purpose.EvidenceUri,
+                viewModel.AddUniqueLink($"{DeviceName(device)} — {Label(purpose.Purpose)} documentation", purpose.EvidenceUri,
                     OpenOfficialUriIntent.FromCompatibilityRelation(product.Id, purpose));
         return viewModel.FreezeLinks();
     }
@@ -146,14 +150,14 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
                     ("Aliases", Values(device.Hardware.Aliases)))
         };
         if (softwareGroups.Count == 0)
-            groups.Add(Group("Software coverage", ("Status", CoverageDetail(device.LookupState))));
+            groups.Add(Group("Software for this device", ("Status", CoverageDetail(device.LookupState))));
         foreach (var purposeGroup in softwareGroups)
             groups.Add(Group(Label(purposeGroup.Purpose), purposeGroup.Software.Select(item =>
                 (item.ProductName, RelationSummary(item.Applicability, item.Confidence,
-                    item.ReleaseFamilyId, item.Constraints))).ToArray()));
+                    ReleaseFamilyText(queries, item.ProductId, item.ReleaseFamilyId), item.Constraints))).ToArray()));
 
-        var viewModel = new CompatibilityDetailViewModel(queries, handoffs, device.DeviceFamilyId, displayName,
-            $"Device compatibility | {softwareGroups.Sum(group => group.Software.Count)} reviewed software relationship(s)",
+        var viewModel = new CompatibilityDetailViewModel(queries, handoffs, device.DeviceFamilyId, "Device", displayName,
+            DocumentedSoftwareSummary(softwareGroups.Sum(group => group.Software.Count)),
             groups, [], []);
         var relatedSoftware = softwareGroups.SelectMany(group => group.Software).ToArray();
         foreach (var softwareGroup in relatedSoftware.GroupBy(item => item.ProductId))
@@ -162,14 +166,14 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
             viewModel.RelatedSoftwareInternal.Add(new RelatedSoftwareViewModel(
                 software.ProductName,
                 string.Join(", ", softwareGroup.Select(item => Label(item.Purpose)).Distinct(StringComparer.OrdinalIgnoreCase)),
-                "Open this product's release families, installed evidence, and applicable devices.",
+                "Open version information and the devices this software supports.",
                 new AsyncRelayCommand(() => viewModel.NavigateToProductAsync(software.ProductId))));
         }
         foreach (var group in softwareGroups)
         {
             foreach (var software in group.Software)
             {
-                viewModel.AddUniqueLink($"{software.ProductName} — {Label(software.Purpose)} evidence", software.EvidenceUri,
+                viewModel.AddUniqueLink($"{software.ProductName} — {Label(software.Purpose)} documentation", software.EvidenceUri,
                     OpenOfficialUriIntent.FromCompatibilityRelation(software));
             }
         }
@@ -211,17 +215,17 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
     {
         if (handoffs is null)
         {
-            IntentStatus = $"READ-ONLY Validated {intent.Kind.ToString().ToLowerInvariant()} HTTPS intent for {intent.PackageId}; no browser or download was started.";
+            IntentStatus = $"Preview only: checked the {LinkKind(intent.Kind)} for {Name}. No browser or download was started.";
             return;
         }
         try
         {
             handoffs.OpenOfficialUri(intent);
-            IntentStatus = $"Opened reviewed {intent.Kind.ToString().ToLowerInvariant()} evidence for {intent.PackageId}.";
+            IntentStatus = $"Opened the {LinkKind(intent.Kind)} for {Name}.";
         }
         catch (Exception exception)
         {
-            IntentStatus = $"Evidence handoff failed: {DiagnosticsRedactor.Sanitize(exception.Message)}";
+            IntentStatus = $"Couldn't open the link. {DiagnosticsRedactor.Sanitize(exception.Message)}";
         }
     }
 
@@ -235,18 +239,53 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
     private static string InstalledValue(InstalledVersion evidence) => evidence.State switch
     {
         InstalledVersionEvidenceState.Observed => $"{evidence.RawVersion} ({Values(evidence.Sources)})",
-        InstalledVersionEvidenceState.Unknown => $"Unknown / Not yet verified. {TextOrUnknown(evidence.Detail)}",
-        InstalledVersionEvidenceState.Incomplete => $"Incomplete / Not yet verified. {TextOrUnknown(evidence.Detail)}",
-        InstalledVersionEvidenceState.Unavailable => $"Unavailable / Not yet verified. {TextOrUnknown(evidence.Detail)}",
+        InstalledVersionEvidenceState.Unknown => "We haven't verified which versions are installed.",
+        InstalledVersionEvidenceState.Incomplete => $"Some installation information is missing. {TextOrUnknown(evidence.Detail)}",
+        InstalledVersionEvidenceState.Unavailable => $"We couldn't check installed versions. {TextOrUnknown(evidence.Detail)}",
         _ => TextOrUnknown(evidence.Detail)
     };
 
     private static string RelationSummary(RelationApplicability applicability, CompatibilityEvidenceConfidence confidence,
-        ReleaseFamilyId? releaseFamilyId, string constraints)
+        string releaseFamily, string constraints)
     {
-        var family = releaseFamilyId is null ? "Any reviewed family" : $"Family: {releaseFamilyId.Value.Value}";
-        return $"{Label(applicability)} | {Label(confidence)} | {family}. {TextOrUnknown(constraints)}";
+        return $"{Label(applicability)}. {ConfidenceLabel(confidence)}. {releaseFamily}. {TextOrUnknown(constraints)}";
     }
+
+    private static string ReleaseFamilyText(
+        CompatibilityCatalogQueryService queries,
+        SoftwareProductId productId,
+        ReleaseFamilyId? releaseFamilyId)
+    {
+        if (releaseFamilyId is null) return "No version-branch restriction listed";
+        var family = queries.GetReleaseFamilies(productId)
+            .FirstOrDefault(item => item.Id == releaseFamilyId.Value);
+        return family is null ? "A specific version branch applies" : $"{Label(family.Kind)}: {family.Branch}";
+    }
+
+    private static string ConfidenceLabel(CompatibilityEvidenceConfidence confidence) => confidence switch
+    {
+        CompatibilityEvidenceConfidence.VendorDocumented => "Vendor documented",
+        CompatibilityEvidenceConfidence.PhysicalInstallVerified => "Verified on hardware",
+        _ => "Needs verification"
+    };
+
+    private static string EvidenceLabel(CompatibilityEvidenceKind kind) => kind switch
+    {
+        CompatibilityEvidenceKind.VendorProductPage => "Vendor product page",
+        CompatibilityEvidenceKind.VendorReleaseNotes => "Vendor release notes",
+        CompatibilityEvidenceKind.VendorCompatibilityMatrix => "Vendor compatibility guide",
+        CompatibilityEvidenceKind.VendorSupportArticle => "Vendor support article",
+        CompatibilityEvidenceKind.PhysicalInstallRecord => "Installation record",
+        _ => "Vendor documentation"
+    };
+
+    private static string LinkKind(OfficialUriKind kind) => kind == OfficialUriKind.Product
+        ? "vendor product page"
+        : "vendor documentation";
+
+    private static string DocumentedSoftwareSummary(int count) => count == 1
+        ? "Device reference · 1 documented software link"
+        : $"Device reference · {count} documented software links";
 
     private static string DeviceName(ApplicableDeviceSummary device) => device.ExactModelIds.FirstOrDefault()
         ?? device.Aliases.FirstOrDefault()
@@ -263,20 +302,20 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
 
     private static string CoverageLabel(HardwareLookupState state) => state switch
     {
-        HardwareLookupState.KnownExactModelWithVerifiedRelationships => "Verified software relationships",
-        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => "Software coverage not yet verified",
-        HardwareLookupState.KnownFamilyWithVerifiedRelationships => "Verified family relationships",
-        HardwareLookupState.KnownFamilyWithUnresolvedCoverage => "Family software coverage not yet verified",
-        _ => "Relation-only compatibility result"
+        HardwareLookupState.KnownExactModelWithVerifiedRelationships => "Documented software available",
+        HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet => "Software support not yet verified",
+        HardwareLookupState.KnownFamilyWithVerifiedRelationships => "Documented family software available",
+        HardwareLookupState.KnownFamilyWithUnresolvedCoverage => "Family software support not yet verified",
+        _ => "Software relationship listed"
     };
 
     private static string CoverageDetail(HardwareLookupState state) => state switch
     {
         HardwareLookupState.KnownExactModelWithNoVerifiedRelationshipsYet =>
-            "This known model has no verified software relationship in the current catalog. This does not mean no software is required.",
+            "This device is listed, but we haven't verified which software applies. This doesn't mean no software is needed.",
         HardwareLookupState.KnownFamilyWithUnresolvedCoverage =>
-            "This known device family has no verified software relationship in the current catalog. This does not mean no software is required.",
-        _ => "No verified software relationship is available for this read-only lookup result."
+            "This device family is listed, but we haven't verified which software applies. This doesn't mean no software is needed.",
+        _ => "No documented software is linked to this result yet."
     };
 
     private static string Values(IEnumerable<string> values)
