@@ -1,0 +1,8 @@
+No installed package found matching input criteria.
+
+The following packages have an upgrade available, but require explicit targeting for upgrade:
+Name                      Id                    Version Available
+-----------------------------------------------------------------
+Chocolatey (Install Only) Chocolatey.Chocolatey 2.7.3.0 2.7.4.0
+1 package(s) are pinned and need to be explicitly upgraded.
+2 package(s) have version numbers that cannot be determined. Use --include-unknown to see all results.

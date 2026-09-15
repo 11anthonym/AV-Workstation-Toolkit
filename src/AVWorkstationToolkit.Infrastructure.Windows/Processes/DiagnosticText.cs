@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using AVWorkstationToolkit.Application.Diagnostics;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Processes;
 
@@ -21,6 +22,8 @@ internal static partial class DiagnosticText
             if (character is '\r' or '\n' or '\t' || (!char.IsControl(character) && character != '\u007f'))
                 builder.Append(character);
         }
-        return SecretPattern().Replace(builder.ToString(), "$1=[REDACTED]").TrimEnd();
+        // Redact quoted credentials/bearer tokens before the token-based fallback
+        // so a quoted value containing spaces cannot leak its remaining words.
+        return SecretPattern().Replace(DiagnosticsRedactor.Sanitize(builder.ToString()), "$1=[REDACTED]").TrimEnd();
     }
 }

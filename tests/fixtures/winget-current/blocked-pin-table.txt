@@ -1,0 +1,9 @@
+Name                  Id           Version  Available Source
+---------------------------------------------------------------
+Vendor Tool           Vendor.Tool  1.2.3    1.3.0     winget
+1 upgrade available.
+
+1 package(s) have a pin that needs to be removed before upgrade
+Name                  Id           Version  Available Source
+---------------------------------------------------------------
+Other App             Other.App    4.5      4.6       winget

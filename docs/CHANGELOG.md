@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-15 — Current WinGet update inventory
+
+- Recognized current Source/no-Source, explicit-target, pinned, unknown-version, and blocked-upgrade output sections without treating summary text as package rows or skipping a later explicit-target table.
+- Kept malformed rows and unfamiliar summaries fail closed, added current redirected-output fixtures, and retained bounded redacted line/section context for failed checks.
+- Hardened quoted-credential redaction in process diagnostics; package, worker, vendor, and execution authority remain unchanged.
+
 ## 2026-09-14 — WPF responsiveness hardening
 
 - Indexed immutable package search text once per refreshed plan, removed repeated preset-set allocation, and cached package sort keys while preserving the 175 ms debounce and newest-search protections.

@@ -1,0 +1,14 @@
+Name                                                               Id                                 Version       Available
+---------------------------------------------------------------------------------------------------------------------------------
+GitHub CLI                                                         GitHub.cli                         2.98.0        2.100.0
+Google Chrome                                                      Google.Chrome                      152.0.7977.83 153.0.8010.37
+Microsoft Visual C++ 2015-2019 Redistributable (x86) - 14.29.30037 Microsoft.VCRedist.2015+.x86       14.29.30037.0 14.51.36247.0
+3 upgrades available.
+
+The following packages have an upgrade available, but require explicit targeting for upgrade:
+Name                      Id                    Version Available
+-----------------------------------------------------------------
+Chocolatey (Install Only) Chocolatey.Chocolatey 2.7.3.0 2.7.4.0
+1 package(s) are pinned and need to be explicitly upgraded.
+2 package(s) have version numbers that cannot be determined. Use --include-unknown to see all results.
+1 package(s) have pins that prevent upgrade. Use the 'winget pin' command to view and edit pins. Using the '--include-pinned' argument may show more results.

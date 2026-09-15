@@ -1,0 +1,4 @@
+No installed package found matching input criteria.
+2 package(s) have version numbers that cannot be determined. Use --include-unknown to see all results.
+1 package(s) have pins that prevent upgrade. Use the 'winget pin' command to view and edit pins. Using the '--include-pinned' argument may show more results.
+1 package(s) have upgrades blocked because newer versions use a different install technology than the current installation. Uninstall each package, then install the newer version.
