@@ -12,12 +12,16 @@ using AVWorkstationToolkit.Application.Compatibility;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Vendors;
 using System.Diagnostics;
+using System.Collections.Specialized;
+using System.Windows.Threading;
 
 namespace AVWorkstationToolkit.Tests;
 
 [TestClass]
 public sealed class CompiledPresentationTests
 {
+    public TestContext TestContext { get; set; } = null!;
+
     [TestMethod]
     public void WindowPlacementFitsOversizedWindowInsideUsableWorkArea()
     {
@@ -131,6 +135,139 @@ public sealed class CompiledPresentationTests
         Assert.IsEmpty(viewModel.CompatibilityMatches);
         Assert.AreEqual(string.Empty, viewModel.SearchStatusText);
         Assert.HasCount(viewModel.Packages.Count, viewModel.VisiblePackages);
+    }
+
+    [TestMethod]
+    public async Task PackageSearchIndexIsBuiltOncePerPlanAndVisibleBindingRemainsStable()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreateLargePlan(360)), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+        var visibleBinding = viewModel.VisiblePackages;
+        var visiblePropertyReplacements = 0;
+        var visibleCollectionResets = 0;
+        viewModel.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(MainWindowViewModel.VisiblePackages)) visiblePropertyReplacements++;
+        };
+        ((INotifyCollectionChanged)viewModel.VisiblePackages).CollectionChanged += (_, args) =>
+        {
+            if (args.Action == NotifyCollectionChangedAction.Reset) visibleCollectionResets++;
+        };
+
+        foreach (var query in new[] { "App 0", "Vendor 2", "control", "Fixture.App035", string.Empty })
+        {
+            viewModel.SearchText = query;
+            await viewModel.SearchCompletion;
+        }
+
+        var metrics = viewModel.ResponsivenessMetrics;
+        Assert.AreSame(visibleBinding, viewModel.VisiblePackages, "Search replaced the DataGrid ItemsSource binding.");
+        Assert.AreEqual(0, visiblePropertyReplacements, "Search rebound the full VisiblePackages property.");
+        Assert.IsLessThanOrEqualTo(5, visibleCollectionResets, "Search emitted more than one bounded result reset per query.");
+        Assert.AreEqual(1L, metrics.PackageSearchIndexBuilds);
+        Assert.AreEqual(360L, metrics.PackageSearchEntriesIndexed, "Search text was rebuilt after the plan snapshot was indexed.");
+    }
+
+    [TestMethod]
+    public async Task ApplyPlanAndBulkSelectionUseBoundedNotifications()
+    {
+        using var viewModel = new MainWindowViewModel(
+            new QueueCoordinator(CreateLargePlan(360), CreateLargePlan(360)), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+        var packageEvents = 0;
+        ((INotifyCollectionChanged)viewModel.Packages).CollectionChanged += (_, _) => packageEvents++;
+        var selectionBefore = viewModel.ResponsivenessMetrics.SelectionStateUpdates;
+
+        viewModel.QuickViewCommand.Execute("Missing");
+        viewModel.ClearSelection();
+        var bulkSelectionUpdates = viewModel.ResponsivenessMetrics.SelectionStateUpdates - selectionBefore;
+        await viewModel.RefreshAsync();
+
+        Assert.AreEqual(2L, bulkSelectionUpdates, "Quick View and Clear Selection should each publish selection state once.");
+        Assert.AreEqual(1, packageEvents, "A refreshed 360-row plan should publish one batched package collection reset.");
+    }
+
+    [TestMethod]
+    public void ProductionScaleInteractionKeepsTheDispatcherResponsive()
+    {
+        Exception? failure = null;
+        TimeSpan dispatcherLatency = TimeSpan.MaxValue;
+        PresentationResponsivenessMetrics? finalMetrics = null;
+        using var completed = new ManualResetEventSlim();
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                var dispatcher = Dispatcher.CurrentDispatcher;
+                MainWindowViewModel? viewModel = null;
+                _ = dispatcher.BeginInvoke(DispatcherPriority.Normal, () =>
+                {
+                    viewModel = new MainWindowViewModel(
+                        new QueueCoordinator(CreateLargePlan(360), CreateLargePlan(360)),
+                        searchDebounce: TimeSpan.FromMilliseconds(175),
+                        presentationDispatcher: dispatcher);
+                    viewModel.RefreshAsync().GetAwaiter().GetResult();
+
+                    _ = dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+                    {
+                        foreach (var query in new[] { "D", "DM", "DM-", "DM-N", "DM-NVX", "DM-NVX-363" })
+                            viewModel.SearchText = query;
+                        viewModel.SelectedManufacturer = viewModel.ManufacturerOptions.Single(item => item.Value == "Vendor 3");
+                        viewModel.SelectedPriority = viewModel.PriorityOptions.Single(item => item.Value == PackagePriority.P1);
+                        viewModel.QuickViewCommand.Execute("Missing");
+                        viewModel.ClearSelection();
+                        viewModel.SetSort("VendorSortKey", ListSortDirection.Descending);
+                        _ = viewModel.RefreshAsync();
+                    });
+
+                    var probe = DispatcherResponsivenessProbe.MeasureAsync(dispatcher);
+                    _ = FinishAsync(probe, viewModel, dispatcher);
+                });
+                Dispatcher.Run();
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+                completed.Set();
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        Assert.IsTrue(completed.Wait(TimeSpan.FromSeconds(15)), "The production-scale dispatcher probe timed out.");
+        thread.Join(TimeSpan.FromSeconds(2));
+        if (failure is not null) throw new AssertFailedException("The dispatcher responsiveness probe failed.", failure);
+
+        Assert.IsLessThan(250d, dispatcherLatency.TotalMilliseconds,
+            $"Production-scale interaction stalled the dispatcher for {dispatcherLatency.TotalMilliseconds:F1} ms.");
+        Assert.IsNotNull(finalMetrics);
+        Assert.AreEqual(2L, finalMetrics.PackageSearchIndexBuilds);
+        Assert.AreEqual(720L, finalMetrics.PackageSearchEntriesIndexed);
+        Assert.IsLessThanOrEqualTo(5L, finalMetrics.SelectionStateUpdates,
+            "Production-scale bulk operations published a selection notification storm.");
+        TestContext.WriteLine(
+            $"360-package dispatcher latency: {dispatcherLatency.TotalMilliseconds:F1} ms; " +
+            $"index builds: {finalMetrics.PackageSearchIndexBuilds}; visible resets: {finalMetrics.VisibleCollectionResets}; " +
+            $"selection state updates: {finalMetrics.SelectionStateUpdates}.");
+
+        async Task FinishAsync(Task<TimeSpan> probe, MainWindowViewModel viewModel, Dispatcher dispatcher)
+        {
+            try
+            {
+                dispatcherLatency = await probe.ConfigureAwait(false);
+                await viewModel.SearchCompletion.ConfigureAwait(false);
+                finalMetrics = viewModel.ResponsivenessMetrics;
+                viewModel.Dispose();
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+            finally
+            {
+                dispatcher.BeginInvokeShutdown(DispatcherPriority.Send);
+                completed.Set();
+            }
+        }
     }
 
     [TestMethod]
@@ -1035,6 +1172,43 @@ public sealed class CompiledPresentationTests
         var providers = new ProviderRefreshSummary(ProviderQuality.Complete, ProviderQuality.Complete, inventoryWarning ? ProviderQuality.Partial : ProviderQuality.Complete, ProviderQuality.Complete, warnings);
         var reboot = rebootPending ? new RebootState(true, [RebootReason.WindowsUpdate], "Windows Update") : RebootState.Clear;
         return new WorkstationPlan(states, summary, reboot, providers);
+    }
+
+    private static WorkstationPlan CreateLargePlan(int count)
+    {
+        var parser = new CatalogParser(new DateOnly(2026, 9, 14));
+        var inputs = Enumerable.Range(0, count)
+            .Select(index => new ManagedPackageInput(
+                index % 2 == 0 ? "Standard" : "Field",
+                $"App {index:D3}",
+                $"Fixture.App{index:D3}",
+                $"Vendor {index % 12}",
+                index % 17 == 0 ? "Driver" : "None",
+                $"control and field workflow {index:D3}",
+                null,
+                null))
+            .ToArray();
+        var definitions = parser.NormalizeManagedCatalog(inputs, "NeverMatchThisLargeFixture").Items;
+        var states = definitions.Select((definition, index) =>
+        {
+            var package = definition with
+            {
+                Priority = PackagePriority.P1,
+                ApplicationTypes = [index % 2 == 0 ? ApplicationType.ControlSystem : ApplicationType.FieldUtility],
+                Roles = [index % 2 == 0 ? PackageRole.ControlProgramming : PackageRole.FieldService]
+            };
+            return (index % 3) switch
+            {
+                0 => State(package, PackageStatus.Current, PackageAction.None, true, "1.0"),
+                1 => State(package, PackageStatus.Missing, PackageAction.Install, false, string.Empty),
+                _ => State(package, PackageStatus.UpdateAvailable, PackageAction.Update, true, "1.0", "1.1")
+            };
+        }).ToArray();
+        return new WorkstationPlan(
+            states,
+            Summarize(states),
+            RebootState.Clear,
+            new ProviderRefreshSummary(ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, []));
     }
 
     private static CompatibilityCatalogQueryService CreateCompatibilityQueries() => new(

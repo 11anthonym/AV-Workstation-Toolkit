@@ -31,12 +31,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IReferenceCatalogUpdateService? referenceCatalogUpdates;
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
-    private readonly ObservableCollection<PackageRowViewModel> packages = [];
+    private readonly BatchObservableCollection<PackageRowViewModel> packages = [];
+    private readonly ReadOnlyObservableCollection<PackageRowViewModel> packageView;
+    private readonly BatchObservableCollection<PackageRowViewModel> visiblePackages = [];
+    private readonly ReadOnlyObservableCollection<PackageRowViewModel> visiblePackageView;
+    private readonly BatchObservableCollection<CompatibilitySearchResultViewModel> compatibilityMatches = [];
+    private readonly ReadOnlyObservableCollection<CompatibilitySearchResultViewModel> compatibilityMatchView;
     private readonly TimeSpan searchDebounce;
     private readonly Dispatcher? uiDispatcher;
-    private IReadOnlyList<PackageRowViewModel> visiblePackages = [];
-    private IReadOnlyList<CompatibilitySearchResultViewModel> compatibilityMatches = [];
-    private IReadOnlyList<PackageRowViewModel> packageSearchSnapshot = [];
+    private IReadOnlyList<PackageSearchEntry> packageSearchSnapshot = [];
+    private readonly object activityGate = new();
+    private readonly List<string> pendingActivityLines = [];
+    private readonly object actionSnapshotGate = new();
     private CancellationTokenSource? refreshCancellation;
     private CancellationTokenSource? searchCancellation;
     private long refreshGeneration;
@@ -73,7 +79,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private bool actionActive;
     private bool riskAcknowledged;
     private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "No installation or update is running.", [], null);
+    private CompiledActionSnapshot? pendingActionSnapshot;
     private int refreshInvocationCount;
+    private int selectionBatchDepth;
+    private bool selectionStatePending;
+    private bool activityFlushScheduled;
+    private bool actionSnapshotApplyScheduled;
+    private bool disposed;
+    private long packageSearchIndexBuildCount;
+    private long packageSearchEntriesIndexed;
+    private long packageSearchRowsEvaluated;
+    private long selectionStateUpdateCount;
+    private long activityTextUpdateCount;
+    private long actionPresentationUpdateCount;
 
     public MainWindowViewModel(
         IWorkstationPlanningCoordinator coordinator,
@@ -87,7 +105,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         bool liveRehearsalMode = false,
         CompatibilityCatalogQueryService? compatibilityService = null,
         IReferenceCatalogUpdateService? referenceCatalogUpdates = null,
-        TimeSpan? searchDebounce = null)
+        TimeSpan? searchDebounce = null,
+        Dispatcher? presentationDispatcher = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -101,7 +120,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.referenceCatalogUpdates = referenceCatalogUpdates;
         this.searchDebounce = searchDebounce ?? DefaultSearchDebounce;
         if (this.searchDebounce < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(searchDebounce));
-        uiDispatcher = System.Windows.Application.Current?.Dispatcher;
+        uiDispatcher = presentationDispatcher ?? System.Windows.Application.Current?.Dispatcher;
+        packageView = new ReadOnlyObservableCollection<PackageRowViewModel>(packages);
+        visiblePackageView = new ReadOnlyObservableCollection<PackageRowViewModel>(visiblePackages);
+        compatibilityMatchView = new ReadOnlyObservableCollection<CompatibilitySearchResultViewModel>(compatibilityMatches);
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -123,7 +145,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             .Select(value => new FilterOption<CatalogDiscipline>(DisciplineLabel(value), value)).ToArray();
         RoleOptions = new[] { new FilterOption<PackageRole?>("All roles", null) }
             .Concat(Enum.GetValues<PackageRole>().Select(value => new FilterOption<PackageRole?>(SplitWords(value.ToString()), value))).ToArray();
-        ManufacturerOptions = new ObservableCollection<FilterOption<string>> { new("All manufacturers", "All") };
+        ManufacturerOptions = new BatchObservableCollection<FilterOption<string>> { new("All manufacturers", "All") };
         selectedPriority = PriorityOptions[0];
         selectedCatalogPreset = CatalogPresetOptions[0];
         selectedManufacturer = ManufacturerOptions[0];
@@ -146,9 +168,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         AboutCommand = new RelayCommand(_ => AboutRequested?.Invoke());
     }
 
-    public ReadOnlyObservableCollection<PackageRowViewModel> Packages => new(packages);
-    public IReadOnlyList<PackageRowViewModel> VisiblePackages => visiblePackages;
-    public IReadOnlyList<CompatibilitySearchResultViewModel> CompatibilityMatches => compatibilityMatches;
+    public ReadOnlyObservableCollection<PackageRowViewModel> Packages => packageView;
+    public IReadOnlyList<PackageRowViewModel> VisiblePackages => visiblePackageView;
+    public IReadOnlyList<CompatibilitySearchResultViewModel> CompatibilityMatches => compatibilityMatchView;
     public IReadOnlyList<FilterOption<PackagePriority?>> PriorityOptions { get; }
     public IReadOnlyList<FilterOption<CatalogPreset>> CatalogPresetOptions { get; }
     public ObservableCollection<FilterOption<string>> ManufacturerOptions { get; }
@@ -245,6 +267,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         : compatibilityMatches.Count == 1 ? "1 result" : $"{compatibilityMatches.Count} results";
     internal Task SearchCompletion => searchCompletion;
     internal static int LiveCompatibilityResultLimit => CompatibilityResultLimit;
+    internal PresentationResponsivenessMetrics ResponsivenessMetrics => new(
+        Volatile.Read(ref packageSearchIndexBuildCount),
+        Volatile.Read(ref packageSearchEntriesIndexed),
+        Volatile.Read(ref packageSearchRowsEvaluated),
+        visiblePackages.ResetCount,
+        compatibilityMatches.ResetCount,
+        Volatile.Read(ref selectionStateUpdateCount),
+        Volatile.Read(ref activityTextUpdateCount),
+        Volatile.Read(ref actionPresentationUpdateCount));
     public bool StandardProfile { get => standardProfile; set { if (SetProperty(ref standardProfile, value)) SearchStateChanged(); } }
     public bool FieldProfile { get => fieldProfile; set { if (SetProperty(ref fieldProfile, value)) SearchStateChanged(); } }
     public bool DeveloperProfile { get => developerProfile; set { if (SetProperty(ref developerProfile, value)) SearchStateChanged(); } }
@@ -424,12 +455,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public void ClearSelection()
     {
-        foreach (var item in packages) item.Selected = false;
-        UpdateSelectionState();
+        RunSelectionBatch(() =>
+        {
+            foreach (var item in packages) item.Selected = false;
+        });
     }
 
     public void Dispose()
     {
+        disposed = true;
         if (actionCoordinator is not null) actionCoordinator.StateChanged -= ActionCoordinator_StateChanged;
         refreshCancellation?.Cancel();
         refreshCancellation?.Dispose();
@@ -445,20 +479,39 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         plan = result;
         warningPresentation = CreateWarningPresentation(result);
         planCatalog = new PackageCatalog(result.Packages.Select(item => item.Package));
-        packages.Clear();
-        var order = 0;
-        foreach (var state in result.Packages)
+        var newRows = new PackageRowViewModel[result.Packages.Count];
+        var newSearchEntries = new PackageSearchEntry[result.Packages.Count];
+        for (var order = 0; order < result.Packages.Count; order++)
         {
-            var row = new PackageRowViewModel(state, order++, UpdateSelectionState);
+            var state = result.Packages[order];
+            var row = new PackageRowViewModel(state, order, PackageSelectionChanged);
             row.SetBusy(IsBusy);
-            packages.Add(row);
-            if (selectedIds.Contains(row.Id) && row.CanSelect) row.RestoreSelection();
+            newRows[order] = row;
+            newSearchEntries[order] = new PackageSearchEntry(
+                row,
+                new CatalogQueryItem(
+                    row.Package,
+                    row.Status,
+                    row.State.Installed,
+                    row.State.AvailableVersion,
+                    CatalogQueryService.CreateSearchText(row.Package)));
         }
-        packageSearchSnapshot = packages.ToArray();
-        ManufacturerOptions.Clear();
-        ManufacturerOptions.Add(new("All manufacturers", "All"));
-        foreach (var vendor in CatalogQueryService.Manufacturers(result.Packages.Select(item => item.Package)))
-            ManufacturerOptions.Add(new(vendor, vendor));
+
+        packages.ReplaceAll(newRows);
+        packageSearchSnapshot = newSearchEntries;
+        Interlocked.Increment(ref packageSearchIndexBuildCount);
+        Interlocked.Add(ref packageSearchEntriesIndexed, newSearchEntries.Length);
+        RunSelectionBatch(() =>
+        {
+            foreach (var row in newRows)
+                if (selectedIds.Contains(row.Id) && row.CanSelect) row.RestoreSelection();
+        }, forceUpdate: true);
+
+        var manufacturerOptions = new[] { new FilterOption<string>("All manufacturers", "All") }
+            .Concat(CatalogQueryService.Manufacturers(result.Packages.Select(item => item.Package))
+                .Select(vendor => new FilterOption<string>(vendor, vendor)))
+            .ToArray();
+        ReplaceManufacturerOptions(manufacturerOptions);
         SetProperty(ref selectedManufacturer,
             ManufacturerOptions.FirstOrDefault(item => item.Value.Equals(retainedManufacturer, StringComparison.OrdinalIgnoreCase))
                 ?? ManufacturerOptions[0],
@@ -479,7 +532,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(WarningAccent));
         OnPropertyChanged(nameof(WarningAutomationText));
         DiagnosticsCommand.RaiseCanExecuteChanged();
-        ScheduleSearch(useTextDebounce: false);
+        ScheduleSearch(useTextDebounce: false, reuseVisibleRows: true);
     }
 
     private void RebuildVisible()
@@ -487,6 +540,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         if (plan is null) return;
         ApplyVisibleRows(ComputeVisibleRows(CreateSearchRequest(SearchText)));
     }
+
+    private void ReplaceManufacturerOptions(IReadOnlyList<FilterOption<string>> options) =>
+        ((BatchObservableCollection<FilterOption<string>>)ManufacturerOptions).ReplaceAll(options);
 
     private IReadOnlyList<PackageRowViewModel> ComputeVisibleRows(
         SearchRequest request,
@@ -499,35 +555,40 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         if (request.FieldProfile) profiles.Add(PackageProfile.Field);
         if (request.DeveloperProfile) profiles.Add(PackageProfile.Developer);
         if (request.OptionalProfile) profiles.Add(PackageProfile.Optional);
-        var rowsByPackage = request.PackageRows.ToDictionary(row => row.Package.Id, StringComparer.Ordinal);
-        IEnumerable<PackageRowViewModel> rows = profiles.Count == 0 ? [] : queryService.Apply(
-            request.PackageRows.Select(item => new CatalogQueryItem(item.Package, item.Status, item.State.Installed, item.State.AvailableVersion)),
-            new CatalogQuery(
-                profiles,
-                request.Priority is null ? new HashSet<PackagePriority>() : new HashSet<PackagePriority> { request.Priority.Value },
-                request.Manufacturer,
-                request.Discipline,
-                request.Role is null ? new HashSet<PackageRole>() : new HashSet<PackageRole> { request.Role.Value },
-                request.Query,
-                request.QuickView,
-                request.CatalogPreset))
-            .Select(item => rowsByPackage[item.Package.Id]);
+        if (profiles.Count == 0) return [];
+        var query = new CatalogQuery(
+            profiles,
+            request.Priority is null ? new HashSet<PackagePriority>() : new HashSet<PackagePriority> { request.Priority.Value },
+            request.Manufacturer,
+            request.Discipline,
+            request.Role is null ? new HashSet<PackageRole>() : new HashSet<PackageRole> { request.Role.Value },
+            request.Query,
+            request.QuickView,
+            request.CatalogPreset);
+        var rows = new List<PackageRowViewModel>(request.PackageEntries.Count);
+        Interlocked.Add(ref packageSearchRowsEvaluated, request.PackageEntries.Count);
+        for (var index = 0; index < request.PackageEntries.Count; index++)
+        {
+            if ((index & 31) == 0) cancellationToken.ThrowIfCancellationRequested();
+            var entry = request.PackageEntries[index];
+            if (queryService.Matches(entry.Item, query)) rows.Add(entry.Row);
+        }
         cancellationToken.ThrowIfCancellationRequested();
         return ApplySort(rows, request.SortMemberPath, request.SortDirection).ToArray();
     }
 
     private void ApplyVisibleRows(IReadOnlyList<PackageRowViewModel> rows)
     {
-        if (visiblePackages.SequenceEqual(rows)) return;
-        visiblePackages = rows;
-        OnPropertyChanged(nameof(VisiblePackages));
+        if (!visiblePackages.ReplaceAll(rows)) return;
         if (SelectedRow is not null && !visiblePackages.Contains(SelectedRow)) SelectedRow = null;
         UpdateStatusText();
     }
 
     private void SearchStateChanged()
     {
-        ScheduleSearch(useTextDebounce: false, rebuildVisibleImmediately: true);
+        InvalidatePendingSearch();
+        RebuildVisible();
+        ScheduleSearch(useTextDebounce: false, reuseVisibleRows: true);
     }
 
     private void InvalidatePendingSearch()
@@ -538,7 +599,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         previous?.Dispose();
     }
 
-    private void ScheduleSearch(bool useTextDebounce = true, bool rebuildVisibleImmediately = false)
+    private void ScheduleSearch(bool useTextDebounce = true, bool reuseVisibleRows = false)
     {
         var query = SearchText.Trim();
         var generation = Interlocked.Increment(ref searchGeneration);
@@ -546,11 +607,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         var previous = Interlocked.Exchange(ref searchCancellation, current);
         previous?.Cancel();
         previous?.Dispose();
-        if (rebuildVisibleImmediately) RebuildVisible();
-        var progressChanged = SearchInProgress != (useTextDebounce || query.Length > 0);
-        SearchInProgress = useTextDebounce || query.Length > 0;
+        var progressChanged = !SearchInProgress;
+        SearchInProgress = true;
         if (!progressChanged) NotifySearchPresentationChanged();
-        searchCompletion = RunSearchAsync(CreateSearchRequest(query), generation, useTextDebounce, current.Token);
+        var request = CreateSearchRequest(query);
+        if (reuseVisibleRows) request = request with { PrecomputedVisibleRows = visiblePackages.ToArray() };
+        searchCompletion = RunSearchAsync(request, generation, useTextDebounce, current.Token);
     }
 
     private async Task RunSearchAsync(
@@ -578,7 +640,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private SearchResult ComputeSearch(SearchRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var rows = ComputeVisibleRows(request, cancellationToken);
+        var rows = request.PrecomputedVisibleRows ?? ComputeVisibleRows(request, cancellationToken);
         if (compatibilityService is null || request.Query.Length < 2)
             return new SearchResult(rows, [], 0, CompatibilitySearchOutcome.NoDeviceOrCatalogMatch);
 
@@ -617,10 +679,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void ApplySearchResult(SearchResult result)
     {
         ApplyVisibleRows(result.VisibleRows);
-        compatibilityMatches = result.CompatibilityMatches;
+        compatibilityMatches.ReplaceAll(result.CompatibilityMatches);
         compatibilityTotalMatchCount = result.TotalCompatibilityMatches;
         compatibilitySearchOutcome = result.Outcome;
-        OnPropertyChanged(nameof(CompatibilityMatches));
         NotifyCompatibilityMatchesChanged();
     }
 
@@ -744,7 +805,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private sealed record SearchRequest(
         string Query,
         bool HasPlan,
-        IReadOnlyList<PackageRowViewModel> PackageRows,
+        IReadOnlyList<PackageSearchEntry> PackageEntries,
         bool StandardProfile,
         bool FieldProfile,
         bool DeveloperProfile,
@@ -756,7 +817,10 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         QuickView QuickView,
         CatalogPreset CatalogPreset,
         string SortMemberPath,
-        ListSortDirection? SortDirection);
+        ListSortDirection? SortDirection,
+        IReadOnlyList<PackageRowViewModel>? PrecomputedVisibleRows = null);
+
+    private sealed record PackageSearchEntry(PackageRowViewModel Row, CatalogQueryItem Item);
 
     private sealed record SearchResult(
         IReadOnlyList<PackageRowViewModel> VisibleRows,
@@ -771,16 +835,47 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         RebuildVisible();
         if (view != QuickView.All)
         {
-            foreach (var item in packages) item.Selected = false;
-            var action = view == QuickView.Missing ? PackageAction.Install : PackageAction.Update;
-            foreach (var item in visiblePackages.Where(item => item.CanSelect && item.Action == action)) item.Selected = true;
-            UpdateSelectionState();
+            RunSelectionBatch(() =>
+            {
+                foreach (var item in packages) item.Selected = false;
+                var action = view == QuickView.Missing ? PackageAction.Install : PackageAction.Update;
+                foreach (var item in visiblePackages.Where(item => item.CanSelect && item.Action == action)) item.Selected = true;
+            }, forceUpdate: true);
         }
-        ScheduleSearch(useTextDebounce: false);
+        ScheduleSearch(useTextDebounce: false, reuseVisibleRows: true);
+    }
+
+    private void PackageSelectionChanged()
+    {
+        if (selectionBatchDepth > 0)
+        {
+            selectionStatePending = true;
+            return;
+        }
+        UpdateSelectionState();
+    }
+
+    private void RunSelectionBatch(Action action, bool forceUpdate = false)
+    {
+        selectionBatchDepth++;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            selectionBatchDepth--;
+            if (selectionBatchDepth == 0 && (selectionStatePending || forceUpdate))
+            {
+                selectionStatePending = false;
+                UpdateSelectionState();
+            }
+        }
     }
 
     private void UpdateSelectionState()
     {
+        Interlocked.Increment(ref selectionStateUpdateCount);
         RiskAcknowledged = false;
         OnPropertyChanged(nameof(InstallCount));
         OnPropertyChanged(nameof(UpdateCount));
@@ -868,22 +963,50 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ActionCoordinator_StateChanged(object? sender, CompiledActionSnapshot snapshot)
     {
-        void Apply()
+        AppendActivity($"{ActionStateLabel(snapshot.State)}: {snapshot.Status}");
+        var stateTransition = snapshot.State != ActionSnapshot.State;
+        bool alreadyScheduled;
+        lock (actionSnapshotGate)
         {
-            ActionSnapshot = snapshot;
-            actionActive = snapshot.State is CompiledActionState.Preparing or CompiledActionState.Running or CompiledActionState.CancellationRequested;
-            ActivityState = ActionStateLabel(snapshot.State);
-            AppendActivity($"{ActionStateLabel(snapshot.State)}: {snapshot.Status}");
-            foreach (var item in packages) item.SetBusy(IsBusy || actionActive);
-            OnPropertyChanged(nameof(ActionProgressVisible));
-            OnPropertyChanged(nameof(CanCancelAction));
-            OnPropertyChanged(nameof(CanInstall));
-            OnPropertyChanged(nameof(CanUpdate));
-            RaiseCommandStates();
+            if (disposed) return;
+            pendingActionSnapshot = snapshot;
+            alreadyScheduled = actionSnapshotApplyScheduled;
+            if (!alreadyScheduled) actionSnapshotApplyScheduled = true;
         }
-        var dispatcher = System.Windows.Application.Current?.Dispatcher;
-        if (dispatcher is not null && !dispatcher.CheckAccess()) dispatcher.Invoke(Apply);
-        else Apply();
+
+        if (uiDispatcher is null) ApplyPendingActionSnapshot();
+        else if (stateTransition)
+        {
+            if (uiDispatcher.CheckAccess()) ApplyPendingActionSnapshot();
+            else _ = uiDispatcher.BeginInvoke(DispatcherPriority.Send, ApplyPendingActionSnapshot);
+        }
+        else if (!alreadyScheduled)
+        {
+            _ = uiDispatcher.BeginInvoke(DispatcherPriority.Background, ApplyPendingActionSnapshot);
+        }
+    }
+
+    private void ApplyPendingActionSnapshot()
+    {
+        CompiledActionSnapshot? snapshot;
+        lock (actionSnapshotGate)
+        {
+            snapshot = pendingActionSnapshot;
+            pendingActionSnapshot = null;
+            actionSnapshotApplyScheduled = false;
+        }
+        if (snapshot is null || disposed) return;
+
+        ActionSnapshot = snapshot;
+        actionActive = snapshot.State is CompiledActionState.Preparing or CompiledActionState.Running or CompiledActionState.CancellationRequested;
+        ActivityState = ActionStateLabel(snapshot.State);
+        foreach (var item in packages) item.SetBusy(IsBusy || actionActive);
+        Interlocked.Increment(ref actionPresentationUpdateCount);
+        OnPropertyChanged(nameof(ActionProgressVisible));
+        OnPropertyChanged(nameof(CanCancelAction));
+        OnPropertyChanged(nameof(CanInstall));
+        OnPropertyChanged(nameof(CanUpdate));
+        RaiseCommandStates();
     }
 
     private string ActionDiagnosticText()
@@ -958,8 +1081,39 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void AppendActivity(string message)
     {
         var line = $"[{DateTime.Now:HH:mm:ss}] {Sanitize(message)}";
-        ActivityText = ActivityText.Length == 0 ? line : $"{ActivityText}{Environment.NewLine}{line}";
+        lock (activityGate)
+        {
+            if (disposed) return;
+            pendingActivityLines.Add(line);
+            if (activityFlushScheduled) return;
+            activityFlushScheduled = true;
+        }
+
+        if (uiDispatcher is null) FlushPendingActivity();
+        else _ = uiDispatcher.BeginInvoke(DispatcherPriority.Background, FlushPendingActivity);
+    }
+
+    private void FlushPendingActivity()
+    {
+        string[] lines;
+        lock (activityGate)
+        {
+            if (disposed)
+            {
+                pendingActivityLines.Clear();
+                activityFlushScheduled = false;
+                return;
+            }
+            lines = pendingActivityLines.ToArray();
+            pendingActivityLines.Clear();
+            activityFlushScheduled = false;
+        }
+        if (lines.Length == 0) return;
+
+        var addition = string.Join(Environment.NewLine, lines);
+        ActivityText = ActivityText.Length == 0 ? addition : $"{ActivityText}{Environment.NewLine}{addition}";
         if (ActivityText.Length > 32000) ActivityText = ActivityText[^32000..];
+        Interlocked.Increment(ref activityTextUpdateCount);
     }
 
     private void RaiseCommandStates()
@@ -1120,3 +1274,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 }
+
+internal sealed record PresentationResponsivenessMetrics(
+    long PackageSearchIndexBuilds,
+    long PackageSearchEntriesIndexed,
+    long PackageSearchRowsEvaluated,
+    int VisibleCollectionResets,
+    int CompatibilityCollectionResets,
+    long SelectionStateUpdates,
+    long ActivityTextUpdates,
+    long ActionPresentationUpdates);

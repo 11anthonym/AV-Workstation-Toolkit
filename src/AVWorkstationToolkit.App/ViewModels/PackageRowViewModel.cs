@@ -16,6 +16,11 @@ public sealed class PackageRowViewModel : ObservableObject
         State = state ?? throw new ArgumentNullException(nameof(state));
         Order = order;
         this.selectionChanged = selectionChanged ?? throw new ArgumentNullException(nameof(selectionChanged));
+        StableSortKey = Id.ToUpperInvariant();
+        ApplicationSortKey = $"{Name.ToUpperInvariant()}|{StableSortKey}";
+        VendorSortKey = $"{Vendor.ToUpperInvariant()}|{StableSortKey}";
+        var version = VersionLabel.StartsWith("Catalog: ", StringComparison.Ordinal) ? VersionLabel[9..] : VersionLabel;
+        VersionSortKey = AVWorkstationToolkit.Domain.Versions.VersionSortKey.Create(version);
     }
 
     public PackageState State { get; }
@@ -109,9 +114,9 @@ public sealed class PackageRowViewModel : ObservableObject
         }
     }
 
-    public string StableSortKey => Id.ToUpperInvariant();
-    public string ApplicationSortKey => $"{Name.ToUpperInvariant()}|{StableSortKey}";
-    public string VendorSortKey => $"{Vendor.ToUpperInvariant()}|{StableSortKey}";
+    public string StableSortKey { get; }
+    public string ApplicationSortKey { get; }
+    public string VendorSortKey { get; }
     public int PrioritySortKey => Package.Priority switch { PackagePriority.P1 => 0, PackagePriority.P2 => 1, PackagePriority.Utility => 2, PackagePriority.Dev => 3, _ => 99 };
     public int StatusSortKey => Status switch
     {
@@ -130,14 +135,7 @@ public sealed class PackageRowViewModel : ObservableObject
         PackageStatus.Awareness => 12,
         _ => 99
     };
-    public string VersionSortKey
-    {
-        get
-        {
-            var version = VersionLabel.StartsWith("Catalog: ", StringComparison.Ordinal) ? VersionLabel[9..] : VersionLabel;
-            return AVWorkstationToolkit.Domain.Versions.VersionSortKey.Create(version);
-        }
-    }
+    public string VersionSortKey { get; }
     public int RiskSortKey => Risk switch { PackageRisk.None => 0, PackageRisk.Service => 1, PackageRisk.Listener => 2, PackageRisk.Driver => 3, _ => 99 };
 
     internal void SetBusy(bool value)

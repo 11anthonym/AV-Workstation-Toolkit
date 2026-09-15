@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-14 — WPF responsiveness hardening
+
+- Indexed immutable package search text once per refreshed plan, removed repeated preset-set allocation, and cached package sort keys while preserving the 175 ms debounce and newest-search protections.
+- Kept stable package/compatibility collection bindings, reduced plan and result updates to bounded collection resets, batched bulk selection state, and coalesced action/activity presentation work.
+- Enabled reviewed recycling row/column virtualization, limited grid column recalculation to actual layout-mode transitions, and added a 360-package dispatcher-latency regression covering typing, filters, quick views, sorting, and refresh overlap.
+
 ## 2026-09-14 — Plain-language application copy
 
 - Reworked the compiled UI around technician tasks and outcomes, replacing implementation terms such as worker, handoff, evidence, and payload in routine status, action, download, diagnostics, catalog-update, and detail text.

@@ -20,6 +20,9 @@ public partial class MainWindow : Window
     private readonly string executionMode;
     private double pausedActivityOffset;
     private bool restoringActivityOffset;
+    private bool activityScrollScheduled;
+    private bool? packageGridWideLayout;
+    private int packageGridLayoutUpdateCount;
 
     public MainWindow(MainWindowViewModel viewModel, string productVersion = "Unknown", string executionMode = "Compiled runtime", bool autoRefresh = true, bool allowDialogs = true)
     {
@@ -69,6 +72,9 @@ public partial class MainWindow : Window
     private void PackageGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         var wide = PackageGrid.ActualWidth >= 920;
+        if (packageGridWideLayout == wide) return;
+        packageGridWideLayout = wide;
+        packageGridLayoutUpdateCount++;
         ScrollViewer.SetHorizontalScrollBarVisibility(PackageGrid, wide ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto);
         PackageGrid.Columns[1].Width = wide ? new DataGridLength(1.5, DataGridLengthUnitType.Star) : new DataGridLength(190);
         PackageGrid.Columns[2].Width = wide ? new DataGridLength(0.9, DataGridLengthUnitType.Star) : new DataGridLength(95);
@@ -98,6 +104,7 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled WPF smoke found the main window title bar outside the current monitor work area.");
         if (PackageGrid.ActualWidth <= 0 || PackageGrid.ActualHeight <= 0 || !PackageGrid.IsVisible)
             throw new InvalidOperationException("Compiled WPF smoke did not produce a visible package grid.");
+        VerifyPackageGridResponsivenessContract();
         if (viewModel.VisiblePackages.Any(item => item.Package.Authority == AVWorkstationToolkit.Domain.Catalog.CatalogAuthority.AwarenessOnly && item.SelectionEnabled))
             throw new InvalidOperationException("Compiled WPF smoke exposed awareness selection authority.");
         VerifyClosedComboBoxLabels();
@@ -295,22 +302,48 @@ public partial class MainWindow : Window
                 SidebarScroll.ActualWidth <= 0 || SidebarScroll.ActualHeight <= 0)
                 throw new InvalidOperationException($"Compiled production smoke did not render its common {viewport.Width}x{viewport.Height} layout.");
         }
+        VerifyPackageGridResponsivenessContract();
         VerifyActivityFollowContract();
+    }
+
+    private void VerifyPackageGridResponsivenessContract()
+    {
+        if (!PackageGrid.EnableRowVirtualization || !PackageGrid.EnableColumnVirtualization ||
+            !VirtualizingPanel.GetIsVirtualizing(PackageGrid) ||
+            VirtualizingPanel.GetVirtualizationMode(PackageGrid) != VirtualizationMode.Recycling ||
+            !ScrollViewer.GetCanContentScroll(PackageGrid))
+            throw new InvalidOperationException("The application table is not using the reviewed recycling virtualization contract.");
+
+        PackageGrid_SizeChanged(PackageGrid, null!);
+        var applied = packageGridLayoutUpdateCount;
+        PackageGrid_SizeChanged(PackageGrid, null!);
+        if (packageGridLayoutUpdateCount != applied)
+            throw new InvalidOperationException("The application table repeated column layout work without crossing its width threshold.");
     }
 
     private void ActivityLog_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (FollowActivityCheckBox?.IsChecked == true)
         {
-            ActivityLog.ScrollToEnd();
+            ScheduleActivityFollowScroll();
             return;
         }
-
         restoringActivityOffset = true;
         _ = Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () =>
         {
             ActivityLog.ScrollToVerticalOffset(pausedActivityOffset);
             restoringActivityOffset = false;
+        });
+    }
+
+    private void ScheduleActivityFollowScroll()
+    {
+        if (activityScrollScheduled) return;
+        activityScrollScheduled = true;
+        _ = Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () =>
+        {
+            activityScrollScheduled = false;
+            if (FollowActivityCheckBox?.IsChecked == true) ActivityLog.ScrollToEnd();
         });
     }
 

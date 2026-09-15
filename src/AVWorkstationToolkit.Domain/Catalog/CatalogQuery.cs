@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace AVWorkstationToolkit.Domain.Catalog;
 
 public sealed record CatalogQuery(
@@ -21,10 +23,20 @@ public sealed record CatalogQuery(
         CatalogPreset.All);
 }
 
-public sealed record CatalogQueryItem(PackageDefinition Package, PackageStatus Status, bool Installed, string AvailableVersion);
+public sealed record CatalogQueryItem(
+    PackageDefinition Package,
+    PackageStatus Status,
+    bool Installed,
+    string AvailableVersion,
+    string IndexedSearchText = "");
 
 public sealed class CatalogQueryService
 {
+    private static readonly FrozenSet<string> GatedDownloadAccess = new[]
+    {
+        "EMAIL-FORM", "ACCOUNT", "REGISTERED", "DEALER", "TRAINING", "PORTAL", "CONTACT", "LICENSE-PORTAL"
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
     public IReadOnlyList<CatalogQueryItem> Apply(IEnumerable<CatalogQueryItem> source, CatalogQuery query)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -41,7 +53,7 @@ public sealed class CatalogQueryService
             !package.Vendor.Trim().Equals(query.Vendor.Trim(), StringComparison.OrdinalIgnoreCase)) return false;
         if (query.Roles.Count > 0 && !package.Roles.Any(query.Roles.Contains)) return false;
         if (!MatchesDiscipline(package, query.Discipline)) return false;
-        if (!MatchesSearch(package, query.Search)) return false;
+        if (!MatchesSearch(item, query.Search)) return false;
         if (!MatchesPreset(item, query.Preset)) return false;
         return MatchesQuickView(item, query.QuickView);
     }
@@ -65,9 +77,6 @@ public sealed class CatalogQueryService
     private static bool MatchesPreset(CatalogQueryItem item, CatalogPreset preset)
     {
         var package = item.Package;
-        var gatedAccess = new HashSet<string>(
-            ["EMAIL-FORM", "ACCOUNT", "REGISTERED", "DEALER", "TRAINING", "PORTAL", "CONTACT", "LICENSE-PORTAL"],
-            StringComparer.OrdinalIgnoreCase);
         return preset switch
         {
             CatalogPreset.P1 => package.Priority == PackagePriority.P1,
@@ -77,7 +86,7 @@ public sealed class CatalogQueryService
             CatalogPreset.Free => package.LicensingModels.Contains(LicensingModel.Free),
             CatalogPreset.FreePublic => package.LicensingModels.Contains(LicensingModel.Free) &&
                 package.DownloadAccess.Contains("PUBLIC-DL", StringComparer.OrdinalIgnoreCase) &&
-                !package.DownloadAccess.Any(gatedAccess.Contains) &&
+                !package.DownloadAccess.Any(GatedDownloadAccess.Contains) &&
                 package.RequiresVendorAccount != true && package.RequiresDealerAccount != true && package.RequiresTraining != true,
             CatalogPreset.Dealer => package.RequiresDealerAccount == true ||
                 package.DownloadAccess.Contains("DEALER", StringComparer.OrdinalIgnoreCase),
@@ -94,10 +103,10 @@ public sealed class CatalogQueryService
         };
     }
 
-    private static bool MatchesSearch(PackageDefinition package, string search)
+    public static string CreateSearchText(PackageDefinition package)
     {
-        if (string.IsNullOrWhiteSpace(search)) return true;
-        var text = string.Join(' ', new[]
+        ArgumentNullException.ThrowIfNull(package);
+        return string.Join(' ', new[]
         {
             package.Name, package.Id, package.Vendor, package.ProductFamily, package.Note, package.CatalogNotes,
             package.DistributionPolicy.ToToken()
@@ -107,6 +116,12 @@ public sealed class CatalogQueryService
          .Concat(package.CatalogTags)
          .Concat(package.WorkflowCategories)
          .Concat(package.InstallationForms.Select(value => value.ToToken())));
+    }
+
+    private static bool MatchesSearch(CatalogQueryItem item, string search)
+    {
+        if (string.IsNullOrWhiteSpace(search)) return true;
+        var text = item.IndexedSearchText.Length == 0 ? CreateSearchText(item.Package) : item.IndexedSearchText;
         return text.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
