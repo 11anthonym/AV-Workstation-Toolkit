@@ -932,12 +932,12 @@ Invoke-Check 'Fixture plan classifies current, missing, update, held, and manual
 Invoke-Check 'Fixture plan summary is internally consistent' {
     Assert-Equal $catalog.Count $plan.Summary.Total 'Total differs.'
     Assert-Equal 1 $plan.Summary.Current 'Current count differs.'
-    Assert-Equal 25 $plan.Summary.Missing 'Missing count differs.'
+    Assert-Equal 26 $plan.Summary.Missing 'Missing count differs.'
     Assert-Equal 1 $plan.Summary.Updates 'Update count differs.'
     Assert-Equal 0 $plan.Summary.ManualUpdates 'Manual update count differs.'
     Assert-Equal 1 $plan.Summary.Held 'Held count differs.'
     Assert-Equal 0 $plan.Summary.Inventory 'Inventory count differs.'
-    Assert-Equal 26 $plan.Summary.Selectable 'Selectable count differs.'
+    Assert-Equal 27 $plan.Summary.Selectable 'Selectable count differs.'
     Assert-Equal @($plan.Packages | Where-Object CanSelect).Count $plan.Summary.Selectable 'Selectable summary is not derived from package state.'
     $classified = $plan.Summary.Current + $plan.Summary.Missing + $plan.Summary.Updates + $plan.Summary.ManualUpdates +
         $plan.Summary.Held + $plan.Summary.Manual + $plan.Summary.Inventory + $plan.Summary.NotDetected +

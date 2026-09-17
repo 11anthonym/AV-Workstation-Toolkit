@@ -32,9 +32,10 @@
         @{ Profile='Developer'; Name='.NET SDK 8';               Id='Microsoft.DotNet.SDK.8';                   Vendor='Microsoft'; Risk='None'; Note='Developer SDK; install only when an identified project requires .NET 8' }
 
         @{ Profile='Optional';  Name='KeePass';                  Id='DominikReichl.KeePass';                    Vendor='Dominik Reichl'; Risk='None'; Note='Credential database client' }
-        @{ Profile='Optional';  Name='Everything';               Id='voidtools.Everything';                     Vendor='voidtools'; Risk='Service'; Note='Optional indexing service' }
-        @{ Profile='Optional';  Name='Google Chrome';            Id='Google.Chrome';                            Vendor='Google'; Risk='None'; Note='Optional secondary browser' }
-        @{ Profile='Optional';  Name='Adobe Acrobat Reader';     Id='Adobe.Acrobat.Reader.32-bit';              Vendor='Adobe'; Risk='None'; Note='Optional PDF reader' }
+        @{ Profile='Optional';  Name='Everything';               Id='voidtools.Everything';                     Vendor='voidtools'; Risk='Service'; Note='Computer filesystem indexer and search tool' }
+        @{ Profile='Optional';  Name='Google Chrome';            Id='Google.Chrome';                            Vendor='Google'; Risk='None'; Note='Web browser' }
+        @{ Profile='Optional';  Name='Adobe Acrobat Reader';     Id='Adobe.Acrobat.Reader.32-bit';              Vendor='Adobe'; Risk='None'; Note='PDF reader' }
+        @{ Profile='Optional';  Name='Mozilla Firefox';          Id='Mozilla.Firefox';                          Vendor='Mozilla'; Risk='None'; Note='Open-source web browser' }
     )
 
     # Defense in depth: a future allowlist edit containing one of these terms
