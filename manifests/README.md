@@ -8,18 +8,17 @@ It is generated from the authoritative `scripts/AppProfiles.psd1` catalog. Regen
 ```
 
 `managed-applications.json` is the strict schema-v1 production runtime artifact
-for all 29 managed exact-ID records. The compiled application loads only this
+for all 30 managed exact-ID records. The compiled application loads only this
 JSON artifact. Source QA compares every field and the forbidden-product policy
 against `scripts/AppProfiles.psd1`, which remains the reviewed authoring and
 legacy-characterization source, so drift fails before packaging.
 
-It intentionally excludes:
+The managed WinGet catalog intentionally excludes:
 
-- KeePass until the corporate credential-manager standard is confirmed;
-- Everything because its service/startup behavior needs approval;
-- packet-capture drivers, scanners, listeners, VPNs, remote-access servers, and AV-vendor software;
-- development runtimes and compatibility packages;
-- IT/MDM-managed software.
+- VPNs, remote-access servers, AV-vendor software, and IT/MDM-managed software;
+- software that has not been explicitly reviewed and allowlisted for managed deployment.
+
+Driver-, service-, listener-, scanner-, and development-related packages may be represented in the managed catalog but remain subject to their configured risk classification, deployment policy, and maintenance holds.
 
 Do not run `winget import` as a discovery or dry-run command; import installs packages. AV Workstation Toolkit validates IDs and reports existing/missing packages before offering an install mode.
 

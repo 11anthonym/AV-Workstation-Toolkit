@@ -1082,7 +1082,7 @@ public sealed class CompiledPresentationTests
     {
         var root = FindRepositoryRoot();
         var catalog = new RepositoryCatalogLoader().Load(root);
-        Assert.HasCount(29, catalog.Items.Where(item => item.Authority == CatalogAuthority.ManagedWinGet));
+        Assert.HasCount(30, catalog.Items.Where(item => item.Authority == CatalogAuthority.ManagedWinGet));
         Assert.IsTrue(catalog.Items.Any(item => item.Authority == CatalogAuthority.OperationalExternal));
         Assert.IsTrue(catalog.Items.Any(item => item.Authority == CatalogAuthority.AwarenessOnly));
         Assert.AreEqual(catalog.Items.Count, catalog.Items.Select(item => item.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count());

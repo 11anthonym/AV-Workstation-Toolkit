@@ -1,6 +1,6 @@
 # AV Workstation Toolkit External Provider and Credential Guide
 
-AV Workstation Toolkit 1.1.1 has 25 operational external records and 283 commercial AV awareness records in addition to its 29 exact-ID WinGet entries. Every external record is permanently held from the automated WinGet worker. AV Workstation Toolkit may detect a product, evaluate a reviewed version, open an official page, or place a verified installer in its per-user cache, but it never launches that installer.
+AV Workstation Toolkit 1.1.1 has 25 operational external records and 283 commercial AV awareness records in addition to its 30 exact-ID WinGet entries. Every external record is permanently held from the automated WinGet worker. AV Workstation Toolkit may detect a product, evaluate a reviewed version, open an official page, or place a verified installer in its per-user cache, but it never launches that installer.
 
 ## Provider modes
 
