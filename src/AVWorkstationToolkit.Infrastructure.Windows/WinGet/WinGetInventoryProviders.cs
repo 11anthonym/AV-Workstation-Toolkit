@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AVWorkstationToolkit.Application.Diagnostics;
@@ -8,10 +10,139 @@ namespace AVWorkstationToolkit.Infrastructure.Windows.WinGet;
 
 public static partial class WinGetInventoryParsers
 {
+    // Unicode EastAsianWidth W/F ranges, kept sorted for binary search. WinGet
+    // 1.29.290 uses the same property through ICU when TableOutput pads cells.
+    private static readonly (int Start, int End)[] WideOrFullWidthRanges =
+    [
+        (0x1100, 0x115f),
+        (0x231a, 0x231b),
+        (0x2329, 0x232a),
+        (0x23e9, 0x23ec),
+        (0x23f0, 0x23f0),
+        (0x23f3, 0x23f3),
+        (0x25fd, 0x25fe),
+        (0x2614, 0x2615),
+        (0x2630, 0x2637),
+        (0x2648, 0x2653),
+        (0x267f, 0x267f),
+        (0x268a, 0x268f),
+        (0x2693, 0x2693),
+        (0x26a1, 0x26a1),
+        (0x26aa, 0x26ab),
+        (0x26bd, 0x26be),
+        (0x26c4, 0x26c5),
+        (0x26ce, 0x26ce),
+        (0x26d4, 0x26d4),
+        (0x26ea, 0x26ea),
+        (0x26f2, 0x26f3),
+        (0x26f5, 0x26f5),
+        (0x26fa, 0x26fa),
+        (0x26fd, 0x26fd),
+        (0x2705, 0x2705),
+        (0x270a, 0x270b),
+        (0x2728, 0x2728),
+        (0x274c, 0x274c),
+        (0x274e, 0x274e),
+        (0x2753, 0x2755),
+        (0x2757, 0x2757),
+        (0x2795, 0x2797),
+        (0x27b0, 0x27b0),
+        (0x27bf, 0x27bf),
+        (0x2b1b, 0x2b1c),
+        (0x2b50, 0x2b50),
+        (0x2b55, 0x2b55),
+        (0x2e80, 0x2e99),
+        (0x2e9b, 0x2ef3),
+        (0x2f00, 0x2fd5),
+        (0x2ff0, 0x303e),
+        (0x3041, 0x3096),
+        (0x3099, 0x30ff),
+        (0x3105, 0x312f),
+        (0x3131, 0x318e),
+        (0x3190, 0x31e5),
+        (0x31ef, 0x321e),
+        (0x3220, 0x3247),
+        (0x3250, 0xa48c),
+        (0xa490, 0xa4c6),
+        (0xa960, 0xa97c),
+        (0xac00, 0xd7a3),
+        (0xf900, 0xfaff),
+        (0xfe10, 0xfe19),
+        (0xfe30, 0xfe52),
+        (0xfe54, 0xfe66),
+        (0xfe68, 0xfe6b),
+        (0xff01, 0xff60),
+        (0xffe0, 0xffe6),
+        (0x16fe0, 0x16fe4),
+        (0x16ff0, 0x16ff6),
+        (0x17000, 0x18cd5),
+        (0x18cff, 0x18d1e),
+        (0x18d80, 0x18df2),
+        (0x1aff0, 0x1aff3),
+        (0x1aff5, 0x1affb),
+        (0x1affd, 0x1affe),
+        (0x1b000, 0x1b122),
+        (0x1b132, 0x1b132),
+        (0x1b150, 0x1b152),
+        (0x1b155, 0x1b155),
+        (0x1b164, 0x1b167),
+        (0x1b170, 0x1b2fb),
+        (0x1d300, 0x1d356),
+        (0x1d360, 0x1d376),
+        (0x1f004, 0x1f004),
+        (0x1f0cf, 0x1f0cf),
+        (0x1f18e, 0x1f18e),
+        (0x1f191, 0x1f19a),
+        (0x1f200, 0x1f202),
+        (0x1f210, 0x1f23b),
+        (0x1f240, 0x1f248),
+        (0x1f250, 0x1f251),
+        (0x1f260, 0x1f265),
+        (0x1f300, 0x1f320),
+        (0x1f32d, 0x1f335),
+        (0x1f337, 0x1f37c),
+        (0x1f37e, 0x1f393),
+        (0x1f3a0, 0x1f3ca),
+        (0x1f3cf, 0x1f3d3),
+        (0x1f3e0, 0x1f3f0),
+        (0x1f3f4, 0x1f3f4),
+        (0x1f3f8, 0x1f43e),
+        (0x1f440, 0x1f440),
+        (0x1f442, 0x1f4fc),
+        (0x1f4ff, 0x1f53d),
+        (0x1f54b, 0x1f54e),
+        (0x1f550, 0x1f567),
+        (0x1f57a, 0x1f57a),
+        (0x1f595, 0x1f596),
+        (0x1f5a4, 0x1f5a4),
+        (0x1f5fb, 0x1f64f),
+        (0x1f680, 0x1f6c5),
+        (0x1f6cc, 0x1f6cc),
+        (0x1f6d0, 0x1f6d2),
+        (0x1f6d5, 0x1f6d8),
+        (0x1f6dc, 0x1f6df),
+        (0x1f6eb, 0x1f6ec),
+        (0x1f6f4, 0x1f6fc),
+        (0x1f7e0, 0x1f7eb),
+        (0x1f7f0, 0x1f7f0),
+        (0x1f90c, 0x1f93a),
+        (0x1f93c, 0x1f945),
+        (0x1f947, 0x1f9ff),
+        (0x1fa70, 0x1fa7c),
+        (0x1fa80, 0x1fa8a),
+        (0x1fa8e, 0x1fac6),
+        (0x1fac8, 0x1fac8),
+        (0x1facd, 0x1fadc),
+        (0x1fadf, 0x1faea),
+        (0x1faef, 0x1faf8),
+        (0x20000, 0x2fffd),
+        (0x30000, 0x3fffd)
+    ];
+
     [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9+_.-]{1,127}$", RegexOptions.CultureInvariant, 1000)]
     private static partial Regex PackageIdPattern();
 
-    [GeneratedRegex(@"^\s*Name\s+Id\s+Version\s+Available(?:\s+Source)?\s*$", RegexOptions.CultureInvariant, 1000)]
+    [GeneratedRegex(@"^Name +Id +Version +Available(?: +Source)? *$", RegexOptions.CultureInvariant, 1000)]
     private static partial Regex UpdateHeaderPattern();
 
     // Exact English resources emitted by WinGet's ReportListResult/upgrade flow.
@@ -21,9 +152,6 @@ public static partial class WinGetInventoryParsers
 
     [GeneratedRegex(@"^\d+\s+(?:upgrades?|package\(s\)|packages?)(?:\s|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 1000)]
     private static partial Regex UpdateSummaryPrefixPattern();
-
-    [GeneratedRegex(@"\S+", RegexOptions.CultureInvariant, 1000)]
-    private static partial Regex UpdateCellPattern();
 
     public static IReadOnlyList<InstalledPackageRecord> ParseInstalledExport(string json)
     {
@@ -74,19 +202,20 @@ public static partial class WinGetInventoryParsers
         var updates = new Dictionary<string, AvailableUpdateRecord>(StringComparer.OrdinalIgnoreCase);
         for (var index = 0; index < lines.Length; index++)
         {
-            var line = lines[index].TrimEnd();
+            var line = lines[index].TrimEnd(' ');
             if (string.IsNullOrWhiteSpace(line)) continue;
             if (line.Contains('\u2026') || line.Trim().Equals("<Search results are truncated>", StringComparison.OrdinalIgnoreCase))
                 throw UpdateOutputError("WinGet update output contains a truncation marker.", index, section, tableNumber, line);
             if (TryReadColumns(line, out var candidateColumns))
             {
-                if (index + 1 >= lines.Length || lines[index + 1].Trim().Length < 8 ||
-                    lines[index + 1].Trim().Any(character => character != '-'))
+                var separator = index + 1 < lines.Length ? lines[index + 1].Trim() : string.Empty;
+                var minimumWidth = candidateColumns.HasSource ? candidateColumns.Source + "Source".Length : candidateColumns.Available + "Available".Length;
+                if (separator.Length < Math.Max(8, minimumWidth) || separator.Any(character => character != '-'))
                     throw UpdateOutputError("WinGet update output contains a table header without a valid separator.", index, section, tableNumber + 1, line);
                 foundTable = true;
                 awaitingExplicitTable = false;
                 tableNumber++;
-                columns = candidateColumns;
+                columns = candidateColumns with { TableWidth = separator.Length };
                 index++;
                 continue;
             }
@@ -125,25 +254,11 @@ public static partial class WinGetInventoryParsers
             if (columns is null)
                 throw UpdateOutputError("WinGet update output contains an unrecognized line outside a package table.", index, section, tableNumber, line);
             var current = columns.Value;
-            var tokens = UpdateCellPattern().Matches(line);
-            var minimum = current.HasSource ? 5 : 4;
-            if (tokens.Count < minimum)
+            if (!TryReadPackageRow(line, current, out var row))
                 throw UpdateOutputError("WinGet update output contains a malformed package row.", index, section, tableNumber, line);
-            var idCell = tokens[^(current.HasSource ? 4 : 3)];
-            var installedCell = tokens[^(current.HasSource ? 3 : 2)];
-            var availableCell = tokens[^(current.HasSource ? 2 : 1)];
-            var id = idCell.Value;
-            var installed = installedCell.Value;
-            var available = availableCell.Value;
-            // ASCII redirected tables have exact column offsets. Unicode names
-            // can have a different display width; retain right-hand cell parsing
-            // for those rather than confusing display width with string length.
-            var aligned = current.UsesTabs || line.Any(character => character > 127) ||
-                (idCell.Index == current.Id && installedCell.Index == current.Version && availableCell.Index == current.Available &&
-                 (!current.HasSource || tokens[^1].Index == current.Source));
-            if (!aligned || !PackageIdPattern().IsMatch(id) ||
-                (current.HasSource && !tokens[^1].Value.Equals("winget", StringComparison.OrdinalIgnoreCase)))
-                throw UpdateOutputError("WinGet update output contains a malformed package row.", index, section, tableNumber, line);
+            var id = row.Id;
+            var installed = row.InstalledVersion;
+            var available = row.AvailableVersion;
             try
             {
                 ValidateVersionText(id, installed);
@@ -166,16 +281,142 @@ public static partial class WinGetInventoryParsers
 
     private static bool TryReadColumns(string line, out UpdateTableColumns columns)
     {
+        if (line.Contains('\t'))
+        {
+            var cells = line.Split('\t', StringSplitOptions.None);
+            var validTabHeader = cells.Length is 4 or 5 &&
+                cells[0].Equals("Name", StringComparison.Ordinal) &&
+                cells[1].Equals("Id", StringComparison.Ordinal) &&
+                cells[2].Equals("Version", StringComparison.Ordinal) &&
+                cells[3].Equals("Available", StringComparison.Ordinal) &&
+                (cells.Length == 4 || cells[4].Equals("Source", StringComparison.Ordinal));
+            columns = validTabHeader ? new(0, 0, 0, 0, cells.Length == 5, true, 0) : default;
+            return validTabHeader;
+        }
+
         var id = line.IndexOf("Id", StringComparison.Ordinal);
         var version = line.IndexOf("Version", StringComparison.Ordinal);
         var available = line.IndexOf("Available", StringComparison.Ordinal);
         var source = line.IndexOf("Source", StringComparison.Ordinal);
         var valid = UpdateHeaderPattern().IsMatch(line) && id > 4 && version > id && available > version;
-        columns = valid ? new(id, version, available, source, source > available, line.Contains('\t')) : default;
+        columns = valid ? new(id, version, available, source, source > available, false, 0) : default;
         return valid;
     }
 
-    private readonly record struct UpdateTableColumns(int Id, int Version, int Available, int Source, bool HasSource, bool UsesTabs);
+    private static bool TryReadPackageRow(string line, UpdateTableColumns columns, out UpdatePackageRow row)
+    {
+        row = default;
+        if (columns.UsesTabs) return TryReadTabPackageRow(line, columns.HasSource, out row);
+        if (line.Contains('\t') || line.Any(character => char.IsControl(character) || character == '\u007f')) return false;
+
+        int[] starts = columns.HasSource ? [0, columns.Id, columns.Version, columns.Available, columns.Source] : [0, columns.Id, columns.Version, columns.Available];
+        var indexes = new int[starts.Length];
+        if (line.All(character => character <= '\u007f'))
+        {
+            if (line.Length > columns.TableWidth) return false;
+            for (var i = 0; i < starts.Length; i++) indexes[i] = Math.Min(starts[i], line.Length);
+        }
+        else
+        {
+            if (!TryMapDisplayColumns(line, starts, indexes, out var displayWidth) || displayWidth > columns.TableWidth) return false;
+        }
+
+        for (var i = 1; i < indexes.Length; i++)
+        {
+            // TableOutput left-aligns every value and always emits at least one
+            // ASCII padding space before the next column.
+            if (indexes[i] >= line.Length || indexes[i] == 0 || line[indexes[i] - 1] != ' ' || line[indexes[i]] == ' ')
+                return false;
+        }
+
+        var name = ReadCell(line, indexes[0], indexes[1]);
+        var id = ReadCell(line, indexes[1], indexes[2]);
+        var installed = ReadCell(line, indexes[2], indexes[3]);
+        var available = ReadCell(line, indexes[3], columns.HasSource ? indexes[4] : line.Length);
+        var source = columns.HasSource ? ReadCell(line, indexes[4], line.Length) : string.Empty;
+        return TryCreatePackageRow(name, id, installed, available, source, columns.HasSource, out row);
+    }
+
+    private static bool TryReadTabPackageRow(string line, bool hasSource, out UpdatePackageRow row)
+    {
+        row = default;
+        var cells = line.Split('\t', StringSplitOptions.None);
+        if (cells.Length != (hasSource ? 5 : 4)) return false;
+        for (var i = 0; i < cells.Length; i++) cells[i] = cells[i].Trim(' ');
+        return TryCreatePackageRow(cells[0], cells[1], cells[2], cells[3], hasSource ? cells[4] : string.Empty, hasSource, out row);
+    }
+
+    private static bool TryCreatePackageRow(
+        string name,
+        string id,
+        string installed,
+        string available,
+        string source,
+        bool hasSource,
+        out UpdatePackageRow row)
+    {
+        row = default;
+        if (name.Length == 0 || id.Length == 0 || installed.Length == 0 || available.Length == 0 ||
+            name.Any(character => char.IsControl(character) || character == '\u007f') ||
+            !PackageIdPattern().IsMatch(id) ||
+            (hasSource && !source.Equals("winget", StringComparison.OrdinalIgnoreCase)))
+            return false;
+        row = new(id, installed, available);
+        return true;
+    }
+
+    private static string ReadCell(string line, int start, int end) => line[start..end].TrimEnd(' ');
+
+    private static bool TryMapDisplayColumns(string line, int[] displayColumns, int[] indexes, out int displayWidth)
+    {
+        displayWidth = 0;
+        var target = 0;
+        var enumerator = StringInfo.GetTextElementEnumerator(line);
+        while (enumerator.MoveNext())
+        {
+            var elementIndex = enumerator.ElementIndex;
+            while (target < displayColumns.Length && displayColumns[target] == displayWidth)
+            {
+                indexes[target] = elementIndex;
+                target++;
+            }
+
+            var elementWidth = IsWideOrFullWidth(Rune.GetRuneAt(enumerator.GetTextElement(), 0)) ? 2 : 1;
+            if (target < displayColumns.Length && displayColumns[target] > displayWidth && displayColumns[target] < displayWidth + elementWidth)
+                return false;
+            displayWidth += elementWidth;
+        }
+
+        while (target < displayColumns.Length)
+        {
+            if (displayColumns[target] < displayWidth) return false;
+            indexes[target] = line.Length;
+            target++;
+        }
+        return true;
+    }
+
+    // WinGet TableOutput uses the first code point in each grapheme and gives
+    // Unicode East Asian Wide/Fullwidth values two display columns. Keep that
+    // distinction explicit so UTF-16 indexes never stand in for terminal width.
+    private static bool IsWideOrFullWidth(Rune rune)
+    {
+        var value = rune.Value;
+        var low = 0;
+        var high = WideOrFullWidthRanges.Length - 1;
+        while (low <= high)
+        {
+            var middle = low + ((high - low) / 2);
+            var range = WideOrFullWidthRanges[middle];
+            if (value < range.Start) high = middle - 1;
+            else if (value > range.End) low = middle + 1;
+            else return true;
+        }
+        return false;
+    }
+
+    private readonly record struct UpdateTableColumns(int Id, int Version, int Available, int Source, bool HasSource, bool UsesTabs, int TableWidth);
+    private readonly record struct UpdatePackageRow(string Id, string InstalledVersion, string AvailableVersion);
 
     private static InvalidDataException UpdateOutputError(string reason, int lineIndex, string section, int tableNumber, string line)
     {

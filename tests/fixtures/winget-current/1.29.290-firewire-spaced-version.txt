@@ -1,0 +1,5 @@
+Name                                         Id                                 Version         Available
+---------------------------------------------------------------------------------------------------------
+Width Sentinel                               Vendor.WidthSentinel               123456789012345 2.0
+1394 OHCI Compliant Host Controller (Legacy) Microsoft.Firewire1394LegacyDriver < 0.0.1         0.0.1
+2 upgrades available.

@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-16 — WinGet table-schema parsing
+
+- Parse package rows from the detected `Name | Id | Version | Available | Source` column schema, preserving opaque spaced version values such as `< 0.0.1` instead of inferring cells from whitespace-token counts.
+- Mirror WinGet 1.29.290 Unicode display-width alignment for non-ASCII names, retain explicit tab-delimited compatibility, and keep shifted, missing, trailing, truncated, duplicate-conflicting, or otherwise ambiguous rows fail closed.
+
 ## 2026-09-15 — Current WinGet update inventory
 
 - Recognized current Source/no-Source, explicit-target, pinned, unknown-version, and blocked-upgrade output sections without treating summary text as package rows or skipping a later explicit-target table.
