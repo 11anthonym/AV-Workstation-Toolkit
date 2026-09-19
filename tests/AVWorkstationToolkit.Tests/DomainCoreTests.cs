@@ -38,12 +38,26 @@ public sealed class DomainCoreTests
     {
         var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
         var root = RepositoryRoot();
+        var awarenessJson = File.ReadAllText(Path.Combine(root, "manifests", "commercial-av-catalog.json"));
         var operational = parser.ParseExternalCatalog(File.ReadAllText(Path.Combine(root, "manifests", "external-applications.json")));
-        var awareness = parser.ParseExternalCatalog(File.ReadAllText(Path.Combine(root, "manifests", "commercial-av-catalog.json")), CatalogAuthority.AwarenessOnly);
+        var awareness = parser.ParseExternalCatalog(awarenessJson, CatalogAuthority.AwarenessOnly);
         Assert.IsGreaterThan(0, operational.Items.Count);
         Assert.IsGreaterThan(0, awareness.Items.Count);
         Assert.IsFalse(operational.Items.Concat(awareness.Items).Any(item => item.HasManagedExecutionAuthority));
         Assert.IsTrue(awareness.Items.All(item => item.Authority == CatalogAuthority.AwarenessOnly));
+
+        // The compiled awareness artifact must never expand execution authority. Every source record
+        // has to survive normalization - a dropped or merged record would hide one from review - and
+        // each must stay a manual-hold external record outside the managed deployment class.
+        using var document = System.Text.Json.JsonDocument.Parse(awarenessJson);
+        Assert.HasCount(document.RootElement.GetProperty("Packages").GetArrayLength(), awareness.Items);
+        foreach (var item in awareness.Items)
+        {
+            Assert.AreEqual(ProviderKind.External, item.Provider, item.Id);
+            Assert.AreEqual(DeploymentPolicy.ManualHold, item.Deployment, item.Id);
+            Assert.AreEqual(MaintenancePolicy.Hold, item.Maintenance, item.Id);
+            Assert.AreNotEqual(DeploymentClass.Managed, item.DeploymentClass, item.Id);
+        }
     }
 
     [TestMethod]
