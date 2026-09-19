@@ -21,8 +21,6 @@ internal static class Program
         "manifests/commercial-av-catalog.json",
         "manifests/software-compatibility.json",
         "manifests/hardware-identities.json",
-        "manifests/process-launch-policy.json",
-        "manifests/winget-team-baseline.json",
         "notices/THIRD-PARTY-NOTICES.md",
         "notices/PROJECT-LICENSE.txt",
         "notices/DOTNET-LICENSE.txt",

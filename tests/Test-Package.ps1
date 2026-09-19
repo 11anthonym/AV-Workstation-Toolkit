@@ -397,8 +397,10 @@ try {
             Assert-Equal $before[$relative].Hash (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash "Second verification changed runtime content: $relative"
             Assert-Equal $before[$relative].LastWriteTimeUtc $file.LastWriteTimeUtc "Second verification rewrote unchanged runtime content: $relative"
         }
-        $embeddedPolicy = Join-Path $script:runtimeApplicationRoot 'manifests\process-launch-policy.json'
-        Assert-True (Test-Path -LiteralPath $embeddedPolicy -PathType Leaf) 'Packaged runtime omitted the process-launch policy contract.'
+        foreach ($repositoryOnlyManifest in @('process-launch-policy.json','winget-team-baseline.json')) {
+            $path = Join-Path $script:runtimeApplicationRoot (Join-Path 'manifests' $repositoryOnlyManifest)
+            Assert-True (-not (Test-Path -LiteralPath $path)) "Packaged runtime embedded a repository-only manifest that no shipping code parses: $repositoryOnlyManifest"
+        }
     }
 
     Invoke-Check 'MSI and executable product identities agree' {

@@ -34,7 +34,6 @@ public sealed record CompiledAppServices(
     IApplicationMenuWorkflow ApplicationMenu,
     string Version,
     string ExecutionMode,
-    bool IsLiveRehearsal,
     bool IsProduction);
 
 public static class CompiledAppComposition
@@ -122,6 +121,6 @@ public static class CompiledAppComposition
         }
         var executionMode = production ? "Packaged compiled runtime" : "Source compiled runtime";
         return new(catalog, compatibility, catalogUpdates, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
-            handoffs, packageDelivery, applicationMenu, version, executionMode, false, production);
+            handoffs, packageDelivery, applicationMenu, version, executionMode, production);
     }
 }

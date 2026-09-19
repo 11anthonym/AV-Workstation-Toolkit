@@ -63,7 +63,7 @@ public sealed class LiveRehearsalTests
         var normal = CompiledAppComposition.Create(repository);
 
         Assert.IsNull(normal.Actions);
-        Assert.IsFalse(normal.IsLiveRehearsal);
+        Assert.IsFalse(normal.IsProduction);
     }
 
     private static string CreateRoot()
