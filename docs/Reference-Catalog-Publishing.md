@@ -8,7 +8,7 @@ The catalog signing key is distinct from application code-signing credentials. K
 
 ## Build a feed
 
-Choose a monotonically increasing positive revision, a three- or four-part numeric catalog version, UTC creation/expiration timestamps no more than 31 days apart, a stable signing-key ID, and the eventual public HTTPS feed root. The base URI must end in `/`; generated channel metadata points to the immutable `catalogs/<revision>/AVWT-Catalog-<version>.avwtcatalog` path, never a mutable source-control file.
+Choose a monotonically increasing positive revision, a three- or four-part numeric catalog version, a UTC creation timestamp, a stable signing-key ID, and the eventual public HTTPS feed root. The base URI must end in `/`; generated channel metadata points to the immutable `catalogs/<revision>/AVWT-Catalog-<version>.avwtcatalog` path, never a mutable source-control file.
 
 ```powershell
 dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstationToolkit.CatalogPublisher.csproj -c Release -- `
@@ -16,7 +16,6 @@ dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstation
   --revision 1 `
   --minimum-app-version 1.1.1 `
   --created-utc 2026-09-12T12:00:00Z `
-  --expires-utc 2026-09-19T12:00:00Z `
   --signing-key-id avwt-catalog-2026-a `
   --private-key C:\SecureExternalPath\avwt-catalog-private.pem `
   --public-base-uri https://11anthonym.github.io/AVWT-Catalog/
@@ -61,7 +60,6 @@ From the private AVWT checkout root, Anthony should generate Revision 1 with thi
 $repositoryRoot = (Get-Location).Path
 $privateKeyPath = Join-Path $HOME 'Documents\Keys\AVWT-Catalog\avwt-catalog-2026-a-private.pem'
 $createdUtc = [DateTimeOffset]::UtcNow
-$expiresUtc = $createdUtc.AddDays(7)
 
 dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstationToolkit.CatalogPublisher.csproj -c Release -- `
   --repository-root $repositoryRoot `
@@ -70,7 +68,6 @@ dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstation
   --revision 1 `
   --minimum-app-version 1.1.1 `
   --created-utc ($createdUtc.ToString('O')) `
-  --expires-utc ($expiresUtc.ToString('O')) `
   --signing-key-id avwt-catalog-2026-a `
   --private-key $privateKeyPath `
   --public-base-uri https://11anthonym.github.io/AVWT-Catalog/
