@@ -137,6 +137,11 @@ Invoke-Check 'Vendor catalog sources compile deterministically to the only runti
     $compilerPath = Join-Path $repositoryRoot 'build\Compile-CommercialCatalog.ps1'
     $compilerOutput = (& $compilerPath -Check | Out-String)
     Assert-True ($compilerOutput -match 'CATALOG_OK vendors=114 packages=283') 'Catalog compiler did not validate the expected source set.'
+    # The compiled parser owns schema and execution-authority validation of the artifact, so the
+    # release-path compiler must not reintroduce a second normalizer from the retired module. Inbox
+    # module loading from $PSHOME stays allowed; only repository modules and their functions are banned.
+    $compilerSource = Get-Content -LiteralPath $compilerPath -Raw
+    Assert-True ($compilerSource -notmatch 'AVWorkstationToolkit\.Core|Import-Module[^\r\n]*scripts|Get-AVWorkstationToolkitCatalog|ConvertFrom-AVWorkstationToolkitExternalCatalogJson') 'Catalog compiler reintroduced a repository PowerShell module dependency.'
     $vendorSources = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'catalog\vendors') -File -Filter '*.json')
     Assert-Equal 114 $vendorSources.Count 'Vendor source-file count differs.'
     Assert-Equal $expectedAwarenessCount @($vendorSources | ForEach-Object {

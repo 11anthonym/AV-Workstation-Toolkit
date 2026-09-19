@@ -3,11 +3,12 @@
     Compiles authoritative per-vendor commercial AV catalog sources.
 
 .DESCRIPTION
-    Reads catalog\vendors\*.json, validates vendor identity and duplicate
-    package IDs, validates the normalized schema through AVWorkstationToolkit.Core, and
-    writes the single runtime artifact at manifests\commercial-av-catalog.json.
-    Use -Check in builds and CI to prove that the tracked compiled artifact is
-    current without modifying it.
+    Reads catalog\vendors\*.json, validates vendor identity, file naming, package
+    ID shape and duplicate package IDs, and writes the single runtime artifact at
+    manifests\commercial-av-catalog.json. Use -Check in builds and CI to prove
+    that the tracked compiled artifact is current without modifying it. The
+    compiled parser owns schema and execution-authority validation of the
+    artifact; this script imports no repository PowerShell module.
 #>
 
 [CmdletBinding()]
@@ -154,15 +155,11 @@ $document = [ordered]@{
 }
 $json = ConvertTo-AVWorkstationToolkitCatalogJson -Document $document
 
-$coreManifest = Join-Path $repositoryRoot 'scripts\AVWorkstationToolkit.Core.psd1'
-Microsoft.PowerShell.Core\Import-Module -Name $coreManifest -Force -ErrorAction Stop
-$normalized = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json $json)
-if ($normalized.Count -ne $packages.Count) {
-    throw "Compiled catalog normalized $($normalized.Count) packages from $($packages.Count) source records."
-}
-if (@($normalized | Where-Object { $_.Provider -ne 'External' -or $_.Deployment -ne 'ManualHold' -or $_.Maintenance -ne 'Hold' -or $_.DeploymentClass -eq 'Managed' }).Count -gt 0) {
-    throw 'Compiled commercial catalog would expand execution authority.'
-}
+# Execution-authority validation of the compiled artifact belongs to the production parser, not to a
+# second normalizer here. DomainCoreTests.ExternalCatalogsParseStrictlyAndPreserveAuthorityBoundaries
+# loads this exact file through CatalogParser and asserts record-count preservation, AwarenessOnly
+# authority, External provider, ManualHold deployment, Hold maintenance, and a non-Managed
+# deployment class. This script owns source shape, naming, uniqueness, and deterministic output.
 
 if ($Check) {
     if (-not (Test-Path -LiteralPath $OutputPath -PathType Leaf)) { throw "Compiled catalog is missing: $OutputPath" }
