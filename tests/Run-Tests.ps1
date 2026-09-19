@@ -116,17 +116,20 @@ Invoke-Check 'Catalog aggregates WinGet, operational providers, and commercial A
     Assert-Equal ($expectedOperationalExternalCount + $expectedAwarenessCount) $externalCatalog.Count 'External catalog size differs.'
     Assert-True ($catalog.Count -ge 300) 'Commercial AV catalog breadth regressed below the reviewed baseline.'
 }
-Invoke-Check 'Shipping managed JSON catalog matches the retired PowerShell catalog fixture' {
+Invoke-Check 'Retired PowerShell catalog fixture still tracks the canonical managed JSON catalog' {
+    # manifests\managed-applications.json is the canonical managed-package definition: it is what the
+    # compiled product loads and embeds. AppProfiles.psd1 is validated against it, not the reverse,
+    # and is retired once the legacy PowerShell build/test dependencies are removed.
     Assert-Equal 1 ([int]$managedCatalogDocument.SchemaVersion) 'Managed JSON catalog schema differs.'
-    Assert-Equal ([string]$winGetManifest.ForbiddenPattern) ([string]$managedCatalogDocument.ForbiddenPattern) 'Managed catalog forbidden-product policy differs.'
-    Assert-Equal $expectedWinGetCount @($managedCatalogDocument.Packages).Count 'Managed JSON catalog count differs from the characterized PowerShell fixture.'
-    foreach ($legacy in @($winGetManifest.Packages)) {
-        $current = @($managedCatalogDocument.Packages | Where-Object Id -eq ([string]$legacy.Id))
-        Assert-Equal 1 $current.Count "Managed JSON catalog lost or duplicated $($legacy.Id)."
+    Assert-Equal ([string]$managedCatalogDocument.ForbiddenPattern) ([string]$winGetManifest.ForbiddenPattern) 'Retired catalog fixture forbidden-product policy drifted from the canonical JSON.'
+    Assert-Equal @($managedCatalogDocument.Packages).Count $expectedWinGetCount 'Retired catalog fixture count drifted from the canonical JSON.'
+    foreach ($current in @($managedCatalogDocument.Packages)) {
+        $legacy = @($winGetManifest.Packages | Where-Object { [string]$_.Id -eq [string]$current.Id })
+        Assert-Equal 1 $legacy.Count "Retired catalog fixture lost or duplicated $($current.Id)."
         foreach ($field in @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance')) {
-            $legacyValue = if ($legacy.ContainsKey($field)) { [string]$legacy[$field] } else { '' }
-            $currentValue = if ($current[0].PSObject.Properties.Name -contains $field) { [string]$current[0].$field } else { '' }
-            Assert-Equal $legacyValue $currentValue "Managed JSON catalog field differs for $($legacy.Id).$field"
+            $currentValue = if ($current.PSObject.Properties.Name -contains $field) { [string]$current.$field } else { '' }
+            $legacyValue = if ($legacy[0].ContainsKey($field)) { [string]$legacy[0][$field] } else { '' }
+            Assert-Equal $currentValue $legacyValue "Retired catalog fixture field drifted for $($current.Id).$field"
         }
     }
 }
@@ -1134,12 +1137,17 @@ Invoke-Check 'Shared request builder emits the strict schema and derived paths' 
         if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
     }
 }
-Invoke-Check 'Generated winget baseline agrees with the authoritative catalog' {
+Invoke-Check 'Generated winget baseline agrees with the canonical managed JSON catalog' {
+    # An operator deliverable only. It is intentionally not embedded in the shipping runtime because
+    # no compiled code parses it, so it must track the canonical JSON rather than the retired fixture.
     $baselinePath = Join-Path $repositoryRoot 'manifests\winget-team-baseline.json'
     $baseline = Get-Content -LiteralPath $baselinePath -Raw | ConvertFrom-Json
-    $expectedIds = @($catalog | Where-Object { $_.Provider -eq 'WinGet' -and $_.Profile -eq 'Standard' -and $_.Risk -eq 'None' -and $_.Deployment -eq 'Allowlisted' } | Sort-Object Order | ForEach-Object Id)
+    $expectedIds = @($managedCatalogDocument.Packages | Where-Object {
+        [string]$_.Profile -eq 'Standard' -and [string]$_.Risk -eq 'None' -and
+        ($_.PSObject.Properties.Name -notcontains 'Deployment' -or [string]$_.Deployment -eq 'Allowlisted')
+    } | ForEach-Object { [string]$_.Id })
     $actualIds = @($baseline.Sources[0].Packages | ForEach-Object PackageIdentifier)
-    Assert-Equal ($expectedIds -join '|') ($actualIds -join '|') 'Generated baseline drifted from the catalog.'
+    Assert-Equal ($expectedIds -join '|') ($actualIds -join '|') 'Generated baseline drifted from the canonical managed JSON catalog.'
 }
 Invoke-Check 'Low-risk install arguments are exact, sourced, silent, and never bulk' {
     $package = @($plan.Packages | Where-Object Id -eq 'Notepad++.Notepad++')[0]
@@ -1582,7 +1590,10 @@ Invoke-Check 'Clone build entry point and tagged-release workflow publish the st
         $releaseWorkflow -match 'skip-decompress:\s*true') 'Tagged release does not restrict source origin or preserve direct signing artifact identity.'
     Assert-True ($releaseWorkflow -notmatch 'producing an unsigned release candidate') 'Tagged production workflow can silently publish unsigned artifacts.'
     $qaWorkflow = Get-Content -LiteralPath (Join-Path $repositoryRoot '.github\workflows\qa.yml') -Raw
-    Assert-True ($qaWorkflow -match 'actions/upload-artifact@[a-f0-9]{40}' -and $qaWorkflow -notmatch 'uses:\s*actions/[^@]+@v\d+') 'QA workflow actions are not pinned to immutable commits.'
+    Assert-True ($qaWorkflow -match 'actions/checkout@[a-f0-9]{40}' -and $qaWorkflow -match 'actions/setup-dotnet@[a-f0-9]{40}' -and
+        $qaWorkflow -notmatch 'uses:\s*actions/[^@]+@v\d+') 'QA workflow actions are not pinned to immutable commits.'
+    Assert-True ($qaWorkflow -match 'Build-Release\.ps1' -and $qaWorkflow -match 'Test-Package\.ps1') 'Ordinary QA no longer builds and verifies the release-candidate package.'
+    Assert-True ($qaWorkflow -notmatch 'upload-artifact') 'Ordinary QA retains release binaries that only the tagged signing workflow needs.'
     Assert-True ($qaWorkflow -match 'persist-credentials:\s*false') 'QA checkout retains an unnecessary repository credential.'
 }
 Invoke-Check 'Tagged workflow and release documentation agree on eight standard assets' {
