@@ -19,6 +19,17 @@ public sealed class ProviderInfrastructureTests
         Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(valid.Replace("\"Packages\"", "\"Unexpected\":true,\"Packages\"", StringComparison.Ordinal)));
         Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(valid.Replace("\"Profile\":\"Standard\"", "\"Profile\":\"Standard\",\"Profile\":\"Field\"", StringComparison.Ordinal)));
         Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(valid.Replace("\"SchemaVersion\":1", "\"SchemaVersion\":2", StringComparison.Ordinal)));
+        // Duplicate detection compares decoded property names, so a JSON escape cannot disguise a repeat.
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Id\":\"Fixture.Tool\"", "\"Id\":\"Fixture.Tool\",\"\\u0049d\":\"Fixture.Other\"", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"ForbiddenPattern\"", "\"\\u0046orbiddenPattern\":\"(?i)Forbidden\",\"ForbiddenPattern\"", StringComparison.Ordinal)));
+        // Ordinal comparison: a case variant is not a duplicate, but it is an unmapped member.
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Id\":\"Fixture.Tool\"", "\"Id\":\"Fixture.Tool\",\"id\":\"Fixture.Other\"", StringComparison.Ordinal)));
+        // An escape inside an ordinary string value is not a property name.
+        Assert.AreEqual("Fixture\tTool", RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Note\":\"Fixture\"", "\"Note\":\"Fixture\\tTool\"", StringComparison.Ordinal)).Packages[0].Note);
     }
 
     [TestMethod]

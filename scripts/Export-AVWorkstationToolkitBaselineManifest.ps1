@@ -8,12 +8,14 @@
     generated baseline. This script writes only Standard-profile, low-risk, allowlisted packages to
     the reusable winget baseline. It does not invoke winget or change workstation state.
 
-    Validation deliberately tracks the compiled managed-catalog path -
+    Validation is a hand-maintained approximation of the compiled managed-catalog path -
     RepositoryCatalogLoader.ParseManagedCatalog, CatalogParser.NormalizeManaged, CatalogParser.Text,
-    CatalogTokens.Parse and the PackageCatalog duplicate-ID guard - so this script never generates a
-    baseline from a catalog the product would refuse to load. Where exact replication is impractical
-    in Windows PowerShell 5.1 the script is deliberately the stricter side; see EQUIVALENCE NOTES at
-    the end of this file. The compiled loader remains the authority and revalidates at runtime.
+    CatalogTokens.Parse and the PackageCatalog duplicate-ID guard - intended to stop this script
+    generating a baseline from a catalog the product would refuse to load. It is an approximation,
+    not a proof: the guarantee holds for the conditions enumerated in the Run-Tests equivalence suite
+    and no further. Where exact replication is impractical in Windows PowerShell 5.1 the script is
+    deliberately the stricter side; see EQUIVALENCE NOTES at the end of this file. The compiled
+    loader remains the authority and revalidates at runtime.
 #>
 
 [CmdletBinding()]
@@ -74,11 +76,26 @@ function Assert-CatalogText {
     return $Value
 }
 
+function ConvertFrom-JsonPropertyName {
+    <#
+        Decodes one raw JSON string literal to the property name the compiled loader compares.
+        JsonDocument exposes decoded names, so a Unicode-escaped spelling of a name is the same
+        property as its literal spelling, and comparing raw spellings would let an escape disguise a
+        duplicate. Decoding is delegated to the platform's own JSON reader rather than a
+        hand-written unescaper; a malformed escape fails closed.
+    #>
+    param([string]$RawLiteral)
+
+    if ($RawLiteral.IndexOf([char]92) -lt 0) { return $RawLiteral }
+    try { return ('{"name":"' + $RawLiteral + '"}' | ConvertFrom-Json).name }
+    catch { throw "Managed catalog contains an invalid JSON property-name escape: '$RawLiteral'." }
+}
+
 function Assert-NoDuplicateJsonProperty {
     <#
-        Mirrors RepositoryCatalogLoader.RejectDuplicateProperties, which rejects repeated property
-        names ordinally at every object depth. Windows PowerShell 5.1 ConvertFrom-Json silently keeps
-        one of a duplicated pair, so the raw document is scanned before deserialization.
+        Mirrors RepositoryCatalogLoader.RejectDuplicateProperties, which rejects repeated decoded
+        property names ordinally at every object depth. Windows PowerShell 5.1 ConvertFrom-Json
+        silently keeps one of a duplicated pair, so the raw document is scanned before deserialization.
     #>
     param([string]$Json)
 
@@ -107,9 +124,12 @@ function Assert-NoDuplicateJsonProperty {
             '{' { $objectKeys.Push([System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)); $pendingKey = $null }
             '}' { if ($objectKeys.Count -gt 0) { $null = $objectKeys.Pop() }; $pendingKey = $null }
             ':' {
+                # Only a literal followed by ':' is a property name, so decode at this point: escapes
+                # inside ordinary string values are never treated as names.
                 if ($null -ne $pendingKey -and $objectKeys.Count -gt 0) {
-                    if (-not $objectKeys.Peek().Add($pendingKey)) {
-                        throw "Managed catalog repeats JSON property '$pendingKey'."
+                    $propertyName = ConvertFrom-JsonPropertyName -RawLiteral $pendingKey
+                    if (-not $objectKeys.Peek().Add($propertyName)) {
+                        throw "Managed catalog repeats JSON property '$propertyName'."
                     }
                 }
                 $pendingKey = $null
@@ -251,9 +271,15 @@ Write-Host ("Generated AV Workstation Toolkit baseline from {0}: {1} ({2} packag
 <#
     EQUIVALENCE NOTES
 
-    Anything the compiled managed-catalog path rejects, this script also rejects. In two cases it is
-    deliberately stricter, because replicating Enum.TryParse exactly would mean compiling the Domain
-    enums into Windows PowerShell 5.1:
+    This validation re-implements another implementation's rules by hand, so it can drift from them.
+    An earlier revision compared raw escaped property spellings and therefore accepted a catalog
+    whose duplicate key was disguised as a Unicode escape - a catalog the compiled loader rejects.
+    Treat the Run-Tests equivalence suite as the contract: when the compiled managed-catalog path
+    changes, re-verify against it and extend the suite rather than assuming this script still agrees.
+
+    Within the conditions that suite enumerates, anything the compiled path rejects is rejected here.
+    In two cases this script is deliberately stricter, because replicating Enum.TryParse exactly
+    would mean compiling the Domain enums into Windows PowerShell 5.1:
 
     1. Numeric enum strings. Enum.TryParse accepts "0" for Risk and Enum.IsDefined then passes, so
        production tolerates it; this script requires the declared token name.
