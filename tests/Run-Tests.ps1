@@ -1358,8 +1358,19 @@ Invoke-Check 'Compiled presentation is production-composed and strict' {
         $compiledAppCompositionSource -match 'ProductionCompiledWorkerLauncher' -and
         $compiledAppCompositionSource -match 'if \(production\)' -and
         $compiledAppCompositionSource -match 'new ActionProtocolStore\(dataRoot\)') 'Compiled App production action composition is incomplete.'
-    Assert-True ($domainSource -match 'class CatalogParser' -and $domainSource -match 'class PlanningService' -and $domainSource -match 'class SelectionPolicy' -and
-        $domainSource -notmatch 'System\.Diagnostics|Microsoft\.Win32|HttpClient|System\.Management\.Automation|powershell\.exe|pwsh\.exe|cmd\.exe') 'Typed Domain ownership or dependency boundary regressed.'
+    # Domain purity is enforced two ways. The project graph is the structural half: a net10.0 target
+    # with no references makes WPF, Registry and PowerShell hosting unreachable without a lock change.
+    $domainProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain\AVWorkstationToolkit.Domain.csproj') -Raw
+    Assert-True ($domainProject -match '<TargetFramework>net10\.0</TargetFramework>') 'Domain no longer targets the platform-neutral framework that blocks WPF, Registry, and PowerShell.'
+    Assert-True ($domainProject -notmatch '<PackageReference|<ProjectReference') 'Domain gained a package or project reference; its dependency-free boundary regressed.'
+    # The source half bans only the forbidden BCL surfaces that a reference-free net10.0 project can
+    # still reach. System.Diagnostics.CodeAnalysis is an attribute namespace and stays allowed.
+    $domainDiagnostics = [regex]::Matches($domainSource, 'System\.Diagnostics(?!\.CodeAnalysis)')
+    Assert-Equal 0 $domainDiagnostics.Count 'Domain referenced System.Diagnostics outside the allowed CodeAnalysis attribute namespace.'
+    # Case-sensitive: C# is, and PowerShell's -notmatch is not. A local named `file` must not read as
+    # System.IO.File, which is exactly the false positive an insensitive match produces here.
+    Assert-True ($domainSource -cnotmatch 'Process\.Start|HttpClient|HttpMessageHandler|Microsoft\.Win32|System\.Management\.Automation|\bFile\.|\bDirectory\.|\bFileStream\b|\bStreamReader\b|\bStreamWriter\b') 'Domain reached a process, network, registry, PowerShell, or filesystem API.'
+    Assert-True ($domainSource -notmatch 'powershell\.exe|pwsh\.exe|cmd\.exe') 'Domain named a shell executable.'
     Assert-True ($domainTests -match 'PackageReference Include="MSTest"' -and $domainTests -match 'TreatWarningsAsErrors>true') 'C# domain tests are not configured as warning-clean MSTest tests.'
     Assert-True ($applicationSource -match 'interface IInstalledPackageInventory' -and $applicationSource -match 'interface IAvailableUpdateInventory' -and
         $applicationSource -match 'interface IExternalApplicationInventory' -and $applicationSource -match 'interface IRebootStateProvider' -and
