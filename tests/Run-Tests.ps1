@@ -1204,12 +1204,24 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 Assert-NotContains $generated $realId 'Baseline generation leaked package IDs from a catalog it was not given.'
             }
 
+            # Built from char 92 so the escape sequences survive verbatim into the fixture JSON.
+            $backslash = [string][char]92
+            $escapedId = $backslash + 'u0049d'
+            $escapedForbidden = $backslash + 'u0046orbiddenPattern'
+            $escapedVendor = 'Ven' + $backslash + 'u0064or'
+
             # Shapes production tolerates must stay generatable; the generator must not be stricter here.
             foreach ($tolerated in @(
                 [pscustomobject]@{ Name='empty Vendor'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible','"Vendor": "", "Risk": "None", "Note": "Eligible') }
                 [pscustomobject]@{ Name='absent Name falls back to Id'; Json=$baseJson.Replace('"Name": "Fixture Eligible", ','') }
                 [pscustomobject]@{ Name='absent Risk defaults to None'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Note": "Eligible') }
+                # A decoded-equivalent property name is the same field, not a duplicate.
+                [pscustomobject]@{ Name='escaped spelling of a property name'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible',('"' + $escapedVendor + '": "Fixture", "Risk": "None", "Note": "Eligible')) }
+                # Escapes inside ordinary string values must never be read as property names.
+                [pscustomobject]@{ Name='escapes inside string values'; Json=$baseJson.Replace('"Note": "Eligible baseline record"',('"Note": "a' + $backslash + 'u003ab ' + $backslash + $backslash + ' ' + $backslash + '" quoted"')) }
             )) {
+                # A fixture whose mutation silently failed to apply would test the base document instead.
+                Assert-True ($tolerated.Json -cne $baseJson) "Tolerated-shape fixture did not actually mutate the base catalog: $($tolerated.Name)"
                 $result = & $runGenerator $tolerated.Json
                 Assert-Equal 0 $result.ExitCode "Baseline generator rejected a shape production accepts: $($tolerated.Name)"
                 $ids = @((Get-Content -LiteralPath $result.ProducedPath -Raw | ConvertFrom-Json).Sources[0].Packages |
@@ -1226,6 +1238,11 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='lowercase Maintenance'; Json=$baseJson.Replace('"Note": "Held record"','"Note": "Held record", "Maintenance": "hold"') }
                 [pscustomobject]@{ Name='duplicate top-level property'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 1, "SchemaVersion": 1,') }
                 [pscustomobject]@{ Name='duplicate package property'; Json=$baseJson.Replace('"Id": "Fixture.Eligible",','"Id": "Fixture.Eligible", "Id": "Fixture.Eligible",') }
+                # A JSON escape must not disguise a duplicate: these decode to Id and ForbiddenPattern.
+                [pscustomobject]@{ Name='escaped duplicate package property'; Json=$baseJson.Replace('"Id": "Fixture.Eligible",',('"Id": "Fixture.Eligible", "' + $escapedId + '": "Fixture.Disguised",')) }
+                [pscustomobject]@{ Name='escaped duplicate top-level property'; Json=$baseJson.Replace('"ForbiddenPattern":',('"' + $escapedForbidden + '": "(?i)Other", "ForbiddenPattern":')) }
+                [pscustomobject]@{ Name='property name differing only by case'; Json=$baseJson.Replace('"Id": "Fixture.Eligible",','"Id": "Fixture.Eligible", "id": "Fixture.Other",') }
+                [pscustomobject]@{ Name='malformed escape in property name'; Json=$baseJson.Replace('"Note": "Eligible baseline record"',('"Note": "Eligible baseline record", "bad' + $backslash + '": "x"')) }
                 [pscustomobject]@{ Name='unknown top-level property'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 1, "Extra": true,') }
                 [pscustomobject]@{ Name='wrong-case top-level property'; Json=$baseJson.Replace('"SchemaVersion"','"schemaVersion"') }
                 [pscustomobject]@{ Name='missing top-level property'; Json=$baseJson.Replace('"ForbiddenPattern": "(?i)CrowdStrike|Falcon|TeamViewer",','') }
@@ -1245,6 +1262,7 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='unsupported SchemaVersion'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 2,') }
                 [pscustomobject]@{ Name='empty Packages array'; Json='{ "SchemaVersion": 1, "ForbiddenPattern": "(?i)CrowdStrike", "Packages": [] }' }
             )) {
+                Assert-True ($rejected.Json -cne $baseJson) "Rejection fixture did not actually mutate the base catalog: $($rejected.Name)"
                 $result = & $runGenerator $rejected.Json
                 Assert-True ($result.ExitCode -ne 0) "Baseline generator accepted a catalog production rejects: $($rejected.Name)"
                 Assert-True (-not (Test-Path -LiteralPath $result.ProducedPath)) "Baseline generator wrote output for a rejected catalog: $($rejected.Name)"
