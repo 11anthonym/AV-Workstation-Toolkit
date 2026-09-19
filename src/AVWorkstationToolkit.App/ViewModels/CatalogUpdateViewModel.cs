@@ -15,15 +15,10 @@ public sealed class CatalogUpdateViewModel : ObservableObject
         status = service.Status;
         CheckNowCommand = new AsyncRelayCommand(CheckAsync, () => !IsBusy);
         InstallCommand = new AsyncRelayCommand(InstallAsync, () => !IsBusy && Status.State == ReferenceCatalogUpdateState.UpdateAvailable);
-        RestoreCommand = new AsyncRelayCommand(RestoreAsync, () => !IsBusy && Status.RestorableRevision > 0);
-        ImportCommand = new RelayCommand(_ => ImportRequested?.Invoke(), _ => !IsBusy);
     }
 
     public AsyncRelayCommand CheckNowCommand { get; }
     public AsyncRelayCommand InstallCommand { get; }
-    public AsyncRelayCommand RestoreCommand { get; }
-    public RelayCommand ImportCommand { get; }
-    public event Action? ImportRequested;
 
     public ReferenceCatalogUpdateStatus Status
     {
@@ -37,9 +32,7 @@ public sealed class CatalogUpdateViewModel : ObservableObject
             OnPropertyChanged(nameof(CurrentLabel));
             OnPropertyChanged(nameof(AvailableLabel));
             OnPropertyChanged(nameof(ChangeSummary));
-            OnPropertyChanged(nameof(CanRestorePrevious));
             InstallCommand.RaiseCanExecuteChanged();
-            RestoreCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -51,8 +44,6 @@ public sealed class CatalogUpdateViewModel : ObservableObject
             if (!SetProperty(ref isBusy, value)) return;
             CheckNowCommand.RaiseCanExecuteChanged();
             InstallCommand.RaiseCanExecuteChanged();
-            RestoreCommand.RaiseCanExecuteChanged();
-            ImportCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -62,7 +53,6 @@ public sealed class CatalogUpdateViewModel : ObservableObject
         ReferenceCatalogUpdateState.Checking => "Checking for updates…",
         ReferenceCatalogUpdateState.Current => "Device catalog is up to date",
         ReferenceCatalogUpdateState.UpdateAvailable => "Device catalog update available",
-        ReferenceCatalogUpdateState.Downloading => "Downloading device catalog…",
         ReferenceCatalogUpdateState.Validating => "Checking device catalog…",
         ReferenceCatalogUpdateState.Completed => "Device catalog saved",
         ReferenceCatalogUpdateState.Rejected => "Device catalog wasn't accepted",
@@ -87,7 +77,6 @@ public sealed class CatalogUpdateViewModel : ObservableObject
     public string CurrentLabel => Status.CurrentRevision > 0 ? $"Revision {Status.CurrentRevision} · {Status.CurrentVersion}" : "Built-in device catalog";
     public string AvailableLabel => Status.AvailableRevision > 0 ? $"Revision {Status.AvailableRevision} · {Status.AvailableVersion}" : "No update ready";
     public string ChangeSummary => Status.Changes?.Summary ?? string.Empty;
-    public bool CanRestorePrevious => Status.RestorableRevision > 0;
 
     public async Task CheckAsync()
     {
@@ -97,16 +86,6 @@ public sealed class CatalogUpdateViewModel : ObservableObject
     public async Task InstallAsync()
     {
         await RunAsync(token => service.InstallAvailableAsync(token)).ConfigureAwait(true);
-    }
-
-    public async Task ImportAsync(string path)
-    {
-        await RunAsync(token => service.ImportAsync(path, token)).ConfigureAwait(true);
-    }
-
-    public async Task RestoreAsync()
-    {
-        await RunAsync(token => service.RestorePreviousAsync(token)).ConfigureAwait(true);
     }
 
     private async Task RunAsync(Func<CancellationToken, Task<ReferenceCatalogUpdateStatus>> operation)

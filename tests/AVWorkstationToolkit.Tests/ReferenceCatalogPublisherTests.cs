@@ -129,7 +129,6 @@ public sealed class ReferenceCatalogPublisherTests
             revision,
             "1.1.1",
             CreatedUtc,
-            CreatedUtc.AddDays(7),
             "test-publisher-2026",
             privateKeyPath,
             new Uri("https://catalog.example.test/avwt/"),

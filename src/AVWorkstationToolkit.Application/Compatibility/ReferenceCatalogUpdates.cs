@@ -8,7 +8,6 @@ public enum ReferenceCatalogUpdateState
     Checking,
     Current,
     UpdateAvailable,
-    Downloading,
     Validating,
     Completed,
     Rejected,
@@ -35,8 +34,7 @@ public sealed record ReferenceCatalogUpdateStatus(
     long AvailableRevision,
     string AvailableVersion,
     string Detail,
-    ReferenceCatalogChangeSummary? Changes = null,
-    long RestorableRevision = 0);
+    ReferenceCatalogChangeSummary? Changes = null);
 
 public sealed record ReferenceCatalogChannelPackage(
     long Revision,
@@ -60,6 +58,4 @@ public interface IReferenceCatalogUpdateService
     Task<ReferenceCatalogUpdateStatus> CheckInBackgroundIfDueAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Status);
     Task<ReferenceCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default);
-    Task<ReferenceCatalogUpdateStatus> ImportAsync(string bundlePath, CancellationToken cancellationToken = default);
-    Task<ReferenceCatalogUpdateStatus> RestorePreviousAsync(CancellationToken cancellationToken = default);
 }
