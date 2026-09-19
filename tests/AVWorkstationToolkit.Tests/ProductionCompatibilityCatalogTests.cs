@@ -9,31 +9,34 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class ProductionCompatibilityCatalogTests
 {
     [TestMethod]
-    public void ProductionCatalogParsesWithCompleteFrozenManufacturerLedger()
+    public void ProductionCatalogParsesWithRequiredVendorsAndNoInstalledEvidence()
     {
+        // Loading is itself the uniqueness and referential-integrity assertion: the parser rejects
+        // duplicate IDs, a release family or relation naming an unknown product, and a relation whose
+        // release family belongs to another product. Restating those here would be tautological, and
+        // exact totals only create churn - every added record edited a number in several files.
         var catalog = LoadCatalog();
 
-        Assert.HasCount(270, catalog.Products);
-        CollectionAssert.AreEquivalent(
-            new[]
-            {
-                "7thSense", "Adamson", "AFMG", "AJA Video Systems", "Alcorn McBride", "Allen & Heath", "AMX", "Analog Way", "Aurora Multimedia",
-                "Angry IP Scanner Project", "Ashly Audio", "AtlasIED", "Atlona", "Audinate", "Audio-Technica", "AV Stumpfl", "AVer",
-                "Avolites", "Barco", "Biamp", "Blackmagic Design", "Bose Professional", "BrightSign", "Brompton Technology", "BSS",
-                "Capture Visualisation", "ChamSys", "Christie", "Cisco", "Clear-Com", "ClearOne", "Colorlight", "Crestron",
-                "d&b audiotechnik", "Datapath", "Dataton", "Dell / Waves", "DELTACAST", "Disguise", "Epson", "ETC", "Extron",
-                "Figure 53", "FileZilla Project", "Flachmann und Heggelbacher", "Green Hippo", "Green-GO", "HP Poly", "Huddly",
-                "HW group", "Intermodulation Analysis", "Jabra", "JBL Professional", "Just Add Power", "Key Digital", "Kramer", "L-Acoustics", "Lake",
-                "LEA Professional", "Lectrosonics", "LG", "Lightware", "Logitech", "Luminex", "MA Lighting", "Magewell", "Martin Audio",
-                "Matrox Video", "Medialon", "Mersive", "Meyer Sound", "Microsoft", "Milan Manager", "Multiple vendors", "NagleCode", "NDI", "NETGEAR",
-                "NEXO", "NovaStar", "Nureva", "OBS Project", "Obsidian Control Systems", "Open Sound Meter", "Panasonic", "Pingman Tools", "Planar", "Polycom", "Powersoft", "Professional Wireless Systems", "QLC+ Project", "Listen Technologies",
-                "Rane Commercial", "Rational Acoustics", "Radio Design Labs", "RealTerm Project", "Resolume", "RF Explorer", "Riedel Communications", "Room EQ Wizard", "Ross Video", "RTS Intercoms", "sACNView Project", "Samsung", "ScreenBeam", "Sennheiser", "Sharp NEC Display Solutions", "Shure", "Sony Professional", "SoundBase", "StudioCoast", "Symetrix", "TeraTerm Project", "Unity Intercom", "Uwe Sieber", "Vaddio", "Visionary Solutions", "Wisycom", "WolfVision", "WyreStorm", "Xilica", "Yamaha Professional Audio", "Yealink", "ZeeVee", "Q-SYS", "PTZOptics", "tvONE"
-            },
-            catalog.Products.Select(item => item.Vendor).Distinct().ToArray());
-        Assert.HasCount(80, catalog.ReleaseFamilies);
-        Assert.HasCount(338, catalog.DeviceSoftwareRelations);
+        Assert.IsGreaterThan(0, catalog.Products.Count);
+        Assert.IsGreaterThan(0, catalog.ReleaseFamilies.Count);
+        Assert.IsGreaterThan(0, catalog.DeviceSoftwareRelations.Count);
+
+        // No installed-version evidence may ship in the catalog; that is observed on the workstation.
         Assert.HasCount(0, catalog.InstalledVersions);
         Assert.IsTrue(catalog.Products.All(item => item.OfficialSourceUri.Scheme == Uri.UriSchemeHttps));
+        Assert.IsTrue(catalog.Products.All(item => !string.IsNullOrWhiteSpace(item.Vendor)));
+
+        // The manufacturers the product exists to cover must stay represented. This is a required
+        // floor, not a ledger: adding a vendor does not edit this test.
+        var vendors = catalog.Products.Select(item => item.Vendor).ToHashSet(StringComparer.Ordinal);
+        foreach (var required in new[]
+        {
+            "Crestron", "Extron", "AMX", "Biamp", "Q-SYS", "Shure", "Sennheiser", "Audinate",
+            "Barco", "Christie", "Yamaha Professional Audio", "BrightSign", "Clear-Com", "Blackmagic Design"
+        })
+        {
+            Assert.Contains(required, vendors);
+        }
     }
 
     [TestMethod]
@@ -457,12 +460,28 @@ public sealed class ProductionCompatibilityCatalogTests
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(root);
         var service = CreateQueryService();
 
-        Assert.HasCount(143, hardware.Families);
-        Assert.HasCount(529, hardware.Models);
+        Assert.IsGreaterThan(0, hardware.Families.Count);
+        Assert.IsGreaterThan(0, hardware.Models.Count);
+
+        // GetCoverageSummary is derived logic the parser does not validate, so assert it against the
+        // catalog it summarizes rather than against frozen totals that change with every new model.
         var coverage = hardware.GetCoverageSummary();
-        Assert.AreEqual(529, coverage.Models);
-        Assert.AreEqual(419, coverage.VerifiedModels);
-        Assert.AreEqual(110, coverage.UnresolvedModels);
+        Assert.AreEqual(hardware.Families.Count, coverage.Families);
+        Assert.AreEqual(hardware.Models.Count, coverage.Models);
+        Assert.AreEqual(
+            hardware.Families.Sum(family => family.Aliases.Count) + hardware.Models.Sum(model => model.Aliases.Count),
+            coverage.Aliases);
+        Assert.AreEqual(hardware.Models.Count(model => model.CoverageState == HardwareCoverageState.VerifiedSoftwareRelationships), coverage.VerifiedModels);
+        Assert.AreEqual(hardware.Models.Count(model => model.CoverageState == HardwareCoverageState.Unresolved), coverage.UnresolvedModels);
+        // FamilyOnlyCoverage counts families, not models, so the model states partition the model set.
+        Assert.AreEqual(hardware.Families.Count(family => family.CoverageState == HardwareCoverageState.FamilyOnly), coverage.FamilyOnlyCoverage);
+        Assert.AreEqual(
+            coverage.Models,
+            coverage.VerifiedModels + coverage.UnresolvedModels
+                + hardware.Models.Count(model => model.CoverageState == HardwareCoverageState.FamilyOnly));
+        // Category rollups must account for every family and model exactly once.
+        Assert.AreEqual(coverage.Families, coverage.Categories.Sum(category => category.Families));
+        Assert.AreEqual(coverage.Models, coverage.Categories.Sum(category => category.Models));
 
         var cp4n = service.SearchDevices("Crestron CP4N").Single();
         Assert.AreEqual("Crestron.CP4N", cp4n.Hardware!.Id);
@@ -1192,7 +1211,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var services = CompiledAppComposition.Create(root);
         var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.HasCount(270, services.Compatibility.SearchProducts());
+        Assert.IsGreaterThan(0, services.Compatibility.SearchProducts().Count);
         Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
         StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
         Assert.IsNull(services.Actions);
@@ -1207,7 +1226,8 @@ public sealed class ProductionCompatibilityCatalogTests
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(root);
         var packageCount = packages.Items.Count;
 
-        Assert.HasCount(270, compatibility.Products);
+        // The compatibility catalog is loaded independently of package authority; its size is not the invariant.
+        Assert.IsGreaterThan(0, compatibility.Products.Count);
         Assert.HasCount(packageCount, new RepositoryCatalogLoader().Load(root).Items);
         Assert.IsTrue(packages.Items.Where(item =>
                 item.Id is "QSC.QSYSDesigner.LTS" or "Biamp.Tesira" or "Biamp.Canvas" or
