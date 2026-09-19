@@ -13,7 +13,6 @@ public sealed record VerifiedReferenceCatalogChannel(
     long PreviousRevision,
     string MinimumAppVersion,
     DateTimeOffset CreatedUtc,
-    DateTimeOffset ExpiresUtc,
     string SigningKeyId,
     Uri BundleUri,
     string BundleSha256);
@@ -68,9 +67,12 @@ public sealed class ReferenceCatalogChannelVerifier
             string.IsNullOrWhiteSpace(raw.BundleSha256) || raw.BundleSha256.Length != 64 || !raw.BundleSha256.All(Uri.IsHexDigit))
             throw new CatalogValidationException("Reference catalog channel metadata is invalid.");
 
-        if (raw.CreatedUtc == default || raw.CreatedUtc.Offset != TimeSpan.Zero || raw.ExpiresUtc == default || raw.ExpiresUtc.Offset != TimeSpan.Zero ||
-            raw.CreatedUtc > now.AddMinutes(5) || raw.ExpiresUtc <= now || raw.ExpiresUtc <= raw.CreatedUtc || raw.ExpiresUtc - raw.CreatedUtc > TimeSpan.FromDays(31))
-            throw new CatalogValidationException("Reference catalog channel freshness metadata is invalid or expired.");
+        // CreatedUtc is the publication timestamp, kept for display and audit. Age alone never
+        // invalidates an authentic signed pointer: descriptive catalog data cannot grant execution
+        // authority, so a replayed old pointer costs the user nothing, while a hard expiry would
+        // break Device Lookup updates whenever the pointer was not re-signed on a schedule.
+        if (raw.CreatedUtc == default || raw.CreatedUtc.Offset != TimeSpan.Zero || raw.CreatedUtc > now.AddMinutes(5))
+            throw new CatalogValidationException("Reference catalog channel publication timestamp is invalid.");
 
         if (!Uri.TryCreate(raw.BundleUri, UriKind.Absolute, out var bundleUri) || bundleUri.Scheme != Uri.UriSchemeHttps || !bundleUri.IsDefaultPort ||
             !string.IsNullOrEmpty(bundleUri.UserInfo) || string.IsNullOrWhiteSpace(bundleUri.IdnHost) ||
@@ -78,7 +80,7 @@ public sealed class ReferenceCatalogChannelVerifier
             throw new CatalogValidationException("Reference catalog channel BundleUri is invalid.");
 
         VerifySignature(raw.SigningKeyId!, metadataBytes, signatureBytes);
-        return new(raw.CatalogVersion!, raw.Revision, raw.PreviousRevision, raw.MinimumAppVersion!, raw.CreatedUtc, raw.ExpiresUtc,
+        return new(raw.CatalogVersion!, raw.Revision, raw.PreviousRevision, raw.MinimumAppVersion!, raw.CreatedUtc,
             raw.SigningKeyId!, bundleUri, raw.BundleSha256!.ToUpperInvariant());
     }
 
@@ -118,7 +120,8 @@ public sealed class ReferenceCatalogChannelVerifier
         public long PreviousRevision { get; init; }
         public string? MinimumAppVersion { get; init; }
         public DateTimeOffset CreatedUtc { get; init; }
-        public DateTimeOffset ExpiresUtc { get; init; }
+        // Accepted but ignored. Already-signed pointers carry it and their bytes cannot be re-signed here.
+        public DateTimeOffset? ExpiresUtc { get; init; }
         public string? SigningKeyId { get; init; }
         public string? BundleUri { get; init; }
         public string? BundleSha256 { get; init; }

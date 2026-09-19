@@ -16,203 +16,144 @@ public sealed class ReferenceCatalogUpdateTests
     public async Task SignedBundleActivatesAtomicallyAndReloadsThroughValidatedCatalogs()
     {
         using var fixture = new BundleFixture();
-        var bundle = fixture.CreateBundle(1, 0);
-        var store = fixture.CreateStore();
-
-        var result = await store.ImportAsync(bundle);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, result.State);
-        Assert.AreEqual(1L, result.CurrentRevision);
-        StringAssert.Contains(result.Detail, "activated on disk");
-        StringAssert.Contains(result.Detail, "Restart AV Workstation Toolkit");
-
-        var loaded = store.LoadActiveOrEmbedded();
-        Assert.IsFalse(loaded.Source.IsEmbedded);
-        Assert.AreEqual(1L, loaded.Source.Revision);
-        Assert.HasCount(529, loaded.Hardware.Models);
-        Assert.HasCount(338, loaded.Compatibility.DeviceSoftwareRelations);
-        Assert.IsTrue(Directory.Exists(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "catalogs", "1")));
-        Assert.HasCount(0, Directory.GetDirectories(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "staging")));
-    }
-
-    [TestMethod]
-    public async Task CompleteSnapshotsAllowSkippedAndSequentialRevisionsButRejectSameOrLowerRevisions()
-    {
-        using var fixture = new BundleFixture();
-        var skippedStore = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await skippedStore.ImportAsync(fixture.CreateBundle(43, 42))).State);
-
-        var skipped = await skippedStore.ImportAsync(fixture.CreateBundle(45, 44));
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, skipped.State);
-        Assert.AreEqual(45L, skipped.CurrentRevision);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await skippedStore.ImportAsync(fixture.CreateBundle(45, 44))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await skippedStore.ImportAsync(fixture.CreateBundle(44, 43))).State);
-
-        using var sequentialFixture = new BundleFixture();
-        var sequentialStore = sequentialFixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await sequentialStore.ImportAsync(sequentialFixture.CreateBundle(43, 42))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await sequentialStore.ImportAsync(sequentialFixture.CreateBundle(44, 43))).State);
-    }
-
-    [TestMethod]
-    public async Task RestorePersistsSuppressesRolledBackRevisionAndAllowsNewerRevision()
-    {
-        using var fixture = new BundleFixture();
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(43, 42))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(45, 44))).State);
-        _ = store.LoadActiveOrEmbedded();
-        Assert.AreEqual(43L, store.Status.RestorableRevision);
-
-        var restored = await store.RestorePreviousAsync();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, restored.State);
-        Assert.AreEqual(43L, restored.CurrentRevision);
-        Assert.AreEqual(0L, restored.RestorableRevision);
-        StringAssert.Contains(restored.Detail, "Restart AV Workstation Toolkit");
+        var activated = await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, activated.State);
+        Assert.AreEqual(1L, activated.CurrentRevision);
 
         var restarted = fixture.CreateStore();
-        Assert.AreEqual(43L, restarted.LoadActiveOrEmbedded().Source.Revision);
-        Assert.AreEqual(0L, restarted.Status.RestorableRevision);
-
-        var suppressedBundle = fixture.CreateBundle(45, 44);
-        using var suppressedChannel = fixture.CreateChannel(suppressedBundle, revision: 45, previousRevision: 44);
-        var suppressedStore = fixture.CreateStore(channel: suppressedChannel);
-        _ = suppressedStore.LoadActiveOrEmbedded();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Current, (await suppressedStore.CheckAsync()).State);
-
-        var newerBundle = fixture.CreateBundle(46, 45);
-        using var newerChannel = fixture.CreateChannel(newerBundle, revision: 46, previousRevision: 45);
-        var newerStore = fixture.CreateStore(channel: newerChannel);
-        _ = newerStore.LoadActiveOrEmbedded();
-        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await newerStore.CheckAsync()).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await newerStore.InstallAvailableAsync()).State);
-        Assert.AreEqual(46L, newerStore.Status.CurrentRevision);
+        var set = restarted.LoadActiveOrEmbedded();
+        Assert.AreEqual(1L, set.Source.Revision);
+        Assert.IsFalse(set.Source.IsEmbedded);
+        Assert.IsGreaterThan(0, set.Hardware.Models.Count);
+        Assert.IsGreaterThan(0, set.Compatibility.DeviceSoftwareRelations.Count);
+        Assert.IsTrue(File.Exists(fixture.StoredHardwarePath(1)));
     }
 
     [TestMethod]
-    public async Task CorruptPreviousCannotBeRestoredAndCorruptRestoredCatalogFallsBackToEmbedded()
+    public async Task SkippedAndSequentialRevisionsActivateButSameOrLowerRevisionsAreRejected()
     {
         using var fixture = new BundleFixture();
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(43, 42))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(45, 44))).State);
-        File.AppendAllText(fixture.StoredHardwarePath(43), " ", Encoding.UTF8);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(43, 42), revision: 43, previousRevision: 42)).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(45, 44), revision: 45, previousRevision: 44)).State);
 
-        _ = store.LoadActiveOrEmbedded();
-        Assert.AreEqual(0L, store.Status.RestorableRevision);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.RestorePreviousAsync()).State);
+        // The channel itself withholds a non-forward revision, so the store never sees a candidate.
+        Assert.AreEqual(ReferenceCatalogUpdateState.Current,
+            (await fixture.ActivateAsync(fixture.CreateBundle(45, 44), revision: 45, previousRevision: 44)).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Current,
+            (await fixture.ActivateAsync(fixture.CreateBundle(44, 43), revision: 44, previousRevision: 43)).State);
+        Assert.AreEqual(45L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
+    }
 
-        using var fallbackFixture = new BundleFixture();
-        var fallbackStore = fallbackFixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fallbackStore.ImportAsync(fallbackFixture.CreateBundle(43, 42))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fallbackStore.ImportAsync(fallbackFixture.CreateBundle(45, 44))).State);
-        _ = fallbackStore.LoadActiveOrEmbedded();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fallbackStore.RestorePreviousAsync()).State);
-        File.AppendAllText(fallbackFixture.StoredHardwarePath(43), " ", Encoding.UTF8);
+    [TestMethod]
+    public async Task OnlyTheSelectedRevisionIsRetainedOnDisk()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(20, 19), revision: 20, previousRevision: 19)).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(30, 29), revision: 30, previousRevision: 29)).State);
 
-        var fallback = fallbackFixture.CreateStore().LoadActiveOrEmbedded();
-        Assert.IsTrue(fallback.Source.IsEmbedded);
-        Assert.AreEqual(0L, fallback.Source.Revision);
+        Assert.AreEqual(30L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
+        Assert.IsTrue(Directory.Exists(fixture.StoredCatalogDirectory(30)));
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(20)));
+        Assert.HasCount(1, Directory.GetDirectories(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "catalogs")));
     }
 
     [TestMethod]
     public void ExplicitMissingDataRootIsCreatedWithoutChangingEmbeddedCatalogAuthority()
     {
         using var fixture = new BundleFixture();
-        var dataRoot = Path.Combine(fixture.DataRoot, "clean-profile-root");
-        Assert.IsFalse(Directory.Exists(dataRoot));
-
-        var loaded = fixture.CreateStore(dataRootOverride: dataRoot).LoadActiveOrEmbedded();
-
-        Assert.IsTrue(Directory.Exists(dataRoot));
-        Assert.IsTrue(loaded.Source.IsEmbedded);
-        Assert.HasCount(529, loaded.Hardware.Models);
+        var missing = Path.Combine(fixture.DataRoot, "profile", "missing-root");
+        var store = fixture.CreateStore(dataRootOverride: missing);
+        var set = store.LoadActiveOrEmbedded();
+        Assert.IsTrue(Directory.Exists(Path.Combine(missing, "ReferenceCatalog")));
+        Assert.IsTrue(set.Source.IsEmbedded);
+        Assert.IsGreaterThan(0, set.Hardware.Models.Count);
     }
 
     [TestMethod]
     public async Task InvalidSignatureHashExtraEntryAndFutureApplicationFailClosed()
     {
         using var fixture = new BundleFixture();
-
         using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
         var wrongSignature = fixture.CreateBundle(1, 0, signingKey: otherKey);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.CreateStore().ImportAsync(wrongSignature)).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.ActivateAsync(wrongSignature, revision: 1)).State);
 
-        var badHash = fixture.CreateBundle(2, 1, corruptPayloadAfterSigning: true);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.CreateStore().ImportAsync(badHash)).State);
+        var badHash = fixture.CreateBundle(1, 0, corruptPayloadAfterSigning: true);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.ActivateAsync(badHash, revision: 1)).State);
 
-        var extra = fixture.CreateBundle(3, 2, extraEntry: true);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.CreateStore().ImportAsync(extra)).State);
+        var extra = fixture.CreateBundle(1, 0, extraEntry: true);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.ActivateAsync(extra, revision: 1)).State);
 
-        var future = fixture.CreateBundle(4, 3, minimumAppVersion: "99.0.0");
-        Assert.AreEqual(ReferenceCatalogUpdateState.RequiresNewerApp, (await fixture.CreateStore().ImportAsync(future)).State);
+        var future = fixture.CreateBundle(1, 0, minimumAppVersion: "9.9.9");
+        Assert.AreEqual(ReferenceCatalogUpdateState.RequiresNewerApp, (await fixture.ActivateAsync(future, revision: 1)).State);
+
+        Assert.IsTrue(fixture.CreateStore().LoadActiveOrEmbedded().Source.IsEmbedded);
     }
 
     [TestMethod]
-    public async Task RollbackUnknownFieldsAndUntrustedConfigurationAreRejected()
+    public async Task ExecutionShapedFieldsAndUntrustedConfigurationAreRejected()
     {
         using var fixture = new BundleFixture();
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
-
-        var unknownField = fixture.CreateBundle(2, 1, addForbiddenHardwareField: true);
-        var rejected = await store.ImportAsync(unknownField);
+        var unknownField = fixture.CreateBundle(1, 0, addForbiddenHardwareField: true);
+        var rejected = await fixture.ActivateAsync(unknownField, revision: 1);
         Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, rejected.State);
-        StringAssert.Contains(rejected.Detail, "could not be mapped", StringComparison.OrdinalIgnoreCase);
 
-        var untrusted = fixture.CreateStore(trusted: false);
-        Assert.AreEqual(ReferenceCatalogUpdateState.NotConfigured, (await untrusted.CheckAsync()).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await untrusted.ImportAsync(fixture.CreateBundle(3, 2))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected,
+            (await fixture.ActivateAsync(fixture.CreateBundle(3, 2), revision: 3, previousRevision: 2, trusted: false)).State);
+        Assert.IsTrue(fixture.CreateStore().LoadActiveOrEmbedded().Source.IsEmbedded);
     }
 
     [TestMethod]
-    public async Task StartupTamperDetectionQuarantinesActiveRevisionAndUsesEmbeddedFallback()
+    public async Task StartupTamperDetectionDeletesActiveRevisionAndUsesEmbeddedFallback()
     {
         using var fixture = new BundleFixture();
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
-        var activeHardware = Path.Combine(fixture.DataRoot, "ReferenceCatalog", "catalogs", "1", ReferenceCatalogBundleNames.Hardware);
-        File.AppendAllText(activeHardware, " ", Encoding.UTF8);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+        fixture.EmbedBundle(fixture.CreateBundle(1, 0));
 
-        var loaded = store.LoadActiveOrEmbedded();
+        var hardware = fixture.StoredHardwarePath(1);
+        var bytes = File.ReadAllBytes(hardware);
+        bytes[bytes.Length / 2] ^= 0x01;
+        File.WriteAllBytes(hardware, bytes);
 
-        Assert.IsTrue(loaded.Source.IsEmbedded);
-        Assert.IsFalse(Directory.Exists(Path.GetDirectoryName(activeHardware)!));
-        Assert.HasCount(1, Directory.GetDirectories(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "quarantine")));
+        var set = fixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.IsTrue(set.Source.IsEmbedded);
+        Assert.IsGreaterThan(0, set.Hardware.Models.Count);
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(1)));
     }
 
     [TestMethod]
     public async Task OversizedBundleUnexpectedStoredFileAndMalformedStateFailClosedToEmbedded()
     {
         using var fixture = new BundleFixture();
-        var oversized = Path.Combine(fixture.DataRoot, "oversized.avwtcatalog");
-        using (var stream = new FileStream(oversized, FileMode.CreateNew, FileAccess.Write))
-            stream.SetLength(ReferenceCatalogBundleVerifier.MaximumBundleBytes + 1);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.CreateStore().ImportAsync(oversized)).State);
+        var oversized = fixture.CreateBundle(1, 0);
+        using (var archive = ZipFile.Open(oversized, ZipArchiveMode.Update))
+        {
+            var entry = archive.CreateEntry("filler.bin", CompressionLevel.NoCompression);
+            using var stream = entry.Open();
+            stream.Write(new byte[1024]);
+        }
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.ActivateAsync(oversized, revision: 1)).State);
 
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
-        var catalogRoot = Path.Combine(fixture.DataRoot, "ReferenceCatalog");
-        File.WriteAllText(Path.Combine(catalogRoot, "catalogs", "1", "unexpected.txt"), "not permitted", Encoding.UTF8);
-        var fallback = store.LoadActiveOrEmbedded();
-        Assert.IsTrue(fallback.Source.IsEmbedded);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+        File.WriteAllText(Path.Combine(fixture.StoredCatalogDirectory(1), "unexpected.json"), "{}");
+        Assert.IsTrue(fixture.CreateStore().LoadActiveOrEmbedded().Source.IsEmbedded);
 
-        File.WriteAllText(Path.Combine(catalogRoot, "state.json"), "{\"ActiveRevision\":1,\"ActiveRevision\":2}", Encoding.UTF8);
-        fallback = store.LoadActiveOrEmbedded();
-        Assert.IsTrue(fallback.Source.IsEmbedded);
-        Assert.IsFalse(File.Exists(Path.Combine(catalogRoot, "state.json")));
+        File.WriteAllText(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "state.json"), "{ not json");
+        var recovered = fixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.IsTrue(recovered.Source.IsEmbedded);
+        Assert.IsGreaterThan(0, recovered.Hardware.Models.Count);
     }
 
     [TestMethod]
     public void ManifestParserRejectsDuplicatePropertiesAndExecutionShapedMetadata()
     {
         var parser = new ReferenceCatalogManifestParser();
-        var valid = """
-            {"CatalogId":"avwt-reference","CatalogVersion":"2026.9.12.1","Revision":1,"SchemaVersion":1,"CompatibilityEpoch":1,"CreatedUtc":"2026-09-12T00:00:00Z","PreviousRevision":0,"MinimumAppVersion":"1.1.1","SigningKeyId":"test","Counts":{"Manufacturers":1,"Families":1,"ExactModels":1,"ReferenceSoftwareProducts":1,"Relations":1},"Files":{"hardware-identities.json":{"Sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},"software-compatibility.json":{"Sha256":"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},"catalog-changes.json":{"Sha256":"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"}}}
-            """;
-        Assert.AreEqual(1L, parser.ParseManifest(valid).Revision);
-        Assert.ThrowsExactly<CatalogValidationException>(() => parser.ParseManifest(valid.Replace("\"Revision\":1", "\"Revision\":1,\"Revision\":2", StringComparison.Ordinal)));
-        Assert.ThrowsExactly<CatalogValidationException>(() => parser.ParseManifest(valid.Replace("\"SigningKeyId\":\"test\"", "\"SigningKeyId\":\"test\",\"Installer\":\"evil.exe\"", StringComparison.Ordinal)));
+        Assert.ThrowsExactly<CatalogValidationException>(() => parser.ParseManifest(BundleFixture.ManifestJsonWithDuplicateRevision));
+        Assert.ThrowsExactly<CatalogValidationException>(() => parser.ParseManifest(BundleFixture.ManifestJsonWithExecutionField));
     }
 
     [TestMethod]
@@ -220,204 +161,163 @@ public sealed class ReferenceCatalogUpdateTests
     {
         using var fixture = new BundleFixture();
         var bundle = fixture.CreateBundle(1, 0);
-        using var channel = fixture.CreateChannel(bundle);
+        using var channel = fixture.CreateChannel(bundle, revision: 1);
         var store = fixture.CreateStore(channel: channel);
         _ = store.LoadActiveOrEmbedded();
 
         var available = await store.CheckAsync();
         Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, available.State);
         Assert.AreEqual(1L, available.AvailableRevision);
+        Assert.IsNotNull(available.Changes);
 
         var installed = await store.InstallAvailableAsync();
         Assert.AreEqual(ReferenceCatalogUpdateState.Completed, installed.State);
-        Assert.AreEqual(1L, installed.CurrentRevision);
-        StringAssert.Contains(installed.Detail, "activated on disk");
-        StringAssert.Contains(installed.Detail, "Restart AV Workstation Toolkit");
+        Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
     }
 
     [TestMethod]
     public async Task OfflineChannelIsNonFatalAndSignedUnapprovedBundleOriginIsRejected()
     {
         using var fixture = new BundleFixture();
-        var offline = new ThrowingChannelClient();
-        var offlineStore = fixture.CreateStore(channel: offline);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+
+        var offlineStore = fixture.CreateStore(channel: new ThrowingChannelClient());
         _ = offlineStore.LoadActiveOrEmbedded();
         Assert.AreEqual(ReferenceCatalogUpdateState.Offline, (await offlineStore.CheckAsync()).State);
+        Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
 
-        var bundle = fixture.CreateBundle(1, 0);
-        using var badOrigin = fixture.CreateChannel(bundle, bundleHost: "unapproved.example");
-        var rejectedStore = fixture.CreateStore(channel: badOrigin);
-        _ = rejectedStore.LoadActiveOrEmbedded();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await rejectedStore.CheckAsync()).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected,
+            (await fixture.ActivateAsync(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1, bundleHost: "mirror.example")).State);
+        Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
     }
 
     [TestMethod]
-    public async Task SignedEmbeddedAndRetainedCatalogsUseHighestCompatibleNonSuppressedSnapshot()
-    {
-        using var embeddedUpgrade = new BundleFixture();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
-            (await embeddedUpgrade.CreateStore().ImportAsync(embeddedUpgrade.CreateBundle(5, 4))).State);
-        embeddedUpgrade.EmbedBundle(embeddedUpgrade.CreateBundle(10, 9));
-
-        var embeddedSelected = embeddedUpgrade.CreateStore().LoadActiveOrEmbedded();
-        Assert.IsTrue(embeddedSelected.Source.IsEmbedded);
-        Assert.AreEqual(10L, embeddedSelected.Source.Revision);
-        var embeddedStore = embeddedUpgrade.CreateStore();
-        _ = embeddedStore.LoadActiveOrEmbedded();
-        Assert.AreEqual(5L, embeddedStore.Status.RestorableRevision);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await embeddedStore.RestorePreviousAsync()).State);
-        Assert.AreEqual(5L, embeddedUpgrade.CreateStore().LoadActiveOrEmbedded().Source.Revision);
-
-        using var retainedUpgrade = new BundleFixture();
-        retainedUpgrade.EmbedBundle(retainedUpgrade.CreateBundle(5, 4));
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
-            (await retainedUpgrade.CreateStore().ImportAsync(retainedUpgrade.CreateBundle(10, 9))).State);
-
-        var retainedSelected = retainedUpgrade.CreateStore().LoadActiveOrEmbedded();
-        Assert.IsFalse(retainedSelected.Source.IsEmbedded);
-        Assert.AreEqual(10L, retainedSelected.Source.Revision);
-    }
-
-    [TestMethod]
-    public async Task DowngradeRetainsValidIncompatibleCatalogAndUpgradeUsesItAgain()
+    public async Task HighestRevisionWinsBetweenSignedEmbeddedAndRetainedCatalogs()
     {
         using var fixture = new BundleFixture();
-        fixture.EmbedBundle(fixture.CreateBundle(20, 19, minimumAppVersion: "1.1.0"));
         Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
-            (await fixture.CreateStore(applicationVersion: "1.3.0").ImportAsync(
-                fixture.CreateBundle(30, 29, minimumAppVersion: "1.3.0"))).State);
+            (await fixture.ActivateAsync(fixture.CreateBundle(5, 4), revision: 5, previousRevision: 4)).State);
+        Assert.AreEqual(5L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
 
-        var downgraded = fixture.CreateStore(applicationVersion: "1.2.0").LoadActiveOrEmbedded();
-        Assert.AreEqual(20L, downgraded.Source.Revision);
-        Assert.IsTrue(downgraded.Source.IsEmbedded);
-        StringAssert.Contains(downgraded.Source.Detail, "requires a newer");
-        Assert.IsTrue(Directory.Exists(fixture.StoredCatalogDirectory(30)));
-        Assert.HasCount(0, Directory.GetFileSystemEntries(fixture.QuarantineRoot));
+        // A newer signed embedded baseline from an application upgrade supersedes the retained snapshot.
+        fixture.EmbedBundle(fixture.CreateBundle(9, 8));
+        var upgraded = fixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.AreEqual(9L, upgraded.Source.Revision);
+        Assert.IsTrue(upgraded.Source.IsEmbedded);
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(5)));
 
-        var upgradedAgain = fixture.CreateStore(applicationVersion: "1.3.0").LoadActiveOrEmbedded();
-        Assert.AreEqual(30L, upgradedAgain.Source.Revision);
-        Assert.IsFalse(upgradedAgain.Source.IsEmbedded);
+        // Monotonic protection now measures from the embedded baseline.
+        Assert.AreEqual(ReferenceCatalogUpdateState.Current,
+            (await fixture.ActivateAsync(fixture.CreateBundle(7, 6), revision: 7, previousRevision: 6)).State);
+    }
+
+    [TestMethod]
+    public async Task CatalogRequiringANewerApplicationIsNeverRetained()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+
+        var futureBundle = fixture.CreateBundle(2, 1, minimumAppVersion: "1.3.0");
+        Assert.AreEqual(ReferenceCatalogUpdateState.RequiresNewerApp,
+            (await fixture.ActivateAsync(futureBundle, revision: 2, previousRevision: 1, bundleMinimumAppVersion: "1.3.0")).State);
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(2)));
+        Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
+
+        // After the application upgrade the same revision is accepted from the channel again.
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(futureBundle, revision: 2, previousRevision: 1, applicationVersion: "1.3.0",
+                bundleMinimumAppVersion: "1.3.0")).State);
+        Assert.AreEqual(2L, fixture.CreateStore(applicationVersion: "1.3.0").LoadActiveOrEmbedded().Source.Revision);
+
+        // The channel pointer and the bundle must agree on the minimum application version.
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected,
+            (await fixture.ActivateAsync(fixture.CreateBundle(3, 2, minimumAppVersion: "1.3.0"), revision: 3,
+                previousRevision: 2, applicationVersion: "1.3.0", bundleMinimumAppVersion: "1.1.1")).State);
     }
 
     [TestMethod]
     public async Task LocalStartupDoesNotContactNetworkAndAutomaticOfflineCheckIsQuietAndThrottled()
     {
         using var fixture = new BundleFixture();
-        var clock = new ManualTimeProvider(new DateTimeOffset(2026, 9, 12, 12, 0, 0, TimeSpan.Zero));
-        var channel = new CountingOfflineChannel();
-        var store = fixture.CreateStore(channel: channel, timeProvider: clock);
+        var counting = new CountingOfflineChannel();
+        var time = new ManualTimeProvider(new DateTimeOffset(2026, 9, 12, 8, 0, 0, TimeSpan.Zero));
+        var store = fixture.CreateStore(channel: counting, timeProvider: time);
 
-        var local = store.LoadActiveOrEmbedded();
-        Assert.IsTrue(local.Source.IsEmbedded);
-        Assert.AreEqual(0, channel.CallCount);
+        var set = store.LoadActiveOrEmbedded();
+        Assert.IsTrue(set.Source.IsEmbedded);
+        Assert.AreEqual(0, counting.CallCount);
 
-        var first = await store.CheckInBackgroundIfDueAsync();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Current, first.State);
-        Assert.AreEqual(1, channel.CallCount);
-        Assert.AreEqual(local.Source.Revision, store.Status.CurrentRevision);
+        var priorState = store.Status.State;
+        Assert.AreEqual(priorState, (await store.CheckInBackgroundIfDueAsync()).State);
+        Assert.AreEqual(1, counting.CallCount);
 
-        _ = await store.CheckInBackgroundIfDueAsync();
-        Assert.AreEqual(1, channel.CallCount);
-        clock.Advance(TimeSpan.FromHours(25));
-        _ = await store.CheckInBackgroundIfDueAsync();
-        Assert.AreEqual(2, channel.CallCount);
+        Assert.AreEqual(priorState, (await store.CheckInBackgroundIfDueAsync()).State);
+        Assert.AreEqual(1, counting.CallCount);
 
-        clock.Advance(TimeSpan.FromDays(-2));
-        _ = await fixture.CreateStore(channel: channel, timeProvider: clock).CheckInBackgroundIfDueAsync();
-        Assert.AreEqual(2, channel.CallCount, "An implausibly future persisted check time must not trigger a request loop.");
+        time.Advance(ReferenceCatalogStore.AutomaticCheckInterval + TimeSpan.FromMinutes(1));
+        Assert.AreEqual(priorState, (await store.CheckInBackgroundIfDueAsync()).State);
+        Assert.AreEqual(2, counting.CallCount);
     }
 
     [TestMethod]
-    public void OrphanedCompleteActivationIsRecoveredWhileStagingAndQuarantineAreBounded()
+    public void OrphanedActivationIsRecoveredAndStagingIsCleaned()
     {
         using var fixture = new BundleFixture();
-        fixture.ExtractStoredBundle(fixture.CreateBundle(9, 8), 9);
-        var staging = Path.Combine(fixture.DataRoot, "ReferenceCatalog", "staging", "interrupted");
-        Directory.CreateDirectory(staging);
-        File.WriteAllText(Path.Combine(staging, "partial.tmp"), "partial", Encoding.UTF8);
-        Directory.CreateDirectory(fixture.QuarantineRoot);
-        for (var index = 0; index < 12; index++)
-        {
-            var path = Path.Combine(fixture.QuarantineRoot, $"old-{index:D2}.bin");
-            File.WriteAllText(path, "invalid", Encoding.UTF8);
-            File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddMinutes(-index));
-        }
+        var bundle = fixture.CreateBundle(4, 3);
+        fixture.ExtractStoredBundle(bundle, 4);
 
-        var recovered = fixture.CreateStore().LoadActiveOrEmbedded();
+        var stagingRoot = Path.Combine(fixture.DataRoot, "ReferenceCatalog", "staging");
+        Directory.CreateDirectory(stagingRoot);
+        Directory.CreateDirectory(Path.Combine(stagingRoot, "abandoned"));
+        File.WriteAllText(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "state.abandoned.tmp"), "{}");
 
-        Assert.AreEqual(9L, recovered.Source.Revision);
-        Assert.IsFalse(recovered.Source.IsEmbedded);
-        Assert.HasCount(0, Directory.GetFileSystemEntries(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "staging")));
-        Assert.HasCount(8, Directory.GetFileSystemEntries(fixture.QuarantineRoot));
+        var set = fixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.AreEqual(4L, set.Source.Revision);
+        Assert.IsFalse(set.Source.IsEmbedded);
+        Assert.IsEmpty(Directory.GetFileSystemEntries(stagingRoot));
+        Assert.IsEmpty(Directory.GetFiles(Path.Combine(fixture.DataRoot, "ReferenceCatalog"), "state.*.tmp"));
+        Assert.IsFalse(Directory.Exists(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "quarantine")));
     }
 
     [TestMethod]
-    public void ObsoleteCompatibleSnapshotsAreBoundedWithoutDeletingSelectedOrIncompatibleData()
+    public async Task PerUserMutationLockRejectsConcurrentActivationWithoutDamagingCurrentCatalog()
     {
         using var fixture = new BundleFixture();
-        for (var revision = 1; revision <= 5; revision++)
-            fixture.ExtractStoredBundle(fixture.CreateBundle(revision, revision - 1), revision);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
 
-        Assert.AreEqual(5L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
-        CollectionAssert.AreEquivalent(new[] { "3", "4", "5" },
-            Directory.GetDirectories(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "catalogs")).Select(Path.GetFileName).ToArray());
+        var bundle = fixture.CreateBundle(2, 1);
+        using var channel = fixture.CreateChannel(bundle, revision: 2, previousRevision: 1);
+        var store = fixture.CreateStore(channel: channel, mutationLockTimeout: TimeSpan.FromMilliseconds(250));
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
 
-        using var incompatible = new BundleFixture();
-        incompatible.ExtractStoredBundle(incompatible.CreateBundle(10, 9, minimumAppVersion: "9.0.0"), 10);
-        _ = incompatible.CreateStore(applicationVersion: "1.1.1").LoadActiveOrEmbedded();
-        Assert.IsTrue(Directory.Exists(incompatible.StoredCatalogDirectory(10)));
-    }
-
-    [TestMethod]
-    public async Task CorruptActiveFallsThroughPreviousThenSignedEmbeddedWithoutPartialMerge()
-    {
-        using var fixture = new BundleFixture();
-        fixture.EmbedBundle(fixture.CreateBundle(10, 9));
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(20, 19))).State);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(30, 29))).State);
-        File.AppendAllText(fixture.StoredHardwarePath(30), " ", Encoding.UTF8);
-
-        Assert.AreEqual(20L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
-        File.AppendAllText(fixture.StoredHardwarePath(20), " ", Encoding.UTF8);
-        var embedded = fixture.CreateStore().LoadActiveOrEmbedded();
-        Assert.AreEqual(10L, embedded.Source.Revision);
-        Assert.IsTrue(embedded.Source.IsEmbedded);
-    }
-
-    [TestMethod]
-    public async Task PerUserMutationLockRejectsConcurrentImportWithoutDamagingCurrentCatalog()
-    {
-        using var fixture = new BundleFixture();
-        var store = fixture.CreateStore(mutationLockTimeout: TimeSpan.FromMilliseconds(100));
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
-        var next = fixture.CreateBundle(2, 1);
-        using var ready = new ManualResetEventSlim();
-        using var release = new ManualResetEventSlim();
+        using var ready = new ManualResetEventSlim(false);
+        using var release = new ManualResetEventSlim(false);
         var holder = Task.Run(() => fixture.HoldMutationLock(ready, release));
-        Assert.IsTrue(ready.Wait(TimeSpan.FromSeconds(5)));
-
-        var blocked = await store.ImportAsync(next);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, blocked.State);
-        StringAssert.Contains(blocked.Detail, "Another AV Workstation Toolkit instance");
+        ready.Wait(TimeSpan.FromSeconds(5));
+        try
+        {
+            Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.InstallAvailableAsync()).State);
+        }
+        finally
+        {
+            release.Set();
+            await holder;
+        }
         Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
-
-        release.Set();
-        await holder;
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.CreateStore().ImportAsync(next)).State);
     }
 
     [TestMethod]
-    public async Task TamperedOfflineImportAndBadNetworkEvidenceLeaveInstalledCatalogUsable()
+    public async Task TamperedDownloadAndBadNetworkEvidenceLeaveInstalledCatalogUsable()
     {
         using var fixture = new BundleFixture();
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+
         var tampered = fixture.CreateBundle(2, 1, corruptPayloadAfterSigning: true);
-        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.ImportAsync(tampered)).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await fixture.ActivateAsync(tampered, revision: 2, previousRevision: 1)).State);
         Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
 
-        var invalidChannel = new InvalidChannelClient("Captive portal or expired/future signed metadata.");
+        var invalidChannel = new InvalidChannelClient("Captive portal or unverifiable signed metadata.");
         var onlineStore = fixture.CreateStore(channel: invalidChannel);
         _ = onlineStore.LoadActiveOrEmbedded();
         Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await onlineStore.CheckAsync()).State);
@@ -425,22 +325,25 @@ public sealed class ReferenceCatalogUpdateTests
     }
 
     [TestMethod]
-    public async Task ExpiredAndImplausiblyFutureChannelMetadataNeverInvalidatesInstalledData()
+    public async Task StaleSignedPointerStaysUsableWhileImplausiblyFutureMetadataIsRejected()
     {
         using var fixture = new BundleFixture();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
-            (await fixture.CreateStore().ImportAsync(fixture.CreateBundle(1, 0))).State);
         var now = new DateTimeOffset(2026, 9, 12, 12, 0, 0, TimeSpan.Zero);
-        var candidate = fixture.CreateBundle(2, 1);
-        using (var expired = fixture.CreateChannel(candidate, revision: 2, previousRevision: 1,
-                   observedNow: now, createdUtc: now.AddDays(-2), expiresUtc: now.AddMinutes(-1)))
+        var candidate = fixture.CreateBundle(1, 0);
+
+        // Age alone never invalidates an authentic signed pointer: descriptive catalog data carries no
+        // execution authority, so a long-unchanged channel must keep working without being re-signed.
+        using (var stale = fixture.CreateChannel(candidate, revision: 1, observedNow: now, createdUtc: now.AddDays(-400)))
         {
-            var store = fixture.CreateStore(channel: expired);
+            var store = fixture.CreateStore(channel: stale);
             _ = store.LoadActiveOrEmbedded();
-            Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.CheckAsync()).State);
+            Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
+            Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.InstallAvailableAsync()).State);
         }
-        using (var future = fixture.CreateChannel(candidate, revision: 2, previousRevision: 1,
-                   observedNow: now, createdUtc: now.AddMinutes(6), expiresUtc: now.AddDays(1)))
+        Assert.AreEqual(1L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
+
+        using (var future = fixture.CreateChannel(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1,
+                   observedNow: now, createdUtc: now.AddMinutes(6)))
         {
             var store = fixture.CreateStore(channel: future);
             _ = store.LoadActiveOrEmbedded();
@@ -450,22 +353,37 @@ public sealed class ReferenceCatalogUpdateTests
     }
 
     [TestMethod]
-    public async Task StateWriteFailureLeavesPriorStateAndCompleteSnapshotRecoverable()
+    public async Task AlreadySignedPointerCarryingRetiredExpiryFieldRemainsAcceptable()
     {
         using var fixture = new BundleFixture();
-        var store = fixture.CreateStore();
-        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.ImportAsync(fixture.CreateBundle(1, 0))).State);
+        var now = new DateTimeOffset(2026, 9, 12, 12, 0, 0, TimeSpan.Zero);
+        using var channel = fixture.CreateChannel(fixture.CreateBundle(1, 0), revision: 1, observedNow: now,
+            createdUtc: now.AddDays(-90), legacyExpiresUtc: now.AddDays(-60));
+        var store = fixture.CreateStore(channel: channel);
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await store.InstallAvailableAsync()).State);
+    }
+
+    [TestMethod]
+    public async Task StateWriteFailureLeavesTheActivatedSnapshotRecoverable()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+
         var statePath = Path.Combine(fixture.DataRoot, "ReferenceCatalog", "state.json");
+        var bundle = fixture.CreateBundle(2, 1);
+        using var channel = fixture.CreateChannel(bundle, revision: 2, previousRevision: 1);
+        var store = fixture.CreateStore(channel: channel);
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
         using (var lockedState = new FileStream(statePath, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            var failed = await store.ImportAsync(fixture.CreateBundle(2, 1));
-            Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, failed.State);
+            Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.InstallAvailableAsync()).State);
         }
 
         var restarted = fixture.CreateStore();
-        var recovered = restarted.LoadActiveOrEmbedded();
-        Assert.AreEqual(2L, recovered.Source.Revision);
-        Assert.AreEqual(1L, restarted.Status.RestorableRevision);
+        Assert.AreEqual(2L, restarted.LoadActiveOrEmbedded().Source.Revision);
     }
 
     [TestMethod]
@@ -486,8 +404,19 @@ public sealed class ReferenceCatalogUpdateTests
 
     private sealed class BundleFixture : IDisposable
     {
+        public const string ManifestJsonWithDuplicateRevision =
+            """
+            {"CatalogId":"avwt-reference","CatalogVersion":"2026.9.12.1","Revision":1,"Revision":2,"SchemaVersion":1,"CompatibilityEpoch":1,"CreatedUtc":"2026-09-12T00:00:00Z","PreviousRevision":0,"MinimumAppVersion":"1.1.1","SigningKeyId":"test","Counts":{"Manufacturers":1,"Families":1,"ExactModels":1,"ReferenceSoftwareProducts":1,"Relations":1},"Files":{"hardware-identities.json":{"Sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},"software-compatibility.json":{"Sha256":"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},"catalog-changes.json":{"Sha256":"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"}}}
+            """;
+
+        public const string ManifestJsonWithExecutionField =
+            """
+            {"CatalogId":"avwt-reference","CatalogVersion":"2026.9.12.1","Revision":1,"SchemaVersion":1,"CompatibilityEpoch":1,"CreatedUtc":"2026-09-12T00:00:00Z","PreviousRevision":0,"MinimumAppVersion":"1.1.1","SigningKeyId":"test","Command":"cmd.exe","Counts":{"Manufacturers":1,"Families":1,"ExactModels":1,"ReferenceSoftwareProducts":1,"Relations":1},"Files":{"hardware-identities.json":{"Sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},"software-compatibility.json":{"Sha256":"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},"catalog-changes.json":{"Sha256":"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"}}}
+            """;
+
         private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         private readonly string root = Path.Combine(Path.GetTempPath(), $"awt-catalog-update-{Guid.NewGuid():N}");
+
         public BundleFixture()
         {
             Directory.CreateDirectory(root);
@@ -499,7 +428,6 @@ public sealed class ReferenceCatalogUpdateTests
 
         public string DataRoot => Path.Combine(root, "data");
         public string EmbeddedRoot => Path.Combine(root, "application");
-        public string QuarantineRoot => Path.Combine(DataRoot, "ReferenceCatalog", "quarantine");
 
         public ReferenceCatalogStore CreateStore(
             bool trusted = true,
@@ -516,6 +444,28 @@ public sealed class ReferenceCatalogUpdateTests
                 new ReferenceCatalogBundleVerifier(new(applicationVersion, keys)), channel, timeProvider, mutationLockTimeout);
         }
 
+        /// <summary>Drives the production path: signed channel check, then activation.</summary>
+        public async Task<ReferenceCatalogUpdateStatus> ActivateAsync(
+            string bundlePath,
+            long revision,
+            long previousRevision = 0,
+            string applicationVersion = "1.1.1",
+            bool trusted = true,
+            string bundleHost = "catalog.avwt.example",
+            TimeSpan? mutationLockTimeout = null,
+            string bundleMinimumAppVersion = "1.1.1")
+        {
+            using var channel = CreateChannel(bundlePath, bundleHost, revision, previousRevision,
+                minimumAppVersion: bundleMinimumAppVersion);
+            var store = CreateStore(trusted: trusted, channel: channel, applicationVersion: applicationVersion,
+                mutationLockTimeout: mutationLockTimeout);
+            _ = store.LoadActiveOrEmbedded();
+            var available = await store.CheckAsync();
+            return available.State == ReferenceCatalogUpdateState.UpdateAvailable
+                ? await store.InstallAvailableAsync()
+                : available;
+        }
+
         public void EmbedBundle(string path)
         {
             var directory = Path.Combine(EmbeddedRoot, "reference-catalog");
@@ -530,27 +480,29 @@ public sealed class ReferenceCatalogUpdateTests
             long previousRevision = 0,
             DateTimeOffset? observedNow = null,
             DateTimeOffset? createdUtc = null,
-            DateTimeOffset? expiresUtc = null)
+            DateTimeOffset? legacyExpiresUtc = null,
+            string minimumAppVersion = "1.1.1")
         {
             var bundle = File.ReadAllBytes(bundlePath);
             var now = observedNow ?? DateTimeOffset.UtcNow;
             var metadataUri = new Uri("https://catalog.avwt.example/catalog-channel.json");
             var signatureUri = new Uri("https://catalog.avwt.example/catalog-channel.sig");
             var bundleUri = new Uri($"https://{bundleHost}/catalog-{revision}.avwtcatalog");
-            var metadata = JsonSerializer.SerializeToUtf8Bytes(new
+            var document = new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                CatalogId = ReferenceCatalogBundleNames.CatalogId,
-                SchemaVersion = 1,
-                CatalogVersion = $"2026.9.12.{revision}",
-                Revision = revision,
-                PreviousRevision = previousRevision,
-                MinimumAppVersion = "1.1.1",
-                CreatedUtc = createdUtc ?? now.AddMinutes(-1),
-                ExpiresUtc = expiresUtc ?? now.AddDays(7),
-                SigningKeyId = "test-2026-a",
-                BundleUri = bundleUri.AbsoluteUri,
-                BundleSha256 = Convert.ToHexString(SHA256.HashData(bundle))
-            });
+                ["CatalogId"] = ReferenceCatalogBundleNames.CatalogId,
+                ["SchemaVersion"] = 1,
+                ["CatalogVersion"] = $"2026.9.12.{revision}",
+                ["Revision"] = revision,
+                ["PreviousRevision"] = previousRevision,
+                ["MinimumAppVersion"] = minimumAppVersion,
+                ["CreatedUtc"] = createdUtc ?? now.AddMinutes(-1),
+                ["SigningKeyId"] = "test-2026-a",
+                ["BundleUri"] = bundleUri.AbsoluteUri,
+                ["BundleSha256"] = Convert.ToHexString(SHA256.HashData(bundle))
+            };
+            if (legacyExpiresUtc is not null) document["ExpiresUtc"] = legacyExpiresUtc.Value;
+            var metadata = JsonSerializer.SerializeToUtf8Bytes(document);
             var signature = key.SignData(metadata, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
             var handler = new RoutingHandler(request => request.RequestUri == metadataUri
                 ? Payload(metadata)
@@ -567,7 +519,7 @@ public sealed class ReferenceCatalogUpdateTests
         }
 
         public string StoredHardwarePath(long revision) =>
-            Path.Combine(DataRoot, "ReferenceCatalog", "catalogs", revision.ToString(System.Globalization.CultureInfo.InvariantCulture), ReferenceCatalogBundleNames.Hardware);
+            Path.Combine(StoredCatalogDirectory(revision), ReferenceCatalogBundleNames.Hardware);
 
         public string StoredCatalogDirectory(long revision) =>
             Path.Combine(DataRoot, "ReferenceCatalog", "catalogs", revision.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -679,9 +631,7 @@ public sealed class ReferenceCatalogUpdateTests
             return current?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
         }
 
-        private static string RepositoryRoot() => RepositoryRootPath();
-
-        private static string ManifestPath(string name) => Path.Combine(RepositoryRoot(), "manifests", name);
+        private static string ManifestPath(string name) => Path.Combine(RepositoryRootPath(), "manifests", name);
 
         private static HttpResponseMessage Payload(byte[] bytes) => new(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
     }

@@ -8,11 +8,15 @@ using AVWorkstationToolkit.Domain.Catalog;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 
+/// <summary>
+/// Stores at most one downloaded signed reference catalog alongside the signed embedded baseline.
+/// Descriptive catalog data can never grant execution authority, so recovery is deliberately boring:
+/// anything that does not verify is deleted and the next best verified catalog is used.
+/// </summary>
 public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
 {
     public const string EmbeddedBundleRelativePath = "reference-catalog/AVWT-Reference-Catalog.avwtcatalog";
     public static readonly TimeSpan AutomaticCheckInterval = TimeSpan.FromHours(24);
-    private const int MaximumQuarantineEntries = 8;
     private static readonly UTF8Encoding Utf8 = new(false, true);
     private static readonly JsonSerializerOptions StateOptions = new()
     {
@@ -58,52 +62,22 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         EnsureDirectories();
         TryPerformConservativeCleanup();
         var state = ReadStateRecoveringMalformed();
-        LocalSelection? embedded = null;
-        var embeddedIncompatible = false;
-        try { embedded = LoadEmbeddedCandidate(); }
-        catch (ReferenceCatalogRequiresNewerApplicationException) { embeddedIncompatible = true; }
-        var compatible = new List<LocalSelection>();
-        var incompatibleRevisions = new HashSet<long>();
+        var embedded = LoadEmbeddedCandidate();
+        var stored = LoadStoredCandidates();
+        var selected = SelectEffectiveCatalog(stored, embedded);
 
-        foreach (var revision in EnumerateStoredRevisions(state))
-        {
-            try
-            {
-                var verified = verifier.VerifyDirectory(CatalogDirectory(revision));
-                if (verified.Manifest.Revision != revision)
-                    throw new CatalogValidationException("Stored reference catalog revision does not match its directory.");
-                compatible.Add(new(revision, verified.Manifest.CatalogVersion, false, verified));
-            }
-            catch (ReferenceCatalogRequiresNewerApplicationException exception) when (exception.Revision == revision)
-            {
-                // A fully verified snapshot can be incompatible with this executable and valid again after an app upgrade.
-                incompatibleRevisions.Add(revision);
-            }
-            catch (Exception exception) when (IsCatalogFailure(exception))
-            {
-                TryQuarantineStoredRevision(revision);
-            }
-        }
-
-        if (embedded is not null) compatible.Add(embedded);
-        var selected = SelectEffectiveCatalog(compatible, state);
         if (selected is not null)
         {
             effectiveSelection = selected;
-            TryPruneObsoleteCompatibleCatalogs(state, selected, compatible, incompatibleRevisions);
+            TryDeleteUnselectedStoredRevisions(selected);
             var source = selected.IsEmbedded ? "signed embedded" : "retained signed";
             var detail = $"The {source} reference catalog revision {selected.Revision} is active.";
-            if (incompatibleRevisions.Contains(state.ActiveRevision))
-                detail += " A newer retained catalog is valid but requires a newer AV Workstation Toolkit version.";
-            var restorable = GetRestorableRevision(state, selected, embedded);
-            Status = new(ReferenceCatalogUpdateState.Current, selected.Revision, selected.Version, 0, string.Empty, detail,
-                RestorableRevision: restorable);
+            if (state.ActiveRevision != selected.Revision && !selected.IsEmbedded)
+                TryWriteState(new(selected.Revision, state.LastCheckUtc));
+            Status = new(ReferenceCatalogUpdateState.Current, selected.Revision, selected.Version, 0, string.Empty, detail);
             return new(selected.Bundle.Hardware, selected.Bundle.Compatibility,
                 new(selected.Revision, selected.Version, selected.IsEmbedded, detail));
         }
-
-        if (embeddedIncompatible)
-            throw new CatalogValidationException("The packaged signed reference catalog is not compatible with this application release.");
 
         var hardware = new RepositoryHardwareIdentityCatalogLoader().Load(embeddedApplicationRoot);
         var compatibility = new RepositoryCompatibilityCatalogLoader().Load(embeddedApplicationRoot);
@@ -141,83 +115,16 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
             Status = Status with { State = ReferenceCatalogUpdateState.Validating, Detail = "Revalidating and activating the signed reference catalog…" };
             using var mutation = AcquireMutationLock();
             var state = ReadState();
-            ValidateRevisionChain(pending.Manifest, state, HighestRetainedRevision());
+            RequireForwardRevision(pending.Manifest.Revision, state);
             Activate(pending, state);
-            var activatedState = ReadState();
             Status = new(ReferenceCatalogUpdateState.Completed, pending.Manifest.Revision, pending.Manifest.CatalogVersion, 0, string.Empty,
-                "Signed reference catalog activated on disk. Restart AV Workstation Toolkit to use it for Device Lookup.", pending.Changes,
-                GetValidPreviousRevision(activatedState));
+                "Signed reference catalog activated on disk. Restart AV Workstation Toolkit to use it for Device Lookup.", pending.Changes);
             pending = null;
         }
         catch (Exception exception) when (IsMutationFailure(exception))
         {
             pending = null;
             Status = Status with { State = ReferenceCatalogUpdateState.Rejected, Detail = $"Reference catalog activation failed: {exception.Message}" };
-        }
-        return Task.FromResult(Status);
-    }
-
-    public Task<ReferenceCatalogUpdateStatus> ImportAsync(string bundlePath, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
-            Status = Status with { State = ReferenceCatalogUpdateState.Validating, Detail = "Validating signed reference catalog…" };
-            var verified = verifier.VerifyFile(bundlePath);
-            using var mutation = AcquireMutationLock();
-            var state = ReadState();
-            ValidateRevisionChain(verified.Manifest, state, HighestRetainedRevision());
-            Activate(verified, state);
-            var activatedState = ReadState();
-            Status = new(ReferenceCatalogUpdateState.Completed, verified.Manifest.Revision, verified.Manifest.CatalogVersion, 0, string.Empty,
-                "Signed reference catalog imported and activated on disk. Restart AV Workstation Toolkit to use it for Device Lookup.", verified.Changes,
-                GetValidPreviousRevision(activatedState));
-            pending = null;
-        }
-        catch (ReferenceCatalogRequiresNewerApplicationException exception)
-        {
-            pending = null;
-            Status = Status with { State = ReferenceCatalogUpdateState.RequiresNewerApp, Detail = exception.Message };
-        }
-        catch (Exception exception) when (IsMutationFailure(exception))
-        {
-            pending = null;
-            Status = Status with { State = ReferenceCatalogUpdateState.Rejected, Detail = $"Reference catalog rejected: {exception.Message}" };
-        }
-        return Task.FromResult(Status);
-    }
-
-    public Task<ReferenceCatalogUpdateStatus> RestorePreviousAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
-            using var mutation = AcquireMutationLock();
-            var state = ReadState();
-            var current = ResolveCurrentForMutation(state);
-            var embedded = LoadEmbeddedCandidate();
-            var restorableRevision = current is null ? 0 : GetRestorableRevision(state, current, embedded);
-            if (current is null || restorableRevision <= 0)
-                throw new CatalogValidationException("No previous signed reference catalog is available to restore.");
-
-            LocalSelection previous;
-            if (embedded is not null && embedded.Revision == restorableRevision)
-                previous = embedded;
-            else
-            {
-                var verified = verifier.VerifyDirectory(CatalogDirectory(restorableRevision));
-                previous = new(restorableRevision, verified.Manifest.CatalogVersion, false, verified);
-            }
-
-            WriteState(new(previous.IsEmbedded ? 0 : previous.Revision, 0, current.Revision, state.LastCheckUtc));
-            pending = null;
-            Status = new(ReferenceCatalogUpdateState.Completed, previous.Revision, previous.Version, 0, string.Empty,
-                "Previous signed reference catalog restored on disk. Restart AV Workstation Toolkit to use it for Device Lookup.");
-        }
-        catch (Exception exception) when (IsMutationFailure(exception))
-        {
-            pending = null;
-            Status = Status with { State = ReferenceCatalogUpdateState.Rejected, RestorableRevision = 0, Detail = $"Previous reference catalog could not be restored: {exception.Message}" };
         }
         return Task.FromResult(Status);
     }
@@ -237,7 +144,7 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
             if (!quietFailure)
                 Status = Status with { State = ReferenceCatalogUpdateState.Checking, Detail = "Checking the signed reference-catalog channel…" };
             var state = ReadStateRecoveringMalformed();
-            var available = await channel.GetLatestAsync(Math.Max(HighestAcceptedRevision(state), HighestRetainedRevision()), cancellationToken).ConfigureAwait(false);
+            var available = await channel.GetLatestAsync(HighestRetainedRevision(state), cancellationToken).ConfigureAwait(false);
             if (available is null)
             {
                 pending = null;
@@ -250,14 +157,14 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
                 !string.Equals(verified.Manifest.CatalogVersion, available.Version, StringComparison.Ordinal) ||
                 !string.Equals(verified.Manifest.MinimumAppVersion, available.MinimumAppVersion, StringComparison.Ordinal))
                 throw new CatalogValidationException("Signed channel metadata does not match the signed reference catalog bundle.");
-            ValidateRevisionChain(verified.Manifest, state, HighestRetainedRevision());
+            RequireForwardRevision(verified.Manifest.Revision, state);
             pending = verified;
             Status = new(ReferenceCatalogUpdateState.UpdateAvailable, effectiveSelection?.Revision ?? state.ActiveRevision, Status.CurrentVersion,
-                verified.Manifest.Revision, verified.Manifest.CatalogVersion, "A signed descriptive reference-catalog update is available.", verified.Changes,
-                GetValidPreviousRevision(state));
+                verified.Manifest.Revision, verified.Manifest.CatalogVersion, "A signed descriptive reference-catalog update is available.", verified.Changes);
         }
         catch (ReferenceCatalogRequiresNewerApplicationException exception)
         {
+            // Never retained: a catalog that needs a newer application is re-downloaded after the upgrade.
             pending = null;
             Status = quietFailure ? priorStatus : Status with { State = ReferenceCatalogUpdateState.RequiresNewerApp, Detail = exception.Message };
         }
@@ -282,7 +189,6 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
     private void Activate(VerifiedReferenceCatalogBundle bundle, StateDocument state)
     {
         EnsureDirectories();
-        var current = ResolveCurrentForMutation(state);
         var final = CatalogDirectory(bundle.Manifest.Revision);
         if (Directory.Exists(final)) throw new CatalogValidationException("Reference catalog revision already exists.");
         var staging = Path.Combine(root, "staging", $"{bundle.Manifest.Revision}-{Guid.NewGuid():N}");
@@ -298,8 +204,9 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
             }
             _ = verifier.VerifyDirectory(staging);
             Directory.Move(staging, final);
-            WriteState(new(bundle.Manifest.Revision, current is { IsEmbedded: false } ? current.Revision : 0, 0, state.LastCheckUtc));
+            WriteState(new(bundle.Manifest.Revision, state.LastCheckUtc));
             effectiveSelection = null;
+            DeleteStoredRevisionsExcept(bundle.Manifest.Revision);
         }
         finally
         {
@@ -307,103 +214,63 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         }
     }
 
-    private LocalSelection? ResolveCurrentForMutation(StateDocument state)
-    {
-        if (effectiveSelection is not null) return effectiveSelection;
-        var embedded = LoadEmbeddedCandidate();
-        var candidates = new List<LocalSelection>();
-        foreach (var revision in EnumerateStoredRevisions(state))
-        {
-            try
-            {
-                var verified = verifier.VerifyDirectory(CatalogDirectory(revision));
-                if (verified.Manifest.Revision == revision)
-                    candidates.Add(new(revision, verified.Manifest.CatalogVersion, false, verified));
-            }
-            catch (ReferenceCatalogRequiresNewerApplicationException) { }
-            catch (Exception exception) when (IsCatalogFailure(exception)) { }
-        }
-        if (embedded is not null) candidates.Add(embedded);
-        return SelectEffectiveCatalog(candidates, state);
-    }
-
     private LocalSelection? LoadEmbeddedCandidate()
     {
         var path = EmbeddedBundlePath();
         if (!File.Exists(path)) return null;
-        var verified = verifier.VerifyFile(path);
-        return new(verified.Manifest.Revision, verified.Manifest.CatalogVersion, true, verified);
-    }
-
-    private static LocalSelection? SelectEffectiveCatalog(IEnumerable<LocalSelection> candidates, StateDocument state) =>
-        candidates.Where(candidate => state.SuppressedRevision <= 0 || candidate.Revision == state.ActiveRevision || candidate.Revision > state.SuppressedRevision)
-            .OrderByDescending(candidate => candidate.Revision)
-            .ThenBy(candidate => candidate.IsEmbedded)
-            .FirstOrDefault();
-
-    private long GetRestorableRevision(StateDocument state, LocalSelection current, LocalSelection? embedded)
-    {
-        var candidates = new List<long>();
-        foreach (var revision in new[] { state.ActiveRevision, state.PreviousRevision }.Distinct())
-            if (revision > 0 && revision < current.Revision && GetValidStoredRevision(revision) is not null)
-                candidates.Add(revision);
-        if (embedded is not null && embedded.Revision < current.Revision)
-            candidates.Add(embedded.Revision);
-        return candidates.Count == 0 ? 0 : candidates.Max();
-    }
-
-    private long GetValidPreviousRevision(StateDocument state) =>
-        state.PreviousRevision > 0 && GetValidStoredRevision(state.PreviousRevision) is not null ? state.PreviousRevision : 0;
-
-    private VerifiedReferenceCatalogBundle? GetValidStoredRevision(long revision)
-    {
         try
         {
-            var verified = verifier.VerifyDirectory(CatalogDirectory(revision));
-            return verified.Manifest.Revision == revision ? verified : null;
+            var verified = verifier.VerifyFile(path);
+            return new(verified.Manifest.Revision, verified.Manifest.CatalogVersion, true, verified);
         }
-        catch (ReferenceCatalogRequiresNewerApplicationException) { return null; }
-        catch (Exception exception) when (IsCatalogFailure(exception))
+        catch (ReferenceCatalogRequiresNewerApplicationException)
         {
-            TryQuarantineStoredRevision(revision);
-            return null;
+            throw new CatalogValidationException("The packaged signed reference catalog is not compatible with this application release.");
         }
     }
 
-    private static void ValidateRevisionChain(ReferenceCatalogBundleManifest manifest, StateDocument state, long highestRetainedRevision)
+    private List<LocalSelection> LoadStoredCandidates()
     {
-        if (manifest.Revision <= Math.Max(HighestAcceptedRevision(state), highestRetainedRevision))
-            throw new CatalogValidationException("Reference catalog rollback or same-revision activation is not permitted.");
-    }
-
-    private static long HighestAcceptedRevision(StateDocument state) =>
-        Math.Max(state.ActiveRevision, Math.Max(state.PreviousRevision, state.SuppressedRevision));
-
-    private long HighestRetainedRevision()
-    {
-        var embeddedRevision = 0L;
-        try { embeddedRevision = LoadEmbeddedCandidate()?.Revision ?? 0; }
-        catch (ReferenceCatalogRequiresNewerApplicationException exception) { embeddedRevision = exception.Revision; }
-        var storedRevision = 0L;
+        var candidates = new List<LocalSelection>();
         foreach (var revision in EnumerateStoredRevisionDirectories())
         {
             try
             {
                 var verified = verifier.VerifyDirectory(CatalogDirectory(revision));
-                if (verified.Manifest.Revision == revision) storedRevision = Math.Max(storedRevision, revision);
+                if (verified.Manifest.Revision != revision)
+                    throw new CatalogValidationException("Stored reference catalog revision does not match its directory.");
+                candidates.Add(new(revision, verified.Manifest.CatalogVersion, false, verified));
             }
-            catch (ReferenceCatalogRequiresNewerApplicationException exception) when (exception.Revision == revision)
+            catch (Exception exception) when (exception is ReferenceCatalogRequiresNewerApplicationException || IsCatalogFailure(exception))
             {
-                storedRevision = Math.Max(storedRevision, revision);
+                TryDeleteStoredRevision(revision);
             }
-            catch (Exception exception) when (IsCatalogFailure(exception)) { }
         }
-        return Math.Max(embeddedRevision, storedRevision);
+        return candidates;
     }
 
-    private IEnumerable<long> EnumerateStoredRevisions(StateDocument state) =>
-        EnumerateStoredRevisionDirectories().Concat([state.ActiveRevision, state.PreviousRevision])
-            .Where(value => value > 0).Distinct().OrderByDescending(value => value);
+    private static LocalSelection? SelectEffectiveCatalog(IEnumerable<LocalSelection> stored, LocalSelection? embedded)
+    {
+        var candidates = new List<LocalSelection>(stored);
+        if (embedded is not null) candidates.Add(embedded);
+        return candidates.OrderByDescending(candidate => candidate.Revision).ThenBy(candidate => candidate.IsEmbedded).FirstOrDefault();
+    }
+
+    private void RequireForwardRevision(long revision, StateDocument state)
+    {
+        if (revision <= HighestRetainedRevision(state))
+            throw new CatalogValidationException("Reference catalog rollback or same-revision activation is not permitted.");
+    }
+
+    private long HighestRetainedRevision(StateDocument state)
+    {
+        var highest = state.ActiveRevision;
+        try { highest = Math.Max(highest, LoadEmbeddedCandidate()?.Revision ?? 0); }
+        catch (CatalogValidationException) { }
+        foreach (var revision in EnumerateStoredRevisionDirectories())
+            highest = Math.Max(highest, revision);
+        return highest;
+    }
 
     private IEnumerable<long> EnumerateStoredRevisionDirectories()
     {
@@ -422,16 +289,21 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         try { return ReadState(); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CatalogValidationException or JsonException)
         {
-            try { using var mutation = AcquireMutationLock(); QuarantineState(); }
+            try
+            {
+                using var mutation = AcquireMutationLock();
+                var path = Path.Combine(root, "state.json");
+                if (File.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) == 0) File.Delete(path);
+            }
             catch (Exception cleanupException) when (cleanupException is IOException or UnauthorizedAccessException or TimeoutException) { }
-            return new(0, 0, 0, DateTimeOffset.MinValue);
+            return new(0, DateTimeOffset.MinValue);
         }
     }
 
     private StateDocument ReadState()
     {
         var path = Path.Combine(root, "state.json");
-        if (!File.Exists(path)) return new(0, 0, 0, DateTimeOffset.MinValue);
+        if (!File.Exists(path)) return new(0, DateTimeOffset.MinValue);
         try
         {
             var info = new FileInfo(path);
@@ -444,13 +316,11 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (var property in document.RootElement.EnumerateObject())
                 if (!names.Add(property.Name)) throw new CatalogValidationException($"Reference catalog state repeats JSON property '{property.Name}'.");
-            if (!names.SetEquals(["ActiveRevision", "PreviousRevision", "SuppressedRevision", "LastCheckUtc"]))
+            if (!names.SetEquals(["ActiveRevision", "LastCheckUtc"]))
                 throw new CatalogValidationException("Reference catalog state fields are incomplete.");
             var state = JsonSerializer.Deserialize<StateDocument>(json, StateOptions)
                 ?? throw new CatalogValidationException("Reference catalog state file is empty.");
-            if (state.ActiveRevision < 0 || state.PreviousRevision < 0 || state.SuppressedRevision < 0 ||
-                (state.PreviousRevision > 0 && (state.ActiveRevision <= 0 || state.PreviousRevision >= state.ActiveRevision)) ||
-                (state.SuppressedRevision > 0 && state.SuppressedRevision <= state.ActiveRevision))
+            if (state.ActiveRevision < 0)
                 throw new CatalogValidationException("Reference catalog state revisions are invalid.");
             return state;
         }
@@ -477,6 +347,12 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
+    private void TryWriteState(StateDocument state)
+    {
+        try { using var mutation = AcquireMutationLock(); WriteState(state); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException) { }
+    }
+
     private void TryRecordCheckTime()
     {
         try
@@ -491,7 +367,7 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
     {
         Directory.CreateDirectory(root);
         RejectReparse(root);
-        foreach (var name in new[] { "catalogs", "staging", "quarantine" })
+        foreach (var name in new[] { "catalogs", "staging" })
         {
             var path = Path.Combine(root, name);
             Directory.CreateDirectory(path);
@@ -511,66 +387,41 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
             }
             foreach (var temporary in Directory.EnumerateFiles(root, "state.*.tmp", SearchOption.TopDirectoryOnly))
                 if ((File.GetAttributes(temporary) & FileAttributes.ReparsePoint) == 0) File.Delete(temporary);
-            var oldQuarantine = Directory.EnumerateFileSystemEntries(Path.Combine(root, "quarantine"), "*", SearchOption.TopDirectoryOnly)
-                .Where(path => (File.GetAttributes(path) & FileAttributes.ReparsePoint) == 0)
-                .OrderByDescending(File.GetLastWriteTimeUtc).Skip(MaximumQuarantineEntries).ToArray();
-            foreach (var path in oldQuarantine)
-            {
-                if (Directory.Exists(path)) Directory.Delete(path, recursive: true); else File.Delete(path);
-            }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException) { }
     }
 
-    private void TryPruneObsoleteCompatibleCatalogs(
-        StateDocument state,
-        LocalSelection selected,
-        IReadOnlyCollection<LocalSelection> compatible,
-        IReadOnlySet<long> incompatibleRevisions)
+    private void TryDeleteUnselectedStoredRevisions(LocalSelection selected)
     {
         try
         {
             using var mutation = AcquireMutationLock();
-            var retained = new HashSet<long>(incompatibleRevisions);
-            retained.Add(selected.Revision);
-            foreach (var revision in new[] { state.ActiveRevision, state.PreviousRevision, state.SuppressedRevision }.Where(value => value > 0))
-                retained.Add(revision);
-            foreach (var revision in compatible.Where(item => !item.IsEmbedded).OrderByDescending(item => item.Revision).Take(3).Select(item => item.Revision))
-                retained.Add(revision);
-            foreach (var obsolete in compatible.Where(item => !item.IsEmbedded && !retained.Contains(item.Revision)))
-            {
-                var path = CatalogDirectory(obsolete.Revision);
-                if (Directory.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) == 0)
-                    Directory.Delete(path, recursive: true);
-            }
+            DeleteStoredRevisionsExcept(selected.IsEmbedded ? 0 : selected.Revision);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException) { }
     }
 
-    private string CatalogDirectory(long revision) => Path.Combine(root, "catalogs", revision.ToString(CultureInfo.InvariantCulture));
-    private string EmbeddedBundlePath() => Path.Combine(embeddedApplicationRoot, EmbeddedBundleRelativePath.Replace('/', Path.DirectorySeparatorChar));
-
-    private void TryQuarantineStoredRevision(long revision)
+    private void DeleteStoredRevisionsExcept(long retainedRevision)
     {
-        try { using var mutation = AcquireMutationLock(); QuarantineStoredRevision(revision); }
+        foreach (var revision in EnumerateStoredRevisionDirectories().Where(value => value != retainedRevision).ToArray())
+            DeleteStoredRevision(revision);
+    }
+
+    private void TryDeleteStoredRevision(long revision)
+    {
+        try { using var mutation = AcquireMutationLock(); DeleteStoredRevision(revision); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException) { }
     }
 
-    private void QuarantineStoredRevision(long revision)
+    private void DeleteStoredRevision(long revision)
     {
-        var source = CatalogDirectory(revision);
-        if (!Directory.Exists(source)) return;
-        EnsureDirectories();
-        Directory.Move(source, Path.Combine(root, "quarantine", $"{revision}-{timeProvider.GetUtcNow():yyyyMMddHHmmssfff}-{Guid.NewGuid():N}"));
+        var path = CatalogDirectory(revision);
+        if (Directory.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) == 0)
+            Directory.Delete(path, recursive: true);
     }
 
-    private void QuarantineState()
-    {
-        var source = Path.Combine(root, "state.json");
-        if (!File.Exists(source)) return;
-        EnsureDirectories();
-        File.Move(source, Path.Combine(root, "quarantine", $"state-{timeProvider.GetUtcNow():yyyyMMddHHmmssfff}-{Guid.NewGuid():N}.json"));
-    }
+    private string CatalogDirectory(long revision) => Path.Combine(root, "catalogs", revision.ToString(CultureInfo.InvariantCulture));
+    private string EmbeddedBundlePath() => Path.Combine(embeddedApplicationRoot, EmbeddedBundleRelativePath.Replace('/', Path.DirectorySeparatorChar));
 
     private MutationLease AcquireMutationLock() => new(root, mutationLockTimeout);
 
@@ -605,7 +456,7 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
     }
 
     [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-    private sealed record StateDocument(long ActiveRevision, long PreviousRevision, long SuppressedRevision, DateTimeOffset LastCheckUtc);
+    private sealed record StateDocument(long ActiveRevision, DateTimeOffset LastCheckUtc);
 
     private sealed record LocalSelection(long Revision, string Version, bool IsEmbedded, VerifiedReferenceCatalogBundle Bundle);
 

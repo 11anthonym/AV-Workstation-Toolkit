@@ -1108,10 +1108,7 @@ public sealed class CompiledPresentationTests
         Assert.AreEqual("Device catalog saved", updates.StateLabel);
         StringAssert.Contains(updates.DetailLabel, "Restart AV Workstation Toolkit");
         Assert.AreEqual(1, service.InstallCalls);
-        Assert.IsTrue(updates.RestoreCommand.CanExecute(null));
-        await updates.RestoreAsync();
-        Assert.AreEqual(1, service.RestoreCalls);
-        Assert.IsFalse(updates.RestoreCommand.CanExecute(null));
+        Assert.IsFalse(updates.InstallCommand.CanExecute(null));
         Assert.IsFalse(updates.IsBusy);
     }
 
@@ -1307,7 +1304,6 @@ public sealed class CompiledPresentationTests
     private sealed class RecordingReferenceCatalogUpdateService : IReferenceCatalogUpdateService
     {
         public int InstallCalls { get; private set; }
-        public int RestoreCalls { get; private set; }
         public ReferenceCatalogUpdateStatus Status { get; private set; } = new(ReferenceCatalogUpdateState.Current, 0, "Embedded", 0, string.Empty, "Current");
         public ReferenceCatalogSet LoadActiveOrEmbedded() => throw new AssertFailedException("Presentation commands must not reload catalog data directly.");
         public Task<ReferenceCatalogUpdateStatus> CheckAsync(CancellationToken cancellationToken = default)
@@ -1319,15 +1315,7 @@ public sealed class CompiledPresentationTests
         public Task<ReferenceCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default)
         {
             InstallCalls++;
-            Status = new(ReferenceCatalogUpdateState.Completed, 1, "2026.9.12.1", 0, string.Empty, "Installed", RestorableRevision: 7);
-            return Task.FromResult(Status);
-        }
-        public Task<ReferenceCatalogUpdateStatus> ImportAsync(string bundlePath, CancellationToken cancellationToken = default) =>
-            throw new AssertFailedException("The update command must not use the offline import path.");
-        public Task<ReferenceCatalogUpdateStatus> RestorePreviousAsync(CancellationToken cancellationToken = default)
-        {
-            RestoreCalls++;
-            Status = new(ReferenceCatalogUpdateState.Completed, 7, "2026.9.11.7", 0, string.Empty, "Restored");
+            Status = new(ReferenceCatalogUpdateState.Completed, 1, "2026.9.12.1", 0, string.Empty, "Installed");
             return Task.FromResult(Status);
         }
     }
