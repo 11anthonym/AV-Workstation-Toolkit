@@ -37,12 +37,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- These AdditionalProperties build App in a second, dependency-file-free flavour into the same
+         output path. That is why this project is deliberately NOT in AVWorkstationToolkit.slnx: a
+         solution build would race this flavour against the plain App build that the test projects
+         reference, and their copy step would fail on the missing App.deps.json/runtimeconfig.json.
+         The launcher is built and verified by build\Build-Release.ps1 and tests\Test-Package.ps1. -->
     <ProjectReference Include="..\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj"
                       AdditionalProperties="GenerateRuntimeConfigurationFiles=false;GenerateDependencyFile=false;SelfContained=false;PublishSingleFile=false" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\manifests\*.json">
+    <!-- process-launch-policy.json and winget-team-baseline.json are reviewed repository inputs, not
+         runtime inputs: no shipping code parses either one, so they are not embedded or extracted. -->
+    <EmbeddedResource Include="..\..\manifests\*.json"
+                      Exclude="..\..\manifests\process-launch-policy.json;..\..\manifests\winget-team-baseline.json">
       <LogicalName>AVWorkstationToolkit.Payload.manifests/%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\THIRD-PARTY-NOTICES.md">

@@ -49,7 +49,7 @@ After the automated suite passes, use the packaged production smoke in
 `Test-Package.ps1` and perform an interactive review of the actual compiled
 window when a material presentation change requires human visual evidence.
 
-The packaged compiled-production smoke is the authoritative automated geometry gate. It measures the current WPF surface at 1040x760, 1280x860, 1440x900, and 1920x1080 and exercises current filter, selection, menu, icon, and activity-follow behavior. `Test-VisualLayout.ps1` is retained only as legacy PowerShell presentation characterization and is not a release-candidate gate for the compiled runtime.
+The packaged compiled-production smoke is the authoritative automated geometry gate. It measures the current WPF surface at 1040x760, 1280x860, 1440x900, and 1920x1080 and exercises current filter, selection, menu, icon, and activity-follow behavior.
 
 Automated geometry and screenshot evidence never substitutes for an interactive desktop review required for a production release.
 
