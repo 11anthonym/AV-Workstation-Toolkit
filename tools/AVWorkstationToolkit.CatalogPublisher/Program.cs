@@ -11,7 +11,7 @@ try
             Required:
               --version <numeric version> --revision <positive integer>
               --minimum-app-version <numeric version>
-              --created-utc <ISO-8601 UTC> --expires-utc <ISO-8601 UTC>
+              --created-utc <ISO-8601 UTC>
               --signing-key-id <ID> --private-key <absolute PEM path outside repository>
               --public-base-uri <https://host/feed-root/>
 
@@ -87,7 +87,6 @@ file sealed class Arguments
             long.Parse(parsed.Required("--revision"), NumberStyles.None, CultureInfo.InvariantCulture),
             parsed.Required("--minimum-app-version"),
             DateTimeOffset.Parse(parsed.Required("--created-utc"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            DateTimeOffset.Parse(parsed.Required("--expires-utc"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
             parsed.Required("--signing-key-id"),
             Path.GetFullPath(parsed.Required("--private-key")),
             new Uri(parsed.Required("--public-base-uri"), UriKind.Absolute),
@@ -104,6 +103,6 @@ file sealed class Arguments
     private static readonly HashSet<string> Allowed = new(StringComparer.Ordinal)
     {
         "--repository-root", "--output-root", "--version", "--revision", "--minimum-app-version", "--created-utc",
-        "--expires-utc", "--signing-key-id", "--private-key", "--public-base-uri", "--previous-catalog", "--trusted-public-key"
+        "--signing-key-id", "--private-key", "--public-base-uri", "--previous-catalog", "--trusted-public-key"
     };
 }

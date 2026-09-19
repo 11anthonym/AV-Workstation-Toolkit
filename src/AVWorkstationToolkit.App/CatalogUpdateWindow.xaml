@@ -6,7 +6,6 @@
         Icon="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.ico"
         AutomationProperties.Name="Device catalog updates">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style TargetType="Button"><Setter Property="Foreground" Value="#E8EEF8"/><Setter Property="Background" Value="#1D2A40"/><Setter Property="BorderBrush" Value="#344663"/><Setter Property="Padding" Value="14,8"/><Setter Property="Margin" Value="0,0,8,0"/><Setter Property="MinHeight" Value="36"/></Style>
     </Window.Resources>
     <Grid Margin="24">
@@ -23,12 +22,10 @@
                 <TextBlock Text="{Binding ChangeSummary}" TextWrapping="Wrap" Foreground="#C5D4E8"/>
             </StackPanel>
         </Border>
-        <TextBlock Grid.Row="3" Margin="0,16,0,0" Foreground="#94A4BB" TextWrapping="Wrap" Text="Downloaded and imported catalogs are checked before they are saved. Restart AV Workstation Toolkit to use a newly saved or restored catalog."/>
+        <TextBlock Grid.Row="3" Margin="0,16,0,0" Foreground="#94A4BB" TextWrapping="Wrap" Text="Downloaded catalogs are checked before they are saved. If a catalog can't be verified, your current catalog stays in use. Restart AV Workstation Toolkit to use a newly saved catalog."/>
         <WrapPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="CheckNowButton" Content="Check now" Command="{Binding CheckNowCommand}" AutomationProperties.Name="Check for device catalog updates"/>
             <Button x:Name="UpdateCatalogButton" Content="Download update" Command="{Binding InstallCommand}" AutomationProperties.Name="Download and save the verified device catalog update"/>
-            <Button x:Name="ImportButton" Content="Import catalog…" Command="{Binding ImportCommand}" AutomationProperties.Name="Import a signed device catalog"/>
-            <Button x:Name="RestoreButton" Content="Restore previous catalog" Command="{Binding RestoreCommand}" Visibility="{Binding CanRestorePrevious, Converter={StaticResource BooleanToVisibilityConverter}}" AutomationProperties.Name="Restore the previous signed device catalog"/>
             <Button Content="Close" IsCancel="True" Margin="0"/>
         </WrapPanel>
     </Grid>

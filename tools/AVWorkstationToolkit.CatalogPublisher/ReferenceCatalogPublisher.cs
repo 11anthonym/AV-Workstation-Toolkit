@@ -14,7 +14,6 @@ public sealed record ReferenceCatalogPublishOptions(
     long Revision,
     string MinimumAppVersion,
     DateTimeOffset CreatedUtc,
-    DateTimeOffset ExpiresUtc,
     string SigningKeyId,
     string PrivateKeyPath,
     Uri PublicBaseUri,
@@ -157,7 +156,7 @@ public sealed class ReferenceCatalogPublisher
             var bundleBytes = File.ReadAllBytes(stagedBundle);
             var bundleHash = Convert.ToHexString(SHA256.HashData(bundleBytes));
             var bundleUri = new Uri(options.PublicBaseUri, $"catalogs/{options.Revision}/{bundleName}");
-            var channelBytes = WriteChannel(manifest, options.ExpiresUtc, bundleUri, bundleHash);
+            var channelBytes = WriteChannel(manifest, bundleUri, bundleHash);
             var channelSignature = Sign(signingKey, channelBytes);
             var verifiedChannel = new ReferenceCatalogChannelVerifier(trustedKeys).Verify(channelBytes, channelSignature, DateTimeOffset.UtcNow);
             if (verifiedChannel.Revision != manifest.Revision || verifiedChannel.PreviousRevision != manifest.PreviousRevision ||
@@ -308,7 +307,7 @@ public sealed class ReferenceCatalogPublisher
         writer.WriteEndObject();
     });
 
-    private static byte[] WriteChannel(ReferenceCatalogBundleManifest manifest, DateTimeOffset expiresUtc, Uri bundleUri, string bundleHash) => WriteJson(writer =>
+    private static byte[] WriteChannel(ReferenceCatalogBundleManifest manifest, Uri bundleUri, string bundleHash) => WriteJson(writer =>
     {
         writer.WriteStartObject();
         writer.WriteString(nameof(manifest.CatalogId), manifest.CatalogId);
@@ -318,7 +317,6 @@ public sealed class ReferenceCatalogPublisher
         writer.WriteNumber(nameof(manifest.PreviousRevision), manifest.PreviousRevision);
         writer.WriteString(nameof(manifest.MinimumAppVersion), manifest.MinimumAppVersion);
         writer.WriteString(nameof(manifest.CreatedUtc), manifest.CreatedUtc);
-        writer.WriteString("ExpiresUtc", expiresUtc);
         writer.WriteString(nameof(manifest.SigningKeyId), manifest.SigningKeyId);
         writer.WriteString("BundleUri", bundleUri.AbsoluteUri);
         writer.WriteString("BundleSha256", bundleHash);
@@ -438,9 +436,8 @@ public sealed class ReferenceCatalogPublisher
             throw new CatalogValidationException("Catalog and minimum application versions must be bounded numeric versions.");
         if (string.IsNullOrWhiteSpace(options.SigningKeyId) || options.SigningKeyId.Length > 128 || options.SigningKeyId.Any(char.IsControl))
             throw new CatalogValidationException("Catalog signing key ID is invalid.");
-        if (options.CreatedUtc == default || options.CreatedUtc.Offset != TimeSpan.Zero || options.ExpiresUtc == default || options.ExpiresUtc.Offset != TimeSpan.Zero ||
-            options.ExpiresUtc <= options.CreatedUtc || options.ExpiresUtc - options.CreatedUtc > TimeSpan.FromDays(31))
-            throw new CatalogValidationException("Catalog channel timestamps must be UTC and expire within 31 days.");
+        if (options.CreatedUtc == default || options.CreatedUtc.Offset != TimeSpan.Zero)
+            throw new CatalogValidationException("Catalog channel publication timestamp must be UTC.");
         if (!options.PublicBaseUri.IsAbsoluteUri || options.PublicBaseUri.Scheme != Uri.UriSchemeHttps || !options.PublicBaseUri.IsDefaultPort ||
             !string.IsNullOrEmpty(options.PublicBaseUri.UserInfo) || string.IsNullOrWhiteSpace(options.PublicBaseUri.IdnHost) || !options.PublicBaseUri.AbsolutePath.EndsWith('/'))
             throw new CatalogValidationException("Catalog public base URI must be an absolute default-port HTTPS directory URI.");

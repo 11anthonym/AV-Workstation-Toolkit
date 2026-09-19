@@ -262,13 +262,14 @@ if ($referenceCatalogSource -notmatch 'ECDsa' -or
     $referenceCatalogSource -notmatch 'AllowAutoRedirect\s*=\s*false' -or
     $referenceCatalogSource -notmatch 'UseDefaultCredentials\s*=\s*false' -or
     $referenceCatalogSource -notmatch 'PreviousRevision' -or
-    $referenceCatalogSource -notmatch 'quarantine' -or
+    $referenceCatalogSource -notmatch 'RequireForwardRevision' -or
+    $referenceCatalogSource -notmatch 'DeleteStoredRevisionsExcept' -or
     $referenceCatalogSource -notmatch 'AVWT-Reference-Catalog\.avwtcatalog' -or
     $referenceCatalogSource -notmatch 'CheckInBackgroundIfDueAsync' -or
     $referenceCatalogSource -notmatch 'AutomaticCheckInterval\s*=\s*TimeSpan\.FromHours\(24\)' -or
     $referenceCatalogSource -notmatch 'Local\\\\AVWT\.ReferenceCatalog' -or
     $referenceCatalogSource -notmatch 'ReferenceCatalogRequiresNewerApplicationException') {
-    throw 'The signed reference-catalog boundary lost signature, schema, ZIP, transport, rollback, or recovery controls.'
+    throw 'The signed reference-catalog boundary lost signature, schema, ZIP, transport, monotonic-revision, or recovery controls.'
 }
 if ($productionReferenceCatalogConfiguration -notmatch 'https://11anthonym\.github\.io/AVWT-Catalog/stable/catalog-channel\.json' -or
     $productionReferenceCatalogConfiguration -notmatch 'https://11anthonym\.github\.io/AVWT-Catalog/stable/catalog-channel\.sig' -or
