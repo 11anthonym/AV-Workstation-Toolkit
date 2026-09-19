@@ -1149,6 +1149,71 @@ Invoke-Check 'Generated winget baseline agrees with the canonical managed JSON c
     $actualIds = @($baseline.Sources[0].Packages | ForEach-Object PackageIdentifier)
     Assert-Equal ($expectedIds -join '|') ($actualIds -join '|') 'Generated baseline drifted from the canonical managed JSON catalog.'
 }
+Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog' {
+    $generator = Join-Path $scriptsRoot 'Export-AVWorkstationToolkitBaselineManifest.ps1'
+    $source = Get-Content -LiteralPath $generator -Raw
+    $canonicalNeedle = "'" + 'manifests\managed-applications.json' + "'"
+    Assert-True ($source.Contains($canonicalNeedle)) 'Baseline generator does not default to the canonical managed JSON catalog.'
+    # Target the dependency mechanisms, not the word: the doc comment legitimately names the retired fixture.
+    Assert-True ($source -notmatch 'Import-Module|AVWorkstationToolkit\.Core|Get-AVWorkstationToolkitCatalog') 'Baseline generator still loads the legacy PowerShell catalog module.'
+    Assert-True ($source -notmatch "AppProfiles[A-Za-z0-9_.-]*\.psd1'|Join-Path[^\r\n]*AppProfiles|Import-PowerShellDataFile") 'Baseline generator still resolves or parses the retired AppProfiles catalog file.'
+
+    if (-not $launchIsElevated) {
+        $sandbox = Join-Path ([IO.Path]::GetTempPath()) ("avwt-baseline-" + [Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $sandbox -Force | Out-Null
+        try {
+            # A catalog that shares no eligible package ID with the real one. Anything the generator
+            # emits must come from this file, so a stale AppProfiles.psd1 read would be visible.
+            $substitute = [ordered]@{
+                SchemaVersion = 1
+                ForbiddenPattern = [string]$managedCatalogDocument.ForbiddenPattern
+                Packages = @(
+                    [ordered]@{ Profile='Standard'; Name='Fixture Eligible'; Id='Fixture.Eligible'; Vendor='Fixture'; Risk='None'; Note='Eligible baseline record' }
+                    [ordered]@{ Profile='Standard'; Name='Fixture Held'; Id='Fixture.Held'; Vendor='Fixture'; Risk='None'; Note='Held record'; Deployment='ManualHold' }
+                    [ordered]@{ Profile='Standard'; Name='Fixture Driver'; Id='Fixture.Driver'; Vendor='Fixture'; Risk='Driver'; Note='Risk-bearing record' }
+                    [ordered]@{ Profile='Optional'; Name='Fixture Optional'; Id='Fixture.Optional'; Vendor='Fixture'; Risk='None'; Note='Non-Standard record' }
+                )
+            }
+            $substitutePath = Join-Path $sandbox 'managed-applications.json'
+            $substitute | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $substitutePath -Encoding UTF8
+            $generatedPath = Join-Path $sandbox 'winget-team-baseline.json'
+            & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator -ManagedCatalogPath $substitutePath -OutputPath $generatedPath | Out-Null
+            Assert-Equal 0 $LASTEXITCODE 'Baseline generator failed against a substituted canonical catalog.'
+            $generated = @((Get-Content -LiteralPath $generatedPath -Raw | ConvertFrom-Json).Sources[0].Packages | ForEach-Object PackageIdentifier)
+            Assert-Equal 'Fixture.Eligible' ($generated -join '|') 'Baseline generation did not follow the supplied canonical catalog exactly.'
+            foreach ($realId in @($managedCatalogDocument.Packages | ForEach-Object { [string]$_.Id })) {
+                Assert-NotContains $generated $realId 'Baseline generation leaked package IDs from a catalog it was not given.'
+            }
+
+            # Strictness: an unsupported field and a forbidden-product match must both fail closed.
+            # Windows PowerShell 5.1 promotes native stderr to ErrorRecord, so capture it explicitly
+            # rather than letting an intentional child-process failure terminate this check.
+            $unknownField = Join-Path $sandbox 'unknown-field.json'
+            ($substitute | ConvertTo-Json -Depth 6).Replace('"Vendor":  "Fixture"','"Vendr":  "Fixture"') |
+                Set-Content -LiteralPath $unknownField -Encoding UTF8
+            $forbiddenCatalog = Join-Path $sandbox 'forbidden.json'
+            ($substitute | ConvertTo-Json -Depth 6).Replace('Eligible baseline record','Bundled CrowdStrike Falcon sensor') |
+                Set-Content -LiteralPath $forbiddenCatalog -Encoding UTF8
+
+            $rejectionPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator `
+                    -ManagedCatalogPath $unknownField -OutputPath (Join-Path $sandbox 'unknown.json') 2>&1 | Out-String | Out-Null
+                $unknownFieldExit = $LASTEXITCODE
+                & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator `
+                    -ManagedCatalogPath $forbiddenCatalog -OutputPath (Join-Path $sandbox 'forbidden-out.json') 2>&1 | Out-String | Out-Null
+                $forbiddenExit = $LASTEXITCODE
+            }
+            finally { $ErrorActionPreference = $rejectionPreference }
+            Assert-True ($unknownFieldExit -ne 0) 'Baseline generator accepted an unsupported managed-catalog field.'
+            Assert-True ($forbiddenExit -ne 0) 'Baseline generator accepted a forbidden-product catalog entry.'
+            Assert-True (-not (Test-Path -LiteralPath (Join-Path $sandbox 'unknown.json'))) 'Baseline generator wrote output for a rejected managed catalog.'
+            Assert-True (-not (Test-Path -LiteralPath (Join-Path $sandbox 'forbidden-out.json'))) 'Baseline generator wrote output for a forbidden-product catalog.'
+        }
+        finally { Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}
 Invoke-Check 'Low-risk install arguments are exact, sourced, silent, and never bulk' {
     $package = @($plan.Packages | Where-Object Id -eq 'Notepad++.Notepad++')[0]
     $arguments = @(Get-AVWorkstationToolkitWingetArguments -Action Install -Package $package)

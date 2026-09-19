@@ -182,8 +182,8 @@ The command-line deployment and maintenance scripts remain available for operato
 | `Build-AVWorkstationToolkit.cmd` | One-command release build from a fresh clone |
 | `.github/workflows/release.yml` | Tag-validated GitHub release build and asset publication |
 | `docs/` | Operator guidance, architecture, security audit, QA evidence, onboarding playbook, and change log |
-| `scripts/AppProfiles.psd1` | Reviewed managed-catalog authoring and legacy characterization source; source QA requires exact parity with the runtime JSON |
-| `manifests/managed-applications.json` | Production approved exact-ID WinGet catalog |
+| `scripts/AppProfiles.psd1` | Retired legacy characterization fixture; source QA validates it against the canonical runtime JSON |
+| `manifests/managed-applications.json` | Canonical approved exact-ID WinGet catalog; the only managed-package source the product loads |
 | `manifests/external-applications.json` | Operational external detection/version/provider policy |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV awareness metadata |
 | `scripts/AVWorkstationToolkit.Vendor.psm1` | Legacy vendor-behavior characterization source; not packaged |
