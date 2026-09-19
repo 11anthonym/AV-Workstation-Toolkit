@@ -49,7 +49,7 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | Crestron parent provider, SFTP catalog, host trust, credential transport, and packaged libraries | Pass | Seven independently detectable children resolved through one feed; inherited policy, DTD/traversal/incomplete fixtures, scoped trust-store fixtures, static credential audit, and packaged bridge self-test |
 | Offline payload traversal, schema 3 metadata, hash, signer policy, and redistribution gate | Pass | Deterministic payload tests plus a synthetic signed rights-authorized authoring run that preserves schema 3 |
 | Exact package matching, holds, risk acknowledgement, and risk-sensitive reboot enforcement | Pass | Low-risk, driver/service/listener, and mid-run re-plan request-policy tests |
-| C# migration architecture and semantic parity | Pass, production core with parity retained | Locked .NET 10 solution, 125 MSTest cases, 19 managed planning results, 36 focused Domain cases, 37 read-only provider cases, 4 presentation cases, 4 read-only details/diagnostics cases, 26 strict action-request cases, and 27 IPC/file-lifecycle cases compare with the retained PowerShell reference semantics |
+| Compiled runtime architecture and deterministic behavior | Pass, production | Locked .NET 10 solution builds warning-clean; the MSTest suite covers catalog authority, planning and status, risk-sensitive reboot policy, WinGet parsing and argument construction, strict action-request and IPC handling, vendor delivery, diagnostics, and the signed reference catalog. The dual-engine parity harness was retired with the completed migration; equivalence to the former PowerShell implementation is no longer a development requirement |
 | C# read-only Windows integration | Pass, production | Trusted Desktop App Installer WinGet resolved; installed/update inventory, all three uninstall-registry sources, and reboot detection were exercised without workstation mutation |
 | Compiled C# WPF presentation | Pass, production | `x:Class` App/MainWindow plus details/diagnostics windows, MVVM bindings, deterministic compiled-process and packaged-production smokes, composed filters/sorting, selection retention, warning presentation, sanitized diagnostics, provenance detail groups, and validated official-link intents |
 | Exact one-package WinGet arguments; no bulk/import/uninstall path | Pass | Argument tests plus PowerShell AST audit |
@@ -88,7 +88,7 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-T
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Run-Tests.ps1 -CoreOnly
 ```
 
-Compiled runtime solution and retained semantic parity:
+Compiled runtime solution, deterministic suite, and process/provider boundaries:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledRuntime.ps1

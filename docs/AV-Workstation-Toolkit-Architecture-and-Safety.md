@@ -48,7 +48,7 @@ flowchart LR
 | `build/Compile-CommercialCatalog.ps1` | Strict UTF-8 source compilation, normalization, duplicate checks, policy invariants, and compiled-artifact drift detection |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV metadata for role, discipline, lifecycle, licensing, access, platform, and system impact |
 | `manifests/process-launch-policy.json` | Embedded regression contract for every process category AV Workstation Toolkit intentionally starts; descriptive only and never an execution-authority input |
-| `ReferenceCatalog` under the per-user data root | Optional signed descriptive hardware/software catalog revisions, atomic state, and quarantine; never a package or execution authority input |
+| `ReferenceCatalog` under the per-user data root | Optional signed descriptive hardware/software catalog revision and atomic state; never a package or execution authority input |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Explicit redistribution gate plus payload hash and signer capture for authorized offline bundles |
 | `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavioral characterization oracle and repository tooling; not packaged |
 | `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization fixture; not packaged |

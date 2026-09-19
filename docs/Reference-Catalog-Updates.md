@@ -4,7 +4,7 @@
 
 AV Workstation Toolkit contains a compiled, non-executing update boundary for descriptive hardware identity and software-compatibility data. Device Lookup is offline-first: startup selects and fully validates local data before any network work is scheduled. Installed catalogs do not expire. A channel check can make newer reference data available after restart, but it is never required for startup or continued use.
 
-A production release must embed a complete signed `.avwtcatalog` at `reference-catalog/AVWT-Reference-Catalog.avwtcatalog`. It uses the same bundle verifier, signing-key allowlist, schema, revision, `CatalogVersion`, and `MinimumAppVersion` contract as imported/downloaded snapshots. The exact publicly distributable bundle may be reviewed into `catalog/reference/AVWT-Reference-Catalog.avwtcatalog`, or supplied explicitly with `-ReferenceCatalogBaselinePath`; `Build-Release.ps1 -BuildChannel Production` fails when neither is present. Development and CI builds may omit it and use the raw embedded manifests as an explicitly labelled **Development bootstrap** only; that path is not production-ready. No production private key is generated, stored, or consumed by the application build.
+A production release must embed a complete signed `.avwtcatalog` at `reference-catalog/AVWT-Reference-Catalog.avwtcatalog`. It uses the same bundle verifier, signing-key allowlist, schema, revision, `CatalogVersion`, and `MinimumAppVersion` contract as a downloaded snapshot. The exact publicly distributable bundle may be reviewed into `catalog/reference/AVWT-Reference-Catalog.avwtcatalog`, or supplied explicitly with `-ReferenceCatalogBaselinePath`; `Build-Release.ps1 -BuildChannel Production` fails when neither is present. Development and CI builds may omit it and use the raw embedded manifests as an explicitly labelled **Development bootstrap** only; that path is not production-ready. No production private key is generated, stored, or consumed by the application build.
 
 The public production distribution origin is fixed at <https://11anthonym.github.io/AVWT-Catalog/>. The owner-supplied ECDSA P-256 public trust anchor `avwt-catalog-2026-a` is compiled into production composition with the exact metadata URL, signature URL, and sole approved host. No caller, environment variable, or mutable configuration can add keys, URLs, or hosts. The production private key remains owner-controlled outside every repository and is never consumed by the application build. The online channel will remain empty until the first signed production revision is approved and published.
 
@@ -28,7 +28,7 @@ The strict parsers reject unknown properties, invalid types, duplicate JSON prop
 - `SigningKeyId` must resolve to an exact public key compiled into the signed application. The private key is never present in this repository or the application.
 - The manifest hashes exactly the three approved JSON payloads with SHA-256 and carries a monotonically increasing `Revision`, `PreviousRevision`, schema/compatibility epochs, UTC creation time, record counts, and `MinimumAppVersion`. Each bundle is a complete snapshot, so clients may skip publisher revisions; `PreviousRevision` remains signed publisher history rather than an intermediate-install requirement. Activation still requires a revision greater than every revision the client has accepted.
 - ZIP input is limited to five exact direct-child entries, 4 MiB compressed, 2 MiB per entry, and 3 MiB total expanded content. Nested paths, extra files, duplicate names, empty content, invalid UTF-8, and reparse points are rejected.
-- A configured online channel uses two exact source-controlled HTTPS URLs for metadata and its detached signature. Redirects, ambient credentials, arbitrary headers, caller-selected hosts, non-default ports, and unrestricted destinations are prohibited. Signed channel metadata names one `.avwtcatalog` URL on the compiled allowlist and its SHA-256. Responses and timeouts are bounded; expired or implausibly future metadata is rejected.
+- A configured online channel uses two exact source-controlled HTTPS URLs for metadata and its detached signature. Redirects, ambient credentials, arbitrary headers, caller-selected hosts, non-default ports, and unrestricted destinations are prohibited. Signed channel metadata names one `.avwtcatalog` URL on the compiled allowlist and its SHA-256. Responses and timeouts are bounded, and implausibly future metadata is rejected. Age alone does not invalidate an authentic signed pointer: descriptive catalog data carries no execution authority, so a hard expiry would only break updates whenever the pointer was not re-signed on a schedule.
 - The downloaded bundle is verified in memory. It is not activated until its channel identity, bundle signature, hashes, JSON, cross-references, compatibility version, and revision chain all pass.
 
 ## Storage and recovery
@@ -39,25 +39,25 @@ Activated data is stored under `%LOCALAPPDATA%\AVWorkstationToolkit\ReferenceCat
 ReferenceCatalog\
 ├── state.json
 ├── catalogs\<revision>\
-├── staging\
-└── quarantine\
+└── staging\
 ```
 
-When a valid previous signed revision exists, **Restore previous catalog** changes only the atomic active-state pointer. The rolled-back revision is suppressed so it is not immediately selected or offered again, while a revision newer than the suppressed revision remains eligible. A prior local revision can be restored after a newer embedded baseline is introduced, and the signed embedded baseline can itself be the restore target. Online installation, offline import, and restore become effective for Device Lookup after the application restarts; startup revalidates the selected complete snapshot before use.
+At most one downloaded revision is retained alongside the signed embedded baseline. Because a descriptive catalog can never grant execution authority, recovery is deliberately boring: anything that does not verify is deleted, and the next best verified catalog is used. There is no quarantine directory, no suppressed-revision state, and no rollback state machine. An activated catalog becomes effective for Device Lookup after the application restarts; startup revalidates the selected snapshot before use.
 
-Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, and then atomically replaces `state.json`. Existing revisions are never overwritten. Same/lower-revision activation is rejected; the only rollback is explicit restore. A per-user named mutex serializes install, import, restore, state replacement, quarantine, and cleanup across AVWT processes; downloads and removable/network-share reads occur before that lock is acquired. A complete directory left by interruption before the state-pointer write is recovered by the next local scan. Orphan staging and state-temporary files are removed under the lock, corrupt data alone is quarantined, and quarantine is bounded to eight entries. Active, previous, suppressed, selected, all valid-but-incompatible, and the three newest other compatible local revisions are retained; only older verified compatible snapshots outside that safety set are obsolete. A newer catalog that is merely incompatible with the running older app is never deleted.
+Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, atomically replaces `state.json`, and then deletes any other stored revision. Existing revisions are never overwritten, and same- or lower-revision activation is rejected. A per-user named mutex serializes activation, state replacement, and cleanup across AVWT processes; downloads occur before that lock is acquired. A complete directory left by interruption before the state-pointer write is recovered by the next local scan, and orphan staging and state-temporary files are removed under the lock.
+
+A catalog whose `MinimumAppVersion` is newer than the running application is rejected rather than retained; it is downloaded again after the application is upgraded. That trades one re-download for the removal of the incompatible-retention and suppression state it would otherwise require.
 
 ### Deterministic local selection
 
 Startup performs no HTTP operation and never merges revisions:
 
-1. Read the atomic per-user state. Quarantine malformed state, not signed catalogs.
+1. Read the atomic per-user state. Malformed state is discarded, not signed catalogs.
 2. Fully verify the embedded signed baseline when present.
-3. Enumerate every retained positive revision and verify its signature, payload hashes, strict schemas, cross-references, counts, and app compatibility.
-4. Quarantine only tampered, corrupt, or structurally invalid revisions. A fully valid catalog whose `MinimumAppVersion` is newer than the running application remains in place as **valid but incompatible**.
-5. Exclude the explicitly suppressed rollback revision and older alternatives, except the explicitly selected active revision. Revisions newer than the suppressed revision remain eligible.
-6. Choose the highest compatible eligible complete snapshot across embedded and retained catalogs. A newer embedded baseline therefore outranks obsolete cached data; a newer compatible retained catalog outranks the embedded baseline.
-7. If no signed embedded baseline exists, development/bootstrap builds use their embedded raw manifests. A packaged signed baseline that exists but cannot be validated is a release error and never falls through to mutable raw data.
+3. Verify each stored revision's signature, payload hashes, strict schemas, cross-references, counts, and app compatibility.
+4. Delete any stored revision that fails verification or requires a newer application, then use the next best verified catalog.
+5. Choose the highest compatible complete snapshot across the embedded baseline and the retained revision. A newer embedded baseline therefore outranks obsolete cached data; a newer compatible retained catalog outranks the embedded baseline.
+6. If no signed embedded baseline exists, development/bootstrap builds use their embedded raw manifests. A packaged signed baseline that exists but cannot be validated is a release error and never falls through to mutable raw data.
 
 Revision state and retained directories remain under the user profile. Replacing, moving, or deleting the standalone EXE neither moves nor deletes that state. Running the EXE from another folder or USB on the same account sees the same compatible per-user catalog; running it on a clean offline profile uses its embedded signed baseline. Catalog updates require no elevation and never write beside the executable.
 
@@ -67,18 +67,17 @@ Revision state and retained directories remain under the user profile. Replacing
 |---|---|---|
 | First launch, clean profile, offline | Signed embedded baseline | No request is made; Device Lookup is immediately usable. |
 | Compatible retained revision is newer | Highest compatible retained revision | Revalidated locally on every startup. |
-| App upgrade embeds a newer baseline | Newer embedded revision | Older signed local data remains available for explicit restore. |
-| Older app encounters newer valid local revision | Highest other compatible local/embedded revision | Newer incompatible revision stays intact and becomes eligible again after app upgrade. |
-| Active revision is corrupt | Previous/other compatible signed revision, then embedded baseline | Corrupt revision is quarantined; valid incompatible data is not. |
-| Online channel unavailable, invalid, expired, future-dated, or captive | Existing effective local catalog | Automatic failure is quiet/non-destructive; manual Check now reports failure. |
-| Signed import from USB, disk, or accessible share | Current catalog until restart | Exact normal verification/rollback/authority rules apply; tamper leaves current catalog untouched. |
-| Explicit restore | Valid prior local or embedded signed revision after restart | Rolled-back revision is suppressed; a genuinely newer revision remains offerable. |
+| App upgrade embeds a newer baseline | Newer embedded revision | The superseded stored revision is deleted. |
+| Catalog requires a newer application | Existing effective local catalog | The incompatible catalog is rejected, not retained, and is downloaded again after the upgrade. |
+| Stored revision is corrupt or tampered | Signed embedded baseline | The failing revision is deleted; the embedded baseline keeps Device Lookup working. |
+| Online channel unavailable, invalid, future-dated, or captive | Existing effective local catalog | Automatic failure is quiet/non-destructive; manual Check now reports failure. |
+| Signed pointer is old but authentic | Its named revision, subject to normal verification | Age alone never invalidates a signed pointer; replay of descriptive data grants no authority. |
 
 The update operation writes descriptive JSON and state only. It does not call WinGet, a worker, an installer, PowerShell, a shell, vendor delivery, Credential Manager, or firmware tooling.
 
 ## User flow
 
-`Help > Catalog updates` displays current and available revisions and a signed change summary. `Check now` is asynchronous. After the main window and local Device Lookup are available, a quiet background freshness check may run if no attempt has been recorded in approximately 24 hours. A failed attempt is recorded to prevent retry loops; an implausibly future timestamp suppresses automatic I/O rather than causing a storm. Automatic checking never activates or switches the running projection. `Update catalog` is enabled only after a channel bundle has been downloaded and fully verified. `Import signed catalog` accepts only `.avwtcatalog` from USB, local disk, or a normally accessible network share. A completed activation takes effect after restart so all read-only lookup projections switch together; partial in-memory merges are not allowed.
+`Help > Catalog updates` displays current and available revisions and a signed change summary. `Check now` is asynchronous. After the main window and local Device Lookup are available, a quiet background freshness check may run if no attempt has been recorded in approximately 24 hours. A failed attempt is recorded to prevent retry loops; an implausibly future timestamp suppresses automatic I/O rather than causing a storm. Automatic checking never activates or switches the running projection. `Update catalog` is enabled only after a channel bundle has been downloaded and fully verified. A completed activation takes effect after restart so all read-only lookup projections switch together; partial in-memory merges are not allowed.
 
 Expected states are Current, Checking, Update available, Validating, Completed, Offline, Rejected, Application update required, and Online channel not configured. Offline or rejected updates leave the active catalog unchanged.
 
