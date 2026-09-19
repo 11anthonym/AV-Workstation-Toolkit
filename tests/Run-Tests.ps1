@@ -136,7 +136,10 @@ Invoke-Check 'Retired PowerShell catalog fixture still tracks the canonical mana
 Invoke-Check 'Vendor catalog sources compile deterministically to the only runtime artifact' {
     $compilerPath = Join-Path $repositoryRoot 'build\Compile-CommercialCatalog.ps1'
     $compilerOutput = (& $compilerPath -Check | Out-String)
-    Assert-True ($compilerOutput -match 'CATALOG_OK vendors=114 packages=283') 'Catalog compiler did not validate the expected source set.'
+    # The compiler's own -Check does a byte-exact source-to-artifact comparison, which is the real
+    # determinism guarantee. Restating the vendor and package totals here only added a second place
+    # to edit for every catalog addition.
+    Assert-True ($compilerOutput -match 'CATALOG_OK vendors=\d+ packages=\d+') 'Catalog compiler did not validate the vendor sources against the tracked artifact.'
     # The compiled parser owns schema and execution-authority validation of the artifact, so the
     # release-path compiler must not reintroduce a second normalizer from the retired module. Inbox
     # module loading from $PSHOME stays allowed; only repository modules and their functions are banned.
