@@ -1,17 +1,21 @@
 # Winget Manifests
 
-`winget-team-baseline.json` is the approved low-risk Standard profile for AV/IT workstations.
-It is generated from the authoritative `scripts/AppProfiles.psd1` catalog. Regenerate it after an approved Standard-profile catalog edit:
+`managed-applications.json` is the **canonical** managed-package definition: the strict schema-v1
+artifact that the compiled application loads and embeds. Every managed exact-ID record is authored
+here first. Source QA validates `scripts/AppProfiles.psd1` against this file — not the reverse — so
+the retired PowerShell fixture cannot drift, and it is deleted once the remaining legacy build and
+test dependencies on it are removed.
+
+`winget-team-baseline.json` is the approved low-risk Standard profile for AV/IT workstations, kept
+as an operator `winget import` deliverable. It is **not** embedded in the shipping runtime because no
+compiled code parses it. Regenerate it after an approved Standard-profile catalog edit:
 
 ```powershell
 .\scripts\Export-AVWorkstationToolkitBaselineManifest.ps1
 ```
 
-`managed-applications.json` is the strict schema-v1 production runtime artifact
-for all 30 managed exact-ID records. The compiled application loads only this
-JSON artifact. Source QA compares every field and the forbidden-product policy
-against `scripts/AppProfiles.psd1`, which remains the reviewed authoring and
-legacy-characterization source, so drift fails before packaging.
+`process-launch-policy.json` is a reviewed repository regression input for the child-process
+contract. It is descriptive only, is read exclusively by QA, and is likewise not embedded.
 
 The managed WinGet catalog intentionally excludes:
 
