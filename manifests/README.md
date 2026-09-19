@@ -17,12 +17,24 @@ compiled code parses it. Regenerate it after an approved Standard-profile catalo
 `process-launch-policy.json` is a reviewed repository regression input for the child-process
 contract. It is descriptive only, is read exclusively by QA, and is likewise not embedded.
 
-The managed WinGet catalog intentionally excludes:
+The managed WinGet catalog is an explicit allowlist. Packages outside the reviewed catalog are not
+eligible for managed deployment, and entries matching the configured forbidden-product policy are
+rejected. Two distinct controls enforce this:
 
-- VPNs, remote-access servers, AV-vendor software, and IT/MDM-managed software;
-- software that has not been explicitly reviewed and allowlisted for managed deployment.
+- **Allowlist.** Only records in this file receive managed WinGet execution authority. A package that
+  is absent, or whose `Deployment` is not `Allowlisted`, can never be selected for install or update.
+- **Forbidden-product policy.** `ForbiddenPattern` is a defense-in-depth denylist of specific named
+  products. It is matched against each entry's name, ID, vendor, and note, and a match fails the
+  whole catalog load rather than skipping the entry.
 
-Driver-, service-, listener-, scanner-, and development-related packages may be represented in the managed catalog but remain subject to their configured risk classification, deployment policy, and maintenance holds.
+The forbidden policy names specific products — it is not an enforced category taxonomy. Keeping
+endpoint-security, device-management, VPN, and corporate remote-support software out of this catalog
+is a curation rule for reviewers; do not assume an unnamed product in one of those categories is
+blocked by the pattern.
+
+Separately, packages carrying a `Driver`, `Service`, or `Listener` risk class may appear in the
+managed catalog but remain subject to their configured risk classification, deployment policy, and
+maintenance holds, and to risk-sensitive pending-reboot enforcement at action time.
 
 Do not run `winget import` as a discovery or dry-run command; import installs packages. AV Workstation Toolkit validates IDs and reports existing/missing packages before offering an install mode.
 
