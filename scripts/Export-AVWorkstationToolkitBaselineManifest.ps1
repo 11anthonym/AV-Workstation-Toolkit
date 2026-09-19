@@ -7,6 +7,13 @@
     input this script reads. The retired scripts\AppProfiles.psd1 fixture cannot influence the
     generated baseline. This script writes only Standard-profile, low-risk, allowlisted packages to
     the reusable winget baseline. It does not invoke winget or change workstation state.
+
+    Validation deliberately tracks the compiled managed-catalog path -
+    RepositoryCatalogLoader.ParseManagedCatalog, CatalogParser.NormalizeManaged, CatalogParser.Text,
+    CatalogTokens.Parse and the PackageCatalog duplicate-ID guard - so this script never generates a
+    baseline from a catalog the product would refuse to load. Where exact replication is impractical
+    in Windows PowerShell 5.1 the script is deliberately the stricter side; see EQUIVALENCE NOTES at
+    the end of this file. The compiled loader remains the authority and revalidates at runtime.
 #>
 
 [CmdletBinding()]
@@ -32,76 +39,179 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
 $resolvedCatalog = [IO.Path]::GetFullPath($ManagedCatalogPath)
 $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
 
-# Authoring-time validation. The compiled runtime revalidates this document strictly; these checks
-# exist so a malformed or policy-violating catalog cannot silently produce a wrong baseline here.
+# Exactly the property sets the compiled ManagedCatalogDocument/ManagedCatalogPackage records accept.
+# Comparison is ordinal: the compiled deserializer uses PropertyNameCaseInsensitive = false.
+$allowedTopLevelFields = @('SchemaVersion','ForbiddenPattern','Packages')
 $allowedPackageFields = @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance')
+$requiredPackageFields = @('Profile','Id','Note')
+# CatalogTokens.Parse uses case-sensitive Enum.TryParse, so these sets are compared ordinally.
 $allowedProfiles = @('Standard','Field','Developer','Optional')
 $allowedRisks = @('None','Driver','Service','Listener')
 $allowedDeployments = @('Allowlisted','ManualHold')
 $allowedMaintenance = @('Allowlisted','Hold')
 $packageIdPattern = '^[A-Za-z0-9][A-Za-z0-9+_.-]{1,127}$'
 
+function Test-OrdinalMember {
+    param([string[]]$Set,[string]$Value)
+    foreach ($candidate in $Set) { if ([string]::Equals($candidate, $Value, [StringComparison]::Ordinal)) { return $true } }
+    return $false
+}
+
+function Assert-CatalogText {
+    <# Mirrors CatalogParser.Text: required-unless-allowEmpty, bounded length, already trimmed, no control characters. #>
+    param([string]$Value,[string]$Field,[int]$MaximumLength,[switch]$AllowEmpty)
+    if ($null -eq $Value) { $Value = '' }
+    $hasControlCharacter = $false
+    foreach ($character in $Value.ToCharArray()) {
+        if ([char]::IsControl($character)) { $hasControlCharacter = $true; break }
+    }
+    if ((-not $AllowEmpty -and [string]::IsNullOrWhiteSpace($Value)) -or
+        $Value.Length -gt $MaximumLength -or
+        $Value -cne $Value.Trim() -or
+        $hasControlCharacter) {
+        throw "$Field contains invalid text."
+    }
+    return $Value
+}
+
+function Assert-NoDuplicateJsonProperty {
+    <#
+        Mirrors RepositoryCatalogLoader.RejectDuplicateProperties, which rejects repeated property
+        names ordinally at every object depth. Windows PowerShell 5.1 ConvertFrom-Json silently keeps
+        one of a duplicated pair, so the raw document is scanned before deserialization.
+    #>
+    param([string]$Json)
+
+    $objectKeys = [System.Collections.Generic.Stack[System.Collections.Generic.HashSet[string]]]::new()
+    $pendingKey = $null
+    $index = 0
+    while ($index -lt $Json.Length) {
+        $character = $Json[$index]
+        if ($character -eq '"') {
+            $literal = [Text.StringBuilder]::new()
+            $index++
+            while ($index -lt $Json.Length -and $Json[$index] -ne '"') {
+                if ($Json[$index] -eq '\') {
+                    $null = $literal.Append($Json[$index])
+                    $index++
+                    if ($index -ge $Json.Length) { break }
+                }
+                $null = $literal.Append($Json[$index])
+                $index++
+            }
+            $pendingKey = $literal.ToString()
+            $index++
+            continue
+        }
+        switch ($character) {
+            '{' { $objectKeys.Push([System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)); $pendingKey = $null }
+            '}' { if ($objectKeys.Count -gt 0) { $null = $objectKeys.Pop() }; $pendingKey = $null }
+            ':' {
+                if ($null -ne $pendingKey -and $objectKeys.Count -gt 0) {
+                    if (-not $objectKeys.Peek().Add($pendingKey)) {
+                        throw "Managed catalog repeats JSON property '$pendingKey'."
+                    }
+                }
+                $pendingKey = $null
+            }
+            ',' { $pendingKey = $null }
+        }
+        $index++
+    }
+}
+
 $catalogFile = Get-Item -LiteralPath $resolvedCatalog -Force -ErrorAction Stop
 if ($catalogFile.PSIsContainer -or $catalogFile.Length -le 0 -or $catalogFile.Length -gt 1MB -or
     ($catalogFile.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
     throw "The canonical managed catalog must be a non-empty regular file no larger than 1 MiB: $resolvedCatalog"
 }
-try { $catalog = Get-Content -LiteralPath $resolvedCatalog -Raw -Encoding UTF8 | ConvertFrom-Json }
+$catalogJson = Get-Content -LiteralPath $resolvedCatalog -Raw -Encoding UTF8
+Assert-NoDuplicateJsonProperty -Json $catalogJson
+# ConvertFrom-Json already rejects trailing commas and comments, matching the compiled JsonDocument options.
+try { $catalog = $catalogJson | ConvertFrom-Json }
 catch { throw "The canonical managed catalog is not valid JSON: $($_.Exception.Message)" }
+if ($null -eq $catalog) { throw 'The canonical managed catalog is empty.' }
 
-if ($null -eq $catalog -or [int]$catalog.SchemaVersion -ne 1) {
-    throw 'The canonical managed catalog must declare SchemaVersion 1.'
+$topLevelFields = @($catalog.PSObject.Properties.Name)
+$unknownTopLevel = @($topLevelFields | Where-Object { -not (Test-OrdinalMember -Set $allowedTopLevelFields -Value $_) })
+if ($unknownTopLevel.Count -gt 0) {
+    throw "The canonical managed catalog declares unsupported top-level field(s): $($unknownTopLevel -join ', ')"
+}
+foreach ($required in $allowedTopLevelFields) {
+    if (-not (Test-OrdinalMember -Set $topLevelFields -Value $required)) {
+        throw "The canonical managed catalog is missing top-level field '$required'."
+    }
+}
+if ([string]$catalog.SchemaVersion -cne '1') {
+    throw "The canonical managed catalog schema version is unsupported: $($catalog.SchemaVersion)"
 }
 $forbiddenPattern = [string]$catalog.ForbiddenPattern
 if ([string]::IsNullOrWhiteSpace($forbiddenPattern)) {
     throw 'The canonical managed catalog must declare a non-empty ForbiddenPattern.'
 }
-try { $forbidden = [regex]::new($forbiddenPattern, [Text.RegularExpressions.RegexOptions]::IgnoreCase) }
+try {
+    $forbidden = [regex]::new(
+        $forbiddenPattern,
+        [Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [Text.RegularExpressions.RegexOptions]::CultureInvariant,
+        [TimeSpan]::FromSeconds(2))
+}
 catch { throw "The canonical managed catalog ForbiddenPattern is not a valid regular expression: $($_.Exception.Message)" }
 
 $catalogPackages = @($catalog.Packages)
 if ($catalogPackages.Count -eq 0) { throw 'The canonical managed catalog contains no packages.' }
 
+# Normalize exactly once, applying the compiled loader's Optional() trim and NormalizeManaged defaults.
+$normalized = [System.Collections.Generic.List[object]]::new()
 $seenIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $index = -1
 foreach ($package in $catalogPackages) {
     $index++
     $fields = @($package.PSObject.Properties.Name)
-    $unknown = @($fields | Where-Object { $_ -notin $allowedPackageFields })
+    $unknown = @($fields | Where-Object { -not (Test-OrdinalMember -Set $allowedPackageFields -Value $_) })
     if ($unknown.Count -gt 0) {
         throw "Managed catalog entry $index declares unsupported field(s): $($unknown -join ', ')"
     }
-    foreach ($required in @('Profile','Name','Id','Vendor','Risk','Note')) {
-        if ($required -notin $fields -or [string]::IsNullOrWhiteSpace([string]$package.$required)) {
+    foreach ($required in $requiredPackageFields) {
+        if (-not (Test-OrdinalMember -Set $fields -Value $required) -or
+            [string]::IsNullOrWhiteSpace([string]$package.$required)) {
             throw "Managed catalog entry $index is missing required field '$required'."
         }
     }
-    $id = [string]$package.Id
+
+    # Required fields reach the compiled parser untrimmed; optional fields are trimmed by the loader.
+    $id = Assert-CatalogText -Value ([string]$package.Id) -Field "Catalog entry $index.Id" -MaximumLength 128
     if ($id -notmatch $packageIdPattern) { throw "Managed catalog entry $index has invalid package ID '$id'." }
-    if (-not $seenIds.Add($id)) { throw "Managed catalog declares duplicate package ID '$id'." }
-    if ([string]$package.Profile -notin $allowedProfiles) { throw "Managed catalog entry $index has unsupported Profile '$($package.Profile)'." }
-    if ([string]$package.Risk -notin $allowedRisks) { throw "Managed catalog entry $index has unsupported Risk '$($package.Risk)'." }
-    if ('Deployment' -in $fields -and [string]$package.Deployment -notin $allowedDeployments) {
-        throw "Managed catalog entry $index has unsupported Deployment '$($package.Deployment)'."
-    }
-    if ('Maintenance' -in $fields -and [string]$package.Maintenance -notin $allowedMaintenance) {
-        throw "Managed catalog entry $index has unsupported Maintenance '$($package.Maintenance)'."
-    }
-    # Same defense-in-depth vector the compiled parser rejects.
-    $policyText = @([string]$package.Name, $id, [string]$package.Vendor, [string]$package.Note) -join ' '
-    if ($forbidden.IsMatch($policyText)) {
+    $note = Assert-CatalogText -Value ([string]$package.Note) -Field "Catalog entry $index.Note" -MaximumLength 1024
+    $rawName = if (Test-OrdinalMember -Set $fields -Value 'Name') { ([string]$package.Name).Trim() } else { '' }
+    $name = Assert-CatalogText -Value $(if ([string]::IsNullOrEmpty($rawName)) { $id } else { $rawName }) -Field "Catalog entry $index.Name" -MaximumLength 256
+    $vendor = Assert-CatalogText -Value $(if (Test-OrdinalMember -Set $fields -Value 'Vendor') { ([string]$package.Vendor).Trim() } else { '' }) `
+        -Field "Catalog entry $index.Vendor" -MaximumLength 128 -AllowEmpty
+
+    $profileToken = [string]$package.Profile
+    $riskToken = if (Test-OrdinalMember -Set $fields -Value 'Risk') { ([string]$package.Risk).Trim() } else { 'None' }
+    $deploymentToken = if (Test-OrdinalMember -Set $fields -Value 'Deployment') { ([string]$package.Deployment).Trim() } else { 'Allowlisted' }
+    $maintenanceToken = if (Test-OrdinalMember -Set $fields -Value 'Maintenance') { ([string]$package.Maintenance).Trim() } else { 'Allowlisted' }
+    if (-not (Test-OrdinalMember -Set $allowedProfiles -Value $profileToken)) { throw "Catalog entry $index.Profile contains unsupported value '$profileToken'." }
+    if (-not (Test-OrdinalMember -Set $allowedRisks -Value $riskToken)) { throw "Catalog entry $index.Risk contains unsupported value '$riskToken'." }
+    if (-not (Test-OrdinalMember -Set $allowedDeployments -Value $deploymentToken)) { throw "Catalog entry $index.Deployment contains unsupported value '$deploymentToken'." }
+    if (-not (Test-OrdinalMember -Set $allowedMaintenance -Value $maintenanceToken)) { throw "Catalog entry $index.Maintenance contains unsupported value '$maintenanceToken'." }
+
+    # Same combined vector and ordering the compiled parser screens.
+    if ($forbidden.IsMatch(($name, $id, $vendor, $note) -join ' ')) {
         throw "Managed catalog entry $index ('$id') matches the configured forbidden-product policy."
     }
+    # PackageCatalog rejects duplicate IDs case-insensitively.
+    if (-not $seenIds.Add($id)) { throw "Managed catalog contains duplicate package ID '$id'." }
+
+    $normalized.Add([pscustomobject]@{ Id = $id; Profile = $profileToken; Risk = $riskToken; Deployment = $deploymentToken }) | Out-Null
 }
 
-# Deployment and Maintenance default to Allowlisted when absent, matching the compiled parser.
-# Ordering is the canonical document order; no separate sort key is introduced.
-$packages = @($catalogPackages | Where-Object {
-    [string]$_.Profile -eq 'Standard' -and [string]$_.Risk -eq 'None' -and
-    ($_.PSObject.Properties.Name -notcontains 'Deployment' -or [string]$_.Deployment -eq 'Allowlisted')
-} | ForEach-Object {
-    [ordered]@{ PackageIdentifier = [string]$_.Id }
-})
+# Baseline eligibility uses the normalized/defaulted tokens, compared ordinally.
+$packages = @($normalized | Where-Object {
+    [string]::Equals($_.Profile,'Standard',[StringComparison]::Ordinal) -and
+    [string]::Equals($_.Risk,'None',[StringComparison]::Ordinal) -and
+    [string]::Equals($_.Deployment,'Allowlisted',[StringComparison]::Ordinal)
+} | ForEach-Object { [ordered]@{ PackageIdentifier = $_.Id } })
 if ($packages.Count -eq 0) { throw 'The canonical managed catalog yielded no eligible baseline packages.' }
 
 # Reuse the recorded CreationDate so regeneration stays byte-stable when the package set is unchanged.
@@ -137,3 +247,19 @@ New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $resolvedOutput -Encoding UTF8
 Write-Host ("Generated AV Workstation Toolkit baseline from {0}: {1} ({2} packages)" -f
     (Split-Path -Leaf $resolvedCatalog),$resolvedOutput,$packages.Count) -ForegroundColor Green
+
+<#
+    EQUIVALENCE NOTES
+
+    Anything the compiled managed-catalog path rejects, this script also rejects. In two cases it is
+    deliberately stricter, because replicating Enum.TryParse exactly would mean compiling the Domain
+    enums into Windows PowerShell 5.1:
+
+    1. Numeric enum strings. Enum.TryParse accepts "0" for Risk and Enum.IsDefined then passes, so
+       production tolerates it; this script requires the declared token name.
+    2. Whitespace-padded Profile. Profile reaches the compiled parser untrimmed and Enum.TryParse
+       trims, so production tolerates " Standard"; this script requires the exact token.
+
+    Both are malformed authoring that the canonical catalog does not contain, and being stricter can
+    only refuse to generate - it can never emit a baseline the product would reject.
+#>
