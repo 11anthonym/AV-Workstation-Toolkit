@@ -15,11 +15,8 @@ AV Workstation Toolkit is the primary interface for installing and maintaining e
 
 Run the downloaded release EXE directly, or open **AV Workstation Toolkit** from the Start menu after MSI installation. No companion folder is required. The executable restores and hash-verifies its embedded runtime beneath `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\1.1.1` before loading the frontend.
 
-From a source checkout, double-click `Launch-AVWorkstationToolkit.cmd`, or run:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\scripts\Start-AVWorkstationToolkit.ps1
-```
+From a source checkout, double-click `Launch-AVWorkstationToolkit.cmd`. Before the first build it starts
+the compiled App project directly; after a build it starts the compiled release executable.
 
 The initial refresh is read-only. It runs WinGet inventory commands, inspects standard Windows uninstall-registry entries for externally detectable applications, checks only the operational catalog's bounded release pages, and assigns one status to every record. Broad awareness records do not cause AV Workstation Toolkit to crawl hundreds of vendor sites.
 
@@ -149,13 +146,7 @@ Run the non-installing suite:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-Tests.ps1
 ```
 
-Then render the UI for visual review:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\scripts\Start-AVWorkstationToolkit.ps1 -SmokeTest -RenderPreviewPath "$env:TEMP\AV-Workstation-Toolkit-preview.png"
-```
-
-The packaged compiled-production smoke in `tests\Test-Package.ps1` is the authoritative automated geometry and behavior gate at all supported release viewports. `tests\Test-VisualLayout.ps1` is retained only for legacy PowerShell presentation characterization. An unavailable or blank capture is not visual approval. Inspect the default, minimum, ComboBox popup, selection, focus, disabled, activity follow/pause, dialogs, and details states on an interactive Windows desktop before publication.
+The packaged compiled-production smoke in `tests\Test-Package.ps1` is the authoritative automated geometry and behavior gate at all supported release viewports. An unavailable or blank capture is not visual approval. Inspect the default, minimum, ComboBox popup, selection, focus, disabled, activity follow/pause, dialogs, and details states on an interactive Windows desktop before publication.
 
 Do not use a catalog edit for a live install until both checks pass and the package decision register is updated.
 
