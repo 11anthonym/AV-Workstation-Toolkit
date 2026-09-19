@@ -1,4 +1,4 @@
-<#[.SYNOPSIS] Runs non-mutating live checks for the non-shipping C# Windows providers. #>
+<#[.SYNOPSIS] Runs non-mutating live checks for the production read-only Windows providers. #>
 [CmdletBinding()]
 param([switch]$NoBuild)
 
@@ -12,7 +12,7 @@ if (-not $NoBuild) {
     & dotnet restore $solutionPath --locked-mode --nologo
     if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed before the live read-only checks.' }
     & dotnet build $solutionPath -c Release --no-restore --nologo
-    if ($LASTEXITCODE -ne 0) { throw 'C# migration build failed before the live read-only checks.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Compiled runtime build failed before the live read-only checks.' }
 }
 if (-not (Test-Path -LiteralPath $assemblyPath -PathType Leaf)) { throw "Integration assembly was not found: $assemblyPath" }
 

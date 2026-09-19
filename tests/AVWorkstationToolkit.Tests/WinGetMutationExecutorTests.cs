@@ -27,6 +27,27 @@ public sealed class WinGetMutationExecutorTests
             "--accept-package-agreements", "--accept-source-agreements"
         }, update.ToArray());
 
+        // Only a no-risk package may run unattended. Every risk-bearing class stays interactive for
+        // both actions, and no vector may become bulk, an uninstall, or an import.
+        foreach (var action in new[] { ManagedRequestAction.Install, ManagedRequestAction.Update })
+        {
+            var verb = action == ManagedRequestAction.Install ? "install" : "upgrade";
+            var lowRisk = ManagedWinGetArgumentPolicy.Create(Request(action, PackageRisk.None));
+            Assert.AreEqual(verb, lowRisk[0]);
+            CollectionAssert.Contains(lowRisk.ToArray(), "--silent");
+            CollectionAssert.Contains(lowRisk.ToArray(), "--disable-interactivity");
+
+            foreach (var risk in new[] { PackageRisk.Driver, PackageRisk.Service, PackageRisk.Listener })
+            {
+                var risky = ManagedWinGetArgumentPolicy.Create(Request(action, risk)).ToArray();
+                Assert.AreEqual(verb, risky[0]);
+                CollectionAssert.DoesNotContain(risky, "--silent");
+                CollectionAssert.DoesNotContain(risky, "--disable-interactivity");
+                CollectionAssert.AreEqual(new[] { "--id", "Vendor.Tool", "--exact", "--source", "winget" }, risky[1..6]);
+                StringAssert.DoesNotMatch(string.Join(' ', risky), new System.Text.RegularExpressions.Regex(@"(?i)\b(?:uninstall|import)\b|--all"));
+            }
+        }
+
         var combined = string.Join(' ', install.Concat(update));
         StringAssert.DoesNotMatch(combined, new System.Text.RegularExpressions.Regex(@"(?i)\b(?:uninstall|import)\b|--all"));
         Assert.Throws<ActionRequestValidationException>(() => ManagedWinGetArgumentPolicy.Create(Request(id: "bad id")));

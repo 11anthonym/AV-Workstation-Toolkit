@@ -109,6 +109,26 @@ public sealed class DomainCoreTests
         Assert.AreEqual(PolicyDisposition.Allowed, policy.Evaluate(planner.Evaluate(low, evidence), reboot, true).Disposition);
         Assert.AreEqual(PolicyDisposition.Blocked, policy.Evaluate(planner.Evaluate(driver, evidence), reboot, true).Disposition);
         Assert.AreEqual(PolicyDisposition.RequiresAcknowledgement, policy.Evaluate(planner.Evaluate(driver, evidence), RebootState.Clear, false).Disposition);
+
+        // Full risk-sensitive reboot matrix across both supported reboot reasons. A low-risk package
+        // stays actionable; every risk-bearing class is blocked until Windows restarts, and without a
+        // pending reboot each risk-bearing class still requires a run-specific acknowledgement.
+        var service = Definition("Managed.Service", risk: PackageRisk.Service);
+        var listener = Definition("Managed.Listener", risk: PackageRisk.Listener);
+        foreach (var reason in new[] { RebootReason.WindowsUpdate, RebootReason.ComponentBasedServicing })
+        {
+            var pending = new RebootState(true, [reason], $"{reason} requires a restart");
+            Assert.AreEqual(PolicyDisposition.Allowed, policy.Evaluate(planner.Evaluate(low, evidence), pending, true).Disposition);
+            foreach (var risky in new[] { driver, service, listener })
+            {
+                Assert.AreEqual(PolicyDisposition.Blocked, policy.Evaluate(planner.Evaluate(risky, evidence), pending, true).Disposition);
+            }
+        }
+        foreach (var risky in new[] { driver, service, listener })
+        {
+            Assert.AreEqual(PolicyDisposition.RequiresAcknowledgement, policy.Evaluate(planner.Evaluate(risky, evidence), RebootState.Clear, false).Disposition);
+            Assert.AreEqual(PolicyDisposition.Allowed, policy.Evaluate(planner.Evaluate(risky, evidence), RebootState.Clear, true).Disposition);
+        }
     }
 
     private static ManagedPackageInput Managed(string id) => new("Standard", id, id, "Example", "None", "Test", "Allowlisted", "Allowlisted");

@@ -91,10 +91,10 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Run-Tests.
 Compiled runtime solution and retained semantic parity:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-CSharpWpfSmoke.ps1
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-CSharpAppReadOnlyIntegration.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledRuntime.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledReadOnlyIntegration.ps1 -NoBuild
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-CompiledWpfSmoke.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-CompiledAppReadOnlyIntegration.ps1
 ```
 
 Build and package suite:

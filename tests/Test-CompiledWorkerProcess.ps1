@@ -1,4 +1,4 @@
-<#[.SYNOPSIS] Exercises the non-shipping compiled worker with isolated roots and a fake executor. #>
+<#[.SYNOPSIS] Exercises the compiled worker development host with isolated roots and a fake executor. #>
 [CmdletBinding()]
 param()
 
@@ -8,13 +8,13 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)
 if ($isElevated) {
-    Write-Output 'CSHARP_WORKER_PROCESS_SKIPPED reason=elevated-host'
+    Write-Output 'COMPILED_WORKER_PROCESS_SKIPPED reason=elevated-host'
     return
 }
 $integrationDll = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.dll'
 $workerExe = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Worker.DevHost\bin\Release\net10.0-windows\AVWorkstationToolkit.Worker.DevHost.exe'
 foreach ($path in @($integrationDll,$workerExe)) {
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required Phase 8 binary was not built: $path" }
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required worker boundary binary was not built: $path" }
 }
 
 $output = (& dotnet $integrationDll --worker-process $workerExe 2>&1 | Out-String).Trim()
@@ -30,4 +30,4 @@ foreach ($entry in $expected.GetEnumerator()) {
         throw "Compiled worker scenario differs: $($entry.Key)"
     }
 }
-Write-Output ("CSHARP_WORKER_PROCESS_OK scenarios={0}" -f $result.ScenarioCount)
+Write-Output ("COMPILED_WORKER_PROCESS_OK scenarios={0}" -f $result.ScenarioCount)

@@ -14,24 +14,25 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Run-Tests.
 
 The workflow also installs pinned PSScriptAnalyzer 1.24.0 in the ephemeral runner and applies the targeted root `PSScriptAnalyzerSettings.psd1` policy.
 
-Build and run the non-shipping C# migration projects, MSTest domain checks, and
-dual-engine semantic parity fixtures with locked restore:
+Build the compiled runtime with locked restore, run the deterministic MSTest
+suite, and exercise the worker, action-flow, WPF and live-rehearsal boundaries:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledRuntime.ps1
 ```
 
-The parity harness does not invoke WinGet, read live registry inventory, contact
-a vendor, or execute an installer. Active planning, domain-core, and read-only
-provider fixtures are under `tests/parity`; the broader staged fixture contracts
-are documented under `tests/fixtures`.
+That chain installs, updates and uninstalls nothing. The deterministic suite uses
+fixtures only; the boundary harnesses spawn the separate worker development host
+rather than the shipping worker, which `Test-ProductionWorkerBoundary.ps1`
+independently proves accepts production invocation only. Fixture contracts are
+documented under `tests/fixtures`.
 
-After that deterministic suite, optionally exercise the non-shipping C# Windows
-adapters on the current host. The script labels unavailable sources explicitly
-and never treats the workstation software list as expected data:
+After that deterministic suite, optionally exercise the production read-only
+Windows providers on the current host. The script labels unavailable sources
+explicitly and never treats the workstation software list as expected data:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledReadOnlyIntegration.ps1 -NoBuild
 ```
 
 This live check resolves only trusted Desktop App Installer WinGet, runs fixed
