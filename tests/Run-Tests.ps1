@@ -1162,54 +1162,93 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
         $sandbox = Join-Path ([IO.Path]::GetTempPath()) ("avwt-baseline-" + [Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $sandbox -Force | Out-Null
         try {
-            # A catalog that shares no eligible package ID with the real one. Anything the generator
-            # emits must come from this file, so a stale AppProfiles.psd1 read would be visible.
-            $substitute = [ordered]@{
-                SchemaVersion = 1
-                ForbiddenPattern = [string]$managedCatalogDocument.ForbiddenPattern
-                Packages = @(
-                    [ordered]@{ Profile='Standard'; Name='Fixture Eligible'; Id='Fixture.Eligible'; Vendor='Fixture'; Risk='None'; Note='Eligible baseline record' }
-                    [ordered]@{ Profile='Standard'; Name='Fixture Held'; Id='Fixture.Held'; Vendor='Fixture'; Risk='None'; Note='Held record'; Deployment='ManualHold' }
-                    [ordered]@{ Profile='Standard'; Name='Fixture Driver'; Id='Fixture.Driver'; Vendor='Fixture'; Risk='Driver'; Note='Risk-bearing record' }
-                    [ordered]@{ Profile='Optional'; Name='Fixture Optional'; Id='Fixture.Optional'; Vendor='Fixture'; Risk='None'; Note='Non-Standard record' }
-                )
+            # Raw JSON rather than ConvertTo-Json: these cases need exact key casing and duplicate keys.
+            # No eligible ID here matches the real catalog, so a stale AppProfiles read would be visible.
+            $baseJson = @'
+{
+  "SchemaVersion": 1,
+  "ForbiddenPattern": "(?i)CrowdStrike|Falcon|TeamViewer",
+  "Packages": [
+    { "Profile": "Standard", "Name": "Fixture Eligible", "Id": "Fixture.Eligible", "Vendor": "Fixture", "Risk": "None", "Note": "Eligible baseline record" },
+    { "Profile": "Standard", "Name": "Fixture Held", "Id": "Fixture.Held", "Vendor": "Fixture", "Risk": "None", "Note": "Held record", "Deployment": "ManualHold" },
+    { "Profile": "Standard", "Name": "Fixture Driver", "Id": "Fixture.Driver", "Vendor": "Fixture", "Risk": "Driver", "Note": "Risk-bearing record" },
+    { "Profile": "Optional", "Name": "Fixture Optional", "Id": "Fixture.Optional", "Vendor": "Fixture", "Risk": "None", "Note": "Non-Standard record" }
+  ]
+}
+'@
+            # Windows PowerShell 5.1 promotes native stderr to ErrorRecord, so an intentional
+            # child-process failure is captured explicitly instead of terminating this check.
+            $runGenerator = {
+                param([string]$Json)
+                $token = [Guid]::NewGuid().ToString('N')
+                $catalogPath = Join-Path $sandbox "catalog-$token.json"
+                $producedPath = Join-Path $sandbox "baseline-$token.json"
+                Set-Content -LiteralPath $catalogPath -Value $Json -Encoding UTF8
+                $previousPreference = $ErrorActionPreference
+                try {
+                    $ErrorActionPreference = 'Continue'
+                    & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator `
+                        -ManagedCatalogPath $catalogPath -OutputPath $producedPath 2>&1 | Out-String | Out-Null
+                    $exitCode = $LASTEXITCODE
+                }
+                finally { $ErrorActionPreference = $previousPreference }
+                [pscustomobject]@{ ExitCode = $exitCode; ProducedPath = $producedPath }
             }
-            $substitutePath = Join-Path $sandbox 'managed-applications.json'
-            $substitute | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $substitutePath -Encoding UTF8
-            $generatedPath = Join-Path $sandbox 'winget-team-baseline.json'
-            & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator -ManagedCatalogPath $substitutePath -OutputPath $generatedPath | Out-Null
-            Assert-Equal 0 $LASTEXITCODE 'Baseline generator failed against a substituted canonical catalog.'
-            $generated = @((Get-Content -LiteralPath $generatedPath -Raw | ConvertFrom-Json).Sources[0].Packages | ForEach-Object PackageIdentifier)
+
+            $accepted = & $runGenerator $baseJson
+            Assert-Equal 0 $accepted.ExitCode 'Baseline generator failed against a valid substituted catalog.'
+            $generated = @((Get-Content -LiteralPath $accepted.ProducedPath -Raw | ConvertFrom-Json).Sources[0].Packages |
+                ForEach-Object PackageIdentifier)
             Assert-Equal 'Fixture.Eligible' ($generated -join '|') 'Baseline generation did not follow the supplied canonical catalog exactly.'
             foreach ($realId in @($managedCatalogDocument.Packages | ForEach-Object { [string]$_.Id })) {
                 Assert-NotContains $generated $realId 'Baseline generation leaked package IDs from a catalog it was not given.'
             }
 
-            # Strictness: an unsupported field and a forbidden-product match must both fail closed.
-            # Windows PowerShell 5.1 promotes native stderr to ErrorRecord, so capture it explicitly
-            # rather than letting an intentional child-process failure terminate this check.
-            $unknownField = Join-Path $sandbox 'unknown-field.json'
-            ($substitute | ConvertTo-Json -Depth 6).Replace('"Vendor":  "Fixture"','"Vendr":  "Fixture"') |
-                Set-Content -LiteralPath $unknownField -Encoding UTF8
-            $forbiddenCatalog = Join-Path $sandbox 'forbidden.json'
-            ($substitute | ConvertTo-Json -Depth 6).Replace('Eligible baseline record','Bundled CrowdStrike Falcon sensor') |
-                Set-Content -LiteralPath $forbiddenCatalog -Encoding UTF8
-
-            $rejectionPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = 'Continue'
-                & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator `
-                    -ManagedCatalogPath $unknownField -OutputPath (Join-Path $sandbox 'unknown.json') 2>&1 | Out-String | Out-Null
-                $unknownFieldExit = $LASTEXITCODE
-                & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File $generator `
-                    -ManagedCatalogPath $forbiddenCatalog -OutputPath (Join-Path $sandbox 'forbidden-out.json') 2>&1 | Out-String | Out-Null
-                $forbiddenExit = $LASTEXITCODE
+            # Shapes production tolerates must stay generatable; the generator must not be stricter here.
+            foreach ($tolerated in @(
+                [pscustomobject]@{ Name='empty Vendor'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible','"Vendor": "", "Risk": "None", "Note": "Eligible') }
+                [pscustomobject]@{ Name='absent Name falls back to Id'; Json=$baseJson.Replace('"Name": "Fixture Eligible", ','') }
+                [pscustomobject]@{ Name='absent Risk defaults to None'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Note": "Eligible') }
+            )) {
+                $result = & $runGenerator $tolerated.Json
+                Assert-Equal 0 $result.ExitCode "Baseline generator rejected a shape production accepts: $($tolerated.Name)"
+                $ids = @((Get-Content -LiteralPath $result.ProducedPath -Raw | ConvertFrom-Json).Sources[0].Packages |
+                    ForEach-Object PackageIdentifier)
+                Assert-Contains $ids 'Fixture.Eligible' "Tolerated shape dropped the eligible package: $($tolerated.Name)"
             }
-            finally { $ErrorActionPreference = $rejectionPreference }
-            Assert-True ($unknownFieldExit -ne 0) 'Baseline generator accepted an unsupported managed-catalog field.'
-            Assert-True ($forbiddenExit -ne 0) 'Baseline generator accepted a forbidden-product catalog entry.'
-            Assert-True (-not (Test-Path -LiteralPath (Join-Path $sandbox 'unknown.json'))) 'Baseline generator wrote output for a rejected managed catalog.'
-            Assert-True (-not (Test-Path -LiteralPath (Join-Path $sandbox 'forbidden-out.json'))) 'Baseline generator wrote output for a forbidden-product catalog.'
+
+            # Every condition the compiled managed-catalog path rejects must fail closed here too.
+            $longId = 'A' * 130
+            foreach ($rejected in @(
+                [pscustomobject]@{ Name='lowercase Profile'; Json=$baseJson.Replace('"Profile": "Standard"','"Profile": "standard"') }
+                [pscustomobject]@{ Name='lowercase Risk'; Json=$baseJson.Replace('"Risk": "None"','"Risk": "none"') }
+                [pscustomobject]@{ Name='lowercase Deployment'; Json=$baseJson.Replace('"Deployment": "ManualHold"','"Deployment": "manualhold"') }
+                [pscustomobject]@{ Name='lowercase Maintenance'; Json=$baseJson.Replace('"Note": "Held record"','"Note": "Held record", "Maintenance": "hold"') }
+                [pscustomobject]@{ Name='duplicate top-level property'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 1, "SchemaVersion": 1,') }
+                [pscustomobject]@{ Name='duplicate package property'; Json=$baseJson.Replace('"Id": "Fixture.Eligible",','"Id": "Fixture.Eligible", "Id": "Fixture.Eligible",') }
+                [pscustomobject]@{ Name='unknown top-level property'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 1, "Extra": true,') }
+                [pscustomobject]@{ Name='wrong-case top-level property'; Json=$baseJson.Replace('"SchemaVersion"','"schemaVersion"') }
+                [pscustomobject]@{ Name='missing top-level property'; Json=$baseJson.Replace('"ForbiddenPattern": "(?i)CrowdStrike|Falcon|TeamViewer",','') }
+                [pscustomobject]@{ Name='unknown package property'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "Unexpected": "x"') }
+                [pscustomobject]@{ Name='untrimmed Id'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": " Fixture.Eligible"') }
+                [pscustomobject]@{ Name='untrimmed Note'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record "') }
+                [pscustomobject]@{ Name='overlength Id'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"',('"Id": "' + $longId + '"')) }
+                [pscustomobject]@{ Name='overlength Name'; Json=$baseJson.Replace('"Name": "Fixture Eligible"',('"Name": "' + ('N' * 257) + '"')) }
+                [pscustomobject]@{ Name='overlength Vendor'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible',('"Vendor": "' + ('V' * 129) + '", "Risk": "None", "Note": "Eligible')) }
+                [pscustomobject]@{ Name='overlength Note'; Json=$baseJson.Replace('"Note": "Eligible baseline record"',('"Note": "' + ('T' * 1025) + '"')) }
+                [pscustomobject]@{ Name='control character in Note'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligiblerecord"') }
+                [pscustomobject]@{ Name='invalid package ID pattern'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": "Fixture Eligible"') }
+                [pscustomobject]@{ Name='duplicate package ID differing only by case'; Json=$baseJson.Replace('"Id": "Fixture.Held"','"Id": "FIXTURE.ELIGIBLE"') }
+                [pscustomobject]@{ Name='invalid ForbiddenPattern'; Json=$baseJson.Replace('(?i)CrowdStrike|Falcon|TeamViewer','(?i)CrowdStrike(') }
+                [pscustomobject]@{ Name='forbidden-product match'; Json=$baseJson.Replace('Eligible baseline record','Bundled CrowdStrike Falcon sensor') }
+                [pscustomobject]@{ Name='missing required Note'; Json=$baseJson.Replace(', "Note": "Eligible baseline record"','') }
+                [pscustomobject]@{ Name='unsupported SchemaVersion'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 2,') }
+                [pscustomobject]@{ Name='empty Packages array'; Json='{ "SchemaVersion": 1, "ForbiddenPattern": "(?i)CrowdStrike", "Packages": [] }' }
+            )) {
+                $result = & $runGenerator $rejected.Json
+                Assert-True ($result.ExitCode -ne 0) "Baseline generator accepted a catalog production rejects: $($rejected.Name)"
+                Assert-True (-not (Test-Path -LiteralPath $result.ProducedPath)) "Baseline generator wrote output for a rejected catalog: $($rejected.Name)"
+            }
         }
         finally { Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue }
     }
