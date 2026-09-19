@@ -61,7 +61,7 @@ jobs:
 
       - name: Build and test compiled runtime
         shell: powershell
-        run: powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+        run: powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledRuntime.ps1
 
       - name: Build unsigned candidate
         shell: powershell

@@ -64,11 +64,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Build and compare C# migration scaffolding
+      - name: Build and test compiled runtime
         shell: powershell
         run: >-
           powershell.exe -NoProfile -ExecutionPolicy RemoteSigned
-          -File .\tests\Test-CSharpMigration.ps1
+          -File .\tests\Test-CompiledRuntime.ps1
 
       - name: Build standalone executable, portable ZIP, and MSI
         shell: powershell

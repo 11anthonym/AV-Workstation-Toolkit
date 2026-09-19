@@ -1308,10 +1308,9 @@ Invoke-Check 'Credential-like values are redacted from operational text' {
     Assert-True ($protected -notmatch 'hunter2|abc123|:pass@|Bearer xyz') 'Sensitive values remain in protected operational text.'
     Assert-True ($protected -match '\[REDACTED\]') 'Redaction marker is missing.'
 }
-Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-backed' {
+Invoke-Check 'Compiled presentation is production-composed and strict' {
     $agents = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AGENTS.md') -Raw
     $architecture = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Architecture.md') -Raw
-    $coverage = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Coverage.md') -Raw
     $solution = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx') -Raw
     $appProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj') -Raw
     $domainSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -1319,11 +1318,10 @@ Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-
     $infrastructureSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
     $domainTests = Get-Content -LiteralPath (Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.Tests\AVWorkstationToolkit.Tests.csproj') -Raw
     $buildSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
-    Assert-True ($agents -match 'If the new implementation disagrees with the current implementation' -and
-        $agents -match 'unknown-field-tolerant request parsing' -and $agents -match 'UI-side package authorization') 'Repository migration instructions omit parity or safety rules.'
+    Assert-True ($agents -match 'unknown-field-tolerant request parsing' -and
+        $agents -match 'UI-side package authorization') 'Repository development instructions omit required safety rules.'
     Assert-True ($architecture -match 'Domain must not reference WPF, Registry, Process, HTTP, filesystem, Credential Manager, or PowerShell' -and
-        $architecture -match 'AVWorkstationToolkit\.Worker\.exe --production' -and $architecture -match 'fail-closed repository SignPath workflow') 'Migration architecture dependency, mode, or signing boundary is incomplete.'
-    Assert-True ($coverage -match 'WinGet package state' -and $coverage -match 'Worker lifecycle' -and $coverage -match 'Code signing') 'Migration coverage matrix omits required responsibilities.'
+        $architecture -match 'AVWorkstationToolkit\.Worker\.exe --production' -and $architecture -match 'fail-closed repository SignPath workflow') 'Architecture dependency, worker mode, or signing boundary is incomplete.'
     foreach ($project in @('App','Application','Domain','Infrastructure.Windows')) {
         Assert-True ($solution -match [regex]::Escape("src/AVWorkstationToolkit.$project/AVWorkstationToolkit.$project.csproj")) "Migration solution omits $project."
     }
@@ -1339,8 +1337,8 @@ Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-
     Assert-True ($appProject -match '<OutputType>WinExe</OutputType>' -and $appProject -match '<UseWPF>true</UseWPF>' -and
         $appProject -match '<SelfContained>true</SelfContained>' -and $appProject -match '<PublishSingleFile>true</PublishSingleFile>' -and
         $appProject -match '<PublishTrimmed>false</PublishTrimmed>' -and $compiledAppXaml -match 'x:Class="AVWorkstationToolkit\.App\.App"' -and
-        $compiledWindowXaml -match 'x:Class="AVWorkstationToolkit\.App\.MainWindow"' -and $compiledAppSource -notmatch 'XamlReader|System\.Management\.Automation') 'Compiled WPF migration app or publish policy is incomplete.'
-    Assert-True ($buildSource -match 'Test-CSharpMigration\.ps1') 'Authoritative build does not validate migration scaffolding.'
+        $compiledWindowXaml -match 'x:Class="AVWorkstationToolkit\.App\.MainWindow"' -and $compiledAppSource -notmatch 'XamlReader|System\.Management\.Automation') 'Compiled WPF app or publish policy is incomplete.'
+    Assert-True ($buildSource -match 'Test-CompiledRuntime\.ps1') 'Authoritative build does not validate the compiled runtime.'
     Assert-True ($compiledRequestSource -match 'UnknownField' -and $compiledRequestSource -match 'DuplicateField' -and
         $compiledRequestSource -match 'MaximumPayloadBytes\s*=\s*65_536' -and $compiledRequestSource -match 'ActionRequestAuthorizationService') 'Compiled strict action-request model, parser, or plan-authorization boundary is incomplete.'
     Assert-True ($compiledRequestPathSource -match 'Read-only validation' -and $compiledArtifactPathSource -match 'canonical direct-child path' -and
@@ -1355,12 +1353,6 @@ Invoke-Check 'Compiled presentation is production-composed, strict, and fixture-
         $compiledAppCompositionSource -match 'ProductionCompiledWorkerLauncher' -and
         $compiledAppCompositionSource -match 'if \(production\)' -and
         $compiledAppCompositionSource -match 'new ActionProtocolStore\(dataRoot\)') 'Compiled App production action composition is incomplete.'
-    Assert-Equal 5 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\fixtures') -File -Filter '*.json').Count 'Active parity fixture count differs.'
-    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\core-fixtures') -File -Filter '*.json').Count 'Active domain-core parity fixture count differs.'
-    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\provider-fixtures') -File -Filter '*.json').Count 'Active provider parity fixture count differs.'
-    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\action-request-fixtures') -File -Filter '*.json').Count 'Active action-request parity fixture count differs.'
-    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\ipc-lifecycle-fixtures') -File -Filter '*.json').Count 'Active IPC lifecycle parity fixture count differs.'
-    Assert-Equal 1 @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests\parity\presentation-fixtures') -File -Filter '*.json').Count 'Active presentation parity fixture count differs.'
     Assert-True ($domainSource -match 'class CatalogParser' -and $domainSource -match 'class PlanningService' -and $domainSource -match 'class SelectionPolicy' -and
         $domainSource -notmatch 'System\.Diagnostics|Microsoft\.Win32|HttpClient|System\.Management\.Automation|powershell\.exe|pwsh\.exe|cmd\.exe') 'Typed Domain ownership or dependency boundary regressed.'
     Assert-True ($domainTests -match 'PackageReference Include="MSTest"' -and $domainTests -match 'TreatWarningsAsErrors>true') 'C# domain tests are not configured as warning-clean MSTest tests.'
@@ -1675,10 +1667,6 @@ Invoke-Check 'Worker launch arguments are deterministic and arbitrary request pa
 Invoke-Check 'Endpoint-trust static QA rejects suspicious production patterns' {
     $output = (& (Join-Path $PSScriptRoot 'Test-EndpointTrust.ps1') | Out-String)
     Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=5') 'Endpoint-trust QA did not validate the reviewed process contract.'
-}
-Invoke-Check 'Phase 14 compiled runtime retirement contract is complete' {
-    $output = (& (Join-Path $PSScriptRoot 'Test-CompiledCutover.ps1') | Out-String)
-    Assert-True ($output -match 'COMPILED_RETIREMENT_OK') 'Compiled runtime retirement contract did not pass.'
 }
 Invoke-Check 'Clone build entry point and tagged-release workflow publish the standalone executable' {
     $buildEntryPath = Join-Path $repositoryRoot 'Build-AVWorkstationToolkit.cmd'

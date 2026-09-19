@@ -136,19 +136,19 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-T
 The shipping implementation is the compiled C# WPF App and independent compiled
 worker. Its typed Domain/Application layers own catalog, filtering, planning,
 policy, request/IPC, Windows inventory, vendor delivery, diagnostics, and exact-ID
-worker behavior. The retained parity suite continues to characterize contractual
-behavior against the legacy reference implementation:
+worker behavior. Build it, run the deterministic test suite, and exercise the
+worker, action-flow, WPF and live-rehearsal boundaries with:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpMigration.ps1
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledRuntime.ps1
 ```
 
-An optional non-mutating host integration check reports which C# sources were
-actually exercised and which were unavailable; workstation package contents are
-not treated as golden test data:
+An optional non-mutating host integration check reports which read-only providers
+were actually exercised and which were unavailable; workstation package contents
+are not treated as golden test data:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CSharpReadOnlyIntegration.ps1 -NoBuild
+powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledReadOnlyIntegration.ps1 -NoBuild
 ```
 
 The private repository also runs the host-independent safety subset and targeted PSScriptAnalyzer policy on a clean Windows GitHub Actions runner.
@@ -191,7 +191,7 @@ The command-line deployment and maintenance scripts remain available for operato
 | `external-packages/` | Local third-party payload depot; always ignored by Git |
 | `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavior characterization plus development/operator tooling; not packaged |
 | `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization source; not packaged or launched in production |
-| `tests/` | Non-installing safety, parser, policy, UI smoke, explicit fixtures, and dual-engine parity tests |
+| `tests/` | Non-installing safety, parser, policy, UI smoke, deterministic fixtures, and process/provider boundary tests |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\logs` | Installed/portable execution evidence |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\reports` | Installed/portable exported plans |
 | `logs/`, `reports/` | Source-checkout evidence; ignored by Git |

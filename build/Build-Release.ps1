@@ -380,8 +380,8 @@ foreach ($target in @($stagingRoot,$workerStagingRoot,$releaseRoot,$intermediate
 if (-not $SkipTests) {
     & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File (Join-Path $repositoryRoot 'tests\Run-Tests.ps1')
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit source QA failed.' }
-    & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $repositoryRoot 'tests\Test-CSharpMigration.ps1')
-    if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit C# migration QA failed.' }
+    & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $repositoryRoot 'tests\Test-CompiledRuntime.ps1')
+    if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit compiled runtime QA failed.' }
 }
 
 $certificate = $null
