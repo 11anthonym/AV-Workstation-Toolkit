@@ -38,9 +38,12 @@ public partial class App : System.Windows.Application
         {
             if (!smoke && IsElevated())
             {
-                MessageBox.Show(
-                    "For safety, AV Workstation Toolkit must be launched as a standard user. Close this copy and start it normally; individual installers can request elevation through Windows.",
-                    "Standard-user launch required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                const string elevationRefusal = "For safety, AV Workstation Toolkit must be launched as a standard user. Close this copy and start it normally; individual installers can request elevation through Windows.";
+                // The refusal itself is a prohibition, not a diagnostic, so it keeps its own exit code 2
+                // on both paths. Under --read-only-check it must reach standard error: a dialog would
+                // hold the unattended harness open until its timeout and report nothing about why.
+                if (readOnlyCheck) Console.Error.WriteLine(DiagnosticsRedactor.Sanitize(elevationRefusal));
+                else MessageBox.Show(elevationRefusal, "Standard-user launch required", MessageBoxButton.OK, MessageBoxImage.Warning);
                 Shutdown(2);
                 return;
             }
@@ -122,8 +125,19 @@ public partial class App : System.Windows.Application
             else if (readOnlyCheck)
             {
                 await viewModel.RefreshAsync().ConfigureAwait(true);
+                // Catalog breadth proves the catalog loaded; it says nothing about provider health,
+                // because a plan keeps every catalog row even when no provider could be read.
                 if (viewModel.Packages.Count < 300)
                     throw new InvalidOperationException("Compiled read-only integration did not produce the complete catalog plan.");
+                var providers = viewModel.LatestPlan?.Providers
+                    ?? throw new InvalidOperationException("Compiled read-only integration produced no plan; the refresh did not complete.");
+                var outcomes = ReadOnlyIntegrationContract.Evaluate(providers);
+                foreach (var outcome in outcomes) Console.Error.WriteLine(outcome.Report());
+                var failed = outcomes.Where(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.Failed).ToArray();
+                if (failed.Length > 0)
+                    throw new InvalidOperationException(
+                        "Compiled read-only integration did not meet the provider contract: " +
+                        string.Join("; ", failed.Select(outcome => $"{outcome.Name} reported {outcome.Quality} ({outcome.Failure}) - {outcome.Detail}")));
                 window.Close();
                 Shutdown(0);
             }

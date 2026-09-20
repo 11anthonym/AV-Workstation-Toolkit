@@ -1223,6 +1223,13 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='empty Vendor'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible','"Vendor": "", "Risk": "None", "Note": "Eligible') }
                 [pscustomobject]@{ Name='absent Name falls back to Id'; Json=$baseJson.Replace('"Name": "Fixture Eligible", ','') }
                 [pscustomobject]@{ Name='absent Risk defaults to None'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Note": "Eligible') }
+                # Optional() returns null for a JSON null exactly as it does for an absent member, and
+                # NormalizeManaged then applies the same default, so these must not be rejected.
+                [pscustomobject]@{ Name='null Risk defaults to None'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Risk": null, "Note": "Eligible') }
+                [pscustomobject]@{ Name='null Deployment defaults to Allowlisted'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "Deployment": null') }
+                [pscustomobject]@{ Name='null Maintenance defaults to Allowlisted'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "Maintenance": null') }
+                [pscustomobject]@{ Name='null Vendor is treated as empty'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible','"Vendor": null, "Risk": "None", "Note": "Eligible') }
+                [pscustomobject]@{ Name='null Name falls back to Id'; Json=$baseJson.Replace('"Name": "Fixture Eligible"','"Name": null') }
                 # A decoded-equivalent property name is the same field, not a duplicate.
                 [pscustomobject]@{ Name='escaped spelling of a property name'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible',('"' + $escapedVendor + '": "Fixture", "Risk": "None", "Note": "Eligible')) }
                 # Escapes inside ordinary string values must never be read as property names.
@@ -1278,6 +1285,14 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='package Id as single-element array'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": ["Fixture.Eligible"]') }
                 [pscustomobject]@{ Name='package Name as boolean'; Json=$baseJson.Replace('"Name": "Fixture Eligible"','"Name": true') }
                 [pscustomobject]@{ Name='package Risk as single-element array'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Risk": ["None"], "Note": "Eligible') }
+                # A null optional token defaults, but an empty or whitespace one is a present value
+                # that Optional() trims to '' and the loader's token parse rejects. A null required
+                # member is still missing, exactly as Required() treats it.
+                [pscustomobject]@{ Name='empty Risk'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Risk": "", "Note": "Eligible') }
+                [pscustomobject]@{ Name='whitespace Deployment'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "Deployment": " "') }
+                [pscustomobject]@{ Name='null required Profile'; Json=$baseJson.Replace('"Profile": "Standard", "Name": "Fixture Eligible"','"Profile": null, "Name": "Fixture Eligible"') }
+                [pscustomobject]@{ Name='null required Id'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": null') }
+                [pscustomobject]@{ Name='null required Note'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": null') }
                 [pscustomobject]@{ Name='empty Packages array'; Json='{ "SchemaVersion": 1, "ForbiddenPattern": "(?i)CrowdStrike", "Packages": [] }' }
             )) {
                 Assert-True ($rejected.Json -cne $baseJson) "Rejection fixture did not actually mutate the base catalog: $($rejected.Name)"
