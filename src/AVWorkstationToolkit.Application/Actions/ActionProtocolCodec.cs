@@ -364,10 +364,21 @@ public sealed class ActionResultCodec
             verb, "--id", package.Id, "--exact", "--source", "winget",
             "--accept-package-agreements", "--accept-source-agreements"
         ];
-        if (package.Arguments.Count != required.Length && package.Arguments.Count != required.Length + 2) return false;
         if (!package.Arguments.Take(required.Length).SequenceEqual(required, StringComparer.Ordinal)) return false;
-        return package.Arguments.Count == required.Length ||
-            package.Arguments.Skip(required.Length).SequenceEqual(["--silent", "--disable-interactivity"], StringComparer.Ordinal);
+        // This is the protocol boundary, not the catalog policy engine. The correlated request carries
+        // package IDs only - not risk or installer mode - so there is no authoritative context here to
+        // decide which tail a given package is entitled to. It therefore pins the exact reviewed shapes
+        // ManagedWinGetArgumentPolicy can emit, in order, and rejects every other trailing sequence.
+        // Which shape a package may use stays the catalog's decision, enforced where that authority
+        // exists: in the worker, before the vector is built.
+        string[][] reviewedTails =
+        [
+            [],                                        // risk-bearing package: fully interactive
+            ["--disable-interactivity"],               // low risk, InstallerExecutionMode.InstallerDefault
+            ["--silent", "--disable-interactivity"]    // low risk, InstallerExecutionMode.Silent
+        ];
+        var tail = package.Arguments.Skip(required.Length).ToArray();
+        return reviewedTails.Any(candidate => tail.SequenceEqual(candidate, StringComparer.Ordinal));
     }
 
     private static DateTimeOffset? RequireTimestamp(JsonElement value, string name, bool allowNull)

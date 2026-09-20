@@ -297,6 +297,120 @@ public sealed class ActionProtocolTests
     }
 
     [TestMethod]
+    public void FinalResultAcceptsExactlyTheThreeReviewedArgumentVectors()
+    {
+        var root = CreateTemporaryRoot();
+        try
+        {
+        var request = Request(["Vendor.One"]);
+        var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
+        var codec = new ActionResultCodec();
+
+        // The three shapes ManagedWinGetArgumentPolicy can emit, all of which are legitimate results.
+        foreach (var tail in new[]
+        {
+            Array.Empty<string>(),                             // risk-bearing package
+            ["--disable-interactivity"],                       // low risk, InstallerDefault
+            new[] { "--silent", "--disable-interactivity" }    // low risk, Silent
+        })
+        {
+            var parsed = codec.Parse(ResultJson(paths, "Succeeded", 0, PackageWithTail(tail)), request, paths);
+            Assert.AreEqual(ActionResultStatus.Succeeded, parsed.Status);
+            CollectionAssert.AreEqual(BaseVector.Concat(tail).ToArray(), parsed.Packages.Single().Arguments.ToArray());
+        }
+
+        // Everything else stays rejected: an unexpected flag, a missing required flag, a reordered
+        // tail, a partially reviewed tail, an altered ID, and an altered source.
+        foreach (var rejected in new[]
+        {
+            new[] { "--silent", "--disable-interactivity", "--force" },
+            ["--silent"],
+            ["--disable-interactivity", "--silent"],
+            ["--interactive"],
+            new[] { "--disable-interactivity", "--disable-interactivity" }
+        })
+        {
+            Assert.ThrowsExactly<ActionProtocolValidationException>(
+                () => codec.Parse(ResultJson(paths, "Succeeded", 0, PackageWithTail(rejected)), request, paths),
+                $"tail was accepted: {string.Join(' ', rejected)}");
+        }
+
+        foreach (var (index, replacement) in new[] { (2, "Vendor.Other"), (5, "msstore"), (3, "--fuzzy"), (0, "uninstall") })
+        {
+            var altered = PackageWithTail(["--silent", "--disable-interactivity"]);
+            var vector = altered["Arguments"]!.AsArray();
+            vector[index] = replacement;
+            Assert.ThrowsExactly<ActionProtocolValidationException>(
+                () => codec.Parse(ResultJson(paths, "Succeeded", 0, altered), request, paths),
+                $"altered argument {index} was accepted: {replacement}");
+        }
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [TestMethod]
+    public async Task InstallerDefaultUpgradeResultSurvivesRealFinalResultPersistence()
+    {
+        // The regression: a PuTTY upgrade that WinGet completed could not be persisted, so the UI
+        // reported no final result. The builder alone cannot prove this - it has to survive the file
+        // protocol's own write-and-reparse path.
+        var root = CreateTemporaryRoot();
+        try
+        {
+            var request = new ActionRequest(
+                ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Update, ["PuTTY.PuTTY"], false, false);
+            var store = new ActionProtocolStore(root);
+            var upgradable = State("PuTTY.PuTTY") with
+            {
+                Installed = true,
+                UpgradeAvailable = true,
+                Status = PackageStatus.UpdateAvailable,
+                Action = PackageAction.Update
+            };
+            var paths = await store.PersistRequestAsync(new AuthorizedActionRequest(request, [upgradable]));
+            await using var protocol = new ActionWorkerFileProtocol(root, RequestId);
+            await protocol.InitializeAsync(request);
+
+            var package = PackageJson("Succeeded", 0, true);
+            package["Id"] = "PuTTY.PuTTY";
+            package["Name"] = "PuTTY";
+            package["Action"] = "Update";
+            package["Arguments"] = new JsonArray(
+                "upgrade", "--id", "PuTTY.PuTTY", "--exact", "--source", "winget",
+                "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity");
+            var result = new ActionResultCodec().Parse(ResultJson(paths, "Succeeded", 0, package), request, paths);
+            await protocol.PersistFinalResultAsync(request, result);
+
+            // Read back exactly what the UI would read.
+            var persisted = new ActionResultCodec().Parse(
+                await store.ReadArtifactAsync(RequestId, ActionArtifactKind.Result), request, paths);
+
+            // A completed mutation must not be downgraded into a failure by the persistence layer.
+            Assert.AreEqual(ActionResultStatus.Succeeded, persisted.Status);
+            Assert.AreEqual(0, persisted.ExitCode);
+            var outcome = persisted.Packages.Single();
+            Assert.AreEqual(PackageOutcomeStatus.Succeeded, outcome.Status);
+            Assert.IsTrue(outcome.Verified);
+            CollectionAssert.DoesNotContain(outcome.Arguments.ToArray(), "--silent");
+            CollectionAssert.Contains(outcome.Arguments.ToArray(), "--disable-interactivity");
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    private static readonly string[] BaseVector =
+    [
+        "install", "--id", "Vendor.One", "--exact", "--source", "winget",
+        "--accept-package-agreements", "--accept-source-agreements"
+    ];
+
+    private static JsonObject PackageWithTail(IReadOnlyList<string> tail)
+    {
+        var package = PackageJson("Succeeded", 0, true);
+        package["Arguments"] = new JsonArray([.. BaseVector.Concat(tail).Select(value => (JsonNode)value!)]);
+        return package;
+    }
+
+    [TestMethod]
     public async Task WorkerFileProtocolAppendsProgressAndWritesFinalResultExactlyOnce()
     {
         var root = CreateTemporaryRoot();
