@@ -31,9 +31,11 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
         var smoke = packagedContext?.SmokeTest == true || e.Args.Contains("--smoke-test", StringComparer.Ordinal);
+        // Both automated modes are read here so the failure path below can see them. A dialog shown to
+        // an unattended harness blocks until its timeout and discards the diagnostic entirely.
+        var readOnlyCheck = e.Args.Contains("--read-only-check", StringComparer.Ordinal);
         try
         {
-            var readOnlyCheck = e.Args.Contains("--read-only-check", StringComparer.Ordinal);
             if (!smoke && IsElevated())
             {
                 MessageBox.Show(
@@ -128,12 +130,13 @@ public partial class App : System.Windows.Application
         }
         catch (Exception exception)
         {
-            if (!smoke)
-                MessageBox.Show(
-                    $"AV Workstation Toolkit couldn't start.\n\n{DiagnosticsRedactor.Sanitize(exception.Message)}\n\nTry opening it again. If the problem continues, include this message when reporting it.",
-                    "Couldn't start AV Workstation Toolkit", MessageBoxButton.OK, MessageBoxImage.Error);
+            var diagnostic = DiagnosticsRedactor.Sanitize(exception.Message);
+            if (smoke || readOnlyCheck)
+                Console.Error.WriteLine(diagnostic);
             else
-                Console.Error.WriteLine(exception.Message);
+                MessageBox.Show(
+                    $"AV Workstation Toolkit couldn't start.\n\n{diagnostic}\n\nTry opening it again. If the problem continues, include this message when reporting it.",
+                    "Couldn't start AV Workstation Toolkit", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
     }
