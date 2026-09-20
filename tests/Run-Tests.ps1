@@ -1268,6 +1268,16 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='forbidden-product match'; Json=$baseJson.Replace('Eligible baseline record','Bundled CrowdStrike Falcon sensor') }
                 [pscustomobject]@{ Name='missing required Note'; Json=$baseJson.Replace(', "Note": "Eligible baseline record"','') }
                 [pscustomobject]@{ Name='unsupported SchemaVersion'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": 2,') }
+                # PowerShell would coerce each of these into a plausible string; the loader rejects the token.
+                [pscustomobject]@{ Name='SchemaVersion as JSON string'; Json=$baseJson.Replace('"SchemaVersion": 1,','"SchemaVersion": "1",') }
+                [pscustomobject]@{ Name='ForbiddenPattern as number'; Json=$baseJson.Replace('"ForbiddenPattern": "(?i)CrowdStrike|Falcon|TeamViewer",','"ForbiddenPattern": 123,') }
+                # Written out rather than derived, so the object form stays well-formed JSON and is
+                # rejected for being an object where a package array is required, not for bad syntax.
+                [pscustomobject]@{ Name='Packages as a single object'; Json='{ "SchemaVersion": 1, "ForbiddenPattern": "(?i)CrowdStrike", "Packages": { "Profile": "Standard", "Name": "Fixture Eligible", "Id": "Fixture.Eligible", "Vendor": "Fixture", "Risk": "None", "Note": "Eligible baseline record" } }' }
+                [pscustomobject]@{ Name='package Id as number'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": 123') }
+                [pscustomobject]@{ Name='package Id as single-element array'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": ["Fixture.Eligible"]') }
+                [pscustomobject]@{ Name='package Name as boolean'; Json=$baseJson.Replace('"Name": "Fixture Eligible"','"Name": true') }
+                [pscustomobject]@{ Name='package Risk as single-element array'; Json=$baseJson.Replace('"Risk": "None", "Note": "Eligible','"Risk": ["None"], "Note": "Eligible') }
                 [pscustomobject]@{ Name='empty Packages array'; Json='{ "SchemaVersion": 1, "ForbiddenPattern": "(?i)CrowdStrike", "Packages": [] }' }
             )) {
                 Assert-True ($rejected.Json -cne $baseJson) "Rejection fixture did not actually mutate the base catalog: $($rejected.Name)"

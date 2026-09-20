@@ -59,6 +59,23 @@ function Test-OrdinalMember {
     return $false
 }
 
+function Assert-JsonStringValue {
+    <#
+        ConvertFrom-Json surfaces JSON numbers, Booleans, arrays and objects as .NET types that
+        PowerShell will silently coerce to a plausible-looking string: 123 becomes '123', true becomes
+        'True', and a one-element array becomes its element. The compiled loader deserializes these
+        members as JSON strings and fails on any other token, so a wrong type is rejected here rather
+        than coerced into a baseline the product cannot load. JSON null is left to the required-field
+        and token checks, which already reject or default it exactly as the loader does.
+    #>
+    param($Value,[string]$Field)
+
+    if ($null -ne $Value -and $Value -isnot [string]) {
+        throw "$Field must be a JSON string."
+    }
+    return $Value
+}
+
 function Assert-CatalogText {
     <# Mirrors CatalogParser.Text: required-unless-allowEmpty, bounded length, already trimmed, no control characters. #>
     param([string]$Value,[string]$Field,[int]$MaximumLength,[switch]$AllowEmpty)
@@ -162,10 +179,11 @@ foreach ($required in $allowedTopLevelFields) {
         throw "The canonical managed catalog is missing top-level field '$required'."
     }
 }
-if ([string]$catalog.SchemaVersion -cne '1') {
+# The loader deserializes SchemaVersion as a JSON integer, so a quoted "1" must not be accepted.
+if (($catalog.SchemaVersion -isnot [int] -and $catalog.SchemaVersion -isnot [long]) -or $catalog.SchemaVersion -ne 1) {
     throw "The canonical managed catalog schema version is unsupported: $($catalog.SchemaVersion)"
 }
-$forbiddenPattern = [string]$catalog.ForbiddenPattern
+$forbiddenPattern = [string](Assert-JsonStringValue -Value $catalog.ForbiddenPattern -Field 'The canonical managed catalog ForbiddenPattern')
 if ([string]::IsNullOrWhiteSpace($forbiddenPattern)) {
     throw 'The canonical managed catalog must declare a non-empty ForbiddenPattern.'
 }
@@ -177,6 +195,11 @@ try {
 }
 catch { throw "The canonical managed catalog ForbiddenPattern is not a valid regular expression: $($_.Exception.Message)" }
 
+# A single JSON object would be wrapped into a one-element array by @(), silently passing as one
+# package; the loader deserializes Packages as a list and rejects an object.
+if ($catalog.Packages -isnot [System.Array]) {
+    throw 'The canonical managed catalog Packages must be a JSON array.'
+}
 $catalogPackages = @($catalog.Packages)
 if ($catalogPackages.Count -eq 0) { throw 'The canonical managed catalog contains no packages.' }
 
@@ -190,6 +213,11 @@ foreach ($package in $catalogPackages) {
     $unknown = @($fields | Where-Object { -not (Test-OrdinalMember -Set $allowedPackageFields -Value $_) })
     if ($unknown.Count -gt 0) {
         throw "Managed catalog entry $index declares unsupported field(s): $($unknown -join ', ')"
+    }
+    # Every supported package member is a JSON string in the loader's record, so reject a wrong token
+    # once here instead of letting each downstream cast coerce it into something plausible.
+    foreach ($field in $fields) {
+        $null = Assert-JsonStringValue -Value $package.$field -Field "Managed catalog entry $index.$field"
     }
     foreach ($required in $requiredPackageFields) {
         if (-not (Test-OrdinalMember -Set $fields -Value $required) -or
