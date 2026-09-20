@@ -1326,6 +1326,47 @@ Invoke-Check 'Low-risk install arguments are exact, sourced, silent, and never b
     Assert-Contains $arguments '--disable-interactivity' 'Disable-interactivity flag missing for low-risk package.'
     Assert-NotContains $arguments '--all' 'Bulk update flag present.'
 }
+Invoke-Check 'InstallerDefault omits only --silent and every other low-risk package is unchanged' {
+    # PuTTY upgrades by uninstalling the previous machine-scope MSI. With --silent WinGet runs
+    # 'msiexec /x <ProductCode> /quiet', which cannot elevate for a standard user, returns 1603 and
+    # reports 0x8A150030. Ordering is asserted in full: the compiled result codec accepts only the
+    # exact reviewed vectors, so a correct set in the wrong order would still be rejected.
+    $putty = @($plan.Packages | Where-Object Id -eq 'PuTTY.PuTTY')[0]
+    Assert-Equal 'InstallerDefault' $putty.InstallerMode 'PuTTY is not marked InstallerDefault in the supported PowerShell catalog.'
+    Assert-Equal 'None' $putty.Risk 'Installer mode must not be expressed through PuTTY risk.'
+    foreach ($case in @(
+        [pscustomobject]@{ Action='Install'; Verb='install' }
+        [pscustomobject]@{ Action='Update';  Verb='upgrade' }
+    )) {
+        $actual = @(Get-AVWorkstationToolkitWingetArguments -Action $case.Action -Package $putty)
+        $expected = @($case.Verb,'--id','PuTTY.PuTTY','--exact','--source','winget',
+            '--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+        Assert-Equal ($expected -join ' ') ($actual -join ' ') "PuTTY $($case.Action) vector differs."
+    }
+
+    # An unchanged low-risk package keeps the silent vector exactly as before.
+    $unchanged = @($plan.Packages | Where-Object Id -eq 'Notepad++.Notepad++')[0]
+    Assert-Equal 'Silent' $unchanged.InstallerMode 'An unrelated low-risk package changed installer mode.'
+    foreach ($case in @(
+        [pscustomobject]@{ Action='Install'; Verb='install' }
+        [pscustomobject]@{ Action='Update';  Verb='upgrade' }
+    )) {
+        $actual = @(Get-AVWorkstationToolkitWingetArguments -Action $case.Action -Package $unchanged)
+        $expected = @($case.Verb,'--id','Notepad++.Notepad++','--exact','--source','winget',
+            '--accept-package-agreements','--accept-source-agreements','--silent','--disable-interactivity')
+        Assert-Equal ($expected -join ' ') ($actual -join ' ') "Unchanged low-risk $($case.Action) vector differs."
+    }
+
+    # Only PuTTY is excepted across the whole supported catalog.
+    $exceptions = @($plan.Packages | Where-Object { $_.Provider -eq 'WinGet' -and $_.InstallerMode -ne 'Silent' } | ForEach-Object { $_.Id })
+    Assert-Equal 'PuTTY.PuTTY' ($exceptions -join '|') 'Installer-mode exceptions are broader than the reviewed package.'
+
+    # A misspelt catalog value must fail rather than silently drop --silent.
+    $corrupt = $unchanged.PSObject.Copy(); $corrupt.InstallerMode = 'silent'
+    $threw = $false
+    try { $null = Get-AVWorkstationToolkitWingetArguments -Action Install -Package $corrupt } catch { $threw = $true }
+    Assert-True $threw 'A misspelt installer mode was silently treated as non-silent.'
+}
 Invoke-Check 'Risk-bearing install remains interactive' {
     $package = @($plan.Packages | Where-Object Id -eq 'Insecure.Nmap')[0]
     $arguments = @(Get-AVWorkstationToolkitWingetArguments -Action Install -Package $package)

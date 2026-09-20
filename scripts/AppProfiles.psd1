@@ -14,7 +14,7 @@
         @{ Profile='Standard';  Name='VLC media player';         Id='VideoLAN.VLC';                             Vendor='VideoLAN'; Risk='None';   Note='Media and test-pattern playback' }
         @{ Profile='Standard';  Name='draw.io Desktop';          Id='JGraph.Draw';                              Vendor='JGraph'; Risk='None';     Note='Signal-flow diagrams' }
 
-        @{ Profile='Field';     Name='PuTTY';                    Id='PuTTY.PuTTY';                              Vendor='PuTTY'; Risk='None';       Note='SSH and serial client' }
+        @{ Profile='Field';     Name='PuTTY';                    Id='PuTTY.PuTTY';                              Vendor='PuTTY'; Risk='None';       InstallerMode='InstallerDefault'; Note='SSH and serial client' }
         @{ Profile='Field';     Name='mRemoteNG';                Id='mRemoteNG.mRemoteNG';                      Vendor='mRemoteNG'; Risk='None';   Note='Remote-session client' }
         @{ Profile='Field';     Name='MobaXterm';                Id='Mobatek.MobaXterm';                        Vendor='Mobatek'; Risk='None';     Note='SSH and serial client' }
         @{ Profile='Field';     Name='Advanced IP Scanner';      Id='Famatech.AdvancedIPScanner';               Vendor='Famatech'; Risk='None';    Note='Use only on authorized networks' }

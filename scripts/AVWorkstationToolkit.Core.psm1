@@ -871,6 +871,9 @@ function ConvertFrom-AVWorkstationToolkitExternalCatalogJson {
             Note = [string]$raw.Note
             Deployment = [string](Get-AVWorkstationToolkitValue $raw 'Deployment' 'ManualHold')
             Maintenance = [string](Get-AVWorkstationToolkitValue $raw 'Maintenance' 'Hold')
+            # External packages have no WinGet installer vector; the property exists so every catalog
+            # record has one uniform shape, and InstallerMode is not an authorable external field.
+            InstallerMode = 'Silent'
             Provider = 'External'
             KnownVersion = $knownVersion
             DetectionMode = $detectionMode
@@ -1033,7 +1036,10 @@ function Get-AVWorkstationToolkitCatalog {
     $validRisks = @('None','Driver','Service','Listener')
     $validDeploymentPolicies = @('Allowlisted','ManualHold')
     $validMaintenancePolicies = @('Allowlisted','Hold')
-    $allowedPackageKeys = @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance')
+    # Installer execution mode is independent of Risk: it selects the WinGet installer vector only,
+    # so an installer requirement can never be expressed by misclassifying a package's risk.
+    $validInstallerModes = @('Silent','InstallerDefault')
+    $allowedPackageKeys = @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance','InstallerMode')
     $packages = [System.Collections.Generic.List[object]]::new()
     $index = 0
 
@@ -1053,6 +1059,7 @@ function Get-AVWorkstationToolkitCatalog {
             Note        = [string](Get-AVWorkstationToolkitValue $raw 'Note' '')
             Deployment  = [string](Get-AVWorkstationToolkitValue $raw 'Deployment' 'Allowlisted')
             Maintenance = [string](Get-AVWorkstationToolkitValue $raw 'Maintenance' 'Allowlisted')
+            InstallerMode = [string](Get-AVWorkstationToolkitValue $raw 'InstallerMode' 'Silent')
             Provider = 'WinGet'
             KnownVersion = ''
             DetectionMode = 'WinGet'
@@ -1185,6 +1192,11 @@ function Get-AVWorkstationToolkitCatalog {
         }
         if ($package.Maintenance -notin $validMaintenancePolicies) {
             throw "Invalid maintenance policy '$($package.Maintenance)' for $($package.Id)."
+        }
+        # Ordinal: the compiled loader parses this token case-sensitively, and -notin is
+        # case-insensitive, so a differently cased value would pass here and fail the compiled app.
+        if (-not ($validInstallerModes | Where-Object { [string]::Equals($_, $package.InstallerMode, [StringComparison]::Ordinal) })) {
+            throw "Invalid installer mode '$($package.InstallerMode)' for $($package.Id)."
         }
         if ($package.Provider -notin @('WinGet','External')) {
             throw "Invalid provider '$($package.Provider)' for $($package.Id)."
@@ -2627,6 +2639,7 @@ function New-AVWorkstationToolkitPlanItem {
         Note = $Package.Note
         Deployment = $Package.Deployment
         Maintenance = $Package.Maintenance
+        InstallerMode = [string](Get-AVWorkstationToolkitValue $Package 'InstallerMode' 'Silent')
         Installed = $State.Installed
         UpgradeAvailable = $State.UpgradeAvailable
         InstalledVersion = $State.InstalledVersion
@@ -3181,7 +3194,21 @@ function Get-AVWorkstationToolkitWingetArguments {
         '--accept-package-agreements','--accept-source-agreements'
     )
     if ($Package.Risk -eq 'None') {
-        $arguments += @('--silent','--disable-interactivity')
+        # --silent makes WinGet pass /quiet to the installer, including to 'msiexec /x <ProductCode>'
+        # for a manifest that upgrades by uninstalling the previous version. A machine-scope MSI
+        # uninstall cannot obtain elevation under /quiet for a standard user, so msiexec returns 1603
+        # and WinGet reports 0x8A150030. A reviewed InstallerDefault package omits the flag.
+        # Ordinal comparison, and an explicit rejection: a missing member already defaults to Silent,
+        # but a misspelt catalog value would otherwise be silently treated as not-Silent and quietly
+        # change how the installer runs.
+        $mode = [string](Get-AVWorkstationToolkitValue $Package 'InstallerMode' 'Silent')
+        $isSilent = [string]::Equals($mode,'Silent',[StringComparison]::Ordinal)
+        if (-not ($isSilent -or [string]::Equals($mode,'InstallerDefault',[StringComparison]::Ordinal))) {
+            throw "Unsupported installer mode '$mode' for $($Package.Id)."
+        }
+        if ($isSilent) { $arguments += '--silent' }
+        # Always retained for a low-risk package: WinGet itself never waits on a prompt.
+        $arguments += '--disable-interactivity'
     }
     return @($arguments)
 }
