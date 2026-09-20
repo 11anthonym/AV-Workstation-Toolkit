@@ -13,7 +13,8 @@ public sealed record ManagedPackageInput(
     string? Risk,
     string Note,
     string? Deployment,
-    string? Maintenance);
+    string? Maintenance,
+    string? InstallerMode = null);
 
 public sealed class CatalogParser
 {
@@ -93,7 +94,9 @@ public sealed class CatalogParser
             ReleaseMode.None, DetectionMode.WinGet, DetectionVersionPolicy.None, string.Empty, string.Empty,
             string.Empty, string.Empty, [], false, false, false, null, null,
             raw.Risk == "Driver", raw.Risk == "Service", raw.Risk == "Listener", false,
-            string.Empty, [priority.ToToken(), "UNKNOWN-COST", "PUBLIC-DL", "VerificationRequired"]);
+            string.Empty, [priority.ToToken(), "UNKNOWN-COST", "PUBLIC-DL", "VerificationRequired"],
+            InstallerMode: CatalogTokens.Parse<InstallerExecutionMode>(
+                raw.InstallerMode ?? "Silent", $"Catalog entry {index}.InstallerMode"));
     }
 
     private PackageDefinition NormalizeExternal(ExternalPackageRaw raw, int index, int schemaVersion)

@@ -5,6 +5,13 @@ public enum CatalogAuthority { ManagedWinGet, OperationalExternal, AwarenessOnly
 public enum PackageProfile { Standard, Field, Developer, Optional }
 public enum PackagePriority { P1, P2, Utility, Dev }
 public enum PackageRisk { None, Driver, Service, Listener }
+// How AVWT drives a managed package's installer, kept separate from PackageRisk so an installer
+// requirement can never be expressed by misclassifying a package's risk. Silent is the default and
+// adds --silent. InstallerDefault omits it for a package whose installer cannot run fully quiet -
+// a WinGet manifest with UpgradeBehavior: uninstallPrevious over a machine-scope MSI needs an
+// elevation path that msiexec /x /quiet cannot obtain for a standard user. Neither value affects
+// --disable-interactivity, so WinGet itself still never prompts.
+public enum InstallerExecutionMode { Silent, InstallerDefault }
 public enum DeploymentPolicy { Allowlisted, ManualHold }
 public enum MaintenancePolicy { Allowlisted, Hold }
 public enum DeploymentClass { Managed, ManualHandoff, ParentProvider, InventoryOnly, AwarenessOnly, WebOnly, ServerOnly, Embedded }

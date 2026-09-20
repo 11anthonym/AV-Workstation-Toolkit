@@ -2,6 +2,7 @@ using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Workers;
 using AVWorkstationToolkit.Domain.Catalog;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 using AVWorkstationToolkit.Infrastructure.Windows.WinGet;
 
@@ -52,6 +53,54 @@ public sealed class WinGetMutationExecutorTests
         StringAssert.DoesNotMatch(combined, new System.Text.RegularExpressions.Regex(@"(?i)\b(?:uninstall|import)\b|--all"));
         Assert.Throws<ActionRequestValidationException>(() => ManagedWinGetArgumentPolicy.Create(Request(id: "bad id")));
         Assert.Throws<ArgumentOutOfRangeException>(() => ManagedWinGetArgumentPolicy.Create(Request((ManagedRequestAction)999)));
+    }
+
+    [TestMethod]
+    public void InstallerDefaultModeOmitsOnlySilentAndLeavesEveryOtherPackageUnchanged()
+    {
+        // Reproduced on this machine: with --silent, WinGet runs 'msiexec /x <ProductCode> /quiet'
+        // for a manifest that upgrades by uninstalling the previous version, msiexec returns 1603
+        // because a machine-scope uninstall cannot elevate for a standard user, and WinGet reports
+        // 0x8A150030. Without --silent the same upgrade completed and stayed non-interactive.
+        foreach (var action in new[] { ManagedRequestAction.Install, ManagedRequestAction.Update })
+        {
+            var installerDefault = ManagedWinGetArgumentPolicy.Create(
+                Request(action, PackageRisk.None, installerMode: InstallerExecutionMode.InstallerDefault)).ToArray();
+            CollectionAssert.DoesNotContain(installerDefault, "--silent");
+            // WinGet itself must still never wait on a prompt.
+            CollectionAssert.Contains(installerDefault, "--disable-interactivity");
+
+            // The mode changes exactly one argument and nothing else about the reviewed vector.
+            var silent = ManagedWinGetArgumentPolicy.Create(Request(action, PackageRisk.None)).ToArray();
+            CollectionAssert.AreEqual(silent.Where(value => value != "--silent").ToArray(), installerDefault);
+            StringAssert.DoesNotMatch(string.Join(' ', installerDefault),
+                new System.Text.RegularExpressions.Regex(@"(?i)\b(?:uninstall|import)\b|--all"));
+
+            // A risk-bearing package is already fully interactive, so the mode cannot alter it.
+            foreach (var risk in new[] { PackageRisk.Driver, PackageRisk.Service, PackageRisk.Listener })
+            {
+                CollectionAssert.AreEqual(
+                    ManagedWinGetArgumentPolicy.Create(Request(action, risk)).ToArray(),
+                    ManagedWinGetArgumentPolicy.Create(Request(action, risk, installerMode: InstallerExecutionMode.InstallerDefault)).ToArray());
+            }
+        }
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            ManagedWinGetArgumentPolicy.Create(Request(installerMode: (InstallerExecutionMode)999)));
+    }
+
+    [TestMethod]
+    public void ManagedCatalogGivesPuttyInstallerDefaultAndEveryOtherPackageSilent()
+    {
+        var catalog = new RepositoryCatalogLoader().Load(RepositoryRoot());
+        var managed = catalog.Items.Where(item => item.Authority == CatalogAuthority.ManagedWinGet).ToArray();
+        Assert.IsNotEmpty(managed);
+
+        Assert.AreEqual(InstallerExecutionMode.InstallerDefault, catalog.GetRequired("PuTTY.PuTTY").InstallerMode);
+        // The correction is scoped: no other managed package changed installer behaviour.
+        CollectionAssert.AreEqual(
+            new[] { "PuTTY.PuTTY" },
+            managed.Where(item => item.InstallerMode != InstallerExecutionMode.Silent).Select(item => item.Id).ToArray());
     }
 
     [TestMethod]
@@ -125,7 +174,16 @@ public sealed class WinGetMutationExecutorTests
     private static PackageExecutionRequest Request(
         ManagedRequestAction action = ManagedRequestAction.Install,
         PackageRisk risk = PackageRisk.None,
-        string id = "Vendor.Tool") => new(id, "Vendor Tool", action, risk);
+        string id = "Vendor.Tool",
+        InstallerExecutionMode installerMode = InstallerExecutionMode.Silent) =>
+        new(id, "Vendor Tool", action, risk, installerMode);
+
+    private static string RepositoryRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "VERSION"))) current = current.Parent;
+        return current?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
+    }
 
     private static string ExpectedWinGetPath() => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),

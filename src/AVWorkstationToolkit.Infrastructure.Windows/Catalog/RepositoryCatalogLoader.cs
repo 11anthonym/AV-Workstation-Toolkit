@@ -64,7 +64,8 @@ public sealed class RepositoryCatalogLoader
                 Optional(item.Risk),
                 Required(item.Note, "Note", index),
                 Optional(item.Deployment),
-                Optional(item.Maintenance))).ToArray();
+                Optional(item.Maintenance),
+                Optional(item.InstallerMode))).ToArray();
             return new ManagedCatalogData(document.ForbiddenPattern, packages);
         }
         catch (JsonException exception)
@@ -111,7 +112,8 @@ public sealed class RepositoryCatalogLoader
         string? Risk,
         string? Note,
         string? Deployment,
-        string? Maintenance);
+        string? Maintenance,
+        string? InstallerMode);
 }
 
 public static class RepositoryRootLocator
