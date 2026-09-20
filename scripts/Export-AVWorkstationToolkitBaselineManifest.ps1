@@ -65,8 +65,9 @@ function Assert-JsonStringValue {
         PowerShell will silently coerce to a plausible-looking string: 123 becomes '123', true becomes
         'True', and a one-element array becomes its element. The compiled loader deserializes these
         members as JSON strings and fails on any other token, so a wrong type is rejected here rather
-        than coerced into a baseline the product cannot load. JSON null is left to the required-field
-        and token checks, which already reject or default it exactly as the loader does.
+        than coerced into a baseline the product cannot load. JSON null is a string member's absence
+        rather than a wrong token, so it passes here and is handled by the required-field check and by
+        Get-OptionalCatalogToken, each of which mirrors what the loader does with a null.
     #>
     param($Value,[string]$Field)
 
@@ -74,6 +75,24 @@ function Assert-JsonStringValue {
         throw "$Field must be a JSON string."
     }
     return $Value
+}
+
+function Get-OptionalCatalogToken {
+    <#
+        The loader maps an optional token through Optional(), which returns null for both an absent
+        member and a JSON null, and NormalizeManaged then substitutes the same default for either
+        (raw.Risk ?? "None", raw.Deployment ?? "Allowlisted", raw.Maintenance ?? "Allowlisted").
+        Casting a null to [string] here would instead produce '', which no token set accepts, so a
+        present-but-null member has to default exactly as an absent one does. An empty or whitespace
+        string is a different case and stays a rejection: Optional() trims it to '' and the loader's
+        token parse fails on it.
+    #>
+    param($Package,[string[]]$Fields,[string]$Name,[string]$Default)
+
+    if (-not (Test-OrdinalMember -Set $Fields -Value $Name)) { return $Default }
+    $value = $Package.$Name
+    if ($null -eq $value) { return $Default }
+    return ([string]$value).Trim()
 }
 
 function Assert-CatalogText {
@@ -236,9 +255,9 @@ foreach ($package in $catalogPackages) {
         -Field "Catalog entry $index.Vendor" -MaximumLength 128 -AllowEmpty
 
     $profileToken = [string]$package.Profile
-    $riskToken = if (Test-OrdinalMember -Set $fields -Value 'Risk') { ([string]$package.Risk).Trim() } else { 'None' }
-    $deploymentToken = if (Test-OrdinalMember -Set $fields -Value 'Deployment') { ([string]$package.Deployment).Trim() } else { 'Allowlisted' }
-    $maintenanceToken = if (Test-OrdinalMember -Set $fields -Value 'Maintenance') { ([string]$package.Maintenance).Trim() } else { 'Allowlisted' }
+    $riskToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'Risk' -Default 'None'
+    $deploymentToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'Deployment' -Default 'Allowlisted'
+    $maintenanceToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'Maintenance' -Default 'Allowlisted'
     if (-not (Test-OrdinalMember -Set $allowedProfiles -Value $profileToken)) { throw "Catalog entry $index.Profile contains unsupported value '$profileToken'." }
     if (-not (Test-OrdinalMember -Set $allowedRisks -Value $riskToken)) { throw "Catalog entry $index.Risk contains unsupported value '$riskToken'." }
     if (-not (Test-OrdinalMember -Set $allowedDeployments -Value $deploymentToken)) { throw "Catalog entry $index.Deployment contains unsupported value '$deploymentToken'." }

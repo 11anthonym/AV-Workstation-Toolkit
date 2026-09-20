@@ -23,6 +23,81 @@ public sealed class CompiledPresentationTests
     public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
+    public void ReadOnlyIntegrationContractExercisesEveryCompleteProvider()
+    {
+        var outcomes = ReadOnlyIntegrationContract.Evaluate(new ProviderRefreshSummary(
+            ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Complete, []));
+
+        Assert.HasCount(4, outcomes);
+        Assert.IsTrue(outcomes.All(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.Exercised));
+        CollectionAssert.AreEqual(
+            new[] { "WinGetInstalledInventory", "WinGetUpdateCheck", "ExternalApplicationInventory", "RestartDetection" },
+            outcomes.Select(outcome => outcome.Name).ToArray());
+        Assert.AreEqual("READONLY_PROVIDER name=RestartDetection quality=Complete classification=exercised", outcomes[3].Report());
+    }
+
+    [TestMethod]
+    public void ReadOnlyIntegrationContractFailsAProviderThatWasExercisedAndReturnedMalformedOutput()
+    {
+        var outcomes = ReadOnlyIntegrationContract.Evaluate(new ProviderRefreshSummary(
+            ProviderQuality.Complete, ProviderQuality.Malformed, ProviderQuality.Complete, ProviderQuality.Complete, [],
+            ProviderFailureKind.None, ProviderFailureKind.MalformedOutput, ProviderFailureKind.None, ProviderFailureKind.None,
+            "", "WinGet update output contains a malformed package row.\r\nLine 4"));
+
+        var failed = outcomes.Where(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.Failed).ToArray();
+        Assert.HasCount(1, failed);
+        Assert.AreEqual("WinGetUpdateCheck", failed[0].Name);
+        // The diagnostic has to name the provider and its quality, and stay on one reportable line.
+        var report = failed[0].Report();
+        Assert.IsTrue(report.Contains("quality=Malformed", StringComparison.Ordinal), report);
+        Assert.IsTrue(report.Contains("failure=MalformedOutput", StringComparison.Ordinal), report);
+        Assert.IsTrue(report.Contains("classification=failed", StringComparison.Ordinal), report);
+        Assert.DoesNotContain("\n", report);
+    }
+
+    [TestMethod]
+    public void ReadOnlyIntegrationContractTreatsUntrustedWinGetAsNotApplicableRatherThanAFailure()
+    {
+        // A workstation with no trusted Desktop App Installer WinGet is a supported configuration:
+        // the plan degrades to unavailable managed inventory and warns rather than failing.
+        var outcomes = ReadOnlyIntegrationContract.Evaluate(new ProviderRefreshSummary(
+            ProviderQuality.Unavailable, ProviderQuality.Unavailable, ProviderQuality.Complete, ProviderQuality.Complete, [],
+            ProviderFailureKind.TrustFailure, ProviderFailureKind.TrustFailure, ProviderFailureKind.None, ProviderFailureKind.None,
+            "WinGet candidate failed Desktop App Installer trust policy.", "WinGet candidate failed Desktop App Installer trust policy."));
+
+        Assert.IsFalse(outcomes.Any(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.Failed));
+        Assert.AreEqual(2, outcomes.Count(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.NotApplicable));
+        // A tolerated provider must still be reported, never silently dropped.
+        Assert.IsTrue(outcomes[0].Report().Contains("classification=not-applicable", StringComparison.Ordinal), outcomes[0].Report());
+    }
+
+    [TestMethod]
+    public void ReadOnlyIntegrationContractStillFailsProvidersThatAreAlwaysApplicable()
+    {
+        // The not-applicable allowance is scoped to the WinGet trust disposition. A registry provider
+        // that could not be read, or one that returned a partial answer, remains a failure.
+        var outcomes = ReadOnlyIntegrationContract.Evaluate(new ProviderRefreshSummary(
+            ProviderQuality.Complete, ProviderQuality.Complete, ProviderQuality.Unavailable, ProviderQuality.Partial, [],
+            ProviderFailureKind.None, ProviderFailureKind.None, ProviderFailureKind.ProviderUnavailable, ProviderFailureKind.PartialInventory,
+            "", "", "All registry sources are unavailable.", "Reboot-state detection was incomplete for 1 of 2 supported signals."));
+
+        var failed = outcomes.Where(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.Failed).ToArray();
+        CollectionAssert.AreEqual(new[] { "ExternalApplicationInventory", "RestartDetection" }, failed.Select(outcome => outcome.Name).ToArray());
+    }
+
+    [TestMethod]
+    public void ReadOnlyIntegrationContractFailsWinGetFailuresOtherThanAnAbsentProvider()
+    {
+        // Unavailable on its own is not the tolerated case: only the trust disposition is.
+        var outcomes = ReadOnlyIntegrationContract.Evaluate(new ProviderRefreshSummary(
+            ProviderQuality.Unavailable, ProviderQuality.Unavailable, ProviderQuality.Complete, ProviderQuality.Complete, [],
+            ProviderFailureKind.ExecutionFailed, ProviderFailureKind.TimedOut, ProviderFailureKind.None, ProviderFailureKind.None));
+
+        var failed = outcomes.Where(outcome => outcome.Classification == ReadOnlyIntegrationContract.ProviderClassification.Failed).ToArray();
+        CollectionAssert.AreEqual(new[] { "WinGetInstalledInventory", "WinGetUpdateCheck" }, failed.Select(outcome => outcome.Name).ToArray());
+    }
+
+    [TestMethod]
     public void WindowPlacementFitsOversizedWindowInsideUsableWorkArea()
     {
         var fitted = WindowWorkAreaPlacement.Fit(

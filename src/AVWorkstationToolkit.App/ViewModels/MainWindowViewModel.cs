@@ -389,6 +389,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public string WarningAutomationText => warningPresentation.AutomationText;
     public int MutationRefusalCount => mutationRefusalCount;
     internal int RefreshInvocationCount => refreshInvocationCount;
+
+    // The plan behind the current presentation, so an automated startup mode can assert against the
+    // provider results that refresh already produced instead of refreshing a second time. Null until
+    // a refresh applies a plan; RefreshAsync reports a failed refresh to the activity log and leaves
+    // the previous presentation in place, so a caller must treat null as "no plan was produced".
+    internal WorkstationPlan? LatestPlan => plan;
     public string SortMemberPath => sortMemberPath;
     public ListSortDirection? SortDirection => sortDirection;
 
