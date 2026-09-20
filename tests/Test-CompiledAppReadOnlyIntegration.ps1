@@ -20,19 +20,37 @@ try {
     $exited = $process.WaitForExit($timeoutMilliseconds)
     if (-not $exited) {
         # Windows PowerShell 5.1 runs on .NET Framework, where Process.Kill has no tree-killing
-        # overload, so Kill() ends the application process itself - which is what holds the compiled
-        # executable open and fails the next build. Any winget child it started is read-only and
-        # bounded by that provider's own timeout. The wait below is what makes the kill observable:
-        # Kill() only requests termination, so returning immediately would report a timeout while the
-        # process is still alive.
+        # overload. The application starts winget as a direct child and owns that child's timeout
+        # watchdog in its own process, so ending only the application orphans a winget that is still
+        # running. taskkill.exe takes the tree down instead; it is an operating-system executable, so
+        # it does not depend on the .NET version this host runs on.
         $termination = ''
-        try {
-            $process.Kill()
-            if (-not $process.WaitForExit(15000)) {
-                $termination = ' The process was still running 15s after Kill; a later build may fail on a locked executable.'
+        if ($process.HasExited) {
+            # The application finished between the timeout expiring and this termination attempt.
+            # Naming its process tree now would describe a process that no longer exists.
+            $termination = ' The application exited on its own after the timeout expired, so no process tree was terminated and a winget child it had started would have been left orphaned.'
+        }
+        else {
+            # The Process object still holds an open handle, so Windows cannot recycle this PID while
+            # this call runs and the exact PID below cannot name an unrelated process. taskkill reads
+            # the tree from the live parent, which is why it runs before the finally block releases
+            # that handle. Windows PowerShell promotes native stderr to a terminating ErrorRecord
+            # under $ErrorActionPreference = 'Stop', so the exit code is read instead.
+            $previousPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                $taskkillOutput = (& "$env:SystemRoot\System32\taskkill.exe" /PID $process.Id /T /F 2>&1 | Out-String).Trim()
+                $taskkillExit = $LASTEXITCODE
             }
-        } catch {
-            $termination = " Terminating the process failed: $($_.Exception.Message)"
+            finally { $ErrorActionPreference = $previousPreference }
+            if ($taskkillExit -ne 0) {
+                $termination = " taskkill /T on PID $($process.Id) returned $taskkillExit and did not terminate a process tree, so a winget child may have survived: $taskkillOutput"
+            }
+        }
+        # Termination is a request; this wait is what establishes that the application itself is gone
+        # and is no longer holding the compiled executable open.
+        if (-not $process.WaitForExit(15000)) {
+            $termination += ' The application was still running 15s after termination; a later build may fail on a locked executable.'
         }
     }
     # Read the redirected stream only once the pipe is able to close, so a process that survived
