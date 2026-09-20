@@ -56,6 +56,89 @@ public sealed class ActionWorkerOrchestratorTests
         Assert.AreEqual("2 apps couldn't be completed or verified.", protocol.Result?.Message);
     }
 
+    // 0x8A150030 is APPINSTALLER_CLI_ERROR_EXEC_UNINSTALL_COMMAND_FAILED, the result WinGet returned
+    // when an upgrade whose manifest declares UpgradeBehavior: uninstallPrevious could not remove the
+    // installed version. The operator saw only the signed decimal and no installer detail.
+    private const int UninstallCommandFailed = -1978335184;
+
+    [TestMethod]
+    public async Task FailedUninstallDuringUpgradeReportsWinGetDiagnosticsAndDoesNotRetry()
+    {
+        var request = Request(action: ManagedRequestAction.Update);
+        var updatable = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+        var protocol = new MemoryProtocol(request);
+        var plans = new SequencePlans(Plan([updatable]), Plan([updatable]));
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(UninstallCommandFailed) with
+        {
+            StandardError = "Uninstall failed with exit code: 1603\r\n  Installer failed with exit code: 1603",
+            StandardOutput = "Starting package uninstall...\r\n"
+        });
+
+        var result = await Worker(plans, executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+        Assert.AreEqual(PackageOutcomeStatus.Failed, result.Packages.Single().Status);
+        Assert.AreEqual(UninstallCommandFailed, result.Packages.Single().ExitCode);
+        // One execution only: an uninstall may already have changed the system, so nothing is repeated.
+        Assert.AreEqual(1, executor.CallCount);
+
+        var failure = protocol.Progress.Single(item => item.Stage == "Failed");
+        Assert.Contains("Exit code: -1978335184", failure.Message);
+        Assert.Contains("0x8A150030", failure.Message);
+        Assert.Contains("Uninstall failed with exit code: 1603", failure.Message);
+        Assert.Contains("Starting package uninstall...", failure.Message);
+    }
+
+    [TestMethod]
+    public async Task FailureDiagnosticsAreRedactedBoundedAndProtocolSerializable()
+    {
+        var request = Request(action: ManagedRequestAction.Update);
+        var updatable = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(UninstallCommandFailed) with
+        {
+            StandardError = "password: hunter2 Authorization: Bearer abc.def\r\n" + new string('X', 500_000),
+            StandardOutput = new string('Y', 500_000)
+        });
+
+        await Worker(new SequencePlans(Plan([updatable]), Plan([updatable])), executor, protocol).RunAsync(request);
+        var failure = protocol.Progress.Single(item => item.Stage == "Failed");
+
+        Assert.DoesNotContain("hunter2", failure.Message);
+        Assert.DoesNotContain("abc.def", failure.Message);
+        Assert.IsLessThanOrEqualTo(ActionProtocolLimits.MaximumMessageCharacters, failure.Message.Length);
+        // DiagnosticsRedactor keeps tab/CR/LF, but the codec rejects any control character outright,
+        // so an unfolded excerpt would have thrown inside the worker instead of reporting the failure.
+        Assert.IsFalse(failure.Message.Any(char.IsControl), "the progress message still carries a control character");
+        // The real codec, not the in-memory fake, is what the worker writes through.
+        var payload = new ActionProgressCodec().Serialize(failure, request);
+        Assert.IsLessThanOrEqualTo(ActionProtocolLimits.MaximumProgressRecordBytes, payload.Length);
+    }
+
+    [TestMethod]
+    public async Task PartiallyCompletedUpgradeIsNeverReportedAsSucceeded()
+    {
+        var updatable = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+        foreach (var (verificationPlan, expected) in new[]
+        {
+            // WinGet exited 0, but the old version was removed and the new one never registered.
+            (Plan([State("Vendor.One", PackageAction.Update, PackageStatus.Missing)]), PackageOutcomeStatus.Unverified),
+            // WinGet exited 0, but the package is still upgradable, so the upgrade did not take effect.
+            (Plan([updatable]), PackageOutcomeStatus.Unverified),
+            // Only a fresh plan showing it installed and no longer upgradable counts as a success.
+            (Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)]), PackageOutcomeStatus.Succeeded)
+        })
+        {
+            var request = Request(action: ManagedRequestAction.Update);
+            var protocol = new MemoryProtocol(request);
+            var plans = new SequencePlans(Plan([updatable]), Plan([updatable]), verificationPlan);
+            var result = await Worker(plans, new FakeExecutor(PackageExecutionResult.Success), protocol).RunAsync(request);
+
+            Assert.AreEqual(expected, result.Packages.Single().Status);
+            Assert.AreEqual(expected == PackageOutcomeStatus.Succeeded, result.Packages.Single().Verified);
+        }
+    }
+
     [TestMethod]
     public async Task TimeoutFailsWithoutPostActionVerification()
     {
