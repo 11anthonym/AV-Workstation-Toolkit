@@ -1366,6 +1366,59 @@ Invoke-Check 'InstallerDefault omits only --silent and every other low-risk pack
     $threw = $false
     try { $null = Get-AVWorkstationToolkitWingetArguments -Action Install -Package $corrupt } catch { $threw = $true }
     Assert-True $threw 'A misspelt installer mode was silently treated as non-silent.'
+
+    # A package with no InstallerMode member at all still defaults to Silent.
+    $absent = [pscustomobject]@{ Id = 'Vendor.NoMode'; Risk = 'None' }
+    $absentVector = @(Get-AVWorkstationToolkitWingetArguments -Action Install -Package $absent)
+    Assert-Equal 'install --id Vendor.NoMode --exact --source winget --accept-package-agreements --accept-source-agreements --silent --disable-interactivity' ($absentVector -join ' ') 'A package without InstallerMode did not default to Silent.'
+}
+Invoke-Check 'Wrong-typed InstallerMode cannot be coerced into an authorized installer mode' {
+    # Windows PowerShell converts @('InstallerDefault') to 'InstallerDefault', 1 to '1' and $true to
+    # 'True'. Without a type check the array form would authorize omitting --silent.
+    Assert-Equal 'InstallerDefault' ([string]@('InstallerDefault')) 'PowerShell no longer coerces a singleton array; this check needs rewriting.'
+
+    # 1. The real catalog-loading path.
+    $temporaryCatalog = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-mode-{0}.psd1' -f [guid]::NewGuid().ToString('N'))
+    try {
+        foreach ($case in @(
+            [pscustomobject]@{ Name='singleton array'; Literal="@('InstallerDefault')"; Pattern='must be a single string value' }
+            [pscustomobject]@{ Name='number';          Literal='1';                     Pattern='must be a single string value' }
+            [pscustomobject]@{ Name='boolean';         Literal='$true';                 Pattern='must be a single string value' }
+            [pscustomobject]@{ Name='wrong case';      Literal="'installerdefault'";    Pattern='Invalid installer mode' }
+            [pscustomobject]@{ Name='unknown token';   Literal="'Interactive'";         Pattern='Invalid installer mode' }
+        )) {
+            @"
+@{
+    Packages = @(
+        @{ Profile='Standard'; Name='Mode'; Id='Vendor.Mode'; Risk='None'; Note='Test'; InstallerMode=$($case.Literal) }
+    )
+    ForbiddenPattern = '(?i)Forbidden'
+}
+"@ | Set-Content -LiteralPath $temporaryCatalog -Encoding ASCII
+            # The pattern pins the rejection reason: a fixture rejected for some unrelated schema
+            # problem would not prove the installer-mode contract.
+            Assert-Throws { Get-AVWorkstationToolkitCatalog -CatalogPath $temporaryCatalog } $case.Pattern "Catalog accepted a wrong InstallerMode: $($case.Name)"
+        }
+
+        # The same fixture with a valid scalar loads and carries the mode through.
+        @"
+@{
+    Packages = @(
+        @{ Profile='Standard'; Name='Mode'; Id='Vendor.Mode'; Risk='None'; Note='Test'; InstallerMode='InstallerDefault' }
+    )
+    ForbiddenPattern = '(?i)Forbidden'
+}
+"@ | Set-Content -LiteralPath $temporaryCatalog -Encoding ASCII
+        $loaded = @(Get-AVWorkstationToolkitCatalog -CatalogPath $temporaryCatalog | Where-Object Id -eq 'Vendor.Mode')[0]
+        Assert-Equal 'InstallerDefault' $loaded.InstallerMode 'A valid scalar InstallerMode was not preserved by the catalog loader.'
+    }
+    finally { Remove-Item -LiteralPath $temporaryCatalog -Force -ErrorAction SilentlyContinue }
+
+    # 2. The exported argument builder, reached independently of the catalog loader.
+    foreach ($bad in @(@('InstallerDefault'), @('Silent'), 1, $true, @())) {
+        $package = [pscustomobject]@{ Id = 'Vendor.Direct'; Risk = 'None'; InstallerMode = $bad }
+        Assert-Throws { Get-AVWorkstationToolkitWingetArguments -Action Install -Package $package } 'must be a single string value|Invalid installer mode' 'The argument builder accepted a wrong-typed installer mode.'
+    }
 }
 Invoke-Check 'Risk-bearing install remains interactive' {
     $package = @($plan.Packages | Where-Object Id -eq 'Insecure.Nmap')[0]

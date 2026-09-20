@@ -4,6 +4,8 @@ using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Application.Workers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
+using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
+using AVWorkstationToolkit.Infrastructure.Windows.Files;
 
 namespace AVWorkstationToolkit.Tests;
 
@@ -60,6 +62,72 @@ public sealed class ActionWorkerOrchestratorTests
     // when an upgrade whose manifest declares UpgradeBehavior: uninstallPrevious could not remove the
     // installed version. The operator saw only the signed decimal and no installer detail.
     private const int UninstallCommandFailed = -1978335184;
+
+    [TestMethod]
+    public async Task PuttyUpgradeRunsFromTheRealCatalogThroughToPersistedFinalResult()
+    {
+        // The earlier protocol regression built an approved result by hand. This drives the whole
+        // sequence instead: the shipped catalog supplies PuTTY's InstallerDefault mode, the worker
+        // builds the vector from it, a fake executor reports success, the existing verification path
+        // runs, and the real file protocol persists the result that the UI would read back.
+        var root = Path.Combine(Path.GetTempPath(), $"avwt-putty-flow-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            var putty = new RepositoryCatalogLoader().Load(RepositoryRoot()).GetRequired("PuTTY.PuTTY");
+            // The mode is the catalog's, not the test's.
+            Assert.AreEqual(InstallerExecutionMode.InstallerDefault, putty.InstallerMode);
+            Assert.AreEqual(PackageRisk.None, putty.Risk);
+
+            var request = new ActionRequest(
+                ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Update, ["PuTTY.PuTTY"], false, false);
+            var upgradable = PlanState(putty, PackageStatus.UpdateAvailable, PackageAction.Update);
+            var upgraded = PlanState(putty, PackageStatus.Current, PackageAction.None);
+
+            var store = new ActionProtocolStore(root);
+            var paths = await store.PersistRequestAsync(new AuthorizedActionRequest(request, [upgradable]));
+            await using var protocol = new ActionWorkerFileProtocol(root, RequestId);
+            var executor = new FakeExecutor(PackageExecutionResult.Success);
+            // Authorize, re-authorize per package, then verify.
+            var plans = new SequencePlans(Plan([upgradable]), Plan([upgradable]), Plan([upgraded]));
+
+            var run = await new ActionWorkerOrchestrator(plans, executor, protocol, "FixtureHost", timeProvider: new FixedTimeProvider())
+                .RunAsync(request);
+
+            Assert.AreEqual(ActionResultStatus.Succeeded, run.Status);
+            Assert.AreEqual(1, executor.CallCount);
+
+            // Read back exactly what the UI consumes, through the real codec and store.
+            var persisted = new ActionResultCodec().Parse(
+                await store.ReadArtifactAsync(RequestId, ActionArtifactKind.Result), request, paths);
+            Assert.AreEqual(ActionResultStatus.Succeeded, persisted.Status);
+            Assert.AreEqual(0, persisted.ExitCode);
+
+            var outcome = persisted.Packages.Single();
+            Assert.AreEqual("PuTTY.PuTTY", outcome.Id);
+            Assert.AreEqual(ManagedRequestAction.Update, outcome.Action);
+            Assert.AreEqual(PackageOutcomeStatus.Succeeded, outcome.Status);
+            Assert.AreEqual(0, outcome.ExitCode);
+            Assert.IsTrue(outcome.Verified);
+            CollectionAssert.AreEqual(new[]
+            {
+                "upgrade", "--id", "PuTTY.PuTTY", "--exact", "--source", "winget",
+                "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity"
+            }, outcome.Arguments.ToArray());
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    private static PackageState PlanState(PackageDefinition definition, PackageStatus status, PackageAction action) =>
+        new(definition, status != PackageStatus.Missing, string.Empty, [], string.Empty,
+            status == PackageStatus.UpdateAvailable, status, status.ToString(), status.ToString(), action, InventoryQuality.Complete);
+
+    private static string RepositoryRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current is not null && !File.Exists(Path.Combine(current.FullName, "VERSION"))) current = current.Parent;
+        return current?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
+    }
 
     [TestMethod]
     public async Task FailedUninstallDuringUpgradeReportsWinGetDiagnosticsAndDoesNotRetry()
