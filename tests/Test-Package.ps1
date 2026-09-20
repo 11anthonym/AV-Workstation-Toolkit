@@ -196,7 +196,9 @@ try {
         Assert-Equal 0 ([int]$manifest.NuGetAudit.VulnerablePackages) 'Release reports vulnerable NuGet packages.'
         Assert-Equal 'net10.0-windows' ([string]$manifest.Launcher.TargetFramework) 'Release launcher target framework differs.'
         Assert-Equal '10.0.11' ([string]$manifest.Launcher.RuntimeFrameworkVersion) 'Release launcher runtime patch differs.'
-        Assert-Equal 9 ([int]$manifest.EmbeddedPayloadFiles) 'Release manifest embedded payload count differs from seven manifests plus the compiled worker and signed reference-catalog baseline.'
+        # The authoritative check is against the launcher's own verified extraction below, which is
+        # independent of build configuration. Here only assert the field is a usable positive count.
+        Assert-True ([int]$manifest.EmbeddedPayloadFiles -gt 0) 'Release manifest does not report an embedded payload count.'
         Assert-Equal (Split-Path -Leaf $sbomPath) ([string]$manifest.Sbom.Name) 'Release SBOM filename differs.'
         Assert-Equal (Get-FileHash -LiteralPath $sbomPath -Algorithm SHA256).Hash ([string]$manifest.Sbom.Sha256) 'Release SBOM hash differs.'
         Assert-Equal (Split-Path -Leaf $checksumPath) ([string]$manifest.Checksums.Name) 'Release checksum filename differs.'
@@ -323,7 +325,11 @@ try {
         Assert-True (([string]$diagnostic.RuntimeFramework) -match '^\.NET 10\.0\.') 'Launcher is not running its embedded .NET 10 runtime.'
         Assert-True (([version]$diagnostic.RuntimeVersion) -ge [version]'10.0.11') 'Launcher embedded runtime predates the reviewed .NET 10 security baseline.'
         Assert-Equal 'X64' ([string]$diagnostic.RuntimeArchitecture) 'Launcher runtime architecture differs.'
-        Assert-True ([int]$diagnostic.FilesVerified -ge 10) 'Launcher verified too few embedded runtime files.'
+        # Declared release provenance must equal what the launcher actually extracted and hash-verified.
+        # This holds for both a development build and one carrying a signed reference-catalog baseline,
+        # so it needs no configuration-specific number.
+        $declaredPayloadFiles = [int](Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json).EmbeddedPayloadFiles
+        Assert-Equal $declaredPayloadFiles ([int]$diagnostic.FilesVerified) 'Release manifest EmbeddedPayloadFiles does not match the payload the launcher verified.'
         Assert-True ([bool]$diagnostic.FrontendPresent) 'Extracted frontend is missing.'
         Assert-Equal 'Compiled C# WPF' ([string]$diagnostic.FrontendArchitecture) 'Packaged default frontend is not compiled WPF.'
         Assert-True ([bool]$diagnostic.WorkerPresent) 'Extracted compiled worker is missing.'
@@ -396,6 +402,18 @@ try {
             Assert-True $before.ContainsKey($relative) "Second verification added an unexpected runtime file: $relative"
             Assert-Equal $before[$relative].Hash (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash "Second verification changed runtime content: $relative"
             Assert-Equal $before[$relative].LastWriteTimeUtc $file.LastWriteTimeUtc "Second verification rewrote unchanged runtime content: $relative"
+        }
+        # The extracted payload contract: every runtime input the compiled product parses must be
+        # present, the notices the release is obliged to carry must be present, and the reviewed
+        # repository-only manifests that no shipping code parses must be absent.
+        foreach ($requiredPayloadFile in @(
+            'manifests\managed-applications.json','manifests\external-applications.json',
+            'manifests\commercial-av-catalog.json','manifests\software-compatibility.json',
+            'manifests\hardware-identities.json','notices\THIRD-PARTY-NOTICES.md',
+            'notices\PROJECT-LICENSE.txt','notices\DOTNET-LICENSE.txt','notices\DOTNET-THIRD-PARTY-NOTICES.txt',
+            'worker\AVWorkstationToolkit.Worker.exe')) {
+            $path = Join-Path $script:runtimeApplicationRoot $requiredPayloadFile
+            Assert-True (Test-Path -LiteralPath $path -PathType Leaf) "Packaged runtime is missing a required payload file: $requiredPayloadFile"
         }
         foreach ($repositoryOnlyManifest in @('process-launch-policy.json','winget-team-baseline.json')) {
             $path = Join-Path $script:runtimeApplicationRoot (Join-Path 'manifests' $repositoryOnlyManifest)
