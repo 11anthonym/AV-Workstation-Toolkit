@@ -44,7 +44,16 @@ ReferenceCatalog\
 
 At most one downloaded revision is retained alongside the signed embedded baseline. Because a descriptive catalog can never grant execution authority, recovery is deliberately boring: anything that does not verify is deleted, and the next best verified catalog is used. There is no quarantine directory, no suppressed-revision state, and no rollback state machine. An activated catalog becomes effective for Device Lookup after the application restarts; startup revalidates the selected snapshot before use.
 
-Activation writes all approved files into a same-root unique staging directory, flushes them, revalidates the directory, moves the complete directory into `catalogs`, atomically replaces `state.json`, and then deletes any other stored revision. Existing revisions are never overwritten, and same- or lower-revision activation is rejected. A per-user named mutex serializes activation, state replacement, and cleanup across AVWT processes; downloads occur before that lock is acquired. A complete directory left by interruption before the state-pointer write is recovered by the next local scan, and orphan staging and state-temporary files are removed under the lock.
+Activation writes all approved files into a same-root unique staging directory, flushes them, and revalidates the directory. A per-user named mutex serializes activation, state replacement, and cleanup across AVWT processes; downloads occur before that lock is acquired.
+
+### Activation commit point
+
+Activation has exactly one commit point: the atomic move of the verified staging directory into `catalogs\<revision>\`.
+
+- **Before the move**, any failure leaves nothing behind. The staging directory is removed, no revision becomes visible to startup selection, and the operation reports rejection. The move itself refuses to overwrite an existing revision, which is what keeps a committed revision immutable; a failed move is therefore also a pre-commit failure.
+- **After the move**, the revision is durable and the next startup will select it. The remaining bookkeeping — replacing `state.json` and deleting the superseded revision — is best-effort, because startup already repairs a stale state pointer and deletes superseded revisions. A failure in either step is not reported as rejection, since doing so would tell the operator that activation did not happen while the new revision was in fact already live on the next launch.
+
+A complete directory left by interruption before the state-pointer write is therefore recovered by the next local scan rather than being lost or double-reported. Orphan staging and state-temporary files are removed under the lock. Same- or lower-revision activation is rejected.
 
 A catalog whose `MinimumAppVersion` is newer than the running application is rejected rather than retained; it is downloaded again after the application is upgraded. That trades one re-download for the removal of the incompatible-retention and suppression state it would otherwise require.
 
@@ -86,7 +95,7 @@ Expected states are Current, Checking, Update available, Validating, Completed, 
 The public `11anthonym/AVWT-Catalog` repository, HTTPS-enforced GitHub Pages origin, and production public trust anchor now exist. Before publishing the first production update, the repository owner must still complete the following:
 
 1. Run the documented Revision 1 publisher command locally with the existing owner-controlled private key. The private key must stay in its external protected signing boundary and must not be copied into either repository.
-2. Review and approve the generated initial revision, version, change summary, seven-day channel interval, and immutable retention.
+2. Review and approve the generated initial revision, version, change summary, and immutable retention.
 3. Copy the publisher's already-tested immutable revision into the public repository, verify it anonymously over HTTPS, and update the two stable channel files last without rebuilding or resigning.
 
 The compiled URLs are:
@@ -99,6 +108,6 @@ The offline publisher, exact first-publication command, and immutable output con
 
 ## Verification
 
-Automated coverage exercises publisher bootstrap and previous-catalog builds, deterministic unsigned payloads, change/risk analysis, runtime bundle/channel round trips, successful signed import, signed online check/download/activation, offline behavior, rollback, invalid signature, corrupt hash, unsafe/extra ZIP entries, oversized input, unknown execution-shaped JSON, unsupported application version, unapproved bundle origin, active-file tampering, malformed state, previous/embedded fallback, and the actual WPF menu/ViewModel command path.
+Automated coverage exercises publisher bootstrap and previous-catalog builds, deterministic unsigned payloads, change/risk analysis, runtime bundle/channel round trips, signed online check/download/activation, offline behavior, an authentic but old signed pointer, invalid signature, corrupt hash, unsafe/extra ZIP entries, oversized input, unknown execution-shaped JSON, unsupported application version, unapproved bundle origin, active-file tampering, malformed state, embedded fallback, activation commit-point behavior on post-commit state-write and cleanup failure, pre-commit failure leaving nothing activated, and the actual WPF menu/ViewModel command path.
 
 Human packaged-app verification remains pending: open `Help > Catalog updates`, verify the disabled/unconfigured online state, keyboard access, resize/high-DPI layout, rejection of an unsigned test bundle, and—after real trust anchors are provided—a successful signed update followed by restart and exact-model lookup.

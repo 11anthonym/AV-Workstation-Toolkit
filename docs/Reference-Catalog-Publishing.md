@@ -54,7 +54,7 @@ The public distribution-only repository is <https://github.com/11anthonym/AVWT-C
 
 The owner-supplied ECDSA P-256 public key is compiled into `ProductionReferenceCatalogTrustAnchors` under `avwt-catalog-2026-a`; its SHA-256 SPKI fingerprint is `D4A0306618232F9D2218CA4B6679E9FA0B00F417FEAB609F64222984574CB31C`. The corresponding private key remains owner-controlled at `$HOME\Documents\Keys\AVWT-Catalog\avwt-catalog-2026-a-private.pem` and must never be pasted, printed, uploaded, committed, or copied into a build or repository.
 
-From the private AVWT checkout root, Anthony should generate Revision 1 with this command. It captures the actual operator run time in UTC and makes the signed channel metadata valid for seven days. The output directory must not already exist; the publisher deliberately refuses replacement.
+From the private AVWT checkout root, Anthony should generate Revision 1 with this command. It captures the actual operator run time in UTC as the publication timestamp; the signed pointer does not expire. The output directory must not already exist; the publisher deliberately refuses replacement.
 
 ```powershell
 $repositoryRoot = (Get-Location).Path

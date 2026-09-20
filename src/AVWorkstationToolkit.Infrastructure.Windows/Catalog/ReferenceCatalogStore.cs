@@ -186,11 +186,18 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         return Status;
     }
 
+    /// <summary>
+    /// Activation has one commit point: the atomic move of the verified staging directory into
+    /// <c>catalogs</c>. Before it, any failure leaves nothing behind and the caller reports rejection.
+    /// After it, the revision is durable and startup selection will choose it, so the remaining
+    /// bookkeeping is best-effort - startup already repairs a stale state pointer and deletes
+    /// superseded revisions. Treating a bookkeeping failure as rejection would report that activation
+    /// did not happen while the new revision was in fact already live on the next launch.
+    /// </summary>
     private void Activate(VerifiedReferenceCatalogBundle bundle, StateDocument state)
     {
         EnsureDirectories();
         var final = CatalogDirectory(bundle.Manifest.Revision);
-        if (Directory.Exists(final)) throw new CatalogValidationException("Reference catalog revision already exists.");
         var staging = Path.Combine(root, "staging", $"{bundle.Manifest.Revision}-{Guid.NewGuid():N}");
         Directory.CreateDirectory(staging);
         try
@@ -203,15 +210,21 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
                 stream.Flush(flushToDisk: true);
             }
             _ = verifier.VerifyDirectory(staging);
+            // Directory.Move refuses to overwrite an existing revision and fails without side effects,
+            // so no separate existence pre-check is needed to keep committed revisions immutable.
             Directory.Move(staging, final);
-            WriteState(new(bundle.Manifest.Revision, state.LastCheckUtc));
-            effectiveSelection = null;
-            DeleteStoredRevisionsExcept(bundle.Manifest.Revision);
         }
         finally
         {
             if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
         }
+
+        effectiveSelection = null;
+        // Already holding the mutation lock, so these use the non-locking forms.
+        try { WriteState(new(bundle.Manifest.Revision, state.LastCheckUtc)); }
+        catch (Exception exception) when (IsMutationFailure(exception)) { }
+        try { DeleteStoredRevisionsExcept(bundle.Manifest.Revision); }
+        catch (Exception exception) when (IsMutationFailure(exception)) { }
     }
 
     private LocalSelection? LoadEmbeddedCandidate()
