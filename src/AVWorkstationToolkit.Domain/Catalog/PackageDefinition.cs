@@ -50,7 +50,8 @@ public sealed record PackageDefinition(
     string DetectionDisplayNamePattern = "",
     string DetectionVersionPattern = "",
     CatalogMetadataDetails? Details = null,
-    CatalogDeliveryPolicy? DeliveryPolicy = null)
+    CatalogDeliveryPolicy? DeliveryPolicy = null,
+    InstallerExecutionMode InstallerMode = InstallerExecutionMode.Silent)
 {
     public CatalogMetadataDetails MetadataDetails => Details ?? CatalogMetadataDetails.Unknown;
 

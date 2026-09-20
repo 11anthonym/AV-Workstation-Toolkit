@@ -1230,6 +1230,11 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='null Maintenance defaults to Allowlisted'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "Maintenance": null') }
                 [pscustomobject]@{ Name='null Vendor is treated as empty'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible','"Vendor": null, "Risk": "None", "Note": "Eligible') }
                 [pscustomobject]@{ Name='null Name falls back to Id'; Json=$baseJson.Replace('"Name": "Fixture Eligible"','"Name": null') }
+                # InstallerMode selects the WinGet installer vector; it is not a baseline eligibility
+                # input, so a valid value must not change which packages the baseline contains.
+                [pscustomobject]@{ Name='explicit InstallerMode Silent'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "InstallerMode": "Silent"') }
+                [pscustomobject]@{ Name='InstallerMode InstallerDefault'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "InstallerMode": "InstallerDefault"') }
+                [pscustomobject]@{ Name='null InstallerMode defaults to Silent'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "InstallerMode": null') }
                 # A decoded-equivalent property name is the same field, not a duplicate.
                 [pscustomobject]@{ Name='escaped spelling of a property name'; Json=$baseJson.Replace('"Vendor": "Fixture", "Risk": "None", "Note": "Eligible',('"' + $escapedVendor + '": "Fixture", "Risk": "None", "Note": "Eligible')) }
                 # Escapes inside ordinary string values must never be read as property names.
@@ -1293,6 +1298,10 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
                 [pscustomobject]@{ Name='null required Profile'; Json=$baseJson.Replace('"Profile": "Standard", "Name": "Fixture Eligible"','"Profile": null, "Name": "Fixture Eligible"') }
                 [pscustomobject]@{ Name='null required Id'; Json=$baseJson.Replace('"Id": "Fixture.Eligible"','"Id": null') }
                 [pscustomobject]@{ Name='null required Note'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": null') }
+                # CatalogTokens.Parse is case-sensitive and rejects an unknown installer mode.
+                [pscustomobject]@{ Name='lowercase InstallerMode'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "InstallerMode": "installerdefault"') }
+                [pscustomobject]@{ Name='unknown InstallerMode'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "InstallerMode": "Interactive"') }
+                [pscustomobject]@{ Name='InstallerMode as single-element array'; Json=$baseJson.Replace('"Note": "Eligible baseline record"','"Note": "Eligible baseline record", "InstallerMode": ["Silent"]') }
                 [pscustomobject]@{ Name='empty Packages array'; Json='{ "SchemaVersion": 1, "ForbiddenPattern": "(?i)CrowdStrike", "Packages": [] }' }
             )) {
                 Assert-True ($rejected.Json -cne $baseJson) "Rejection fixture did not actually mutate the base catalog: $($rejected.Name)"

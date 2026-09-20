@@ -36,18 +36,25 @@ public enum PackageExecutionDisposition
 
 public sealed record PackageExecutionRequest
 {
-    internal PackageExecutionRequest(string id, string name, ManagedRequestAction action, PackageRisk risk)
+    internal PackageExecutionRequest(
+        string id,
+        string name,
+        ManagedRequestAction action,
+        PackageRisk risk,
+        InstallerExecutionMode installerMode = InstallerExecutionMode.Silent)
     {
         Id = id;
         Name = name;
         Action = action;
         Risk = risk;
+        InstallerMode = installerMode;
     }
 
     public string Id { get; }
     public string Name { get; }
     public ManagedRequestAction Action { get; }
     public PackageRisk Risk { get; }
+    public InstallerExecutionMode InstallerMode { get; }
 }
 
 public sealed record PackageExecutionResult(
@@ -169,7 +176,7 @@ public sealed class ActionWorkerOrchestrator
             }
 
             var execution = await executor.ExecuteAsync(
-                new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk),
+                new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk, package.Package.InstallerMode),
                 cancellationToken).ConfigureAwait(false);
             var verified = false;
             if (execution.Disposition == PackageExecutionDisposition.Succeeded)
@@ -315,7 +322,7 @@ public sealed class ActionWorkerOrchestrator
     }
 
     private static IReadOnlyList<string> ReviewedArgumentEvidence(PackageState package, ManagedRequestAction action) =>
-        ManagedWinGetArgumentPolicy.Create(new PackageExecutionRequest(package.Package.Id, package.Package.Name, action, package.Package.Risk));
+        ManagedWinGetArgumentPolicy.Create(new PackageExecutionRequest(package.Package.Id, package.Package.Name, action, package.Package.Risk, package.Package.InstallerMode));
 
     private static bool VerifyPostActionState(ManagedRequestAction action, string packageId, WorkstationPlan plan)
     {

@@ -17,6 +17,8 @@ public static class ManagedWinGetArgumentPolicy
             throw new ArgumentOutOfRangeException(nameof(request), "Only Install and Update actions are supported.");
         if (!Enum.IsDefined(request.Risk))
             throw new ArgumentOutOfRangeException(nameof(request), "The package risk is unsupported.");
+        if (!Enum.IsDefined(request.InstallerMode))
+            throw new ArgumentOutOfRangeException(nameof(request), "The package installer mode is unsupported.");
 
         var arguments = new List<string>
         {
@@ -26,7 +28,15 @@ public static class ManagedWinGetArgumentPolicy
         };
         if (request.Risk == PackageRisk.None)
         {
-            arguments.Add("--silent");
+            // --silent is what makes WinGet pass /quiet to the installer, including to
+            // 'msiexec /x <ProductCode>' for a manifest that upgrades by uninstalling the previous
+            // version. A machine-scope MSI uninstall cannot obtain elevation under /quiet from the
+            // standard-user process AVWT requires, so msiexec returns 1603 and WinGet reports
+            // 0x8A150030. A package whose installer needs its own elevation path is marked
+            // InstallerDefault in the managed catalog and omits the flag.
+            if (request.InstallerMode == InstallerExecutionMode.Silent) arguments.Add("--silent");
+            // Always retained: this is what guarantees WinGet never waits on a prompt, and it is
+            // independent of the installer's own UI mode.
             arguments.Add("--disable-interactivity");
         }
         return arguments.AsReadOnly();

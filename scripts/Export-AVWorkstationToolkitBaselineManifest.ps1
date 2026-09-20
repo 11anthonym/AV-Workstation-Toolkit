@@ -44,13 +44,16 @@ $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
 # Exactly the property sets the compiled ManagedCatalogDocument/ManagedCatalogPackage records accept.
 # Comparison is ordinal: the compiled deserializer uses PropertyNameCaseInsensitive = false.
 $allowedTopLevelFields = @('SchemaVersion','ForbiddenPattern','Packages')
-$allowedPackageFields = @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance')
+$allowedPackageFields = @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance','InstallerMode')
 $requiredPackageFields = @('Profile','Id','Note')
 # CatalogTokens.Parse uses case-sensitive Enum.TryParse, so these sets are compared ordinally.
 $allowedProfiles = @('Standard','Field','Developer','Optional')
 $allowedRisks = @('None','Driver','Service','Listener')
 $allowedDeployments = @('Allowlisted','ManualHold')
 $allowedMaintenance = @('Allowlisted','Hold')
+# Installer execution mode is not a baseline eligibility input, but the generator still rejects
+# every token the compiled loader would reject so the two validations stay equivalent.
+$allowedInstallerModes = @('Silent','InstallerDefault')
 $packageIdPattern = '^[A-Za-z0-9][A-Za-z0-9+_.-]{1,127}$'
 
 function Test-OrdinalMember {
@@ -258,10 +261,12 @@ foreach ($package in $catalogPackages) {
     $riskToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'Risk' -Default 'None'
     $deploymentToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'Deployment' -Default 'Allowlisted'
     $maintenanceToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'Maintenance' -Default 'Allowlisted'
+    $installerModeToken = Get-OptionalCatalogToken -Package $package -Fields $fields -Name 'InstallerMode' -Default 'Silent'
     if (-not (Test-OrdinalMember -Set $allowedProfiles -Value $profileToken)) { throw "Catalog entry $index.Profile contains unsupported value '$profileToken'." }
     if (-not (Test-OrdinalMember -Set $allowedRisks -Value $riskToken)) { throw "Catalog entry $index.Risk contains unsupported value '$riskToken'." }
     if (-not (Test-OrdinalMember -Set $allowedDeployments -Value $deploymentToken)) { throw "Catalog entry $index.Deployment contains unsupported value '$deploymentToken'." }
     if (-not (Test-OrdinalMember -Set $allowedMaintenance -Value $maintenanceToken)) { throw "Catalog entry $index.Maintenance contains unsupported value '$maintenanceToken'." }
+    if (-not (Test-OrdinalMember -Set $allowedInstallerModes -Value $installerModeToken)) { throw "Catalog entry $index.InstallerMode contains unsupported value '$installerModeToken'." }
 
     # Same combined vector and ordering the compiled parser screens.
     if ($forbidden.IsMatch(($name, $id, $vendor, $note) -join ' ')) {
