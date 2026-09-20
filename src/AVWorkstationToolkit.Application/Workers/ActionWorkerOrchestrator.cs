@@ -1,4 +1,5 @@
 using AVWorkstationToolkit.Application.Actions;
+using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Domain.Catalog;
@@ -75,6 +76,10 @@ public sealed record ActionWorkerRunResult(ActionResultStatus Status, int ExitCo
 /// </summary>
 public sealed class ActionWorkerOrchestrator
 {
+    // Well inside ActionProtocolLimits.MaximumMessageCharacters so the surrounding sentence, the
+    // exit codes and the shortening marker cannot push a record past what the codec accepts.
+    private const int MaximumDiagnosticExcerptCharacters = 1_200;
+
     private readonly IActionWorkerPlanProvider planProvider;
     private readonly IPackageActionExecutor executor;
     private readonly IActionWorkerProtocol protocol;
@@ -202,7 +207,7 @@ public sealed class ActionWorkerOrchestrator
                 PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "WinGet finished, but AVWT couldn't confirm the installed version."),
                 PackageOutcomeStatus.Failed when execution.Disposition == PackageExecutionDisposition.TimedOut =>
                     (ActionProgressLevel.Error, "Failed", "WinGet didn't finish within the allowed time."),
-                _ => (ActionProgressLevel.Error, "Failed", $"WinGet couldn't complete the change. Exit code: {execution.ExitCode}.")
+                _ => (ActionProgressLevel.Error, "Failed", FailureMessage(execution))
             };
             await ProgressAsync(request, level, stage, package.Package.Id, message, cancellationToken).ConfigureAwait(false);
         }
@@ -272,6 +277,42 @@ public sealed class ActionWorkerOrchestrator
         IReadOnlyList<string> arguments) =>
         new(package.Package.Id, package.Package.Name, action, status, exitCode, verified, startedAt,
             timeProvider.GetUtcNow(), Array.AsReadOnly(arguments.ToArray()));
+
+    /// <summary>
+    /// The bounded progress message is the only failure detail an operator sees. An exit code alone
+    /// cannot say which installer step failed, so WinGet's own output travels with it. The code is
+    /// also given in hexadecimal because WinGet documents its results that way - -1978335184 is
+    /// 0x8A150030 - and the signed decimal on its own is not searchable.
+    /// </summary>
+    private static string FailureMessage(PackageExecutionResult execution)
+    {
+        var codes = $"Exit code: {execution.ExitCode} (0x{execution.ExitCode:X8}).";
+        var excerpt = DiagnosticExcerpt(execution);
+        return excerpt.Length == 0
+            ? $"WinGet couldn't complete the change. {codes}"
+            : $"WinGet couldn't complete the change. {codes} WinGet reported: {excerpt}";
+    }
+
+    /// <summary>
+    /// Standard error comes first because a failing installer step reports there and the excerpt
+    /// budget is small. Sanitizing here is not a repeat of the adapter's own redaction: this method
+    /// is the boundary that publishes process output into an operator-visible artifact, and
+    /// <see cref="IPackageActionExecutor"/> does not itself promise sanitized text.
+    /// Whitespace is collapsed because <see cref="DiagnosticsRedactor"/> deliberately preserves tab,
+    /// carriage return and line feed, while a progress message may carry no control character at all.
+    /// </summary>
+    private static string DiagnosticExcerpt(PackageExecutionResult execution)
+    {
+        var parts = new[] { execution.StandardError, execution.StandardOutput }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToArray();
+        if (parts.Length == 0) return string.Empty;
+        var sanitized = DiagnosticsRedactor.Sanitize(string.Join(" ", parts));
+        var collapsed = string.Join(' ', sanitized.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return collapsed.Length > MaximumDiagnosticExcerptCharacters
+            ? collapsed[..MaximumDiagnosticExcerptCharacters] + " [excerpt shortened]"
+            : collapsed;
+    }
 
     private static IReadOnlyList<string> ReviewedArgumentEvidence(PackageState package, ManagedRequestAction action) =>
         ManagedWinGetArgumentPolicy.Create(new PackageExecutionRequest(package.Package.Id, package.Package.Name, action, package.Package.Risk));
