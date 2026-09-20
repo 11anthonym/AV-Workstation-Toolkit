@@ -60,6 +60,36 @@ function Get-AVWorkstationToolkitValue {
     return $Default
 }
 
+function Resolve-AVWorkstationToolkitInstallerMode {
+    <#
+        Installer mode decides whether --silent is passed, so a wrong-typed value must never reach a
+        conversion. Windows PowerShell turns @('InstallerDefault') into 'InstallerDefault', 1 into
+        '1' and $true into 'True', which would let a malformed catalog record authorize omitting the
+        flag. The raw value is therefore type-checked before anything converts it. An absent member
+        keeps the Silent default, and the token comparison is ordinal because the compiled loader
+        parses it case-sensitively while PowerShell -in does not.
+    #>
+    param([Parameter(Mandatory)]$InputObject,[string]$PackageId = '')
+
+    # The member is read directly rather than through Get-AVWorkstationToolkitValue: PowerShell
+    # unrolls a single-element array when a function returns it, so that accessor would hand back
+    # 'InstallerDefault' and the type check below would never see the array. Assigning from the
+    # member preserves the original object.
+    $raw = $null
+    if ($InputObject -is [System.Collections.IDictionary]) {
+        if ($InputObject.Contains('InstallerMode')) { $raw = $InputObject['InstallerMode'] }
+    }
+    elseif ($InputObject.PSObject.Properties.Name -contains 'InstallerMode') {
+        $raw = $InputObject.InstallerMode
+    }
+    $label = if ([string]::IsNullOrWhiteSpace($PackageId)) { 'the catalog entry' } else { $PackageId }
+    if ($null -eq $raw) { return 'Silent' }
+    if ($raw -isnot [string]) { throw "Installer mode for $label must be a single string value." }
+    if ([string]::Equals($raw,'Silent',[StringComparison]::Ordinal) -or
+        [string]::Equals($raw,'InstallerDefault',[StringComparison]::Ordinal)) { return $raw }
+    throw "Invalid installer mode '$raw' for $label."
+}
+
 function ConvertTo-AVWorkstationToolkitVersion {
     param([Parameter(Mandatory)][string]$Value)
 
@@ -1037,8 +1067,8 @@ function Get-AVWorkstationToolkitCatalog {
     $validDeploymentPolicies = @('Allowlisted','ManualHold')
     $validMaintenancePolicies = @('Allowlisted','Hold')
     # Installer execution mode is independent of Risk: it selects the WinGet installer vector only,
-    # so an installer requirement can never be expressed by misclassifying a package's risk.
-    $validInstallerModes = @('Silent','InstallerDefault')
+    # so an installer requirement can never be expressed by misclassifying a package's risk. Its
+    # type and token are enforced by Resolve-AVWorkstationToolkitInstallerMode as the record is read.
     $allowedPackageKeys = @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance','InstallerMode')
     $packages = [System.Collections.Generic.List[object]]::new()
     $index = 0
@@ -1059,7 +1089,7 @@ function Get-AVWorkstationToolkitCatalog {
             Note        = [string](Get-AVWorkstationToolkitValue $raw 'Note' '')
             Deployment  = [string](Get-AVWorkstationToolkitValue $raw 'Deployment' 'Allowlisted')
             Maintenance = [string](Get-AVWorkstationToolkitValue $raw 'Maintenance' 'Allowlisted')
-            InstallerMode = [string](Get-AVWorkstationToolkitValue $raw 'InstallerMode' 'Silent')
+            InstallerMode = Resolve-AVWorkstationToolkitInstallerMode -InputObject $raw -PackageId ([string](Get-AVWorkstationToolkitValue $raw 'Id' ''))
             Provider = 'WinGet'
             KnownVersion = ''
             DetectionMode = 'WinGet'
@@ -1192,11 +1222,6 @@ function Get-AVWorkstationToolkitCatalog {
         }
         if ($package.Maintenance -notin $validMaintenancePolicies) {
             throw "Invalid maintenance policy '$($package.Maintenance)' for $($package.Id)."
-        }
-        # Ordinal: the compiled loader parses this token case-sensitively, and -notin is
-        # case-insensitive, so a differently cased value would pass here and fail the compiled app.
-        if (-not ($validInstallerModes | Where-Object { [string]::Equals($_, $package.InstallerMode, [StringComparison]::Ordinal) })) {
-            throw "Invalid installer mode '$($package.InstallerMode)' for $($package.Id)."
         }
         if ($package.Provider -notin @('WinGet','External')) {
             throw "Invalid provider '$($package.Provider)' for $($package.Id)."
@@ -3198,14 +3223,11 @@ function Get-AVWorkstationToolkitWingetArguments {
         # for a manifest that upgrades by uninstalling the previous version. A machine-scope MSI
         # uninstall cannot obtain elevation under /quiet for a standard user, so msiexec returns 1603
         # and WinGet reports 0x8A150030. A reviewed InstallerDefault package omits the flag.
-        # Ordinal comparison, and an explicit rejection: a missing member already defaults to Silent,
-        # but a misspelt catalog value would otherwise be silently treated as not-Silent and quietly
-        # change how the installer runs.
-        $mode = [string](Get-AVWorkstationToolkitValue $Package 'InstallerMode' 'Silent')
+        # Re-resolved here rather than trusted: this function is exported, so a caller can supply a
+        # Package object that never passed the catalog loader. The same contract therefore applies at
+        # both boundaries, including the wrong-type rejection.
+        $mode = Resolve-AVWorkstationToolkitInstallerMode -InputObject $Package -PackageId ([string]$Package.Id)
         $isSilent = [string]::Equals($mode,'Silent',[StringComparison]::Ordinal)
-        if (-not ($isSilent -or [string]::Equals($mode,'InstallerDefault',[StringComparison]::Ordinal))) {
-            throw "Unsupported installer mode '$mode' for $($Package.Id)."
-        }
         if ($isSilent) { $arguments += '--silent' }
         # Always retained for a low-risk package: WinGet itself never waits on a prompt.
         $arguments += '--disable-interactivity'
