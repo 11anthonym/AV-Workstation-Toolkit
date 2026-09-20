@@ -366,24 +366,82 @@ public sealed class ReferenceCatalogUpdateTests
     }
 
     [TestMethod]
-    public async Task StateWriteFailureLeavesTheActivatedSnapshotRecoverable()
+    public async Task StateWriteFailureAfterCommitStillReportsActivation()
     {
         using var fixture = new BundleFixture();
         Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
 
         var statePath = Path.Combine(fixture.DataRoot, "ReferenceCatalog", "state.json");
-        var bundle = fixture.CreateBundle(2, 1);
-        using var channel = fixture.CreateChannel(bundle, revision: 2, previousRevision: 1);
+        using var channel = fixture.CreateChannel(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1);
         var store = fixture.CreateStore(channel: channel);
         _ = store.LoadActiveOrEmbedded();
         Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
+
+        ReferenceCatalogUpdateStatus installed;
         using (var lockedState = new FileStream(statePath, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, (await store.InstallAvailableAsync()).State);
+            installed = await store.InstallAvailableAsync();
         }
+
+        // The revision committed, so the reported outcome must say so. Reporting rejection here would
+        // contradict the catalog the next launch actually selects.
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, installed.State);
+        Assert.AreEqual(2L, installed.CurrentRevision);
+        var restarted = fixture.CreateStore();
+        Assert.AreEqual(2L, restarted.LoadActiveOrEmbedded().Source.Revision);
+    }
+
+    [TestMethod]
+    public async Task ObsoleteRevisionCleanupFailureAfterCommitStillReportsActivation()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+
+        using var channel = fixture.CreateChannel(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1);
+        var store = fixture.CreateStore(channel: channel);
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
+
+        ReferenceCatalogUpdateStatus installed;
+        // Hold a file inside the superseded revision so its post-commit deletion fails.
+        using (var pinned = new FileStream(fixture.StoredHardwarePath(1), FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            installed = await store.InstallAvailableAsync();
+            Assert.IsTrue(Directory.Exists(fixture.StoredCatalogDirectory(1)));
+        }
+
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, installed.State);
+        Assert.AreEqual(2L, installed.CurrentRevision);
 
         var restarted = fixture.CreateStore();
         Assert.AreEqual(2L, restarted.LoadActiveOrEmbedded().Source.Revision);
+        // Startup owns the deferred cleanup once the file is no longer pinned.
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(1)));
+    }
+
+    [TestMethod]
+    public async Task PreCommitFailureReportsRejectionAndActivatesNothing()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed, (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State);
+
+        using var channel = fixture.CreateChannel(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1);
+        var store = fixture.CreateStore(channel: channel);
+        _ = store.LoadActiveOrEmbedded();
+        Assert.AreEqual(ReferenceCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
+
+        // Occupy the destination so the commit move itself fails. Directory.Move refuses to overwrite,
+        // which is what keeps an already-committed revision immutable.
+        Directory.CreateDirectory(fixture.StoredCatalogDirectory(2));
+        var installed = await store.InstallAvailableAsync();
+
+        Assert.AreEqual(ReferenceCatalogUpdateState.Rejected, installed.State);
+        Assert.IsEmpty(Directory.GetFileSystemEntries(Path.Combine(fixture.DataRoot, "ReferenceCatalog", "staging")));
+
+        // The occupying directory is not a verified catalog, so startup discards it and keeps revision 1.
+        var restarted = fixture.CreateStore();
+        Assert.AreEqual(1L, restarted.LoadActiveOrEmbedded().Source.Revision);
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(2)));
     }
 
     [TestMethod]
