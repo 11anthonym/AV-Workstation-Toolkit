@@ -439,14 +439,31 @@ if ($null -ne $certificate) {
     Invoke-AVWorkstationToolkitArtifactSigning -Path $workerPayloadPath -Thumbprint $normalizedThumbprint -Store $certificateStoreName -ToolPath $resolvedSignToolPath
 }
 
+# Release provenance must describe what the launcher actually embeds, so the count is derived from the
+# launcher project's own EmbeddedResource declarations rather than restating its policy here. The
+# manifests entry is a glob with an Exclude list for reviewed repository-only inputs that no shipping
+# code parses; the notice entries are fixed; the worker and reference-catalog entries are conditional.
+$manifestPayloadResource = @($launcherProjectXml.SelectNodes(
+    "/Project/ItemGroup/EmbeddedResource[contains(LogicalName,'.Payload.manifests/')]"))
+if ($manifestPayloadResource.Count -ne 1) {
+    throw 'The launcher project must declare exactly one embedded manifest resource set.'
+}
+$excludedManifestNames = @(($manifestPayloadResource[0].GetAttribute('Exclude')) -split ';' |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    ForEach-Object { [IO.Path]::GetFileName($_.Trim()) })
+$embeddedManifestFiles = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File -Filter '*.json' |
+    Where-Object { $_.Name -notin $excludedManifestNames })
+if ($embeddedManifestFiles.Count -eq 0) {
+    throw 'The launcher would embed no reviewed runtime manifests.'
+}
+$embeddedNoticeCount = @($launcherProjectXml.SelectNodes(
+    "/Project/ItemGroup/EmbeddedResource[contains(LogicalName,'.Payload.notices/')]")).Count
 $embeddedPayloadFiles = @(
-    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File -Filter '*.json'
+    $embeddedManifestFiles
     Get-Item -LiteralPath $workerPayloadPath
     if (-not [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) { Get-Item -LiteralPath $ReferenceCatalogBaselinePath }
 )
-if ($embeddedPayloadFiles.Count -lt 6) {
-    throw "The standalone executable would embed too few runtime files: $($embeddedPayloadFiles.Count)"
-}
+$embeddedPayloadFileCount = $embeddedPayloadFiles.Count + $embeddedNoticeCount
 
 $launcherPath = Join-Path $stagingRoot 'AVWorkstationToolkit.exe'
 if ([string]::IsNullOrWhiteSpace($SignedLauncherPath)) {
@@ -619,7 +636,7 @@ $releaseManifest = [ordered]@{
     SigningProvider = $(if ($null -ne $certificate) { 'CertificateStore' } elseif (-not [string]::IsNullOrWhiteSpace($SignedMsiPath)) { 'ExternalService' } else { 'Unsigned' })
     ExternallySignedArtifactsReused = (-not [string]::IsNullOrWhiteSpace($SignedWorkerPath) -or
         -not [string]::IsNullOrWhiteSpace($SignedLauncherPath) -or -not [string]::IsNullOrWhiteSpace($SignedMsiPath))
-    EmbeddedPayloadFiles = $embeddedPayloadFiles.Count
+    EmbeddedPayloadFiles = $embeddedPayloadFileCount
     BundledExternalPackages = @($bundledExternalPackages | ForEach-Object { $_.Id })
     NuGetAudit = [ordered]@{
         Status = 'Passed'
