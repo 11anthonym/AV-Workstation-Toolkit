@@ -30,6 +30,21 @@ public sealed class ProviderInfrastructureTests
         // An escape inside an ordinary string value is not a property name.
         Assert.AreEqual("Fixture\tTool", RepositoryCatalogLoader.ParseManagedCatalog(
             valid.Replace("\"Note\":\"Fixture\"", "\"Note\":\"Fixture\\tTool\"", StringComparison.Ordinal)).Packages[0].Note);
+
+        // JSON token types are part of the contract: a quoted schema version, a non-string member, and
+        // a single object where a package array is required are all rejected by deserialization.
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"SchemaVersion\":1", "\"SchemaVersion\":\"1\"", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"ForbiddenPattern\":\"(?i)Forbidden\"", "\"ForbiddenPattern\":123", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Id\":\"Fixture.Tool\"", "\"Id\":123", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Id\":\"Fixture.Tool\"", "\"Id\":[\"Fixture.Tool\"]", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Name\":\"Fixture\"", "\"Name\":true", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => RepositoryCatalogLoader.ParseManagedCatalog(
+            valid.Replace("\"Packages\":[", "\"Packages\":", StringComparison.Ordinal).Replace("}]}", "}}", StringComparison.Ordinal)));
     }
 
     [TestMethod]
