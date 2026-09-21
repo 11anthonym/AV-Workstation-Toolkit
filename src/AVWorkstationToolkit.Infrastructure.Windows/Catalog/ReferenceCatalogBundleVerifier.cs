@@ -54,26 +54,23 @@ public sealed class ReferenceCatalogBundleVerifier
     internal VerifiedReferenceCatalogBundle VerifyArchive(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        if (stream.CanSeek && stream.Length - stream.Position > MaximumBundleBytes)
-            throw new CatalogValidationException("Reference catalog bundle size is invalid.");
         if (!policy.IsConfigured) throw new CatalogValidationException("No trusted reference-catalog signing key is configured.");
-        using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
-        if (archive.Entries.Count != ReferenceCatalogBundleNames.BundleFiles.Count)
-            throw new CatalogValidationException("Reference catalog bundle contains an unexpected number of entries.");
-        var files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-        long total = 0;
-        foreach (var entry in archive.Entries)
-        {
-            if (entry.FullName != entry.Name || !ReferenceCatalogBundleNames.BundleFiles.Contains(entry.Name))
-                throw new CatalogValidationException($"Reference catalog entry '{entry.FullName}' is not permitted.");
-            if (!files.TryAdd(entry.Name, ReadBounded(entry, ref total)))
-                throw new CatalogValidationException($"Reference catalog repeats entry '{entry.Name}'.");
-        }
-        if (total > MaximumPayloadBytes) throw new CatalogValidationException("Reference catalog uncompressed content is too large.");
+        var files = CatalogBundleReader.ReadExact(
+            stream,
+            ReferenceCatalogBundleNames.BundleFiles,
+            MaximumBundleBytes,
+            MaximumPayloadBytes,
+            MaximumEntryBytes,
+            "Reference catalog");
 
         var manifestBytes = files[ReferenceCatalogBundleNames.Manifest];
         var manifest = new ReferenceCatalogManifestParser().ParseManifest(Decode(manifestBytes, "manifest"));
-        VerifySignature(manifest, manifestBytes, files[ReferenceCatalogBundleNames.Signature]);
+        CatalogSignatureVerifier.VerifyP256(
+            policy.TrustedPublicKeys,
+            manifest.SigningKeyId,
+            manifestBytes,
+            files[ReferenceCatalogBundleNames.Signature],
+            "Reference catalog");
         foreach (var payloadName in ReferenceCatalogBundleNames.PayloadFiles)
         {
             var actual = Convert.ToHexString(SHA256.HashData(files[payloadName]));
@@ -120,44 +117,6 @@ public sealed class ReferenceCatalogBundleVerifier
             }
         memory.Position = 0;
         return VerifyArchive(memory);
-    }
-
-    private byte[] ReadBounded(ZipArchiveEntry entry, ref long total)
-    {
-        if (entry.Length <= 0 || entry.Length > MaximumEntryBytes || entry.CompressedLength > MaximumBundleBytes)
-            throw new CatalogValidationException($"Reference catalog entry '{entry.Name}' has an invalid size.");
-        using var input = entry.Open();
-        using var output = new MemoryStream((int)entry.Length);
-        var buffer = new byte[16_384];
-        long entryTotal = 0;
-        while (true)
-        {
-            var read = input.Read(buffer, 0, buffer.Length);
-            if (read == 0) break;
-            entryTotal += read;
-            total += read;
-            if (entryTotal > MaximumEntryBytes || total > MaximumPayloadBytes)
-                throw new CatalogValidationException("Reference catalog decompression limit was exceeded.");
-            output.Write(buffer, 0, read);
-        }
-        return output.ToArray();
-    }
-
-    private void VerifySignature(ReferenceCatalogBundleManifest manifest, byte[] manifestBytes, byte[] signatureBytes)
-    {
-        if (!policy.TrustedPublicKeys.TryGetValue(manifest.SigningKeyId, out var pem))
-            throw new CatalogValidationException("Reference catalog signing key is not trusted.");
-        if (signatureBytes.Length != 64)
-            throw new CatalogValidationException("Reference catalog signature encoding is invalid.");
-        try
-        {
-            using var key = ECDsa.Create();
-            key.ImportFromPem(pem);
-            if (key.KeySize != 256 || !key.VerifyData(manifestBytes, signatureBytes, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation))
-                throw new CatalogValidationException("Reference catalog signature verification failed.");
-        }
-        catch (ArgumentException exception) { throw new CatalogValidationException($"Trusted reference catalog public key is invalid: {exception.Message}"); }
-        catch (CryptographicException exception) { throw new CatalogValidationException($"Reference catalog signature verification failed: {exception.Message}"); }
     }
 
     private void EnsureCompatibleApplication(string minimumVersion, long revision)
