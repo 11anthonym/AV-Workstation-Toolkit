@@ -244,6 +244,7 @@ analytics, or crash-reporting service.
 
 The maintained execution and release boundaries are described in the
 [architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md),
+[signed managed-catalog update model](docs/Managed-Catalog-Updates.md),
 [endpoint-security baseline](docs/Endpoint-Security-Behavior.md), and
 [security audit](docs/AV-Workstation-Toolkit-Security-Audit.md).
 

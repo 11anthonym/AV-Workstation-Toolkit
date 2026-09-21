@@ -16,6 +16,7 @@ using AVWorkstationToolkit.Application.Compatibility;
 using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
+using AVWorkstationToolkit.Application.Catalog;
 
 namespace AVWorkstationToolkit.App.Services;
 
@@ -23,6 +24,8 @@ public sealed record CompiledAppServices(
     PackageCatalog Catalog,
     CompatibilityCatalogQueryService Compatibility,
     IReferenceCatalogUpdateService ReferenceCatalogUpdates,
+    IManagedCatalogUpdateService ManagedCatalogUpdates,
+    long ManagedCatalogRevision,
     IWorkstationPlanningCoordinator Planning,
     IReadOnlyDiagnosticsService Diagnostics,
     CatalogDetailService Details,
@@ -45,21 +48,39 @@ public static class CompiledAppComposition
         string applicationRoot,
         string dataRoot,
         string version,
-        string expectedWorkerSha256)
+        string expectedWorkerSha256,
+        ManagedCatalogRuntimeServices? managedCatalogRuntime = null)
     {
         var canonicalRoot = ProductionRuntimePolicy.RequireDataRoot(dataRoot);
         var runtimeRoot = ProductionRuntimePolicy.RequireApplicationRoot(canonicalRoot, applicationRoot);
-        return CreateCore(runtimeRoot, canonicalRoot, production: true, version, expectedWorkerSha256);
+        return CreateCore(runtimeRoot, canonicalRoot, production: true, version, expectedWorkerSha256,
+            managedCatalogRuntime ?? ProductionManagedCatalogConfiguration.Create(version));
     }
+
+    public static CompiledAppServices CreateManagedCatalogDevelopment(
+        string applicationRoot,
+        string dataRoot,
+        string version,
+        ManagedCatalogRuntimeServices managedCatalogRuntime) =>
+        CreateCore(Path.GetFullPath(applicationRoot), Path.GetFullPath(dataRoot), production: false, version,
+            expectedWorkerSha256: null, managedCatalogRuntime ?? throw new ArgumentNullException(nameof(managedCatalogRuntime)));
 
     private static CompiledAppServices CreateCore(
         string repositoryRoot,
         string? actionRoot,
         bool production = false,
         string? packagedVersion = null,
-        string? expectedWorkerSha256 = null)
+        string? expectedWorkerSha256 = null,
+        ManagedCatalogRuntimeServices? managedCatalogRuntime = null)
     {
-        var catalog = new RepositoryCatalogLoader().Load(repositoryRoot);
+        var loader = new RepositoryCatalogLoader();
+        var managedUpdates = managedCatalogRuntime is null
+            ? (IManagedCatalogUpdateService)new RepositoryManagedCatalogUpdateService(repositoryRoot)
+            : new ManagedCatalogStore(repositoryRoot, actionRoot!, managedCatalogRuntime.Verifier,
+                managedCatalogRuntime.ChannelClient, requireSignedBaseline: true);
+        var managedCatalog = managedUpdates.LoadActiveOrEmbedded();
+        var supplementary = loader.LoadSupplementary(repositoryRoot);
+        var catalog = new PackageCatalog(managedCatalog.Catalog.Items.Concat(supplementary.Items));
         var resolver = new WindowsWinGetResolver();
         var runner = new WinGetReadOnlyProcessRunner(resolver);
         var managed = catalog.Items.Where(item => item.HasManagedExecutionAuthority).Select(item => (item.Id, item.Name));
@@ -106,7 +127,8 @@ public static class CompiledAppComposition
             actions = new CompiledActionCoordinator(
                 new ActionProtocolStore(dataRoot),
                 workerLauncher,
-                planning);
+                planning,
+                new ActionRequestFactory(managedCatalogRevision: managedCatalog.Source.Revision));
             var credentialStore = new WindowsVendorCredentialStore();
             var sftp = new VendorSftpDeliveryService(cachePaths);
             vendors = new VendorInteractionCoordinator(
@@ -120,7 +142,7 @@ public static class CompiledAppComposition
             packageDelivery = new PackageDeliveryWorkflow(catalog, vendors, handoffs, cachePaths, dataRoot);
         }
         var executionMode = production ? "Packaged compiled runtime" : "Source compiled runtime";
-        return new(catalog, compatibility, catalogUpdates, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
+        return new(catalog, compatibility, catalogUpdates, managedUpdates, managedCatalog.Source.Revision, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
             handoffs, packageDelivery, applicationMenu, version, executionMode, production);
     }
 }

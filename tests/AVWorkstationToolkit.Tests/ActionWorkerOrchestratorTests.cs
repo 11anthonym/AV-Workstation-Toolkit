@@ -375,7 +375,7 @@ public sealed class ActionWorkerOrchestratorTests
         IReadOnlyList<string>? ids = null,
         bool riskAcknowledged = false,
         ManagedRequestAction action = ManagedRequestAction.Install) =>
-        new(1, RequestId, action, ids ?? ["Vendor.One"], riskAcknowledged, false);
+        new(ActionRequestRules.CurrentSchemaVersion, RequestId, action, ids ?? ["Vendor.One"], riskAcknowledged, false);
 
     private static PackageState State(
         string id,

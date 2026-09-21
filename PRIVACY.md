@@ -20,8 +20,8 @@ Packaged execution keeps application-owned mutable state beneath
 - trusted SFTP host fingerprints;
 - downloaded vendor payloads and their hash/publisher metadata, when an
   operator explicitly requests an allowed download;
-- signed descriptive reference-catalog revisions, validation state, staging,
-  and quarantine evidence when catalog updates are configured or imported.
+- the active signed descriptive reference-catalog revision and bounded staging state;
+- at most one verified downloaded managed-catalog revision and bounded staging state.
 
 The installer deliberately leaves this per-user evidence after uninstall so
 an operator can review retention requirements. A packaged launch can read a
@@ -43,7 +43,8 @@ installed software, devices, services, drivers, listeners, and network state.
 | Vendor page handoff | Explicit **Open vendor download** action | Catalogued official HTTPS URI opened in the user's default browser | Browser-controlled request data | Vendor web page |
 | Controlled HTTPS package download | Explicit confirmation for an eligible manual external package | Catalogued HTTPS source and allowlisted redirect hosts | Normal TLS/HTTP request metadata and product user agent | One size-bounded installer written first as a scoped temporary cache file, then accepted only after publisher validation |
 | SFTP catalog metadata | Startup/manual refresh for the configured parent-provider catalog | Catalogued HTTPS catalog endpoint | Normal TLS/HTTP request metadata | Size-bounded product metadata |
-| Signed reference-catalog check/update | Explicit **Check now** or **Update catalog** action after an owner configures the production channel | Two exact signed-metadata URLs and one signed-bundle URL on a compiled HTTPS host allowlist | Normal TLS/HTTP GET request metadata; no inventory, credentials, diagnostics, or user data | Bounded signed metadata/signature and a bounded descriptive `.avwtcatalog` bundle |
+| Signed reference-catalog check/update | A bounded freshness check after startup or explicit **Check now** / **Update catalog** action | Two exact signed-metadata URLs and one signed-bundle URL on a compiled HTTPS host allowlist | Normal TLS/HTTP GET request metadata; no inventory, credentials, diagnostics, or user data | Bounded signed metadata/signature and a bounded descriptive `.avwtcatalog` bundle |
+| Signed managed-catalog check/update | Explicit **Check now** or **Download update** action after the owner provisions the separate production managed key and baseline | Two exact managed-channel URLs and one immutable managed-bundle URL on a compiled HTTPS host allowlist | Normal TLS/HTTP GET request metadata; no inventory, credentials, diagnostics, or user data | Bounded signed metadata/signature and one bounded `.avwtmanaged` bundle |
 | SFTP host probe | Explicit authenticated-provider workflow | Catalogued SFTP host and port | SSH negotiation without a saved password | Presented SSH host key/fingerprint |
 | Authenticated SFTP test or download | Explicit operator action after host-key approval and credential entry or saved-credential selection | Catalogued SFTP host, port, remote root, and allowlisted product path | Username and password through encrypted SSH authentication, plus the bounded file request | Authentication result or one size-bounded installer |
 | WinGet install/update | Explicit approved package action | WinGet's pinned `winget` source and package-specific installer path | One exact allowlisted package ID and normal WinGet/source request data | Package metadata and the publisher's installer through WinGet |
@@ -53,12 +54,12 @@ AV Workstation Toolkit has no runtime GitHub update checker. Repository and
 release links are opened only through the user's browser. It has no generic
 HTTP upload, POST, PUT, PATCH, web-hook, telemetry, or analytics path.
 
-The signed reference-catalog transport is currently fail-closed and
-unconfigured because this repository is private and the application must not
-embed a GitHub credential. If enabled later, it can contact only the exact
-public HTTPS origins compiled into the signed application, follows no
-redirects, uses no ambient credentials, and runs only after an explicit user
-check. Offline import performs no network request.
+Both catalog transports can contact only exact public HTTPS origins compiled
+into the application, follow no redirects, and use no ambient credentials.
+The descriptive reference feed is configured and may perform its documented
+bounded startup freshness check. The managed-catalog transport remains fail-closed and unconfigured
+until the owner provisions its separate production public key and signed
+baseline; managed checks are manual and never run as a background service.
 
 Because startup can automatically query WinGet and configured official vendor
 release pages, the project does not use the broader statement that every

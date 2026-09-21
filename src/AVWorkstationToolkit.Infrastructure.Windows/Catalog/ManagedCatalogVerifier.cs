@@ -40,7 +40,7 @@ public sealed class ManagedCatalogRequiresNewerApplicationException(string minim
     public long Revision { get; } = revision;
 }
 
-/// <summary>Verifies the signed managed catalog contract without loading or activating it at runtime.</summary>
+/// <summary>Independently verifies the signed managed catalog contract for publishing and runtime use.</summary>
 public sealed class ManagedCatalogVerifier
 {
     public const long MaximumBundleBytes = 1024 * 1024;

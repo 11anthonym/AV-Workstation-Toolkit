@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-21 — Independently updateable managed application catalog
+
+- Added a separately trusted signed `avwt-managed` baseline and fixed-origin manual update path with strict content verification, atomic activation, one retained download, restart-bound selection, and offline fallback.
+- Bound action requests to the application's effective managed revision; the compiled worker independently verifies and loads the same authority and rejects revision drift before package planning or mutation.
+- Added the minimal managed-catalog status UI and moved supported source-checkout PowerShell deployment, maintenance, and worker paths to canonical `manifests/managed-applications.json` without adding a PowerShell signature engine.
+- Kept production fail closed pending owner provisioning of the distinct managed public key, Revision 1 baseline/publication, and normal signed release validation.
+
 ## 2026-09-16 — WinGet table-schema parsing
 
 - Parse package rows from the detected `Name | Id | Version | Available | Source` column schema, preserving opaque spaced version values such as `< 0.0.1` instead of inferring cells from whitespace-token counts.

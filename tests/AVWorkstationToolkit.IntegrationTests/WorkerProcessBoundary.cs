@@ -107,7 +107,7 @@ internal static class WorkerProcessBoundary
         string root,
         IReadOnlyList<string> ids)
     {
-        var request = new ActionRequest(1, RequestId, ManagedRequestAction.Install, ids, false, false);
+        var request = new ActionRequest(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Install, ids, false, false);
         var states = ids.Select(id => State(id)).ToArray();
         var authorized = new AuthorizedActionRequest(request, states);
         var store = new ActionProtocolStore(root);

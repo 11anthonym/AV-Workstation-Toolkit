@@ -8,6 +8,7 @@ using AVWorkstationToolkit.App.ViewModels;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Application.Compatibility;
+using AVWorkstationToolkit.Application.Catalog;
 
 namespace AVWorkstationToolkit.App;
 
@@ -58,6 +59,7 @@ public partial class App : System.Windows.Application
             IApplicationMenuWorkflow? applicationMenu = null;
             CompatibilityCatalogQueryService? compatibility = null;
             IReferenceCatalogUpdateService? referenceCatalogUpdates = null;
+            IManagedCatalogUpdateService? managedCatalogUpdates = null;
             var productVersion = packagedContext?.Version ?? "Unknown";
             var executionMode = packagedContext is null ? "Source compiled runtime" : "Packaged compiled runtime";
             if (packagedContext is not null)
@@ -77,6 +79,7 @@ public partial class App : System.Windows.Application
                 applicationMenu = services.ApplicationMenu;
                 compatibility = services.Compatibility;
                 referenceCatalogUpdates = services.ReferenceCatalogUpdates;
+                managedCatalogUpdates = services.ManagedCatalogUpdates;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
@@ -104,11 +107,13 @@ public partial class App : System.Windows.Application
                 applicationMenu = services.ApplicationMenu;
                 compatibility = services.Compatibility;
                 referenceCatalogUpdates = services.ReferenceCatalogUpdates;
+                managedCatalogUpdates = services.ManagedCatalogUpdates;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
             var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
-                applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility, referenceCatalogUpdates: referenceCatalogUpdates);
+                applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility, referenceCatalogUpdates: referenceCatalogUpdates,
+                managedCatalogUpdates: managedCatalogUpdates);
             var window = new MainWindow(viewModel, productVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             MainWindow = window;
             window.Show();

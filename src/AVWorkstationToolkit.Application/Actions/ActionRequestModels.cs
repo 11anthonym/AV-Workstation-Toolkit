@@ -54,7 +54,8 @@ public sealed record ActionRequest
         ManagedRequestAction action,
         IEnumerable<string> packageIds,
         bool riskAcknowledged,
-        bool dryRun)
+        bool dryRun,
+        long managedCatalogRevision = 0)
     {
         ArgumentNullException.ThrowIfNull(packageIds);
         SchemaVersion = schemaVersion;
@@ -63,6 +64,7 @@ public sealed record ActionRequest
         PackageIds = Array.AsReadOnly(packageIds.ToArray());
         RiskAcknowledged = riskAcknowledged;
         DryRun = dryRun;
+        ManagedCatalogRevision = managedCatalogRevision;
     }
 
     public int SchemaVersion { get; }
@@ -71,6 +73,7 @@ public sealed record ActionRequest
     public IReadOnlyList<string> PackageIds { get; }
     public bool RiskAcknowledged { get; }
     public bool DryRun { get; }
+    public long ManagedCatalogRevision { get; }
 }
 
 public sealed record ActionRequestArtifactNames(
@@ -106,7 +109,7 @@ public sealed record AuthorizedActionRequest
 
 public static partial class ActionRequestRules
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
     public const int MaximumPackageCount = 100;
     public const int MaximumPayloadBytes = 65_536;
 
@@ -117,7 +120,8 @@ public static partial class ActionRequestRules
         "Action",
         "PackageIds",
         "RiskAcknowledged",
-        "DryRun"
+        "DryRun",
+        "ManagedCatalogRevision"
     ];
 
     public static IReadOnlyList<string> Properties => RequiredProperties;
@@ -170,6 +174,8 @@ public static partial class ActionRequestRules
         }
         ValidateRequestId(request.RequestId);
         ValidatePackageIds(request.PackageIds);
+        if (request.ManagedCatalogRevision < 0)
+            throw new ActionRequestValidationException(ActionRequestFailure.WrongType, "ManagedCatalogRevision must be a non-negative integer.");
     }
 }
 
@@ -177,11 +183,14 @@ public sealed class ActionRequestFactory
 {
     private readonly TimeProvider timeProvider;
     private readonly Func<string> nonceFactory;
+    private readonly long managedCatalogRevision;
 
-    public ActionRequestFactory(TimeProvider? timeProvider = null, Func<string>? nonceFactory = null)
+    public ActionRequestFactory(TimeProvider? timeProvider = null, Func<string>? nonceFactory = null, long managedCatalogRevision = 0)
     {
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.nonceFactory = nonceFactory ?? CreateNonce;
+        if (managedCatalogRevision < 0) throw new ArgumentOutOfRangeException(nameof(managedCatalogRevision));
+        this.managedCatalogRevision = managedCatalogRevision;
     }
 
     public ActionRequest Create(
@@ -211,7 +220,8 @@ public sealed class ActionRequestFactory
             action,
             ids,
             riskAcknowledged,
-            dryRun);
+            dryRun,
+            managedCatalogRevision);
         ActionRequestRules.Validate(request);
         return request;
     }
@@ -238,6 +248,7 @@ public sealed class ActionRequestCodec
             writer.WriteEndArray();
             writer.WriteBoolean("RiskAcknowledged", request.RiskAcknowledged);
             writer.WriteBoolean("DryRun", request.DryRun);
+            writer.WriteNumber("ManagedCatalogRevision", request.ManagedCatalogRevision);
             writer.WriteEndObject();
         }
         return stream.ToArray();
@@ -311,8 +322,9 @@ public sealed class ActionRequestCodec
             }
             var riskAcknowledged = RequireBoolean(properties["RiskAcknowledged"], "RiskAcknowledged");
             var dryRun = RequireBoolean(properties["DryRun"], "DryRun");
+            var managedCatalogRevision = RequireInt64(properties["ManagedCatalogRevision"], "ManagedCatalogRevision");
 
-            var request = new ActionRequest(schema, requestId, action, ids, riskAcknowledged, dryRun);
+            var request = new ActionRequest(schema, requestId, action, ids, riskAcknowledged, dryRun, managedCatalogRevision);
             ActionRequestRules.Validate(request);
             if (expectedRequestId is not null && !string.Equals(request.RequestId, expectedRequestId, StringComparison.Ordinal))
             {
@@ -328,6 +340,13 @@ public sealed class ActionRequestCodec
         {
             throw WrongType($"{propertyName} must be a JSON integer.");
         }
+        return result;
+    }
+
+    private static long RequireInt64(JsonElement value, string propertyName)
+    {
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out var result))
+            throw WrongType($"{propertyName} must be a JSON integer.");
         return result;
     }
 

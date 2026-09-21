@@ -28,7 +28,10 @@ try
     var request = await store.ReadRequestAsync(requestName);
     await using var protocol = new ActionWorkerFileProtocol(dataRoot, request.RequestId);
     var applicationRoot = ProductionRuntimePolicy.RequireApplicationRoot(dataRoot, args[6]);
-    var services = ProductionWorkerComposition.Create(applicationRoot);
+    var applicationVersion = typeof(Program).Assembly.GetName().Version is { } assemblyVersion
+        ? $"{assemblyVersion.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}"
+        : throw new InvalidOperationException("The compiled worker version is unavailable.");
+    var services = ProductionWorkerComposition.Create(dataRoot, applicationRoot, applicationVersion);
     var orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName);
     var result = await orchestrator.RunAsync(request);
     return result.ExitCode;

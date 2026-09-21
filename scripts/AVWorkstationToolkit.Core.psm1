@@ -1022,22 +1022,35 @@ function ConvertFrom-AVWorkstationToolkitExternalCatalogJson {
 function Get-AVWorkstationToolkitCatalog {
     [CmdletBinding()]
     param(
-        [string]$CatalogPath = (Join-Path $PSScriptRoot 'AppProfiles.psd1'),
+        [string]$CatalogPath = (Join-Path $PSScriptRoot '..\manifests\managed-applications.json'),
         [string]$ExternalCatalogPath,
         [string]$AwarenessCatalogPath
     )
 
-    $defaultCatalogPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'AppProfiles.psd1'))
+    $defaultCatalogPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\manifests\managed-applications.json'))
     $CatalogPath = [IO.Path]::GetFullPath($CatalogPath)
     if (-not (Test-Path -LiteralPath $CatalogPath -PathType Leaf)) {
         throw "Application catalog was not found: $CatalogPath"
     }
 
-    $data = Import-PowerShellDataFile -LiteralPath $CatalogPath
-    if (-not $data.ContainsKey('Packages') -or -not $data.ContainsKey('ForbiddenPattern')) {
+    if ([IO.Path]::GetExtension($CatalogPath) -ieq '.json') {
+        $data = Get-Content -LiteralPath $CatalogPath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+        $catalogKeys = @($data.PSObject.Properties.Name)
+        if ('SchemaVersion' -notin $catalogKeys -or $data.SchemaVersion -isnot [int] -or [int]$data.SchemaVersion -ne 1) {
+            throw 'Application catalog SchemaVersion must be the integer 1.'
+        }
+        $allowedCatalogKeys = @('SchemaVersion','Packages','ForbiddenPattern')
+    }
+    else {
+        # Explicit non-default PSD1 inputs remain available for retained characterization fixtures.
+        $data = Import-PowerShellDataFile -LiteralPath $CatalogPath
+        $catalogKeys = @($data.Keys)
+        $allowedCatalogKeys = @('Packages','ForbiddenPattern')
+    }
+    if ('Packages' -notin $catalogKeys -or 'ForbiddenPattern' -notin $catalogKeys) {
         throw 'Application catalog must contain Packages and ForbiddenPattern.'
     }
-    $unexpectedCatalogKeys = @($data.Keys | Where-Object { $_ -notin @('Packages','ForbiddenPattern') })
+    $unexpectedCatalogKeys = @($catalogKeys | Where-Object { $_ -notin $allowedCatalogKeys })
     if ($unexpectedCatalogKeys.Count -gt 0) {
         throw ('Application catalog contains unsupported keys: {0}' -f ($unexpectedCatalogKeys -join ', '))
     }
@@ -1074,10 +1087,11 @@ function Get-AVWorkstationToolkitCatalog {
     $index = 0
 
     foreach ($raw in @($data.Packages)) {
-        if ($raw -isnot [System.Collections.IDictionary]) {
-            throw "Catalog entry $index must be a data-file dictionary."
+        if ($raw -isnot [System.Collections.IDictionary] -and $null -eq $raw.PSObject) {
+            throw "Catalog entry $index must be a catalog object."
         }
-        $unexpectedPackageKeys = @($raw.Keys | Where-Object { $_ -notin $allowedPackageKeys })
+        $rawKeys = if ($raw -is [System.Collections.IDictionary]) { @($raw.Keys) } else { @($raw.PSObject.Properties.Name) }
+        $unexpectedPackageKeys = @($rawKeys | Where-Object { $_ -notin $allowedPackageKeys })
         if ($unexpectedPackageKeys.Count -gt 0) {
             throw ("Catalog entry {0} contains unsupported keys: {1}" -f $index,($unexpectedPackageKeys -join ', '))
         }
@@ -2951,7 +2965,7 @@ function Find-AVWorkstationToolkitCatalog {
 function Get-AVWorkstationToolkitPlan {
     [CmdletBinding()]
     param(
-        [string]$CatalogPath = (Join-Path $PSScriptRoot 'AppProfiles.psd1'),
+        [string]$CatalogPath = (Join-Path $PSScriptRoot '..\manifests\managed-applications.json'),
         [string]$ExternalCatalogPath,
         [string]$AwarenessCatalogPath,
         [AllowNull()][object[]]$InstalledPackages,
@@ -3254,12 +3268,13 @@ function New-AVWorkstationToolkitActionRequest {
     $requestName = 'request-{0}-{1}' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),([guid]::NewGuid().ToString('N').Substring(0,8))
     $requestPath = Join-Path $requestDirectory ($requestName + '.json')
     $request = [ordered]@{
-        SchemaVersion = 1
+        SchemaVersion = 2
         RequestId = $requestName
         Action = $Action
         PackageIds = @($ids)
         RiskAcknowledged = $RiskAcknowledged
         DryRun = $DryRun
+        ManagedCatalogRevision = 0
     }
     $request | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $requestPath -Encoding UTF8
 

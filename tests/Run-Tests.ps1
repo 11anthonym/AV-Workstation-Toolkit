@@ -19,12 +19,13 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $scriptsRoot = Join-Path $repositoryRoot 'scripts'
 $modulePath = Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psd1'
 $moduleImplementationPath = Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psm1'
-$catalogPath = Join-Path $scriptsRoot 'AppProfiles.psd1'
+$legacyCatalogPath = Join-Path $scriptsRoot 'AppProfiles.psd1'
+$managedManifestPath = Join-Path $repositoryRoot 'manifests\managed-applications.json'
+$catalogPath = $managedManifestPath
 $xamlPath = Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml'
 $fixtureRoot = Join-Path $PSScriptRoot 'fixtures'
 $externalManifestPath = Join-Path $repositoryRoot 'manifests\external-applications.json'
 $awarenessManifestPath = Join-Path $repositoryRoot 'manifests\commercial-av-catalog.json'
-$managedManifestPath = Join-Path $repositoryRoot 'manifests\managed-applications.json'
 $processPolicyPath = Join-Path $repositoryRoot 'manifests\process-launch-policy.json'
 
 $launchIsElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
@@ -86,15 +87,15 @@ function Invoke-Check {
     }
 }
 
-$winGetManifest = Microsoft.PowerShell.Utility\Import-PowerShellDataFile -LiteralPath $catalogPath
+$winGetManifest = Microsoft.PowerShell.Utility\Import-PowerShellDataFile -LiteralPath $legacyCatalogPath
 $managedCatalogDocument = Get-Content -LiteralPath $managedManifestPath -Raw | ConvertFrom-Json
 $operationalExternalCatalog = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json (Get-Content -LiteralPath $externalManifestPath -Raw))
 $awarenessExternalCatalog = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json (Get-Content -LiteralPath $awarenessManifestPath -Raw))
-$expectedWinGetCount = @($winGetManifest.Packages).Count
+$expectedWinGetCount = @($managedCatalogDocument.Packages).Count
 $expectedOperationalExternalCount = $operationalExternalCatalog.Count
 $expectedAwarenessCount = $awarenessExternalCatalog.Count
 $expectedCatalogCount = $expectedWinGetCount + $expectedOperationalExternalCount + $expectedAwarenessCount
-$catalog = @(Get-AVWorkstationToolkitCatalog -CatalogPath $catalogPath)
+$catalog = @(Get-AVWorkstationToolkitCatalog)
 $installedText = Get-Content -LiteralPath (Join-Path $fixtureRoot 'winget-installed.txt') -Raw
 $upgradeText = Get-Content -LiteralPath (Join-Path $fixtureRoot 'winget-upgrades.txt') -Raw
 $exportJson = Get-Content -LiteralPath (Join-Path $fixtureRoot 'winget-export.json') -Raw
@@ -498,7 +499,7 @@ Invoke-Check 'Removed and prohibited packages are absent from the active catalog
     }
     $catalogText = ($catalog | Where-Object { $_.Provider -ne 'External' -or $_.DeploymentClass -ne 'AwarenessOnly' } |
         ForEach-Object { $_.Id + ' ' + $_.Name + ' ' + $_.Note }) -join "`n"
-    $forbiddenPattern = (Microsoft.PowerShell.Utility\Import-PowerShellDataFile -LiteralPath $catalogPath).ForbiddenPattern
+    $forbiddenPattern = [string]$managedCatalogDocument.ForbiddenPattern
     Assert-True ($catalogText -notmatch $forbiddenPattern) 'Security or management software entered the active catalog.'
 }
 Invoke-Check 'RealVNC remains viewer-only on deployment and maintenance hold' {
@@ -1134,7 +1135,8 @@ Invoke-Check 'Shared request builder emits the strict schema and derived paths' 
         $requestFiles = New-AVWorkstationToolkitActionRequest -Action Install -PackageId @('7zip.7zip') -RequestsRoot $temporaryRoot
         Assert-True (Test-Path -LiteralPath $requestFiles.RequestPath -PathType Leaf) 'Request file was not created.'
         $request = Get-Content -LiteralPath $requestFiles.RequestPath -Raw | ConvertFrom-Json
-        Assert-Equal 1 $request.SchemaVersion 'Request schema version differs.'
+        Assert-Equal 2 $request.SchemaVersion 'Request schema version differs.'
+        Assert-Equal 0 $request.ManagedCatalogRevision 'Source-checkout request revision differs.'
         Assert-Equal $requestFiles.Name $request.RequestId 'Request ID differs from filename.'
         Assert-Equal 'Install' $request.Action 'Request action differs.'
         Assert-Equal '7zip.7zip' @($request.PackageIds)[0] 'Request package ID differs.'
@@ -1552,7 +1554,7 @@ Invoke-Check 'Desktop and terminal change paths share the isolated worker' {
         Assert-True ($source -match 'Start-AVWorkstationToolkitWorker') "$name does not use the shared worker launcher."
     }
     $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
-    Assert-True ($coreSource -match 'SchemaVersion\s*=\s*1' -and $coreSource -match 'RequestId\s*=' -and $coreSource -match 'DryRun\s*=') 'Shared request builder does not emit the complete versioned schema.'
+    Assert-True ($coreSource -match 'SchemaVersion\s*=\s*2' -and $coreSource -match 'RequestId\s*=' -and $coreSource -match 'DryRun\s*=' -and $coreSource -match 'ManagedCatalogRevision\s*=\s*0') 'Shared request builder does not emit the complete versioned schema.'
 }
 Invoke-Check 'AST guard limits direct winget process invocation to audited wrappers' {
     $allowed = @{
@@ -2151,7 +2153,7 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     } | ForEach-Object {
         $_.FullName.Substring($repositoryRoot.Length).TrimStart('\').Replace('\','/')
     } | Sort-Object -Unique)
-    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Catalog/ReferenceCatalogChannelClient.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorExternalReleaseInventory.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
+    Assert-Equal 'src/AVWorkstationToolkit.Infrastructure.Windows/Catalog/FixedOriginCatalogTransport.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorExternalReleaseInventory.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorHttpsDownloader.cs|src/AVWorkstationToolkit.Infrastructure.Windows/Vendors/VendorSftpDeliveryService.cs' ($networkFiles -join '|') 'Runtime network-capable source expanded without privacy review.'
     $migrationHttps = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorHttpsDownloader.cs') -Raw
     $migrationSftp = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Vendors\VendorSftpDeliveryService.cs') -Raw
     Assert-True ($migrationHttps -match 'AllowAutoRedirect\s*=\s*false' -and $migrationHttps -match 'AllowedHosts\.Contains' -and
@@ -2162,7 +2164,7 @@ Invoke-Check 'Runtime privacy behavior remains bounded and documented' {
     Assert-True ($privacy -match 'no\s+telemetry, analytics, advertising, crash-reporting service' -and
         $privacy -match 'Automatic during startup refresh' -and
         $privacy -match 'no runtime GitHub update checker' -and
-        $privacy -match 'signed reference-catalog transport is currently fail-closed and\s+unconfigured' -and
+        $privacy -match 'managed-catalog transport remains fail-closed and unconfigured' -and
         $privacy -match 'no generic\s+HTTP upload, POST, PUT, PATCH' -and
         $privacy -match 'encrypted SSH protocol') 'Privacy policy does not describe the audited telemetry, startup-network, upload, or credential behavior.'
     Assert-True ($privacy -notmatch 'This program will not transfer any information to other networked systems unless specifically requested') 'Privacy policy makes a false user-request-only network claim despite automatic startup checks.'

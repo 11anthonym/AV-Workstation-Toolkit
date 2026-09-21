@@ -30,6 +30,7 @@ public sealed class ActionRequestTests
         Assert.AreEqual(JsonValueKind.Array, document.RootElement.GetProperty("PackageIds").ValueKind);
         Assert.AreEqual(JsonValueKind.True, document.RootElement.GetProperty("RiskAcknowledged").ValueKind);
         Assert.AreEqual(JsonValueKind.False, document.RootElement.GetProperty("DryRun").ValueKind);
+        Assert.AreEqual(0L, document.RootElement.GetProperty("ManagedCatalogRevision").GetInt64());
 
         var original = new[] { "Vendor.One" };
         var immutableRequest = factory.Create(ManagedRequestAction.Install, original, false, false);
@@ -64,9 +65,10 @@ public sealed class ActionRequestTests
             (ValidJson().Replace(",\"DryRun\":false", string.Empty, StringComparison.Ordinal), ActionRequestFailure.MissingField),
             (ValidJson().Replace("}", ",\"Extra\":true}", StringComparison.Ordinal), ActionRequestFailure.UnknownField),
             (ValidJson().Replace("\"DryRun\":false", "\"DryRun\":false,\"DryRun\":true", StringComparison.Ordinal), ActionRequestFailure.DuplicateField),
-            (ValidJson().Replace("\"SchemaVersion\":1", "\"SchemaVersion\":\"1\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
+            (ValidJson().Replace("\"SchemaVersion\":2", "\"SchemaVersion\":\"2\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"RiskAcknowledged\":false", "\"RiskAcknowledged\":\"true\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"DryRun\":false", "\"DryRun\":1", StringComparison.Ordinal), ActionRequestFailure.WrongType),
+            (ValidJson().Replace("\"ManagedCatalogRevision\":0", "\"ManagedCatalogRevision\":[]", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"Vendor.One\"", "123", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"Vendor.One\"", "null", StringComparison.Ordinal), ActionRequestFailure.WrongType)
         };
@@ -84,7 +86,7 @@ public sealed class ActionRequestTests
     {
         var cases = new (string Json, ActionRequestFailure Failure)[]
         {
-            (ValidJson().Replace("\"SchemaVersion\":1", "\"SchemaVersion\":2", StringComparison.Ordinal), ActionRequestFailure.UnsupportedSchema),
+            (ValidJson().Replace("\"SchemaVersion\":2", "\"SchemaVersion\":3", StringComparison.Ordinal), ActionRequestFailure.UnsupportedSchema),
             (ValidJson().Replace("\"Action\":\"Install\"", "\"Action\":\"Uninstall\"", StringComparison.Ordinal), ActionRequestFailure.UnsupportedAction),
             (ValidJson().Replace(RequestId, "request-invalid", StringComparison.Ordinal), ActionRequestFailure.InvalidRequestId),
             (ValidJson().Replace("\"Vendor.One\"", "\"\"", StringComparison.Ordinal), ActionRequestFailure.InvalidPackageId),
@@ -246,7 +248,7 @@ public sealed class ActionRequestTests
         new(ActionRequestRules.CurrentSchemaVersion, RequestId, action, ids, riskAcknowledged, dryRun);
 
     private static string ValidJson() =>
-        "{\"SchemaVersion\":1,\"RequestId\":\"request-20260829-142233-0123abcd\",\"Action\":\"Install\",\"PackageIds\":[\"Vendor.One\"],\"RiskAcknowledged\":false,\"DryRun\":false}";
+        "{\"SchemaVersion\":2,\"RequestId\":\"request-20260829-142233-0123abcd\",\"Action\":\"Install\",\"PackageIds\":[\"Vendor.One\"],\"RiskAcknowledged\":false,\"DryRun\":false,\"ManagedCatalogRevision\":0}";
 
     private static PackageState State(
         string id,

@@ -9,6 +9,7 @@ using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.Application.Providers;
 using System.Text.Json;
 using AVWorkstationToolkit.Application.Compatibility;
+using AVWorkstationToolkit.Application.Catalog;
 using AVWorkstationToolkit.Application.Details;
 using AVWorkstationToolkit.Application.Vendors;
 using System.Diagnostics;
@@ -1187,6 +1188,28 @@ public sealed class CompiledPresentationTests
         Assert.IsFalse(updates.IsBusy);
     }
 
+    [TestMethod]
+    public async Task ManagedCatalogMenuShowsVerifiedSourceRevisionAndRestartRequirement()
+    {
+        var service = new RecordingManagedCatalogUpdateService();
+        using var main = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), managedCatalogUpdates: service);
+        IManagedCatalogUpdateService? requested = null;
+        main.ManagedCatalogUpdatesRequested += value => requested = value;
+        Assert.IsTrue(main.ManagedCatalogUpdatesCommand.CanExecute(null));
+        main.ManagedCatalogUpdatesCommand.Execute(null);
+        Assert.AreSame(service, requested);
+
+        var updates = new ManagedCatalogUpdateViewModel(service);
+        await updates.CheckAsync();
+        Assert.AreEqual(ManagedCatalogUpdateState.UpdateAvailable, updates.Status.State);
+        Assert.IsTrue(updates.InstallCommand.CanExecute(null));
+        StringAssert.Contains(updates.VerificationLabel, "verified");
+        await updates.InstallAsync();
+        Assert.AreEqual("Managed app catalog saved", updates.StateLabel);
+        StringAssert.Contains(updates.RestartLabel, "Restart required");
+        Assert.AreEqual(1, service.InstallCalls);
+    }
+
     private static WorkstationPlan CreatePlan(
         PackageStatus updateStatus = PackageStatus.UpdateAvailable,
         bool rebootPending = false,
@@ -1391,6 +1414,27 @@ public sealed class CompiledPresentationTests
         {
             InstallCalls++;
             Status = new(ReferenceCatalogUpdateState.Completed, 1, "2026.9.12.1", 0, string.Empty, "Installed");
+            return Task.FromResult(Status);
+        }
+    }
+
+    private sealed class RecordingManagedCatalogUpdateService : IManagedCatalogUpdateService
+    {
+        public int InstallCalls { get; private set; }
+        public ManagedCatalogUpdateStatus Status { get; private set; } =
+            new(ManagedCatalogUpdateState.Current, 1, "2026.9.21.1", "Signed embedded baseline", 0, string.Empty, true, false, "Current");
+        public ManagedCatalogSet LoadActiveOrEmbedded() => throw new AssertFailedException("Presentation commands must not reload catalog data directly.");
+        public Task<ManagedCatalogUpdateStatus> CheckAsync(CancellationToken cancellationToken = default)
+        {
+            Status = new(ManagedCatalogUpdateState.UpdateAvailable, 1, "2026.9.21.1", "Signed embedded baseline",
+                2, "2026.9.21.2", true, false, "Available");
+            return Task.FromResult(Status);
+        }
+        public Task<ManagedCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default)
+        {
+            InstallCalls++;
+            Status = new(ManagedCatalogUpdateState.Completed, 1, "2026.9.21.1", "Signed embedded baseline",
+                2, "2026.9.21.2", true, true, "Installed");
             return Task.FromResult(Status);
         }
     }

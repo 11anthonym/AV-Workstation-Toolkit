@@ -1,10 +1,11 @@
 # Publishing signed managed application catalogs
 
-## Phase 1 boundary
+## Publisher boundary
 
 `AVWorkstationToolkit.CatalogPublisher managed` creates and verifies a local signed snapshot of the canonical
-`manifests/managed-applications.json`. This phase defines artifacts only. The application and worker do not download,
-retain, activate, or consume these artifacts, and no production managed-catalog key is configured.
+`manifests/managed-applications.json`. The publisher remains offline: it cannot upload, activate, or add a trust
+anchor. Packaged application and worker runtimes can consume its output only when the signing public key was compiled
+into their managed-catalog trust policy. No production managed-catalog key is currently configured.
 
 The managed authority is separate from the descriptive Device Lookup authority:
 
@@ -66,6 +67,9 @@ dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstation
 ```
 
 The default output is `artifacts/managed-catalog-feed` and must not already exist. The operation is offline and cannot
-upload or activate its output. A future owner-approved release phase must provision a distinct production managed
-signing authority, review the public key and signing policy, configure the exact production channel origin, and embed
-the first approved signed bundle as the offline baseline.
+upload or activate its output. Runtime update behavior, the independent worker boundary, and the manual operator
+workflow are documented in [Signed managed application catalog updates](Managed-Catalog-Updates.md).
+
+An owner-approved release phase must still provision a distinct production managed signing authority, review and
+compile the public key, publish and verify the fixed production channel, and embed the first approved signed bundle as
+the offline baseline.

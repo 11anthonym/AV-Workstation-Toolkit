@@ -8,6 +8,7 @@ namespace AVWorkstationToolkit.Application.Actions;
 
 public static class ActionProtocolLimits
 {
+    public const int CurrentResultSchemaVersion = 1;
     public const int MaximumProgressBytes = 20 * 1024 * 1024;
     public const int MaximumProgressRecordBytes = 16 * 1024;
     public const int MaximumResultBytes = 2 * 1024 * 1024;
@@ -248,7 +249,7 @@ public sealed class ActionResultCodec
         using var document = StrictJson.ParseObject(payload, "result artifact");
         var values = StrictJson.RequireExactProperties(document.RootElement, ResultProperties, "result artifact");
         var schemaVersion = StrictJson.RequireInt32(values["SchemaVersion"], "SchemaVersion");
-        if (schemaVersion != ActionRequestRules.CurrentSchemaVersion)
+        if (schemaVersion != ActionProtocolLimits.CurrentResultSchemaVersion)
             throw new ActionProtocolValidationException(ActionProtocolFailure.UnsupportedSchema, "The result schema version is not supported.");
         var generatedAt = RequireTimestamp(values["GeneratedAt"], "GeneratedAt", allowNull: false)!.Value;
         var computer = Bounded(StrictJson.RequireString(values["Computer"], "Computer"), ActionProtocolLimits.MaximumComputerCharacters, "Computer");

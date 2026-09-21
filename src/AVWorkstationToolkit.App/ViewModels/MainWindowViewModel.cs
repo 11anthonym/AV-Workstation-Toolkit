@@ -13,6 +13,7 @@ using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.Application.Compatibility;
 using System.Windows.Threading;
+using AVWorkstationToolkit.Application.Catalog;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
@@ -29,6 +30,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IApplicationMenuWorkflow? applicationMenuWorkflow;
     private readonly CompatibilityCatalogQueryService? compatibilityService;
     private readonly IReferenceCatalogUpdateService? referenceCatalogUpdates;
+    private readonly IManagedCatalogUpdateService? managedCatalogUpdates;
     private readonly CatalogQueryService queryService = new();
     private readonly CompiledActionCoordinator? actionCoordinator;
     private readonly BatchObservableCollection<PackageRowViewModel> packages = [];
@@ -105,6 +107,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         bool liveRehearsalMode = false,
         CompatibilityCatalogQueryService? compatibilityService = null,
         IReferenceCatalogUpdateService? referenceCatalogUpdates = null,
+        IManagedCatalogUpdateService? managedCatalogUpdates = null,
         TimeSpan? searchDebounce = null,
         Dispatcher? presentationDispatcher = null)
     {
@@ -118,6 +121,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.applicationMenuWorkflow = applicationMenuWorkflow;
         this.compatibilityService = compatibilityService;
         this.referenceCatalogUpdates = referenceCatalogUpdates;
+        this.managedCatalogUpdates = managedCatalogUpdates;
         this.searchDebounce = searchDebounce ?? DefaultSearchDebounce;
         if (this.searchDebounce < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(searchDebounce));
         uiDispatcher = presentationDispatcher ?? System.Windows.Application.Current?.Dispatcher;
@@ -165,6 +169,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OpenLogsCommand = new RelayCommand(_ => OpenLogs(), _ => !IsBusy && applicationMenuWorkflow is not null);
         SafetySecurityCommand = new RelayCommand(_ => SafetySecurityRequested?.Invoke());
         CatalogUpdatesCommand = new RelayCommand(_ => CatalogUpdatesRequested?.Invoke(referenceCatalogUpdates!), _ => referenceCatalogUpdates is not null);
+        ManagedCatalogUpdatesCommand = new RelayCommand(_ => ManagedCatalogUpdatesRequested?.Invoke(managedCatalogUpdates!), _ => managedCatalogUpdates is not null);
         AboutCommand = new RelayCommand(_ => AboutRequested?.Invoke());
     }
 
@@ -190,6 +195,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand OpenLogsCommand { get; }
     public RelayCommand SafetySecurityCommand { get; }
     public RelayCommand CatalogUpdatesCommand { get; }
+    public RelayCommand ManagedCatalogUpdatesCommand { get; }
     public RelayCommand AboutCommand { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
     public event Action<CatalogDetailViewModel>? DetailRequested;
@@ -197,6 +203,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public event Action<DiagnosticsViewModel>? DiagnosticsRequested;
     public event Action? SafetySecurityRequested;
     public event Action<IReferenceCatalogUpdateService>? CatalogUpdatesRequested;
+    public event Action<IManagedCatalogUpdateService>? ManagedCatalogUpdatesRequested;
     public event Action? AboutRequested;
 
     public bool IsBusy
