@@ -1,4 +1,3 @@
-using System.Net;
 using System.Collections.Frozen;
 using System.Security.Cryptography;
 using System.Text;
@@ -20,41 +19,38 @@ public sealed class ReferenceCatalogChannelClient : IReferenceCatalogChannelClie
     internal const int MaximumMetadataBytes = 32 * 1024;
     internal const int MaximumSignatureBytes = 1024;
     private readonly ReferenceCatalogChannelPolicy policy;
-    private readonly HttpClient client;
+    private readonly FixedOriginCatalogTransport transport;
     private readonly TimeProvider timeProvider;
 
     public ReferenceCatalogChannelClient(ReferenceCatalogChannelPolicy policy)
-        : this(policy, new HttpClientHandler
-        {
-            AllowAutoRedirect = false,
-            AutomaticDecompression = DecompressionMethods.None,
-            UseDefaultCredentials = false
-        }, ownsHandler: true, TimeProvider.System)
+        : this(policy, null, ownsHandler: true, TimeProvider.System)
     {
     }
 
     internal ReferenceCatalogChannelClient(
         ReferenceCatalogChannelPolicy policy,
-        HttpMessageHandler handler,
+        HttpMessageHandler? handler,
         bool ownsHandler = true,
         TimeProvider? timeProvider = null)
     {
         this.policy = ValidatePolicy(policy);
-        client = new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler)), ownsHandler) { Timeout = policy.Timeout };
+        transport = handler is null
+            ? new FixedOriginCatalogTransport(this.policy.ApprovedHosts, this.policy.Timeout)
+            : new FixedOriginCatalogTransport(this.policy.ApprovedHosts, this.policy.Timeout, handler, ownsHandler);
         this.timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<ReferenceCatalogChannelPackage?> GetLatestAsync(long currentRevision, CancellationToken cancellationToken = default)
     {
         if (currentRevision < 0) throw new ArgumentOutOfRangeException(nameof(currentRevision));
-        var metadataBytes = await GetExactAsync(policy.MetadataUri, MaximumMetadataBytes, cancellationToken).ConfigureAwait(false);
-        var signatureBytes = await GetExactAsync(policy.SignatureUri, MaximumSignatureBytes, cancellationToken).ConfigureAwait(false);
+        var metadataBytes = await transport.GetExactAsync(policy.MetadataUri, MaximumMetadataBytes, cancellationToken).ConfigureAwait(false);
+        var signatureBytes = await transport.GetExactAsync(policy.SignatureUri, MaximumSignatureBytes, cancellationToken).ConfigureAwait(false);
         var raw = new ReferenceCatalogChannelVerifier(policy.TrustedPublicKeys).Verify(metadataBytes, signatureBytes, timeProvider.GetUtcNow());
         if (raw.Revision <= currentRevision) return null;
 
         var bundleUri = raw.BundleUri;
-        RequireApprovedHttps(bundleUri);
-        var bundle = await GetExactAsync(bundleUri, checked((int)ReferenceCatalogBundleVerifier.MaximumBundleBytes), cancellationToken).ConfigureAwait(false);
+        transport.RequireApprovedHttps(bundleUri);
+        var bundle = await transport.GetExactAsync(bundleUri, checked((int)ReferenceCatalogBundleVerifier.MaximumBundleBytes), cancellationToken).ConfigureAwait(false);
         var actualHash = Convert.ToHexString(SHA256.HashData(bundle));
         if (!CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(actualHash), Encoding.ASCII.GetBytes(raw.BundleSha256!.ToUpperInvariant())))
             throw new CatalogValidationException("Reference catalog channel bundle hash verification failed.");
@@ -63,38 +59,7 @@ public sealed class ReferenceCatalogChannelClient : IReferenceCatalogChannelClie
 
     public void Dispose()
     {
-        client.Dispose();
-    }
-
-    private async Task<byte[]> GetExactAsync(Uri uri, int maximumBytes, CancellationToken cancellationToken)
-    {
-        RequireApprovedHttps(uri);
-        using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-        request.Headers.Accept.ParseAdd("application/octet-stream, application/json;q=0.9");
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-        if ((int)response.StatusCode is >= 300 and < 400)
-            throw new CatalogValidationException("Reference catalog channel redirects are not permitted.");
-        response.EnsureSuccessStatusCode();
-        if (response.Content.Headers.ContentLength is long length && (length <= 0 || length > maximumBytes))
-            throw new CatalogValidationException("Reference catalog channel response size is invalid.");
-        await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        using var output = new MemoryStream();
-        var buffer = new byte[16_384];
-        while (true)
-        {
-            var read = await input.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-            if (read == 0) break;
-            if (output.Length + read > maximumBytes) throw new CatalogValidationException("Reference catalog channel response exceeds its size limit.");
-            output.Write(buffer, 0, read);
-        }
-        if (output.Length == 0) throw new CatalogValidationException("Reference catalog channel response is empty.");
-        return output.ToArray();
-    }
-
-    private void RequireApprovedHttps(Uri uri)
-    {
-        if (uri.Scheme != Uri.UriSchemeHttps || !uri.IsDefaultPort || !string.IsNullOrEmpty(uri.UserInfo) || !policy.ApprovedHosts.Contains(uri.IdnHost))
-            throw new CatalogValidationException("Reference catalog channel URI is outside the approved HTTPS origin.");
+        transport.Dispose();
     }
 
     private static ReferenceCatalogChannelPolicy ValidatePolicy(ReferenceCatalogChannelPolicy value)

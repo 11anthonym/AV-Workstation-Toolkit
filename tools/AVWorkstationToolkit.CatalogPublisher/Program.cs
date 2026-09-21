@@ -29,8 +29,8 @@ try
               --trusted-public-key <key-id=absolute-public-PEM-path> (repeatable)
               --acknowledge-risk                      reference catalog only
 
-            The managed operation emits a local signed managed catalog. It has no
-            production trust anchor, upload, activation, or runtime integration.
+            The managed operation emits and verifies local signed artifacts. It has
+            no production trust anchor, upload, or automatic activation capability.
             """);
         return 0;
     }

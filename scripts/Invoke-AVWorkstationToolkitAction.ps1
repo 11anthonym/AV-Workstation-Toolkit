@@ -5,7 +5,7 @@
 .DESCRIPTION
     This worker accepts only a request file beneath the resolved AV Workstation Toolkit data
     folder. Packaged runs use the current user's LocalAppData directory.
-    Every package ID is revalidated against AppProfiles.psd1 and current winget
+    Every package ID is reloaded from canonical managed-applications.json and revalidated against current winget
     state before any change. It writes structured progress and result files for
     the desktop frontend, then verifies every completed package.
 #>
@@ -111,16 +111,17 @@ try {
     $requestText = Get-Content -LiteralPath $requestFullPath -Raw
     $request = $requestText | ConvertFrom-Json
     $propertyNames = @($request.PSObject.Properties.Name)
-    $requiredProperties = @('SchemaVersion','RequestId','Action','PackageIds','RiskAcknowledged','DryRun')
+    $requiredProperties = @('SchemaVersion','RequestId','Action','PackageIds','RiskAcknowledged','DryRun','ManagedCatalogRevision')
     $unknownProperties = @($propertyNames | Where-Object { $_ -notin $requiredProperties })
     $missingProperties = @($requiredProperties | Where-Object { $_ -notin $propertyNames })
     if ($unknownProperties.Count -gt 0) { throw ('Request contains unsupported properties: {0}' -f ($unknownProperties -join ', ')) }
     if ($missingProperties.Count -gt 0) { throw ('Request is missing required properties: {0}' -f ($missingProperties -join ', ')) }
-    if ($request.SchemaVersion -isnot [int] -or [int]$request.SchemaVersion -ne 1) { throw 'Request SchemaVersion must be the integer 1.' }
+    if ($request.SchemaVersion -isnot [int] -or [int]$request.SchemaVersion -ne 2) { throw 'Request SchemaVersion must be the integer 2.' }
     if ($request.RequestId -isnot [string] -or [string]$request.RequestId -cne $requestName) { throw 'RequestId must exactly match the request filename.' }
     if ($request.Action -isnot [string] -or [string]::IsNullOrWhiteSpace([string]$request.Action)) { throw 'Request Action must be a string.' }
     if ($request.RiskAcknowledged -isnot [bool]) { throw 'Request RiskAcknowledged must be a Boolean.' }
     if ($request.DryRun -isnot [bool]) { throw 'Request DryRun must be a Boolean.' }
+    if ($request.ManagedCatalogRevision -isnot [int] -or [int]$request.ManagedCatalogRevision -ne 0) { throw 'Source-checkout requests require ManagedCatalogRevision 0.' }
 
     $rawIds = @($request.PackageIds)
     if ($rawIds.Count -gt 100) { throw 'Request contains too many package IDs.' }

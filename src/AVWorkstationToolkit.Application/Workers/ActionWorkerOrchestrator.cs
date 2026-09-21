@@ -9,6 +9,7 @@ namespace AVWorkstationToolkit.Application.Workers;
 
 public interface IActionWorkerPlanProvider
 {
+    long ManagedCatalogRevision => 0;
     ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default);
 }
 
@@ -122,6 +123,13 @@ public sealed class ActionWorkerOrchestrator
         await ProgressAsync(request, ActionProgressLevel.Info, "Preflight", string.Empty,
             $"Preparing to {ActionVerb(request.Action)} {PackageCount(request.PackageIds.Count)}.", cancellationToken).ConfigureAwait(false);
 
+        if (request.ManagedCatalogRevision != planProvider.ManagedCatalogRevision)
+        {
+            return await CompleteAsync(request, ActionResultStatus.Rejected, 1,
+                $"The request targets managed catalog revision {request.ManagedCatalogRevision}, but the worker independently verified revision {planProvider.ManagedCatalogRevision}. Restart AV Workstation Toolkit and try again.",
+                outcomes, cancellationToken).ConfigureAwait(false);
+        }
+
         AuthorizedActionRequest initiallyAuthorized;
         try
         {
@@ -150,7 +158,7 @@ public sealed class ActionWorkerOrchestrator
             {
                 var freshPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
                 var singleRequest = new ActionRequest(request.SchemaVersion, request.RequestId, request.Action,
-                    [initiallyPlannedPackage.Package.Id], request.RiskAcknowledged, request.DryRun);
+                    [initiallyPlannedPackage.Package.Id], request.RiskAcknowledged, request.DryRun, request.ManagedCatalogRevision);
                 package = authorization.Authorize(singleRequest, freshPlan).Packages.Single();
             }
             catch (Exception exception) when (exception is ActionRequestValidationException or InvalidOperationException)
@@ -259,7 +267,7 @@ public sealed class ActionWorkerOrchestrator
         CancellationToken cancellationToken)
     {
         var result = new ActionFinalResult(
-            ActionRequestRules.CurrentSchemaVersion,
+            ActionProtocolLimits.CurrentResultSchemaVersion,
             request.RequestId,
             timeProvider.GetUtcNow(),
             computerName,

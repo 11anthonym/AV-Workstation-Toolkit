@@ -25,6 +25,7 @@ param(
     [string]$SignedMsiPath,
     [string]$ExpectedSignerSubject,
     [string]$ReferenceCatalogBaselinePath,
+    [string]$ManagedCatalogBaselinePath,
     [switch]$RequireSignature,
     [ValidateSet('Development','ReleaseCandidate','Production')]
     [string]$BuildChannel = 'Development',
@@ -74,6 +75,24 @@ if (-not [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) {
     if ($baseline.PSIsContainer -or $baseline.Extension -ine '.avwtcatalog' -or $baseline.Length -le 0 -or $baseline.Length -gt 4MB -or
         ($baseline.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
         throw 'ReferenceCatalogBaselinePath must identify a non-empty, direct .avwtcatalog file no larger than 4 MiB and not a reparse point.'
+    }
+}
+$canonicalManagedCatalogBaseline = Join-Path $repositoryRoot 'catalog\managed\AVWT-Managed-Catalog.avwtmanaged'
+if ([string]::IsNullOrWhiteSpace($ManagedCatalogBaselinePath) -and (Test-Path -LiteralPath $canonicalManagedCatalogBaseline -PathType Leaf)) {
+    $ManagedCatalogBaselinePath = $canonicalManagedCatalogBaseline
+}
+if ($BuildChannel -eq 'Production' -and [string]::IsNullOrWhiteSpace($ManagedCatalogBaselinePath)) {
+    throw 'Production release builds require a signed embedded .avwtmanaged baseline.'
+}
+if (-not [string]::IsNullOrWhiteSpace($ManagedCatalogBaselinePath)) {
+    if (-not (Test-FullyQualifiedWindowsPath -Path $ManagedCatalogBaselinePath)) {
+        throw 'ManagedCatalogBaselinePath must be an absolute input path.'
+    }
+    $ManagedCatalogBaselinePath = [IO.Path]::GetFullPath($ManagedCatalogBaselinePath)
+    $managedBaseline = Get-Item -LiteralPath $ManagedCatalogBaselinePath -Force -ErrorAction Stop
+    if ($managedBaseline.PSIsContainer -or $managedBaseline.Extension -ine '.avwtmanaged' -or $managedBaseline.Length -le 0 -or $managedBaseline.Length -gt 1MB -or
+        ($managedBaseline.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw 'ManagedCatalogBaselinePath must identify a non-empty, direct .avwtmanaged file no larger than 1 MiB and not a reparse point.'
     }
 }
 $versionPath = Join-Path $repositoryRoot 'VERSION'
@@ -462,6 +481,7 @@ $embeddedPayloadFiles = @(
     $embeddedManifestFiles
     Get-Item -LiteralPath $workerPayloadPath
     if (-not [string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath)) { Get-Item -LiteralPath $ReferenceCatalogBaselinePath }
+    if (-not [string]::IsNullOrWhiteSpace($ManagedCatalogBaselinePath)) { Get-Item -LiteralPath $ManagedCatalogBaselinePath }
 )
 $embeddedPayloadFileCount = $embeddedPayloadFiles.Count + $embeddedNoticeCount
 
@@ -471,7 +491,8 @@ if ([string]::IsNullOrWhiteSpace($SignedLauncherPath)) {
         -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
         -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None `
         "-p:WorkerPayloadPath=$workerPayloadPath" `
-        "-p:ReferenceCatalogBaselinePath=$ReferenceCatalogBaselinePath" -o $stagingRoot
+        "-p:ReferenceCatalogBaselinePath=$ReferenceCatalogBaselinePath" `
+        "-p:ManagedCatalogBaselinePath=$ManagedCatalogBaselinePath" -o $stagingRoot
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit launcher publish failed.' }
 }
 else {

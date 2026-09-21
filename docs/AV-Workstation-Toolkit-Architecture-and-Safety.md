@@ -91,6 +91,7 @@ The normal endpoint process tree, file/registry/network behavior, false-positive
 25. `Awareness` rows and records with no Windows detection mode can be searched and linked to official pages but can never become install/update actions.
 26. A `ParentProvider` child must reference an existing authenticated provider and one product in its allowlist. Host, feed, remote root, size, and publisher controls are inherited; independent child credentials are impossible.
 27. An external reference catalog is loaded only after ECDSA signature, SHA-256, strict schema, identity, count, cross-reference, application-version, revision-chain, size, path, and reparse checks. Failure falls back to a previous signed or embedded catalog. Catalog updates contain no package, delivery, credential, command, or worker authority.
+28. Managed WinGet authority comes only from a separately signed `avwt-managed` baseline or retained bundle. The application and worker verify it independently, action requests bind to one exact managed revision, and the worker rejects revision mismatch before planning or mutation. A catalog cannot supply commands, sources, URLs, paths, scripts, or WinGet arguments.
 
 Catalog validation fails closed on missing fields, duplicate IDs, unknown profiles/risks, and product terms matching the security/management exclusion pattern.
 

@@ -43,7 +43,7 @@ try
     else
     {
         var repositoryRoot = RequireRepositoryRoot(args[6]);
-        var services = ProductionWorkerComposition.Create(repositoryRoot);
+        var services = ProductionWorkerComposition.CreateSourceCheckout(repositoryRoot);
         orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName);
     }
     var result = await orchestrator.RunAsync(request);

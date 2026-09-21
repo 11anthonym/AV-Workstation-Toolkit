@@ -109,9 +109,22 @@ $referenceCatalogSource = @(
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain\Catalog') -File -Filter 'ReferenceCatalog*.cs'
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Compatibility') -File -Filter 'ReferenceCatalog*.cs'
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog') -File -Filter 'ReferenceCatalog*.cs'
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\CatalogSignatureVerifier.cs')
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\CatalogBundleReader.cs')
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\FixedOriginCatalogTransport.cs')
 ) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
 $referenceCatalogSource = $referenceCatalogSource -join "`n"
 $productionReferenceCatalogConfiguration = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\ProductionReferenceCatalogConfiguration.cs') -Raw
+$managedCatalogSource = @(
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain\Catalog\ManagedCatalogBundle.cs')
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Catalog\ManagedCatalogUpdates.cs')
+    Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog') -File -Filter 'ManagedCatalog*.cs'
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\ProductionManagedCatalogConfiguration.cs')
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\CatalogSignatureVerifier.cs')
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\CatalogBundleReader.cs')
+    Get-Item -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Catalog\FixedOriginCatalogTransport.cs')
+) | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
+$managedCatalogSource = $managedCatalogSource -join "`n"
 $catalogPublisherSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tools\AVWorkstationToolkit.CatalogPublisher') -File |
     Where-Object { $_.Extension -in @('.cs','.csproj') } |
     ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -278,6 +291,20 @@ if ($productionReferenceCatalogConfiguration -notmatch 'https://11anthonym\.gith
     $productionReferenceCatalogConfiguration -notmatch 'TimeSpan\.FromSeconds\(30\)' -or
     $productionReferenceCatalogConfiguration -match 'GetEnvironmentVariable|IConfiguration|AllowAutoRedirect\s*=\s*true|UseDefaultCredentials\s*=\s*true|http://') {
     throw 'The production reference-catalog feed lost its exact HTTPS origin, key identity, or bounded source-controlled composition.'
+}
+if ($managedCatalogSource -match 'ProcessStartInfo|Process\.Start|ShellExecute|System\.Management\.Automation|WindowsVendorCredentialStore|WinGetMutationProcessRunner' -or
+    $managedCatalogSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|\b(?:install|upgrade|uninstall)async\s*\(' -or
+    $managedCatalogSource -notmatch 'CatalogId\s*=\s*"avwt-managed"' -or
+    $managedCatalogSource -notmatch 'RequiredForbiddenPattern' -or
+    $managedCatalogSource -notmatch 'CatalogSignatureVerifier\.VerifyP256' -or
+    $managedCatalogSource -notmatch 'CryptographicOperations\.FixedTimeEquals' -or
+    $managedCatalogSource -notmatch 'UnmappedMemberHandling\s*=\s*JsonUnmappedMemberHandling\.Disallow' -or
+    $managedCatalogSource -notmatch 'AVWT-Managed-Catalog\.avwtmanaged' -or
+    $managedCatalogSource -notmatch 'Directory\.Move\(staging, final\)' -or
+    $managedCatalogSource -notmatch 'rollback or same-revision activation is not permitted' -or
+    $managedCatalogSource -notmatch 'Local\\\\AVWT\.ManagedCatalog' -or
+    $managedCatalogSource -notmatch 'owner-provisioned') {
+    throw 'The managed-catalog boundary lost separate identity, signature, strict policy, atomic activation, monotonic revision, or production release-gate controls.'
 }
 if ($catalogPublisherSource -match '\bnew\s+ProcessStartInfo|Process\.Start|ShellExecute|HttpClient|SftpClient|WindowsVendorCredentialStore|ActionProtocolStore|WinGetMutationProcessRunner' -or
     $catalogPublisherSource -match '(?i)\b(?:powershell|pwsh|cmd|winget)\.exe\b|BEGIN (?:EC |)PRIVATE KEY') {

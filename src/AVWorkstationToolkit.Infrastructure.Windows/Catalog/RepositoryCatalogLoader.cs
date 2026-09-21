@@ -28,12 +28,33 @@ public sealed class RepositoryCatalogLoader
             if (!File.Exists(path)) throw new FileNotFoundException("Required catalog source is unavailable.", path);
         }
 
+        var managed = LoadManaged(repositoryRoot);
+        var supplementary = LoadSupplementary(repositoryRoot);
+        return new PackageCatalog(managed.Items.Concat(supplementary.Items));
+    }
+
+    public PackageCatalog LoadManaged(string repositoryRoot)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
+        var managedPath = Path.Combine(Path.GetFullPath(repositoryRoot), "manifests", "managed-applications.json");
+        if (!File.Exists(managedPath)) throw new FileNotFoundException("Required managed catalog source is unavailable.", managedPath);
         var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
         var managedDocument = ParseManagedCatalog(File.ReadAllText(managedPath));
-        var managed = parser.NormalizeManagedCatalog(managedDocument.Packages, managedDocument.ForbiddenPattern);
+        return parser.NormalizeManagedCatalog(managedDocument.Packages, managedDocument.ForbiddenPattern);
+    }
+
+    public PackageCatalog LoadSupplementary(string repositoryRoot)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
+        var root = Path.GetFullPath(repositoryRoot);
+        var externalPath = Path.Combine(root, "manifests", "external-applications.json");
+        var awarenessPath = Path.Combine(root, "manifests", "commercial-av-catalog.json");
+        foreach (var path in new[] { externalPath, awarenessPath })
+            if (!File.Exists(path)) throw new FileNotFoundException("Required supplementary catalog source is unavailable.", path);
+        var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
         var external = parser.ParseExternalCatalog(File.ReadAllText(externalPath));
         var awareness = parser.ParseExternalCatalog(File.ReadAllText(awarenessPath), CatalogAuthority.AwarenessOnly);
-        return new PackageCatalog(managed.Items.Concat(external.Items).Concat(awareness.Items));
+        return new PackageCatalog(external.Items.Concat(awareness.Items));
     }
 
     public static ManagedCatalogData ParseManagedCatalog(string json)
