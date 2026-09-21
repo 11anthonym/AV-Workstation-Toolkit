@@ -3,10 +3,17 @@ using AVWorkstationToolkit.CatalogPublisher;
 
 try
 {
-    if (args.Length == 0 || args.Contains("--help", StringComparer.Ordinal))
+    var managed = args.Length > 0 && string.Equals(args[0], "managed", StringComparison.Ordinal);
+    var explicitReference = args.Length > 0 && string.Equals(args[0], "reference", StringComparison.Ordinal);
+    var publisherArgs = managed || explicitReference ? args[1..] : args;
+    if (publisherArgs.Length == 0 || publisherArgs.Contains("--help", StringComparer.Ordinal))
     {
         Console.WriteLine("""
-            AVWT signed reference catalog publisher
+            AVWT signed catalog publisher
+
+            Usage:
+              AVWorkstationToolkit.CatalogPublisher [reference] <options>
+              AVWorkstationToolkit.CatalogPublisher managed <options>
 
             Required:
               --version <numeric version> --revision <positive integer>
@@ -17,23 +24,37 @@ try
 
             Optional:
               --repository-root <absolute path>       default: current directory
-              --output-root <absolute path>           default: <repository>/artifacts/catalog-feed
-              --previous-catalog <signed .avwtcatalog>
+              --output-root <absolute path>           defaults: artifacts/catalog-feed or artifacts/managed-catalog-feed
+              --previous-catalog <signed catalog bundle of the selected type>
               --trusted-public-key <key-id=absolute-public-PEM-path> (repeatable)
-              --acknowledge-risk                      required for removals or broadened relation scopes
+              --acknowledge-risk                      reference catalog only
+
+            The managed operation emits a local signed managed catalog. It has no
+            production trust anchor, upload, activation, or runtime integration.
             """);
         return 0;
     }
 
-    var parsed = Arguments.Parse(args);
-    var result = new ReferenceCatalogPublisher().Publish(parsed.Options);
-    Console.WriteLine($"CATALOG_PUBLISH_OK revision={result.Manifest.Revision} version={result.Manifest.CatalogVersion} bundle={result.BundlePath}");
-    Console.WriteLine($"CHANGE_ANALYSIS manufacturers=+{result.Analysis.ManufacturersAdded}/-{result.Analysis.ManufacturersRemoved} families=+{result.Analysis.FamiliesAdded}/-{result.Analysis.FamiliesRemoved} models=+{result.Analysis.ExactModelsAdded}/-{result.Analysis.ExactModelsRemoved} aliases=+{result.Analysis.AliasesAdded}/-{result.Analysis.AliasesRemoved} products=+{result.Analysis.ReferenceSoftwareAdded}/-{result.Analysis.ReferenceSoftwareRemoved} relations=+{result.Analysis.RelationsAdded}/-{result.Analysis.RelationsRemoved} unresolved-to-verified={result.Analysis.UnresolvedToVerified}");
-    if (result.Analysis.BroadenedRelationIds.Count > 0)
-        Console.WriteLine($"BROADENED_RELATIONS: {string.Join(", ", result.Analysis.BroadenedRelationIds)}");
-    if (result.Analysis.NarrowedRelationIds.Count > 0)
-        Console.WriteLine($"NARROWED_RELATIONS: {string.Join(", ", result.Analysis.NarrowedRelationIds)}");
-    foreach (var warning in result.Analysis.Warnings) Console.WriteLine($"WARNING: {warning}");
+    if (managed && (publisherArgs.Contains("--acknowledge-risk", StringComparer.Ordinal) ||
+                    publisherArgs.Contains("--trusted-public-key", StringComparer.Ordinal)))
+        throw new ArgumentException("Managed catalog publishing does not accept reference risk acknowledgement or additional trust keys.");
+    var parsed = Arguments.Parse(publisherArgs, managed);
+    if (managed)
+    {
+        var result = new ManagedCatalogPublisher().Publish(parsed.ManagedOptions);
+        Console.WriteLine($"MANAGED_CATALOG_PUBLISH_OK revision={result.Manifest.Revision} version={result.Manifest.CatalogVersion} bundle={result.BundlePath}");
+    }
+    else
+    {
+        var result = new ReferenceCatalogPublisher().Publish(parsed.Options);
+        Console.WriteLine($"CATALOG_PUBLISH_OK revision={result.Manifest.Revision} version={result.Manifest.CatalogVersion} bundle={result.BundlePath}");
+        Console.WriteLine($"CHANGE_ANALYSIS manufacturers=+{result.Analysis.ManufacturersAdded}/-{result.Analysis.ManufacturersRemoved} families=+{result.Analysis.FamiliesAdded}/-{result.Analysis.FamiliesRemoved} models=+{result.Analysis.ExactModelsAdded}/-{result.Analysis.ExactModelsRemoved} aliases=+{result.Analysis.AliasesAdded}/-{result.Analysis.AliasesRemoved} products=+{result.Analysis.ReferenceSoftwareAdded}/-{result.Analysis.ReferenceSoftwareRemoved} relations=+{result.Analysis.RelationsAdded}/-{result.Analysis.RelationsRemoved} unresolved-to-verified={result.Analysis.UnresolvedToVerified}");
+        if (result.Analysis.BroadenedRelationIds.Count > 0)
+            Console.WriteLine($"BROADENED_RELATIONS: {string.Join(", ", result.Analysis.BroadenedRelationIds)}");
+        if (result.Analysis.NarrowedRelationIds.Count > 0)
+            Console.WriteLine($"NARROWED_RELATIONS: {string.Join(", ", result.Analysis.NarrowedRelationIds)}");
+        foreach (var warning in result.Analysis.Warnings) Console.WriteLine($"WARNING: {warning}");
+    }
     return 0;
 }
 catch (Exception exception)
@@ -49,8 +70,19 @@ file sealed class Arguments
     private bool acknowledgeRisk;
 
     public ReferenceCatalogPublishOptions Options { get; private set; } = null!;
+    public ManagedCatalogPublishOptions ManagedOptions => new(
+        Options.RepositoryRoot,
+        Options.OutputRoot,
+        Options.CatalogVersion,
+        Options.Revision,
+        Options.MinimumAppVersion,
+        Options.CreatedUtc,
+        Options.SigningKeyId,
+        Options.PrivateKeyPath,
+        Options.PublicBaseUri,
+        Options.PreviousCatalogPath);
 
-    public static Arguments Parse(string[] args)
+    public static Arguments Parse(string[] args, bool managed = false)
     {
         var parsed = new Arguments();
         for (var index = 0; index < args.Length; index++)
@@ -82,7 +114,9 @@ file sealed class Arguments
 
         parsed.Options = new(
             repositoryRoot,
-            Path.GetFullPath(parsed.values.GetValueOrDefault("--output-root", Path.Combine(repositoryRoot, "artifacts", "catalog-feed"))),
+            Path.GetFullPath(parsed.values.GetValueOrDefault(
+                "--output-root",
+                Path.Combine(repositoryRoot, "artifacts", managed ? "managed-catalog-feed" : "catalog-feed"))),
             parsed.Required("--version"),
             long.Parse(parsed.Required("--revision"), NumberStyles.None, CultureInfo.InvariantCulture),
             parsed.Required("--minimum-app-version"),

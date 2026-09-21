@@ -36,7 +36,7 @@ public sealed class RepositoryCatalogLoader
         return new PackageCatalog(managed.Items.Concat(external.Items).Concat(awareness.Items));
     }
 
-    internal static ManagedCatalogData ParseManagedCatalog(string json)
+    public static ManagedCatalogData ParseManagedCatalog(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         try
@@ -97,7 +97,7 @@ public sealed class RepositoryCatalogLoader
         }
     }
 
-    internal sealed record ManagedCatalogData(string ForbiddenPattern, IReadOnlyList<ManagedPackageInput> Packages);
+    public sealed record ManagedCatalogData(string ForbiddenPattern, IReadOnlyList<ManagedPackageInput> Packages);
 
     private sealed record ManagedCatalogDocument(
         int SchemaVersion,

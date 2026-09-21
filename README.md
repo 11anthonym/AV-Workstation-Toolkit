@@ -43,6 +43,7 @@ and release artifacts.
 - [Allowlisted deployment script](scripts/Invoke-AVWorkstationToolkitDeployment.ps1)
 - [Allowlisted maintenance script](scripts/Invoke-AVWorkstationToolkitMaintenance.ps1)
 - [Managed application catalog](manifests/managed-applications.json)
+- [Managed catalog signing contract](docs/Managed-Catalog-Publishing.md)
 - [External application catalog](manifests/external-applications.json)
 - [Commercial AV catalog model and source workflow](docs/Commercial-AV-Catalog.md)
 - [External provider and credential guide](docs/External-Provider-Guide.md)

@@ -1,9 +1,9 @@
 using System.IO.Compression;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
+using static AVWorkstationToolkit.CatalogPublisher.CatalogPublisherSupport;
 
 namespace AVWorkstationToolkit.CatalogPublisher;
 
@@ -53,7 +53,6 @@ public sealed record ReferenceCatalogPublishResult(
 /// <summary>Private-side deterministic catalog packager. It emits descriptive catalog bytes and has no remote publishing capability.</summary>
 public sealed class ReferenceCatalogPublisher
 {
-    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private static readonly string[] PayloadOrder =
     [
         ReferenceCatalogBundleNames.Hardware,
@@ -323,46 +322,12 @@ public sealed class ReferenceCatalogPublisher
         writer.WriteEndObject();
     });
 
-    private static byte[] WriteJson(Action<Utf8JsonWriter> write)
-    {
-        using var memory = new MemoryStream();
-        using (var writer = new Utf8JsonWriter(memory, new JsonWriterOptions { Indented = true })) write(writer);
-        return memory.ToArray();
-    }
-
     private static void WriteBundle(string path, IReadOnlyDictionary<string, byte[]> payloads, byte[] manifest, byte[] signature)
     {
         using var archive = ZipFile.Open(path, ZipArchiveMode.Create);
         foreach (var name in PayloadOrder) WriteEntry(archive, name, payloads[name]);
         WriteEntry(archive, ReferenceCatalogBundleNames.Manifest, manifest);
         WriteEntry(archive, ReferenceCatalogBundleNames.Signature, signature);
-    }
-
-    private static void WriteEntry(ZipArchive archive, string name, byte[] bytes)
-    {
-        var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
-        entry.LastWriteTime = new DateTimeOffset(1980, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        using var output = entry.Open();
-        output.Write(bytes);
-    }
-
-    private static byte[] Sign(ECDsa key, byte[] bytes) =>
-        key.SignData(bytes, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-
-    private static ECDsa LoadPrivateKey(string path)
-    {
-        var text = File.ReadAllText(path, StrictUtf8);
-        try
-        {
-            var key = ECDsa.Create();
-            key.ImportFromPem(text);
-            if (key.KeySize != 256) throw new CatalogValidationException("Reference catalog signing key must be ECDSA P-256.");
-            return key;
-        }
-        catch (Exception exception) when (exception is ArgumentException or CryptographicException)
-        {
-            throw new CatalogValidationException($"Reference catalog private key is invalid: {exception.Message}");
-        }
     }
 
     private static byte[] ReadManifest(string path)
@@ -443,52 +408,4 @@ public sealed class ReferenceCatalogPublisher
             throw new CatalogValidationException("Catalog public base URI must be an absolute default-port HTTPS directory URI.");
     }
 
-    private static string RequireDirectory(string value, string description)
-    {
-        if (string.IsNullOrWhiteSpace(value) || !Path.IsPathFullyQualified(value)) throw new IOException($"Catalog publisher {description} must be absolute.");
-        var full = Path.GetFullPath(value).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (!Directory.Exists(full) || (File.GetAttributes(full) & FileAttributes.ReparsePoint) != 0)
-            throw new IOException($"Catalog publisher {description} is unavailable or is a reparse point.");
-        return full;
-    }
-
-    private static string RequireNewOutputRoot(string value, string repositoryRoot, string manifestsRoot)
-    {
-        if (string.IsNullOrWhiteSpace(value) || !Path.IsPathFullyQualified(value)) throw new IOException("Catalog publisher output root must be absolute.");
-        var full = Path.GetFullPath(value).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (Directory.Exists(full) || File.Exists(full)) throw new IOException("Catalog publisher output root already exists; immutable feed output is never overwritten.");
-        if (IsContained(full, manifestsRoot) || string.Equals(full, repositoryRoot, StringComparison.OrdinalIgnoreCase))
-            throw new IOException("Catalog publisher output cannot replace repository or manifest source paths.");
-        return full;
-    }
-
-    private static string RequireExternalPrivateKey(string value, string repositoryRoot)
-    {
-        if (string.IsNullOrWhiteSpace(value) || !Path.IsPathFullyQualified(value)) throw new IOException("Catalog publisher private-key path must be absolute.");
-        var full = Path.GetFullPath(value);
-        var info = new FileInfo(full);
-        if (!info.Exists || info.Length <= 0 || info.Length > 64 * 1024 || (info.Attributes & FileAttributes.ReparsePoint) != 0)
-            throw new IOException("Catalog publisher private key is missing, empty, oversized, or a reparse point.");
-        if (IsContained(full, repositoryRoot)) throw new IOException("Catalog publisher private key must remain outside the repository.");
-        return full;
-    }
-
-    private static bool IsContained(string candidate, string root)
-    {
-        var relative = Path.GetRelativePath(root, candidate);
-        return relative != ".." && !relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) && !Path.IsPathFullyQualified(relative);
-    }
-
-    private static void RejectReparse(string path)
-    {
-        if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
-            throw new IOException("Catalog publisher output cannot use a reparse point.");
-    }
-
-    private static void WriteNewFile(string path, byte[] bytes)
-    {
-        using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 16_384, FileOptions.WriteThrough);
-        stream.Write(bytes);
-        stream.Flush(flushToDisk: true);
-    }
 }

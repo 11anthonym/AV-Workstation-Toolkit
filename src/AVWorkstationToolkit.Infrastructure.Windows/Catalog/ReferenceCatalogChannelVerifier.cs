@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -79,24 +78,14 @@ public sealed class ReferenceCatalogChannelVerifier
             !Path.GetExtension(bundleUri.AbsolutePath).Equals(".avwtcatalog", StringComparison.OrdinalIgnoreCase))
             throw new CatalogValidationException("Reference catalog channel BundleUri is invalid.");
 
-        VerifySignature(raw.SigningKeyId!, metadataBytes, signatureBytes);
+        CatalogSignatureVerifier.VerifyP256(
+            trustedPublicKeys,
+            raw.SigningKeyId!,
+            metadataBytes,
+            signatureBytes,
+            "Reference catalog channel");
         return new(raw.CatalogVersion!, raw.Revision, raw.PreviousRevision, raw.MinimumAppVersion!, raw.CreatedUtc,
             raw.SigningKeyId!, bundleUri, raw.BundleSha256!.ToUpperInvariant());
-    }
-
-    private void VerifySignature(string keyId, byte[] metadata, byte[] signature)
-    {
-        if (!trustedPublicKeys.TryGetValue(keyId, out var pem) || signature.Length != 64)
-            throw new CatalogValidationException("Reference catalog channel signature key or encoding is invalid.");
-        try
-        {
-            using var key = ECDsa.Create();
-            key.ImportFromPem(pem);
-            if (key.KeySize != 256 || !key.VerifyData(metadata, signature, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation))
-                throw new CatalogValidationException("Reference catalog channel signature verification failed.");
-        }
-        catch (ArgumentException exception) { throw new CatalogValidationException($"Trusted reference catalog public key is invalid: {exception.Message}"); }
-        catch (CryptographicException exception) { throw new CatalogValidationException($"Reference catalog channel signature verification failed: {exception.Message}"); }
     }
 
     private static bool IsVersion(string? value) => Version.TryParse(value, out _) && value.Length <= 32;
