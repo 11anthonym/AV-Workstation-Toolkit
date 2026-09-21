@@ -19,7 +19,6 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $scriptsRoot = Join-Path $repositoryRoot 'scripts'
 $modulePath = Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psd1'
 $moduleImplementationPath = Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psm1'
-$legacyCatalogPath = Join-Path $scriptsRoot 'AppProfiles.psd1'
 $managedManifestPath = Join-Path $repositoryRoot 'manifests\managed-applications.json'
 $catalogPath = $managedManifestPath
 $xamlPath = Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml'
@@ -87,7 +86,6 @@ function Invoke-Check {
     }
 }
 
-$winGetManifest = Microsoft.PowerShell.Utility\Import-PowerShellDataFile -LiteralPath $legacyCatalogPath
 $managedCatalogDocument = Get-Content -LiteralPath $managedManifestPath -Raw | ConvertFrom-Json
 $operationalExternalCatalog = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json (Get-Content -LiteralPath $externalManifestPath -Raw))
 $awarenessExternalCatalog = @(ConvertFrom-AVWorkstationToolkitExternalCatalogJson -Json (Get-Content -LiteralPath $awarenessManifestPath -Raw))
@@ -117,21 +115,12 @@ Invoke-Check 'Catalog aggregates WinGet, operational providers, and commercial A
     Assert-Equal ($expectedOperationalExternalCount + $expectedAwarenessCount) $externalCatalog.Count 'External catalog size differs.'
     Assert-True ($catalog.Count -ge 300) 'Commercial AV catalog breadth regressed below the reviewed baseline.'
 }
-Invoke-Check 'Retired PowerShell catalog fixture still tracks the canonical managed JSON catalog' {
-    # manifests\managed-applications.json is the canonical managed-package definition: it is what the
-    # compiled product loads and embeds. AppProfiles.psd1 is validated against it, not the reverse,
-    # and is retired once the legacy PowerShell build/test dependencies are removed.
+Invoke-Check 'Canonical managed JSON is the sole supported managed catalog authority' {
     Assert-Equal 1 ([int]$managedCatalogDocument.SchemaVersion) 'Managed JSON catalog schema differs.'
-    Assert-Equal ([string]$managedCatalogDocument.ForbiddenPattern) ([string]$winGetManifest.ForbiddenPattern) 'Retired catalog fixture forbidden-product policy drifted from the canonical JSON.'
-    Assert-Equal @($managedCatalogDocument.Packages).Count $expectedWinGetCount 'Retired catalog fixture count drifted from the canonical JSON.'
+    $loadedManaged = @($catalog | Where-Object Provider -eq 'WinGet')
+    Assert-Equal @($managedCatalogDocument.Packages).Count $loadedManaged.Count 'Default catalog loading did not use every canonical managed JSON entry.'
     foreach ($current in @($managedCatalogDocument.Packages)) {
-        $legacy = @($winGetManifest.Packages | Where-Object { [string]$_.Id -eq [string]$current.Id })
-        Assert-Equal 1 $legacy.Count "Retired catalog fixture lost or duplicated $($current.Id)."
-        foreach ($field in @('Profile','Name','Id','Vendor','Risk','Note','Deployment','Maintenance')) {
-            $currentValue = if ($current.PSObject.Properties.Name -contains $field) { [string]$current.$field } else { '' }
-            $legacyValue = if ($legacy[0].ContainsKey($field)) { [string]$legacy[0][$field] } else { '' }
-            Assert-Equal $currentValue $legacyValue "Retired catalog fixture field drifted for $($current.Id).$field"
-        }
+        Assert-Equal 1 @($loadedManaged | Where-Object { [string]$_.Id -ceq [string]$current.Id }).Count "Canonical managed package $($current.Id) was not loaded exactly once."
     }
 }
 Invoke-Check 'Vendor catalog sources compile deterministically to the only runtime artifact' {
@@ -417,7 +406,7 @@ Invoke-Check 'Crestron Remote Client and TightVNC remain awareness-only security
     Assert-Equal 'AwarenessOnly' $tightVnc.DeploymentClass 'TightVNC gained an operational deployment path.'
     Assert-Equal 'Awareness' $tightVnc.DeliveryMode 'TightVNC gained a delivery action beyond its official link.'
     Assert-True ($tightVnc.InstallsService -eq $true -and $tightVnc.OpensListener -eq $true) 'TightVNC listener/service impact is not explicit.'
-    Assert-True ($winGetManifest.ForbiddenPattern -match 'TightVNC') 'Managed catalog policy no longer excludes TightVNC.'
+    Assert-True ([string]$managedCatalogDocument.ForbiddenPattern -match 'TightVNC') 'Managed catalog policy no longer excludes TightVNC.'
 }
 Invoke-Check 'Data root is deterministic for source, package, and explicit paths' {
     Assert-Equal $repositoryRoot (Get-AVWorkstationToolkitDataRoot) 'Developer checkout data root differs.'
