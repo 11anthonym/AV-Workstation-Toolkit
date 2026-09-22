@@ -89,12 +89,13 @@ function Write-ActionResult {
     )
 
     $report = [ordered]@{
-        SchemaVersion = 1
+        SchemaVersion = 2
         GeneratedAt = (Get-Date).ToString('o')
         Computer = $env:COMPUTERNAME
         Status = $Status
         Message = $Message
         ExitCode = $ExitCode
+        ManagedCatalogRevision = 0
         RequestPath = $requestFullPath
         ProgressPath = $progressPath
         WingetLogPath = $runLogPath

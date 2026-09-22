@@ -217,6 +217,17 @@ public sealed class ActionProtocolTests
             node["RequestPath"] = paths.RequestPath + ".stale";
             Assert.AreEqual(ActionProtocolFailure.RequestMismatch,
                 Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(Encoding.UTF8.GetBytes(node.ToJsonString()), request, paths)).Failure);
+
+            node = ResultNode(paths, "Succeeded", 0, PackageJson("Succeeded", 0, true));
+            node.Remove("ManagedCatalogRevision");
+            Assert.AreEqual(ActionProtocolFailure.MissingField,
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(Encoding.UTF8.GetBytes(node.ToJsonString()), request, paths)).Failure);
+            node["ManagedCatalogRevision"] = new JsonArray();
+            Assert.AreEqual(ActionProtocolFailure.WrongType,
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(Encoding.UTF8.GetBytes(node.ToJsonString()), request, paths)).Failure);
+            node["ManagedCatalogRevision"] = 1;
+            Assert.AreEqual(ActionProtocolFailure.RequestMismatch,
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(Encoding.UTF8.GetBytes(node.ToJsonString()), request, paths)).Failure);
         }
         finally { Directory.Delete(root, true); }
     }
@@ -388,6 +399,7 @@ public sealed class ActionProtocolTests
             // A completed mutation must not be downgraded into a failure by the persistence layer.
             Assert.AreEqual(ActionResultStatus.Succeeded, persisted.Status);
             Assert.AreEqual(0, persisted.ExitCode);
+            Assert.AreEqual(request.ManagedCatalogRevision, persisted.ManagedCatalogRevision);
             var outcome = persisted.Packages.Single();
             Assert.AreEqual(PackageOutcomeStatus.Succeeded, outcome.Status);
             Assert.IsTrue(outcome.Verified);
@@ -476,12 +488,13 @@ public sealed class ActionProtocolTests
 
     private static JsonObject ResultNode(ActionArtifactPaths paths, string status, int exitCode, JsonObject? package) => new()
     {
-        ["SchemaVersion"] = 1,
+        ["SchemaVersion"] = ActionProtocolLimits.CurrentResultSchemaVersion,
         ["GeneratedAt"] = Timestamp.ToString("o"),
         ["Computer"] = "TEST-HOST",
         ["Status"] = status,
         ["Message"] = status,
         ["ExitCode"] = exitCode,
+        ["ManagedCatalogRevision"] = 0,
         ["RequestPath"] = paths.RequestPath,
         ["ProgressPath"] = paths.ProgressPath,
         ["WingetLogPath"] = paths.WinGetLogPath,

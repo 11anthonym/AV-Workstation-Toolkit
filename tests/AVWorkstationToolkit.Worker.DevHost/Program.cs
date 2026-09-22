@@ -9,9 +9,10 @@ using AVWorkstationToolkit.Worker.DevHost;
 var testMode = args.Length == 5 && args[0] == "--test-mode" && args[1] == "--root" && args[3] == "--request";
 var liveRehearsal = args.Length == 7 && args[0] == "--live-rehearsal" && args[1] == "--root" &&
     args[3] == "--request" && args[5] == "--repository-root";
-if (!testMode && !liveRehearsal)
+var managedCatalogTest = args.Length == 5 && args[0] == "--managed-catalog-test" && args[1] == "--fixture" && args[3] == "--request";
+if (!testMode && !liveRehearsal && !managedCatalogTest)
 {
-    Console.Error.WriteLine("The worker development host accepts only an exact test or live-rehearsal invocation.");
+    Console.Error.WriteLine("The worker development host accepts only an exact test, managed-catalog test, or live-rehearsal invocation.");
     return 2;
 }
 
@@ -21,7 +22,10 @@ try
     if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
         throw new InvalidOperationException("The worker development host must run as a standard user.");
 
-    var dataRoot = testMode ? RequireFixtureRoot(args[2]) : LiveRehearsalRootPolicy.RequireExisting(args[2]);
+    var managedOptions = managedCatalogTest ? ManagedCatalogWorkerOptions.Load(args[2]) : null;
+    var dataRoot = testMode ? RequireFixtureRoot(args[2]) : managedCatalogTest
+        ? managedOptions!.DataRoot
+        : LiveRehearsalRootPolicy.RequireExisting(args[2]);
     var requestPath = Path.GetFullPath(args[4]);
     var requestName = Path.GetFileNameWithoutExtension(requestPath);
     var requestPolicy = new ActionRequestFilePolicy();
@@ -39,6 +43,15 @@ try
             new DeterministicFakePackageExecutor(fixture.Executions),
             protocol,
             fixture.Computer);
+    }
+    else if (managedCatalogTest)
+    {
+        var services = ManagedCatalogWorkerComposition.Create(managedOptions!, request);
+        orchestrator = new ActionWorkerOrchestrator(
+            services.Plans,
+            services.Executor,
+            protocol,
+            "ManagedCatalogDevWorker");
     }
     else
     {

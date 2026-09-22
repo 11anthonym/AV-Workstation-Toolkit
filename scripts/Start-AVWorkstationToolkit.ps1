@@ -1198,6 +1198,10 @@ function Complete-AVWorkstationToolkitAction {
             $resultFile = Get-Item -LiteralPath $state.ResultPath
             if ($resultFile.Length -gt 2MB) { throw 'Result report exceeds the 2 MiB safety limit.' }
             $result = Get-Content -LiteralPath $state.ResultPath -Raw | ConvertFrom-Json
+            if ($result.SchemaVersion -isnot [int] -or [int]$result.SchemaVersion -ne 2 -or
+                $result.ManagedCatalogRevision -isnot [int] -or [int]$result.ManagedCatalogRevision -ne 0) {
+                throw 'Result report catalog revision does not match the source-checkout request.'
+            }
             $message = Protect-AVWorkstationToolkitSensitiveText -Text ([string]$result.Message)
             if ($message.Length -gt 4000) { $message = $message.Substring(0,4000) + '...[truncated]' }
             $status = if ([string]$result.Status -in @('Succeeded','Failed','Rejected','Cancelled','Blocked')) { [string]$result.Status } else { 'Failed' }

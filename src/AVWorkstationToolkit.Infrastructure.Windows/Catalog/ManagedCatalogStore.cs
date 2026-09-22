@@ -48,6 +48,9 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
 
     public ManagedCatalogSet LoadActiveOrEmbedded()
     {
+        if (effective is not null)
+            return ToCatalogSet(effective);
+
         EnsureDirectories();
         TryCleanStaging();
         var embedded = LoadEmbedded();
@@ -77,12 +80,13 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
         var detailText = $"{source} revision {selected.Revision} is active.";
         Status = new(ManagedCatalogUpdateState.Current, selected.Revision, selected.Version, source, 0, string.Empty,
             true, false, detailText);
-        return new(selected.Bundle.Catalog, new(selected.Revision, selected.Version, selected.IsEmbedded, detailText));
+        return ToCatalogSet(selected);
     }
 
     public async Task<ManagedCatalogUpdateStatus> CheckAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (Status.RestartRequired) return Status;
         if (channel is null)
         {
             Status = Status with { State = ManagedCatalogUpdateState.NotConfigured, Detail = "No production managed-catalog channel is configured." };
@@ -91,7 +95,8 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
 
         try
         {
-            var current = effective ?? LoadSelectionOnly();
+            if (effective is null) _ = LoadActiveOrEmbedded();
+            var current = effective ?? throw new CatalogValidationException("No verified managed catalog is available.");
             Status = Status with { State = ManagedCatalogUpdateState.Checking, Detail = "Checking the signed managed-catalog channel…", RestartRequired = false };
             var available = await channel.GetLatestAsync(current.Revision, cancellationToken).ConfigureAwait(false);
             if (available is null)
@@ -170,6 +175,7 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
     public Task<ManagedCatalogUpdateStatus> InstallAvailableAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (Status.RestartRequired) return Task.FromResult(Status);
         if (pending is null)
         {
             Status = Status with
@@ -232,9 +238,15 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
         {
             if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
         }
-        effective = null;
         try { DeleteStoredExcept(revision); }
         catch (Exception exception) when (IsMutationFailure(exception)) { }
+    }
+
+    private static ManagedCatalogSet ToCatalogSet(LocalSelection selected)
+    {
+        var source = selected.IsEmbedded ? "Signed embedded baseline" : "Verified downloaded catalog";
+        var detail = $"{source} revision {selected.Revision} is active.";
+        return new(selected.Bundle.Catalog, new(selected.Revision, selected.Version, selected.IsEmbedded, detail));
     }
 
     private LocalSelection? LoadEmbedded()

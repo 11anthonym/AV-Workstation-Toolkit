@@ -365,6 +365,48 @@ public sealed class ActionWorkerOrchestratorTests
         Assert.IsTrue(protocol.Progress.Any(item => item.Stage == "Cancelled"));
     }
 
+    [TestMethod]
+    public async Task EveryTerminalOutcomeReportsTheIndependentlyVerifiedCatalogRevision()
+    {
+        const long revision = 12;
+
+        var dryRunRequest = Request(dryRun: true, revision: revision);
+        var dryRunProtocol = new MemoryProtocol(dryRunRequest);
+        await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]))
+            { ManagedCatalogRevision = revision }, new FakeExecutor(), dryRunProtocol).RunAsync(dryRunRequest);
+        Assert.AreEqual(revision, dryRunProtocol.Result!.ManagedCatalogRevision);
+
+        var failedRequest = Request(revision: revision);
+        var failedProtocol = new MemoryProtocol(failedRequest);
+        await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]))
+            { ManagedCatalogRevision = revision }, new FakeExecutor(PackageExecutionResult.Failure(17)), failedProtocol)
+            .RunAsync(failedRequest);
+        Assert.AreEqual(ActionResultStatus.Failed, failedProtocol.Result!.Status);
+        Assert.AreEqual(revision, failedProtocol.Result.ManagedCatalogRevision);
+
+        var cancelledRequest = Request(revision: revision);
+        var cancelledProtocol = new MemoryProtocol(cancelledRequest) { CancellationRequested = true };
+        await Worker(new SequencePlans(Plan([State("Vendor.One")])) { ManagedCatalogRevision = revision },
+            new FakeExecutor(), cancelledProtocol).RunAsync(cancelledRequest);
+        Assert.AreEqual(ActionResultStatus.Cancelled, cancelledProtocol.Result!.Status);
+        Assert.AreEqual(revision, cancelledProtocol.Result.ManagedCatalogRevision);
+
+        var partialRequest = Request(ids: ["Vendor.One", "Vendor.Two"], revision: revision);
+        var both = new[] { State("Vendor.One"), State("Vendor.Two") };
+        var partialProtocol = new MemoryProtocol(partialRequest);
+        await Worker(new SequencePlans(
+                Plan(both),
+                Plan(both),
+                Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current), State("Vendor.Two")]),
+                Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)]))
+            { ManagedCatalogRevision = revision }, new FakeExecutor(PackageExecutionResult.Success), partialProtocol)
+            .RunAsync(partialRequest);
+        Assert.AreEqual(ActionResultStatus.Blocked, partialProtocol.Result!.Status);
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.Succeeded, PackageOutcomeStatus.Blocked },
+            partialProtocol.Result.Packages.Select(item => item.Status).ToArray());
+        Assert.AreEqual(revision, partialProtocol.Result.ManagedCatalogRevision);
+    }
+
     private static ActionWorkerOrchestrator Worker(
         IActionWorkerPlanProvider plans,
         IPackageActionExecutor executor,
@@ -374,8 +416,10 @@ public sealed class ActionWorkerOrchestratorTests
     private static ActionRequest Request(
         IReadOnlyList<string>? ids = null,
         bool riskAcknowledged = false,
-        ManagedRequestAction action = ManagedRequestAction.Install) =>
-        new(ActionRequestRules.CurrentSchemaVersion, RequestId, action, ids ?? ["Vendor.One"], riskAcknowledged, false);
+        ManagedRequestAction action = ManagedRequestAction.Install,
+        bool dryRun = false,
+        long revision = 0) =>
+        new(ActionRequestRules.CurrentSchemaVersion, RequestId, action, ids ?? ["Vendor.One"], riskAcknowledged, dryRun, revision);
 
     private static PackageState State(
         string id,
@@ -405,6 +449,7 @@ public sealed class ActionWorkerOrchestratorTests
 
     private sealed class SequencePlans(params WorkstationPlan[] plans) : IActionWorkerPlanProvider
     {
+        public long ManagedCatalogRevision { get; init; }
         public int ReadCount { get; private set; }
 
         public ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default)

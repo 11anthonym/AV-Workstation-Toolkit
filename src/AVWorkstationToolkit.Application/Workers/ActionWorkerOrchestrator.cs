@@ -274,6 +274,7 @@ public sealed class ActionWorkerOrchestrator
             status,
             message,
             exitCode,
+            planProvider.ManagedCatalogRevision,
             protocol.Paths.RequestPath,
             protocol.Paths.ProgressPath,
             protocol.Paths.WinGetLogPath,

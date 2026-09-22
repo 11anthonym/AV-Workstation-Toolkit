@@ -1544,6 +1544,10 @@ Invoke-Check 'Desktop and terminal change paths share the isolated worker' {
     }
     $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
     Assert-True ($coreSource -match 'SchemaVersion\s*=\s*2' -and $coreSource -match 'RequestId\s*=' -and $coreSource -match 'DryRun\s*=' -and $coreSource -match 'ManagedCatalogRevision\s*=\s*0') 'Shared request builder does not emit the complete versioned schema.'
+    $workerSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1') -Raw
+    $desktopSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
+    Assert-True ($workerSource -match 'SchemaVersion\s*=\s*2' -and $workerSource -match 'ManagedCatalogRevision\s*=\s*0' -and
+        $desktopSource -match 'Result report catalog revision does not match') 'Source-checkout result artifacts do not report and verify managed-catalog revision 0.'
 }
 Invoke-Check 'AST guard limits direct winget process invocation to audited wrappers' {
     $allowed = @{
@@ -2014,6 +2018,13 @@ Invoke-Check 'Signature-required package policy rejects unsigned artifacts while
     finally {
         if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
     }
+}
+Invoke-Check 'Package QA process helper preserves exit failures and rejects timeouts under Windows PowerShell 5.1' {
+    $powershellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $packageTest = Join-Path $PSScriptRoot 'Test-Package.ps1'
+    $output = (& $powershellExe -NoProfile -ExecutionPolicy RemoteSigned -File $packageTest -ProcessHelperSelfTest 2>&1 | Out-String)
+    Assert-Equal 0 $LASTEXITCODE 'Package process-helper regressions failed.'
+    Assert-True ($output -match 'PACKAGE_PROCESS_HELPER_OK exit0=0 exit1=1 timeout=rejected') 'Package process-helper evidence differs.'
 }
 Invoke-Check 'Offline package authoring requires redistribution and payload verification' {
     $authoringPath = Join-Path $repositoryRoot 'scripts\Add-AVWorkstationToolkitExternalPackage.ps1'

@@ -44,6 +44,19 @@ public sealed class ManagedCatalogRuntimeTests
         Assert.IsTrue(status.RestartRequired);
         Assert.AreEqual(1L, baselineServices.ManagedCatalogRevision, "A running application must not switch authority mid-session.");
 
+        var rechecked = await baselineServices.ManagedCatalogUpdates.CheckAsync();
+        Assert.AreEqual(ManagedCatalogUpdateState.Completed, rechecked.State);
+        Assert.IsTrue(rechecked.RestartRequired, "Rechecking must not hide the pending restart.");
+        var repeatedLoad = baselineServices.ManagedCatalogUpdates.LoadActiveOrEmbedded();
+        Assert.AreEqual(1L, repeatedLoad.Source.Revision, "Repeated reads must retain the process-effective revision.");
+        Assert.IsFalse(repeatedLoad.Catalog.Items.Any(item => item.Id == TestPackageId));
+        var repeatedActivation = await baselineServices.ManagedCatalogUpdates.InstallAvailableAsync();
+        Assert.AreEqual(ManagedCatalogUpdateState.Completed, repeatedActivation.State);
+        Assert.IsTrue(repeatedActivation.RestartRequired, "Repeated activation must retain the pending restart.");
+        var updates = new ManagedCatalogUpdateViewModel(baselineServices.ManagedCatalogUpdates);
+        Assert.IsFalse(updates.CheckNowCommand.CanExecute(null));
+        Assert.IsFalse(updates.InstallCommand.CanExecute(null));
+
         var restarted = CompiledAppComposition.CreateManagedCatalogDevelopment(
             fixture.ApplicationRoot, fixture.DataRoot, fixture.ApplicationVersion, fixture.RuntimeServices);
         Assert.AreEqual(2L, restarted.ManagedCatalogRevision);
@@ -67,6 +80,7 @@ public sealed class ManagedCatalogRuntimeTests
         var accepted = await worker.RunAsync(Request(TestPackageId, 2));
         Assert.AreEqual(ActionResultStatus.Succeeded, accepted.Status);
         Assert.AreEqual(PackageOutcomeStatus.Planned, accepted.Packages.Single().Status);
+        Assert.AreEqual(2L, protocol.Result!.ManagedCatalogRevision);
 
         var mismatchedProtocol = new MemoryProtocol();
         var mismatchedPlans = new FixedPlanProvider(2, plan);
@@ -75,6 +89,8 @@ public sealed class ManagedCatalogRuntimeTests
         Assert.AreEqual(ActionResultStatus.Rejected, mismatched.Status);
         Assert.AreEqual(0, mismatchedPlans.ReadCount, "Revision mismatch must fail before package planning.");
         StringAssert.Contains(mismatchedProtocol.Result!.Message, "independently verified revision 2");
+        Assert.AreEqual(2L, mismatchedProtocol.Result.ManagedCatalogRevision,
+            "A rejected mismatched request must still report the worker's independently verified revision.");
 
         var unknown = await new ActionWorkerOrchestrator(new FixedPlanProvider(2, plan), new RefusingExecutor(), new MemoryProtocol(), "FixtureHost")
             .RunAsync(Request("AVWT.UnsignedRequestSubstitution", 2));
