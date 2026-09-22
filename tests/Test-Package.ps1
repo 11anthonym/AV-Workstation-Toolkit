@@ -16,6 +16,7 @@ param(
     [switch]$RequireSignature,
     [switch]$SignaturePolicyOnly,
     [switch]$SkipDesktopSmoke,
+    [switch]$ProcessHelperSelfTest,
     [ValidateRange(10,600)]
     [int]$ProcessTimeoutSeconds = 120
 )
@@ -69,41 +70,96 @@ function Invoke-Check {
     }
 }
 
-function Wait-AVWorkstationToolkitProcess {
-    param(
-        [Parameter(Mandatory)]
-        [Diagnostics.Process]$Process,
-        [Parameter(Mandatory)]
-        [string]$Description
-    )
-
-    if (-not $Process.WaitForExit($ProcessTimeoutSeconds * 1000)) {
-        $processId = $Process.Id
-        try {
-            & (Join-Path $env:SystemRoot 'System32\taskkill.exe') /PID $processId /T /F 2>$null | Out-Null
-        }
-        catch {
-            Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
-        }
-        throw "$Description exceeded the $ProcessTimeoutSeconds-second timeout."
+function Get-BoundedProcessDiagnostic {
+    param([Parameter(Mandatory)][string]$Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return '' }
+    $reader = [IO.StreamReader]::new($Path,$true)
+    try {
+        $buffer = New-Object char[] 4096
+        $count = $reader.ReadBlock($buffer,0,$buffer.Length)
+        $text = if ($count -eq 0) { '' } else { -join $buffer[0..($count - 1)] }
+        if ($reader.Peek() -ge 0) { $text += ' [diagnostic shortened]' }
     }
+    finally { $reader.Dispose() }
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        $text = [regex]::Replace($text,[regex]::Escape($env:USERPROFILE),'<user-profile>',[Text.RegularExpressions.RegexOptions]::IgnoreCase)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        $text = [regex]::Replace($text,[regex]::Escape($env:LOCALAPPDATA),'<local-app-data>',[Text.RegularExpressions.RegexOptions]::IgnoreCase)
+    }
+    $text = [regex]::Replace($text,'(?i)(?<key>(?:password|passwd|pwd|token|secret|api[-_]?key|client[-_]?secret)\s*(?:=|:)\s*)(?:"[^"]*"|''[^'']*''|[^\s,;]+)','${key}[REDACTED]')
+    $text = [regex]::Replace($text,'(?i)(Authorization:\s*Bearer\s+)\S+','$1[REDACTED]')
+    $text = [regex]::Replace($text,'(?i)(://[^:/\s]+:)[^@\s]+@','$1[REDACTED]@')
+    return ([regex]::Replace($text,'\s+',' ')).Trim()
+}
 
-    return $Process.ExitCode
+function Invoke-BoundedProcess {
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [AllowEmptyString()][string]$RawArguments = '',
+        [Parameter(Mandatory)][string]$Description,
+        [int]$TimeoutSeconds = $ProcessTimeoutSeconds
+    )
+    $nonce = [guid]::NewGuid().ToString('N')
+    $stdoutPath = Join-Path $temporaryRoot "process-$nonce.stdout.log"
+    $stderrPath = Join-Path $temporaryRoot "process-$nonce.stderr.log"
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $FilePath
+    $startInfo.Arguments = $RawArguments
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    $stdout = [IO.File]::Open($stdoutPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
+    $stderr = [IO.File]::Open($stderrPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
+    try {
+        if (-not $process.Start()) { throw "$Description did not start." }
+        $stdoutCopy = $process.StandardOutput.BaseStream.CopyToAsync($stdout)
+        $stderrCopy = $process.StandardError.BaseStream.CopyToAsync($stderr)
+        if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+            $processId = $process.Id
+            $previousPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                & (Join-Path $env:SystemRoot 'System32\taskkill.exe') /PID $processId /T /F 2>$null | Out-Null
+            }
+            finally { $ErrorActionPreference = $previousPreference }
+            if (-not $process.WaitForExit(15000)) {
+                try { $process.Kill() } catch { }
+                if (-not $process.WaitForExit(5000)) {
+                    throw "$Description exceeded the $TimeoutSeconds-second timeout and could not be terminated."
+                }
+            }
+            throw "$Description exceeded the $TimeoutSeconds-second timeout."
+        }
+        if (-not $stdoutCopy.Wait(15000) -or -not $stderrCopy.Wait(15000)) {
+            throw "$Description output did not close after the process exited."
+        }
+        $process.Refresh()
+        if (-not $process.HasExited -or $null -eq $process.ExitCode) {
+            throw "$Description completed without an available process exit code."
+        }
+        $exitCode = $process.ExitCode
+    }
+    finally {
+        $stdout.Dispose()
+        $stderr.Dispose()
+        $process.Dispose()
+    }
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        StandardError = Get-BoundedProcessDiagnostic -Path $stderrPath
+    }
 }
 
 function Invoke-PackagedLauncher {
     param([string]$Launcher,[string[]]$Arguments)
     $quotedArguments = @($Arguments | ForEach-Object { '"' + $_.Replace('"','\"') + '"' }) -join ' '
-    $nonce = [guid]::NewGuid().ToString('N')
-    $stdoutPath = Join-Path $temporaryRoot "launcher-$nonce.stdout.log"
-    $stderrPath = Join-Path $temporaryRoot "launcher-$nonce.stderr.log"
-    $process = Start-Process -FilePath $Launcher -ArgumentList $quotedArguments -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru
-    Wait-AVWorkstationToolkitProcess -Process $process -Description 'Packaged launcher' | Out-Null
-    $process.Refresh()
-    $exitCode = [int]$process.ExitCode
-    $stderrContent = if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw } else { $null }
-    $script:LastLauncherStdErr = if ($null -eq $stderrContent) { '' } else { ([string]$stderrContent).Trim() }
-    return $exitCode
+    $result = Invoke-BoundedProcess -FilePath $Launcher -RawArguments $quotedArguments -Description 'Packaged launcher'
+    $script:LastLauncherStdErr = $result.StandardError
+    return $result.ExitCode
 }
 
 function Invoke-ContainedExecutable {
@@ -140,6 +196,28 @@ function Get-MsiProperty {
         if ($null -ne $view) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($view) }
         if ($null -ne $database) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($database) }
         if ($null -ne $installer) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($installer) }
+    }
+}
+
+if ($ProcessHelperSelfTest) {
+    $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-process-helper-' + [guid]::NewGuid().ToString('N'))
+    try {
+        New-Item -ItemType Directory -Path $temporaryRoot -Force | Out-Null
+        $powershellPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $success = Invoke-BoundedProcess -FilePath $powershellPath -RawArguments '-NoProfile -Command "exit 0"' -Description 'Exit-zero regression child' -TimeoutSeconds 10
+        Assert-Equal 0 $success.ExitCode 'A real zero exit code did not pass.'
+        $failure = Invoke-BoundedProcess -FilePath $powershellPath -RawArguments '-NoProfile -Command "[Console]::Error.WriteLine(''bounded failure password: fixture-secret''); exit 1"' -Description 'Exit-one regression child' -TimeoutSeconds 10
+        Assert-Equal 1 $failure.ExitCode 'A real nonzero exit code was not preserved.'
+        Assert-True ($failure.StandardError -eq 'bounded failure password: [REDACTED]') 'Redirected standard error was not captured and sanitized safely.'
+        $timedOut = $false
+        try { [void](Invoke-BoundedProcess -FilePath $powershellPath -RawArguments '-NoProfile -Command "Start-Sleep -Seconds 30"' -Description 'Timeout regression child' -TimeoutSeconds 1) }
+        catch { $timedOut = $_.Exception.Message -match 'exceeded the 1-second timeout' }
+        Assert-True $timedOut 'A process timeout was not reported as failure.'
+        Write-Output 'PACKAGE_PROCESS_HELPER_OK exit0=0 exit1=1 timeout=rejected'
+        exit 0
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
     }
 }
 
@@ -513,8 +591,8 @@ try {
 
     Invoke-Check 'MSI administratively extracts a verifiable standalone AVWorkstationToolkit executable' {
         $arguments = '/a "{0}" /qn TARGETDIR="{1}" /L*v "{2}"' -f $msiPath,$msiExtract,(Join-Path $temporaryRoot 'msi-extract.log')
-        $process = Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\msiexec.exe') -ArgumentList $arguments -PassThru
-        $exitCode = Wait-AVWorkstationToolkitProcess -Process $process -Description 'MSI administrative extraction'
+        $result = Invoke-BoundedProcess -FilePath (Join-Path $env:SystemRoot 'System32\msiexec.exe') -RawArguments $arguments -Description 'MSI administrative extraction'
+        $exitCode = $result.ExitCode
         Assert-Equal 0 $exitCode 'MSI administrative extraction failed.'
         $extractedLauncher = @(Get-ChildItem -LiteralPath $msiExtract -Recurse -File -Filter 'AVWorkstationToolkit.exe') | Select-Object -First 1
         Assert-True ($null -ne $extractedLauncher) 'MSI did not contain AVWorkstationToolkit.exe.'
