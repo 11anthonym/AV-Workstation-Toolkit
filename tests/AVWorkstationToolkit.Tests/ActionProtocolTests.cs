@@ -233,6 +233,50 @@ public sealed class ActionProtocolTests
     }
 
     [TestMethod]
+    public void ResultParserAllowsOnlyTheExactEmptyRevisionMismatchRejection()
+    {
+        var root = CreateTemporaryRoot();
+        try
+        {
+            var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
+            var codec = new ActionResultCodec();
+            var request = Request(["Vendor.One"], revision: 1);
+            var message = "The request targets managed catalog revision 1, but the worker independently verified revision 2. Restart AV Workstation Toolkit and try again.";
+
+            var legitimate = ResultNode(paths, "Rejected", 1, null);
+            legitimate["ManagedCatalogRevision"] = 2;
+            legitimate["Message"] = message;
+            var accepted = codec.Parse(Encoding.UTF8.GetBytes(legitimate.ToJsonString()), request, paths);
+            Assert.AreEqual(ActionResultStatus.Rejected, accepted.Status);
+            Assert.AreEqual(2L, accepted.ManagedCatalogRevision);
+            Assert.IsEmpty(accepted.Packages);
+
+            var matching = ResultNode(paths, "Rejected", 1, null);
+            matching["ManagedCatalogRevision"] = 1;
+            Assert.AreEqual(1L, codec.Parse(Encoding.UTF8.GetBytes(matching.ToJsonString()), request, paths).ManagedCatalogRevision);
+
+            var successful = ResultNode(paths, "Succeeded", 0, PackageJson("Succeeded", 0, true));
+            successful["ManagedCatalogRevision"] = 2;
+            Assert.AreEqual(ActionProtocolFailure.RequestMismatch,
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() =>
+                    codec.Parse(Encoding.UTF8.GetBytes(successful.ToJsonString()), request, paths)).Failure);
+
+            var completedOutcome = ResultNode(paths, "Rejected", 1, PackageJson("Succeeded", 0, true));
+            completedOutcome["ManagedCatalogRevision"] = 2;
+            completedOutcome["Message"] = message;
+            Assert.AreEqual(ActionProtocolFailure.RequestMismatch,
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() =>
+                    codec.Parse(Encoding.UTF8.GetBytes(completedOutcome.ToJsonString()), request, paths)).Failure);
+
+            legitimate["Message"] = "Restart requested without independently verified revision evidence.";
+            Assert.AreEqual(ActionProtocolFailure.RequestMismatch,
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() =>
+                    codec.Parse(Encoding.UTF8.GetBytes(legitimate.ToJsonString()), request, paths)).Failure);
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [TestMethod]
     public void ResultParserRejectsForeignDuplicateAndSemanticallyInvalidPackages()
     {
         var root = CreateTemporaryRoot();
@@ -516,8 +560,8 @@ public sealed class ActionProtocolTests
             "--accept-package-agreements", "--accept-source-agreements")
     };
 
-    private static ActionRequest Request(IReadOnlyList<string> ids, bool dryRun = false) =>
-        new(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Install, ids, false, dryRun);
+    private static ActionRequest Request(IReadOnlyList<string> ids, bool dryRun = false, long revision = 0) =>
+        new(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Install, ids, false, dryRun, revision);
 
     private static AuthorizedActionRequest Authorized(ActionRequest request) =>
         new(request, request.PackageIds.Distinct(StringComparer.OrdinalIgnoreCase).Select(State).ToArray());

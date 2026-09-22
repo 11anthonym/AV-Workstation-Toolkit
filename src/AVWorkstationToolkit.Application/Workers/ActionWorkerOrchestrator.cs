@@ -126,7 +126,8 @@ public sealed class ActionWorkerOrchestrator
         if (request.ManagedCatalogRevision != planProvider.ManagedCatalogRevision)
         {
             return await CompleteAsync(request, ActionResultStatus.Rejected, 1,
-                $"The request targets managed catalog revision {request.ManagedCatalogRevision}, but the worker independently verified revision {planProvider.ManagedCatalogRevision}. Restart AV Workstation Toolkit and try again.",
+                ActionProtocolSemantics.ManagedCatalogRevisionMismatchMessage(
+                    request.ManagedCatalogRevision, planProvider.ManagedCatalogRevision),
                 outcomes, cancellationToken).ConfigureAwait(false);
         }
 

@@ -6,9 +6,11 @@ using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Application.Vendors;
+using AVWorkstationToolkit.Application.Workers;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Planning;
 using AVWorkstationToolkit.Infrastructure.Windows.Diagnostics;
+using AVWorkstationToolkit.Infrastructure.Windows.Files;
 using AVWorkstationToolkit.Infrastructure.Windows.Processes;
 using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 
@@ -99,6 +101,56 @@ public sealed class CompiledActionIntegrationTests
         var result = await coordinator.StartAsync(ManagedRequestAction.Install, current.Packages, current, false, false);
         Assert.AreEqual(ActionResultStatus.Failed, result.Result.Status);
         Assert.AreEqual(CompiledActionState.Failed, coordinator.Snapshot.State);
+    }
+
+    [TestMethod]
+    public async Task CatalogRevisionMismatchRejectionSurvivesRealFileProtocolAndCoordinator()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"awt-revision-mismatch-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            var current = Plan(State("Vendor.One", PackageStatus.Missing, PackageAction.Install));
+            var store = new ActionProtocolStore(root);
+            var executor = new RefusingExecutor();
+            var launcher = new RevisionMismatchWorkerLauncher(root, store, executor, workerRevision: 2);
+            var planning = new QueuePlanningCoordinator(current);
+            var coordinator = new CompiledActionCoordinator(
+                store,
+                launcher,
+                planning,
+                new ActionRequestFactory(new FixedTimeProvider(), () => "a1b2c3d4", managedCatalogRevision: 1),
+                pollInterval: TimeSpan.FromMilliseconds(1),
+                resultTimeout: TimeSpan.FromSeconds(5));
+
+            var run = await coordinator.StartAsync(
+                ManagedRequestAction.Install, current.Packages, current, riskAcknowledged: false, dryRun: false);
+
+            Assert.AreEqual(ActionResultStatus.Rejected, run.Result.Status);
+            Assert.AreEqual(2L, run.Result.ManagedCatalogRevision);
+            StringAssert.Contains(run.Result.Message, "Restart AV Workstation Toolkit and try again.");
+            Assert.AreEqual(CompiledActionState.Failed, coordinator.Snapshot.State);
+            Assert.AreEqual(run.Result.Message, coordinator.Snapshot.Status);
+            Assert.AreEqual(0, executor.CallCount);
+            Assert.AreEqual(0, launcher.PlanReadCount);
+
+            Assert.IsNotNull(launcher.Request);
+            Assert.IsNotNull(launcher.Paths);
+            Assert.IsTrue(File.Exists(launcher.Paths.ResultPath));
+            var persisted = new ActionResultCodec().Parse(
+                await store.ReadArtifactAsync(launcher.Request.RequestId, ActionArtifactKind.Result),
+                launcher.Request,
+                launcher.Paths);
+            Assert.AreEqual(ActionResultStatus.Rejected, persisted.Status);
+            Assert.AreEqual(2L, persisted.ManagedCatalogRevision);
+            StringAssert.Contains(persisted.Message, "independently verified revision 2");
+            StringAssert.Contains(persisted.Message, "Restart AV Workstation Toolkit and try again.");
+            Assert.IsEmpty(persisted.Packages);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     [TestMethod]
@@ -354,6 +406,74 @@ public sealed class CompiledActionIntegrationTests
         public bool Disposed { get; private set; }
         public bool Killed { get; private set; }
         public void Dispose() => Disposed = true;
+    }
+
+    private sealed class RevisionMismatchWorkerLauncher(
+        string root,
+        ActionProtocolStore store,
+        RefusingExecutor executor,
+        long workerRevision) : ICompiledWorkerLauncher
+    {
+        private readonly RevisionMismatchPlanProvider plans = new(workerRevision);
+
+        public ActionRequest? Request { get; private set; }
+        public ActionArtifactPaths? Paths { get; private set; }
+        public int PlanReadCount => plans.ReadCount;
+
+        public async ValueTask<ICompiledWorkerSession> LaunchAsync(
+            ActionArtifactPaths paths,
+            CancellationToken cancellationToken = default)
+        {
+            Paths = paths;
+            Request = await store.ReadRequestAsync(paths.RequestId, cancellationToken);
+            var task = RunWorkerAsync(root, Request, plans, executor);
+            return new WorkerTaskSession(task);
+        }
+
+        private static async Task<ActionWorkerRunResult> RunWorkerAsync(
+            string root,
+            ActionRequest request,
+            RevisionMismatchPlanProvider plans,
+            RefusingExecutor executor)
+        {
+            await using var protocol = new ActionWorkerFileProtocol(root, request.RequestId);
+            return await new ActionWorkerOrchestrator(
+                    plans, executor, protocol, "FixtureHost", timeProvider: new FixedTimeProvider())
+                .RunAsync(request);
+        }
+    }
+
+    private sealed class RevisionMismatchPlanProvider(long revision) : IActionWorkerPlanProvider
+    {
+        public long ManagedCatalogRevision { get; } = revision;
+        public int ReadCount { get; private set; }
+
+        public ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default)
+        {
+            ReadCount++;
+            throw new InvalidOperationException("A revision mismatch must reject before package planning.");
+        }
+    }
+
+    private sealed class RefusingExecutor : IPackageActionExecutor
+    {
+        public int CallCount { get; private set; }
+
+        public ValueTask<PackageExecutionResult> ExecuteAsync(
+            PackageExecutionRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            throw new InvalidOperationException("A revision mismatch must reject before package execution.");
+        }
+    }
+
+    private sealed class WorkerTaskSession(Task<ActionWorkerRunResult> worker) : ICompiledWorkerSession
+    {
+        public int ProcessId => 42;
+        public bool HasExited => worker.IsCompleted;
+        public int? ExitCode => worker.IsCompletedSuccessfully ? worker.Result.ExitCode : worker.IsFaulted ? 1 : null;
+        public void Dispose() => worker.GetAwaiter().GetResult();
     }
 
     private sealed class CapturingHandoff : IValidatedUserHandoffService

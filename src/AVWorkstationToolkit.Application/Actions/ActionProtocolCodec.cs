@@ -233,13 +233,7 @@ public sealed class ActionResultCodec
         }
 
         var payload = stream.ToArray();
-        var validationRequest = result.ManagedCatalogRevision == request.ManagedCatalogRevision
-            ? request
-            : result.Status == ActionResultStatus.Rejected && result.Packages.Count == 0
-                ? new ActionRequest(request.SchemaVersion, request.RequestId, request.Action, request.PackageIds,
-                    request.RiskAcknowledged, request.DryRun, result.ManagedCatalogRevision)
-                : request;
-        _ = Parse(payload, validationRequest, expectedPaths);
+        _ = Parse(payload, request, expectedPaths);
         return payload;
     }
 
@@ -264,9 +258,6 @@ public sealed class ActionResultCodec
         var message = Bounded(DiagnosticsRedactor.Sanitize(StrictJson.RequireString(values["Message"], "Message")), ActionProtocolLimits.MaximumMessageCharacters, "Message");
         var exitCode = StrictJson.RequireInt32(values["ExitCode"], "ExitCode");
         var managedCatalogRevision = StrictJson.RequireInt64(values["ManagedCatalogRevision"], "ManagedCatalogRevision");
-        if (managedCatalogRevision != request.ManagedCatalogRevision)
-            throw new ActionProtocolValidationException(ActionProtocolFailure.RequestMismatch,
-                "Result managed-catalog revision does not match the correlated request.");
         var requestPath = StrictJson.RequireString(values["RequestPath"], "RequestPath");
         var progressPath = StrictJson.RequireString(values["ProgressPath"], "ProgressPath");
         var wingetLogPath = StrictJson.RequireString(values["WingetLogPath"], "WingetLogPath");
@@ -289,6 +280,10 @@ public sealed class ActionResultCodec
         var result = new ActionFinalResult(schemaVersion, request.RequestId, generatedAt, computer, status, message, exitCode, managedCatalogRevision,
             requestPath, progressPath, wingetLogPath, packages.AsReadOnly());
         ValidateSemantics(result, request);
+        if (managedCatalogRevision != request.ManagedCatalogRevision &&
+            !ActionProtocolSemantics.IsManagedCatalogRevisionMismatchRejection(result, request))
+            throw new ActionProtocolValidationException(ActionProtocolFailure.RequestMismatch,
+                "Result managed-catalog revision does not match the correlated request.");
         return result;
     }
 

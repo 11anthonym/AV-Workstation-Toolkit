@@ -322,6 +322,18 @@ public sealed class ActionRequestLifecycle
 
 internal static class ActionProtocolSemantics
 {
+    public static string ManagedCatalogRevisionMismatchMessage(long requestRevision, long workerRevision) =>
+        $"The request targets managed catalog revision {requestRevision}, but the worker independently verified revision {workerRevision}. Restart AV Workstation Toolkit and try again.";
+
+    public static bool IsManagedCatalogRevisionMismatchRejection(ActionFinalResult result, ActionRequest request) =>
+        result.ManagedCatalogRevision >= 0 &&
+        result.Status == ActionResultStatus.Rejected &&
+        result.ExitCode == 1 &&
+        result.Packages.Count == 0 &&
+        string.Equals(result.Message,
+            ManagedCatalogRevisionMismatchMessage(request.ManagedCatalogRevision, result.ManagedCatalogRevision),
+            StringComparison.Ordinal);
+
     public static bool FinalResultsEqual(ActionFinalResult left, ActionFinalResult right)
     {
         if (left.SchemaVersion != right.SchemaVersion || left.RequestId != right.RequestId || left.GeneratedAt != right.GeneratedAt ||
