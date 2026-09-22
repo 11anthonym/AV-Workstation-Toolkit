@@ -30,6 +30,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Compiled runtime deterministic tests failed.' 
 if ($LASTEXITCODE -ne 0) { throw 'Production-only compiled worker boundary validation failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-CompiledWorkerProcess.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Compiled worker process-boundary validation failed.' }
+& powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-ManagedCatalogBinaryUpdate.ps1')
+if ($LASTEXITCODE -ne 0) { throw 'Compiled managed-catalog binary update validation failed.' }
 
 $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)

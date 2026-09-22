@@ -156,6 +156,7 @@ public sealed record ActionFinalResult
         ActionResultStatus status,
         string message,
         int exitCode,
+        long managedCatalogRevision,
         string requestPath,
         string progressPath,
         string winGetLogPath,
@@ -168,6 +169,7 @@ public sealed record ActionFinalResult
         Status = status;
         Message = message;
         ExitCode = exitCode;
+        ManagedCatalogRevision = managedCatalogRevision;
         RequestPath = requestPath;
         ProgressPath = progressPath;
         WinGetLogPath = winGetLogPath;
@@ -181,6 +183,7 @@ public sealed record ActionFinalResult
     public ActionResultStatus Status { get; }
     public string Message { get; }
     public int ExitCode { get; }
+    public long ManagedCatalogRevision { get; }
     public string RequestPath { get; }
     public string ProgressPath { get; }
     public string WinGetLogPath { get; }
@@ -323,6 +326,7 @@ internal static class ActionProtocolSemantics
     {
         if (left.SchemaVersion != right.SchemaVersion || left.RequestId != right.RequestId || left.GeneratedAt != right.GeneratedAt ||
             left.Computer != right.Computer || left.Status != right.Status || left.Message != right.Message || left.ExitCode != right.ExitCode ||
+            left.ManagedCatalogRevision != right.ManagedCatalogRevision ||
             !string.Equals(left.RequestPath, right.RequestPath, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(left.ProgressPath, right.ProgressPath, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(left.WinGetLogPath, right.WinGetLogPath, StringComparison.OrdinalIgnoreCase) ||

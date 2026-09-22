@@ -321,7 +321,8 @@ public sealed class CompiledActionIntegrationTests
                 _ => []
             };
             var exit = status switch { ActionResultStatus.Succeeded => 0, ActionResultStatus.Cancelled => 2, _ => 1 };
-            var final = new ActionFinalResult(1, Request.RequestId, DateTimeOffset.UtcNow, "Fixture", status, status.ToString(), exit,
+            var final = new ActionFinalResult(ActionProtocolLimits.CurrentResultSchemaVersion, Request.RequestId, DateTimeOffset.UtcNow,
+                "Fixture", status, status.ToString(), exit, Request.ManagedCatalogRevision,
                 Paths.RequestPath, Paths.ProgressPath, Paths.WinGetLogPath, packages);
             result = resultCodec.Serialize(final, Request, Paths);
         }

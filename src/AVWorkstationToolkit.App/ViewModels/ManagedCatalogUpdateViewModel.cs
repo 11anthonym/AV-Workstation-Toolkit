@@ -13,9 +13,9 @@ public sealed class ManagedCatalogUpdateViewModel : ObservableObject
     {
         this.service = service ?? throw new ArgumentNullException(nameof(service));
         status = service.Status;
-        CheckNowCommand = new AsyncRelayCommand(CheckAsync, () => !IsBusy);
+        CheckNowCommand = new AsyncRelayCommand(CheckAsync, () => !IsBusy && !Status.RestartRequired);
         InstallCommand = new AsyncRelayCommand(InstallAsync,
-            () => !IsBusy && Status.State == ManagedCatalogUpdateState.UpdateAvailable && Status.Verified);
+            () => !IsBusy && !Status.RestartRequired && Status.State == ManagedCatalogUpdateState.UpdateAvailable && Status.Verified);
     }
 
     public AsyncRelayCommand CheckNowCommand { get; }
@@ -33,6 +33,7 @@ public sealed class ManagedCatalogUpdateViewModel : ObservableObject
             OnPropertyChanged(nameof(SourceLabel));
             OnPropertyChanged(nameof(VerificationLabel));
             OnPropertyChanged(nameof(RestartLabel));
+            CheckNowCommand.RaiseCanExecuteChanged();
             InstallCommand.RaiseCanExecuteChanged();
         }
     }

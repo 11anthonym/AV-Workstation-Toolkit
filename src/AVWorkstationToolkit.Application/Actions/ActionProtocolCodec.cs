@@ -8,7 +8,7 @@ namespace AVWorkstationToolkit.Application.Actions;
 
 public static class ActionProtocolLimits
 {
-    public const int CurrentResultSchemaVersion = 1;
+    public const int CurrentResultSchemaVersion = 2;
     public const int MaximumProgressBytes = 20 * 1024 * 1024;
     public const int MaximumProgressRecordBytes = 16 * 1024;
     public const int MaximumResultBytes = 2 * 1024 * 1024;
@@ -186,7 +186,7 @@ public sealed class ActionProgressCodec
 public sealed class ActionResultCodec
 {
     private static readonly string[] ResultProperties =
-        ["SchemaVersion", "GeneratedAt", "Computer", "Status", "Message", "ExitCode", "RequestPath", "ProgressPath", "WingetLogPath", "Packages"];
+        ["SchemaVersion", "GeneratedAt", "Computer", "Status", "Message", "ExitCode", "ManagedCatalogRevision", "RequestPath", "ProgressPath", "WingetLogPath", "Packages"];
     private static readonly string[] PackageProperties =
         ["Id", "Name", "Action", "Status", "ExitCode", "Verified", "StartedAt", "FinishedAt", "Arguments"];
 
@@ -206,6 +206,7 @@ public sealed class ActionResultCodec
             writer.WriteString("Status", result.Status.ToString());
             writer.WriteString("Message", result.Message);
             writer.WriteNumber("ExitCode", result.ExitCode);
+            writer.WriteNumber("ManagedCatalogRevision", result.ManagedCatalogRevision);
             writer.WriteString("RequestPath", result.RequestPath);
             writer.WriteString("ProgressPath", result.ProgressPath);
             writer.WriteString("WingetLogPath", result.WinGetLogPath);
@@ -232,7 +233,13 @@ public sealed class ActionResultCodec
         }
 
         var payload = stream.ToArray();
-        _ = Parse(payload, request, expectedPaths);
+        var validationRequest = result.ManagedCatalogRevision == request.ManagedCatalogRevision
+            ? request
+            : result.Status == ActionResultStatus.Rejected && result.Packages.Count == 0
+                ? new ActionRequest(request.SchemaVersion, request.RequestId, request.Action, request.PackageIds,
+                    request.RiskAcknowledged, request.DryRun, result.ManagedCatalogRevision)
+                : request;
+        _ = Parse(payload, validationRequest, expectedPaths);
         return payload;
     }
 
@@ -256,6 +263,10 @@ public sealed class ActionResultCodec
         var status = RequireEnum<ActionResultStatus>(values["Status"], "Status");
         var message = Bounded(DiagnosticsRedactor.Sanitize(StrictJson.RequireString(values["Message"], "Message")), ActionProtocolLimits.MaximumMessageCharacters, "Message");
         var exitCode = StrictJson.RequireInt32(values["ExitCode"], "ExitCode");
+        var managedCatalogRevision = StrictJson.RequireInt64(values["ManagedCatalogRevision"], "ManagedCatalogRevision");
+        if (managedCatalogRevision != request.ManagedCatalogRevision)
+            throw new ActionProtocolValidationException(ActionProtocolFailure.RequestMismatch,
+                "Result managed-catalog revision does not match the correlated request.");
         var requestPath = StrictJson.RequireString(values["RequestPath"], "RequestPath");
         var progressPath = StrictJson.RequireString(values["ProgressPath"], "ProgressPath");
         var wingetLogPath = StrictJson.RequireString(values["WingetLogPath"], "WingetLogPath");
@@ -275,7 +286,7 @@ public sealed class ActionResultCodec
             packages.Add(package);
         }
 
-        var result = new ActionFinalResult(schemaVersion, request.RequestId, generatedAt, computer, status, message, exitCode,
+        var result = new ActionFinalResult(schemaVersion, request.RequestId, generatedAt, computer, status, message, exitCode, managedCatalogRevision,
             requestPath, progressPath, wingetLogPath, packages.AsReadOnly());
         ValidateSemantics(result, request);
         return result;
@@ -464,6 +475,12 @@ internal static class StrictJson
     public static int RequireInt32(JsonElement value, string name)
     {
         if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out var result)) throw WrongType($"{name} must be a JSON integer.");
+        return result;
+    }
+
+    public static long RequireInt64(JsonElement value, string name)
+    {
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out var result)) throw WrongType($"{name} must be a JSON integer.");
         return result;
     }
 
