@@ -249,7 +249,14 @@ public partial class MainWindow : Window
         viewModel.QuickViewCommand.Execute("Missing");
         if (!viewModel.IsMissingQuickView)
             throw new InvalidOperationException("Compiled production smoke could not activate the Missing quick view.");
+        // The Missing view selects exactly the eligible installs it shows, and the All view keeps that selection.
+        var quickViewSelection = viewModel.Packages.Where(item => item.Selected).ToArray();
+        if (quickViewSelection.Any(item => !item.CanSelect || item.Action != AVWorkstationToolkit.Domain.Catalog.PackageAction.Install) ||
+            viewModel.VisiblePackages.Any(item => item.CanSelect && item.Action == AVWorkstationToolkit.Domain.Catalog.PackageAction.Install && !item.Selected))
+            throw new InvalidOperationException("Compiled production Missing quick view did not select exactly the eligible installs.");
         viewModel.QuickViewCommand.Execute("All");
+        if (viewModel.SelectedCount != quickViewSelection.Length || quickViewSelection.Any(item => !item.Selected))
+            throw new InvalidOperationException("Compiled production All view did not keep the quick-view selection.");
         viewModel.SetSort("VendorSortKey", ListSortDirection.Descending);
         var vendorOrder = viewModel.VisiblePackages.Select(item => item.VendorSortKey).ToArray();
         if (viewModel.SortDirection != ListSortDirection.Descending ||
@@ -257,6 +264,11 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled production smoke could not apply the reviewed sort state.");
         viewModel.SetSort("ApplicationSortKey", ListSortDirection.Ascending);
 
+        // Which apps the quick view selected depends on this workstation's installed software, so the manual
+        // checkbox check starts from a known, empty selection.
+        viewModel.ClearSelection();
+        if (viewModel.SelectedCount != 0 || viewModel.Packages.Any(item => item.Selected))
+            throw new InvalidOperationException("Compiled production smoke could not clear the quick-view selection.");
         var selectable = viewModel.VisiblePackages.FirstOrDefault(item => item.SelectionEnabled)
             ?? throw new InvalidOperationException("Compiled production smoke found no safely selectable managed package.");
         PackageGrid.ScrollIntoView(selectable);
@@ -268,10 +280,14 @@ public partial class MainWindow : Window
         if (new CheckBoxAutomationPeer(checkBox).GetPattern(PatternInterface.Toggle) is not IToggleProvider toggle)
             throw new InvalidOperationException("Compiled production selection does not expose keyboard/automation toggle behavior.");
         toggle.Toggle();
-        if (!selectable.Selected || (!viewModel.CanInstall && !viewModel.CanUpdate))
+        var installs = selectable.Action == AVWorkstationToolkit.Domain.Catalog.PackageAction.Install ? 1 : 0;
+        var lowRisk = selectable.Risk == AVWorkstationToolkit.Domain.Catalog.PackageRisk.None;
+        // A low-risk selection enables its action at once; a risky one waits for acknowledgement instead.
+        if (!selectable.Selected || viewModel.SelectedCount != 1 || viewModel.InstallCount != installs || viewModel.UpdateCount != 1 - installs ||
+            viewModel.RiskAcknowledgementRequired == lowRisk || (installs == 1 ? viewModel.CanInstall : viewModel.CanUpdate) != lowRisk)
             throw new InvalidOperationException("Compiled production selection did not update the authoritative action state.");
         toggle.Toggle();
-        if (selectable.Selected)
+        if (selectable.Selected || viewModel.SelectedCount != 0)
             throw new InvalidOperationException("Compiled production deselection did not update the authoritative action state.");
 
         viewModel.SelectedRow = viewModel.VisiblePackages[0];
