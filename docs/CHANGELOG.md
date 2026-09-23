@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-23 — Reference software in the Software table and managed revision-1 baseline
+
+- Device Lookup searches now list documented reference-only software, such as RDL Console for DD-RN31, as informational rows in the main Software table. These rows have no install, update, version, or selection state, and catalog apps keep their own rows.
+- Added the RDL DD-RN31, DDB-RN31, and DDS-RN31 finish variants with their RDL Console configuration relationship, as published in signed reference-catalog revision 2.
+- Embedded the owner-signed managed-catalog revision 1 (`2026.9.22.1`, key `avwt-managed-2026-a`) as the production offline baseline; the public managed feed is not yet published.
+- Source builds keep signed reference-catalog revisions they cannot verify instead of deleting them, a lost accepted revision can be downloaded again, and tests and QA use isolated data roots instead of the user's profile.
+- Corrected the packaged production smoke so its selection, detail, and diagnostics checks hold for the full production catalog on any workstation.
+
 ## 2026-09-21 — Independently updateable managed application catalog
 
 - Added a separately trusted signed `avwt-managed` baseline and fixed-origin manual update path with strict content verification, atomic activation, one retained download, restart-bound selection, and offline fallback.
