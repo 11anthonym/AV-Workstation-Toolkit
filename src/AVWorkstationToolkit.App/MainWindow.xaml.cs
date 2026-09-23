@@ -290,7 +290,10 @@ public partial class MainWindow : Window
         if (selectable.Selected || viewModel.SelectedCount != 0)
             throw new InvalidOperationException("Compiled production deselection did not update the authoritative action state.");
 
-        viewModel.SelectedRow = viewModel.VisiblePackages[0];
+        // The detail check verifies a validated official product link, which managed WinGet records do not catalogue,
+        // so it opens the first row by name that has one rather than whichever record happens to sort first.
+        viewModel.SelectedRow = viewModel.VisiblePackages.FirstOrDefault(item => !string.IsNullOrWhiteSpace(item.Package.MetadataDetails.OfficialProductUri))
+            ?? throw new InvalidOperationException("Compiled production smoke found no package with a catalogued official product page.");
         viewModel.DetailsCommand.Execute(null);
         var detail = viewModel.SelectedDetail ?? throw new InvalidOperationException("Compiled production smoke did not prepare package details.");
         var detailWindow = new CatalogDetailWindow(detail) { Owner = this };
