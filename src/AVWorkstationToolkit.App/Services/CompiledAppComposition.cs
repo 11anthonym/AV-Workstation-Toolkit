@@ -48,13 +48,12 @@ public static class CompiledAppComposition
         string applicationRoot,
         string dataRoot,
         string version,
-        string expectedWorkerSha256,
-        ManagedCatalogRuntimeServices? managedCatalogRuntime = null)
+        string expectedWorkerSha256)
     {
         var canonicalRoot = ProductionRuntimePolicy.RequireDataRoot(dataRoot);
         var runtimeRoot = ProductionRuntimePolicy.RequireApplicationRoot(canonicalRoot, applicationRoot);
         return CreateCore(runtimeRoot, canonicalRoot, production: true, version, expectedWorkerSha256,
-            managedCatalogRuntime ?? ProductionManagedCatalogConfiguration.Create(version));
+            ProductionManagedCatalogConfiguration.Create(version));
     }
 
     public static CompiledAppServices CreateManagedCatalogDevelopment(

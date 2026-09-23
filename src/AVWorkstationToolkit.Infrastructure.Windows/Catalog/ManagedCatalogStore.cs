@@ -15,6 +15,8 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
 {
     public const string EmbeddedBundleRelativePath = "managed-catalog/AVWT-Managed-Catalog.avwtmanaged";
     private const string StoredBundleName = "AVWT-Managed-Catalog.avwtmanaged";
+    private const int SharingViolation = unchecked((int)0x80070020);
+    private const int LockViolation = unchecked((int)0x80070021);
     private readonly string applicationRoot;
     private readonly string root;
     private readonly ManagedCatalogVerifier verifier;
@@ -75,7 +77,7 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
         }
 
         effective = selected;
-        TryDeleteStoredExcept(selected.IsEmbedded ? 0 : selected.Revision);
+        TryDeleteSupersededStored(selected);
         var source = selected.IsEmbedded ? "Signed embedded baseline" : "Verified downloaded catalog";
         var detailText = $"{source} revision {selected.Revision} is active.";
         Status = new(ManagedCatalogUpdateState.Current, selected.Revision, selected.Version, source, 0, string.Empty,
@@ -193,7 +195,15 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
             using var lease = new MutationLease(root, mutationLockTimeout);
             var current = LoadSelectionOnly();
             if (pending.Bundle.Manifest.Revision <= current.Revision)
-                throw new CatalogValidationException("Managed catalog rollback or same-revision activation is not permitted.");
+            {
+                // CheckAsync only offers revisions newer than this process's, so another instance has already
+                // activated one at least this new. Nothing is written; only a restart is needed.
+                Status = new(ManagedCatalogUpdateState.Completed, Status.CurrentRevision, Status.CurrentVersion, Status.Source,
+                    current.Revision, current.Version, true, true,
+                    $"Verified managed catalog revision {current.Revision} is already activated. Restart AV Workstation Toolkit before using it.");
+                pending = null;
+                return Task.FromResult(Status);
+            }
             Activate(pending);
             Status = new(ManagedCatalogUpdateState.Completed, current.Revision, current.Version, Status.Source,
                 pending.Bundle.Manifest.Revision, pending.Bundle.Manifest.CatalogVersion, true, true,
@@ -238,7 +248,7 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
         {
             if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
         }
-        try { DeleteStoredExcept(revision); }
+        try { DeleteStoredBelow(revision); }
         catch (Exception exception) when (IsMutationFailure(exception)) { }
     }
 
@@ -276,7 +286,13 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
                     throw new CatalogValidationException("Stored managed catalog revision does not match its directory.");
                 result.Add(new(revision, bundle.Manifest.CatalogVersion, false, bundle));
             }
-            catch (Exception exception) when (exception is ManagedCatalogRequiresNewerApplicationException || IsCatalogFailure(exception))
+            catch (Exception exception) when (exception is ManagedCatalogRequiresNewerApplicationException ||
+                exception is IOException { HResult: SharingViolation or LockViolation })
+            {
+                // Held open by another process, or meant for a newer release sharing this data root: skip it for
+                // this start rather than deleting a download that is still valid.
+            }
+            catch (Exception exception) when (IsCatalogFailure(exception))
             {
                 TryDeleteStored(revision);
             }
@@ -320,15 +336,24 @@ public sealed class ManagedCatalogStore : IManagedCatalogUpdateService
         catch (Exception exception) when (IsMutationFailure(exception)) { }
     }
 
-    private void TryDeleteStoredExcept(long revision)
+    /// <summary>
+    /// Selection happens before this lease is taken, so another instance may have activated a newer
+    /// revision in between. Only revisions the selection supersedes are removed; a newer one is kept
+    /// for the next start. An embedded selection also supersedes a stored copy of its own revision.
+    /// </summary>
+    private void TryDeleteSupersededStored(LocalSelection selected)
     {
-        try { using var lease = new MutationLease(root, mutationLockTimeout); DeleteStoredExcept(revision); }
+        try
+        {
+            using var lease = new MutationLease(root, mutationLockTimeout);
+            DeleteStoredBelow(selected.IsEmbedded ? selected.Revision + 1 : selected.Revision);
+        }
         catch (Exception exception) when (IsMutationFailure(exception)) { }
     }
 
-    private void DeleteStoredExcept(long revision)
+    private void DeleteStoredBelow(long revision)
     {
-        foreach (var candidate in EnumerateStoredRevisions().Where(item => item != revision).ToArray())
+        foreach (var candidate in EnumerateStoredRevisions().Where(item => item < revision).ToArray())
             DeleteStored(candidate);
     }
 

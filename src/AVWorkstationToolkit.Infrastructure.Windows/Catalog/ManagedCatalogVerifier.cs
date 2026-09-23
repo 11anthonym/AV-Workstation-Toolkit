@@ -194,6 +194,9 @@ public sealed class ManagedCatalogVerifier
                 Encoding.ASCII.GetBytes(actualHash),
                 Encoding.ASCII.GetBytes(manifest.Files[ManagedCatalogBundleNames.Payload].Sha256)))
             throw new CatalogValidationException("Managed catalog payload hash verification failed.");
+        // Checked before the payload is parsed: a signed revision for a newer release may use content this
+        // release cannot parse, and it must be reported as incompatible rather than as invalid.
+        EnsureCompatibleApplication(manifest.MinimumAppVersion, manifest.Revision);
 
         RepositoryCatalogLoader.ManagedCatalogData data;
         try { data = RepositoryCatalogLoader.ParseManagedCatalog(Decode(payloadBytes, "payload")); }
@@ -204,7 +207,6 @@ public sealed class ManagedCatalogVerifier
             .NormalizeManagedCatalog(data.Packages, data.ForbiddenPattern);
         if (catalog.Items.Count != manifest.PackageCount)
             throw new CatalogValidationException("Managed catalog PackageCount does not match the validated payload.");
-        EnsureCompatibleApplication(manifest.MinimumAppVersion, manifest.Revision);
         return new(manifest, catalog, files.ToDictionary(item => item.Key, item => item.Value.ToArray(), StringComparer.Ordinal));
     }
 

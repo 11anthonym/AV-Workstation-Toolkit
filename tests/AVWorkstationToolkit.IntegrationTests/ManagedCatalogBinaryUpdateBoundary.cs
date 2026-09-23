@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -19,10 +20,10 @@ namespace AVWorkstationToolkit.IntegrationTests;
 public sealed record ManagedCatalogBinaryUpdateResult(
     string ApplicationExecutable,
     string WorkerExecutable,
-    string ApplicationSha256Before,
-    string ApplicationSha256After,
-    string WorkerSha256Before,
-    string WorkerSha256After,
+    string ApplicationFolderSha256Before,
+    string ApplicationFolderSha256After,
+    string WorkerFolderSha256Before,
+    string WorkerFolderSha256After,
     long BaselineApplicationRevision,
     long BaselineWorkerRevision,
     long ActivatedRunningRevision,
@@ -154,8 +155,8 @@ public static class ManagedCatalogBinaryUpdateBoundary
             File.WriteAllText(workerFixture, JsonSerializer.Serialize(new ManagedCatalogWorkerHostOptions(
                 1, applicationRoot, dataRoot, ApplicationVersion, SigningKeyId, publicKeyPath)));
             var baselineWorker = await RunWorkerAsync(worker, workerFixture, dataRoot, baselinePackageId, 1,
-                "request-20260921-130001-00000001", expectParsableResult: true);
-            Require(baselineWorker.Result!.Status == ActionResultStatus.Succeeded &&
+                "request-20260921-130001-00000001");
+            Require(baselineWorker.Result.Status == ActionResultStatus.Succeeded &&
                 baselineWorker.Result.ManagedCatalogRevision == 1, "The independent worker did not authorize revision 1.");
 
             var activateFixture = WriteAppFixture(root, "app-activate.json", applicationRoot, dataRoot, publicKeyPath,
@@ -174,22 +175,25 @@ public static class ManagedCatalogBinaryUpdateBoundary
                 "The restarted application development host did not present the revision-2 package.");
 
             var updatedWorker = await RunWorkerAsync(worker, workerFixture, dataRoot, TestPackageId, 2,
-                "request-20260921-130002-00000002", expectParsableResult: true);
-            Require(updatedWorker.Result!.Status == ActionResultStatus.Succeeded &&
+                "request-20260921-130002-00000002");
+            Require(updatedWorker.Result.Status == ActionResultStatus.Succeeded &&
                 updatedWorker.Result.ManagedCatalogRevision == 2 &&
                 updatedWorker.Result.Packages.Single().Status == PackageOutcomeStatus.Planned,
                 "The independent worker did not dry-run authorize the revision-2 package.");
 
+            // The correlated reader accepts a differing revision only for the exact empty mismatch rejection,
+            // so a parsed result here carries the worker's independently verified revision.
             var mismatch = await RunWorkerAsync(worker, workerFixture, dataRoot, TestPackageId, 1,
-                "request-20260921-130003-00000003", expectParsableResult: false);
-            Require(mismatch.ExitCode == 1 && mismatch.ParseFailure == ActionProtocolFailure.RequestMismatch &&
-                mismatch.RawRevision == 2, "A mismatched request revision was not rejected using the worker's verified revision.");
+                "request-20260921-130003-00000003");
+            var revisionMismatchRejected = mismatch.ExitCode == 1 && mismatch.Result.Status == ActionResultStatus.Rejected &&
+                mismatch.Result.ManagedCatalogRevision == 2 && mismatch.Result.Packages.Count == 0;
+            Require(revisionMismatchRejected, "A mismatched request revision was not rejected using the worker's verified revision.");
 
             var unknown = await RunWorkerAsync(worker, workerFixture, dataRoot, "AVWT.UnapprovedBinaryRequest", 2,
-                "request-20260921-130004-00000004", expectParsableResult: true);
-            Require(unknown.ExitCode == 1 && unknown.Result!.Status == ActionResultStatus.Rejected &&
-                unknown.Result.ManagedCatalogRevision == 2,
-                "An unapproved package was not rejected before mutation by the revision-2 worker.");
+                "request-20260921-130004-00000004");
+            var unapprovedPackageRejected = unknown.ExitCode == 1 && unknown.Result.Status == ActionResultStatus.Rejected &&
+                unknown.Result.ManagedCatalogRevision == 2;
+            Require(unapprovedPackageRejected, "An unapproved package was not rejected before mutation by the revision-2 worker.");
 
             var applicationHashAfter = Hash(application);
             var workerHashAfter = Hash(worker);
@@ -198,7 +202,8 @@ public static class ManagedCatalogBinaryUpdateBoundary
             return new(application, worker, applicationHashBefore, applicationHashAfter, workerHashBefore, workerHashAfter,
                 baselineApp.EffectiveRevision, baselineWorker.Result.ManagedCatalogRevision, activated.EffectiveRevision,
                 activated.RestartRequired, restarted.EffectiveRevision, restarted.ExpectedPackagePresented,
-                updatedWorker.Result.ManagedCatalogRevision, updatedWorker.Result.Status.ToString(), true, true);
+                updatedWorker.Result.ManagedCatalogRevision, updatedWorker.Result.Status.ToString(),
+                revisionMismatchRejected, unapprovedPackageRejected);
         }
         finally
         {
@@ -294,7 +299,7 @@ public static class ManagedCatalogBinaryUpdateBoundary
     }
 
     private static async Task<WorkerRunEvidence> RunWorkerAsync(string worker, string fixture, string dataRoot,
-        string packageId, long revision, string requestId, bool expectParsableResult)
+        string packageId, long revision, string requestId)
     {
         var request = new ActionRequest(ActionRequestRules.CurrentSchemaVersion, requestId,
             ManagedRequestAction.Install, [packageId], false, true, revision);
@@ -303,16 +308,11 @@ public static class ManagedCatalogBinaryUpdateBoundary
         var process = await RunProcessAsync(worker,
             ["--managed-catalog-test", "--fixture", fixture, "--request", paths.RequestPath]);
         var payload = await store.ReadArtifactAsync(requestId, ActionArtifactKind.Result);
-        ActionFinalResult? result = null;
-        ActionProtocolFailure? failure = null;
-        try { result = new ActionResultCodec().Parse(payload, request, paths); }
-        catch (ActionProtocolValidationException exception) { failure = exception.Failure; }
-        if (expectParsableResult && result is null)
-            throw new InvalidDataException($"The worker result was not correlated: {failure}. {process.StandardError}");
-        if (!expectParsableResult && failure is null)
-            throw new InvalidDataException("The deliberately mismatched worker result was accepted.");
-        var node = JsonNode.Parse(payload)!.AsObject();
-        return new(process.ExitCode, result, failure, node["ManagedCatalogRevision"]!.GetValue<long>());
+        try { return new(process.ExitCode, new ActionResultCodec().Parse(payload, request, paths)); }
+        catch (ActionProtocolValidationException exception)
+        {
+            throw new InvalidDataException($"The worker result was not correlated: {exception.Failure}. {process.StandardError}", exception);
+        }
     }
 
     private static PackageState RequestState(string id)
@@ -364,7 +364,22 @@ public static class ManagedCatalogBinaryUpdateBoundary
         return new(process.ExitCode, await standardOutput, await standardError);
     }
 
-    private static string Hash(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
+    /// <summary>
+    /// The launched .exe is only an apphost; the code it runs lives in the sibling assemblies and runtime
+    /// files. The digest therefore covers every file, by relative path and content, in the host's output folder.
+    /// </summary>
+    private static string Hash(string executable)
+    {
+        var folder = Path.GetDirectoryName(executable)!;
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        foreach (var path in Directory.GetFiles(folder, "*", SearchOption.AllDirectories).Order(StringComparer.OrdinalIgnoreCase))
+        {
+            digest.AppendData(Encoding.UTF8.GetBytes(Path.GetRelativePath(folder, path).ToUpperInvariant()));
+            using var file = File.OpenRead(path);
+            digest.AppendData(SHA256.HashData(file));
+        }
+        return Convert.ToHexString(digest.GetHashAndReset());
+    }
 
     private static string RequireDirectory(string value, string label)
     {
@@ -393,8 +408,7 @@ public static class ManagedCatalogBinaryUpdateBoundary
 
     private sealed record ProcessEvidence(int ExitCode, string StandardOutput, string StandardError);
     private sealed record PublishedCatalog(string BundlePath, string ChannelMetadataPath, string ChannelSignaturePath);
-    private sealed record WorkerRunEvidence(int ExitCode, ActionFinalResult? Result,
-        ActionProtocolFailure? ParseFailure, long RawRevision);
+    private sealed record WorkerRunEvidence(int ExitCode, ActionFinalResult Result);
 
     private sealed class StaticVerifiedChannel(ManagedCatalogChannelPackage package) : IManagedCatalogChannelClient
     {

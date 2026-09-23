@@ -69,7 +69,7 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         if (selected is not null)
         {
             effectiveSelection = selected;
-            TryDeleteUnselectedStoredRevisions(selected);
+            TryDeleteSupersededStoredRevisions(selected);
             var source = selected.IsEmbedded ? "signed embedded" : "retained signed";
             var detail = $"The {source} reference catalog revision {selected.Revision} is active.";
             if (state.ActiveRevision != selected.Revision && !selected.IsEmbedded)
@@ -404,12 +404,18 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException) { }
     }
 
-    private void TryDeleteUnselectedStoredRevisions(LocalSelection selected)
+    /// <summary>
+    /// Selection happens before this lock is taken, so another instance may have activated a newer
+    /// revision in between. Only revisions older than the selection are removed; a newer one is kept
+    /// for the next start.
+    /// </summary>
+    private void TryDeleteSupersededStoredRevisions(LocalSelection selected)
     {
         try
         {
             using var mutation = AcquireMutationLock();
-            DeleteStoredRevisionsExcept(selected.IsEmbedded ? 0 : selected.Revision);
+            foreach (var revision in EnumerateStoredRevisionDirectories().Where(value => value < selected.Revision).ToArray())
+                DeleteStoredRevision(revision);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException) { }
     }

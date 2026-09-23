@@ -26,10 +26,9 @@ public static class ProductionWorkerComposition
     public static ProductionWorkerServices Create(
         string dataRoot,
         string applicationRoot,
-        string applicationVersion,
-        ManagedCatalogRuntimeServices? managedCatalogRuntime = null)
+        string applicationVersion)
     {
-        var runtime = managedCatalogRuntime ?? ProductionManagedCatalogConfiguration.Create(applicationVersion);
+        var runtime = ProductionManagedCatalogConfiguration.Create(applicationVersion);
         var managed = new ManagedCatalogStore(applicationRoot, dataRoot, runtime.Verifier, channel: null, requireSignedBaseline: true)
             .LoadActiveOrEmbedded();
         var supplementary = new RepositoryCatalogLoader().LoadSupplementary(applicationRoot);

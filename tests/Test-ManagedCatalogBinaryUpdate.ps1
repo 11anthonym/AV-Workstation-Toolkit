@@ -28,9 +28,9 @@ if ([int64]$result.BaselineApplicationRevision -ne 1 -or [int64]$result.Baseline
     -not [bool]$result.RevisionMismatchRejected -or -not [bool]$result.UnapprovedPackageRejected) {
     throw 'Managed-catalog binary update evidence differs from the required revision and authorization sequence.'
 }
-if ([string]$result.ApplicationSha256Before -cne [string]$result.ApplicationSha256After -or
-    [string]$result.WorkerSha256Before -cne [string]$result.WorkerSha256After) {
+if ([string]$result.ApplicationFolderSha256Before -cne [string]$result.ApplicationFolderSha256After -or
+    [string]$result.WorkerFolderSha256Before -cne [string]$result.WorkerFolderSha256After) {
     throw 'A compiled application or worker development-host binary changed during the catalog-only update proof.'
 }
-Write-Output ("MANAGED_CATALOG_BINARY_UPDATE_OK app={0} appSha256={1} worker={2} workerSha256={3} revision=1->2" -f
-    $result.ApplicationExecutable,$result.ApplicationSha256After,$result.WorkerExecutable,$result.WorkerSha256After)
+Write-Output ("MANAGED_CATALOG_BINARY_UPDATE_OK app={0} appFolderSha256={1} worker={2} workerFolderSha256={3} revision=1->2" -f
+    $result.ApplicationExecutable,$result.ApplicationFolderSha256After,$result.WorkerExecutable,$result.WorkerFolderSha256After)

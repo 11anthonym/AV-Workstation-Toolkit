@@ -126,6 +126,64 @@ public sealed class ManagedCatalogRuntimeTests
     }
 
     [TestMethod]
+    public void StartupKeepsARetainedRevisionThatNeedsANewerRelease()
+    {
+        // Every installed release shares the data root. An older release must neither delete a newer release's
+        // revision during verification nor during cleanup, which removes only revisions older than its selection.
+        using var fixture = RuntimeFixture.Create();
+        var stored = Path.Combine(fixture.DataRoot, "ManagedCatalog", "catalogs", "2");
+        Directory.CreateDirectory(stored);
+        File.Copy(fixture.PublishRevision(2, "1.2.0"),
+            Path.Combine(stored, Path.GetFileName(ManagedCatalogStore.EmbeddedBundleRelativePath)));
+
+        Assert.AreEqual(1L, NewStore(fixture).LoadActiveOrEmbedded().Source.Revision);
+        Assert.IsTrue(Directory.Exists(stored), "An older release deleted a revision that a newer release can use.");
+
+        var newer = new ManagedCatalogStore(fixture.ApplicationRoot, fixture.DataRoot,
+            new ManagedCatalogVerifier(new("1.2.0", fixture.TrustedKeys)), channel: null, requireSignedBaseline: true);
+        Assert.AreEqual(2L, newer.LoadActiveOrEmbedded().Source.Revision);
+    }
+
+    [TestMethod]
+    public async Task StartupSkipsARetainedRevisionHeldOpenByAnotherProcess()
+    {
+        using var fixture = RuntimeFixture.Create();
+        var activating = NewStore(fixture, fixture.RuntimeServices.ChannelClient);
+        _ = activating.LoadActiveOrEmbedded();
+        _ = await activating.CheckAsync();
+        Assert.AreEqual(ManagedCatalogUpdateState.Completed, (await activating.InstallAvailableAsync()).State);
+        var retained = Directory.GetFiles(Path.Combine(fixture.DataRoot, "ManagedCatalog", "catalogs", "2"), "*.avwtmanaged").Single();
+
+        // The handle denies reads but permits deletion, so it cannot itself stop a store that wrongly deletes the file.
+        using (new FileStream(retained, FileMode.Open, FileAccess.Read, FileShare.Delete))
+            Assert.AreEqual(1L, NewStore(fixture).LoadActiveOrEmbedded().Source.Revision);
+
+        Assert.IsTrue(File.Exists(retained), "A temporarily locked retained catalog was deleted.");
+        Assert.AreEqual(2L, NewStore(fixture).LoadActiveOrEmbedded().Source.Revision);
+    }
+
+    [TestMethod]
+    public async Task ActivationAlreadyMadeByAnotherInstanceOnlyRequiresRestart()
+    {
+        using var fixture = RuntimeFixture.Create();
+        var first = NewStore(fixture, fixture.RuntimeServices.ChannelClient);
+        var second = NewStore(fixture, fixture.RuntimeServices.ChannelClient);
+        foreach (var store in new[] { first, second })
+        {
+            _ = store.LoadActiveOrEmbedded();
+            Assert.AreEqual(ManagedCatalogUpdateState.UpdateAvailable, (await store.CheckAsync()).State);
+        }
+        Assert.AreEqual(ManagedCatalogUpdateState.Completed, (await first.InstallAvailableAsync()).State);
+
+        var status = await second.InstallAvailableAsync();
+
+        Assert.AreEqual(ManagedCatalogUpdateState.Completed, status.State);
+        Assert.IsTrue(status.RestartRequired);
+        Assert.AreEqual(2L, status.AvailableRevision);
+        Assert.AreEqual(1L, second.LoadActiveOrEmbedded().Source.Revision);
+    }
+
+    [TestMethod]
     public void ProductionManagedAuthorityFailsClosedUntilOwnerProvisioned()
     {
         Assert.AreEqual(0, ProductionManagedCatalogConfiguration.TrustedPublicKeyCount);
@@ -212,6 +270,9 @@ public sealed class ManagedCatalogRuntimeTests
 
     private static string Hash(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
 
+    private static ManagedCatalogStore NewStore(RuntimeFixture fixture, IManagedCatalogChannelClient? channel = null) =>
+        new(fixture.ApplicationRoot, fixture.DataRoot, fixture.RuntimeServices.Verifier, channel, requireSignedBaseline: true);
+
     private sealed class FixedPlanProvider(long revision, WorkstationPlan plan) : IActionWorkerPlanProvider
     {
         public long ManagedCatalogRevision { get; } = revision;
@@ -279,12 +340,15 @@ public sealed class ManagedCatalogRuntimeTests
 
     private sealed class RuntimeFixture : IDisposable
     {
+        private const string SigningKeyId = "test-managed-runtime-2026";
         private readonly string root;
-        private RuntimeFixture(string root, string applicationRoot, string dataRoot, string applicationVersion,
+        private readonly string signingKeyPath;
+        private RuntimeFixture(string root, string signingKeyPath, string applicationRoot, string dataRoot, string applicationVersion,
             ManagedCatalogRuntimeServices runtimeServices, IReadOnlyDictionary<string, string> trustedKeys,
             string updateChannelMetadataPath, string updateChannelSignaturePath, string updateBundlePath, Uri updateBundleUri)
         {
             this.root = root;
+            this.signingKeyPath = signingKeyPath;
             ApplicationRoot = applicationRoot;
             DataRoot = dataRoot;
             ApplicationVersion = applicationVersion;
@@ -341,25 +405,38 @@ public sealed class ManagedCatalogRuntimeTests
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var keyPath = Path.Combine(root, "test-managed-private.pem");
             File.WriteAllText(keyPath, key.ExportPkcs8PrivateKeyPem());
-            const string keyId = "test-managed-runtime-2026";
             var publisher = new ManagedCatalogPublisher();
             var publishedAt = DateTimeOffset.UtcNow.AddMinutes(-2);
             var baseline = publisher.Publish(new(repository, Path.Combine(root, "publication-1"), "2026.9.21.1", 1, "1.1.1",
-                publishedAt, keyId, keyPath, new Uri("https://catalog.example.test/managed/")));
+                publishedAt, SigningKeyId, keyPath, new Uri("https://catalog.example.test/managed/")));
             var update = publisher.Publish(new(authoring, Path.Combine(root, "publication-2"), "2026.9.21.2", 2, "1.1.1",
-                publishedAt.AddMinutes(1), keyId, keyPath, new Uri("https://catalog.example.test/managed/"), baseline.BundlePath));
+                publishedAt.AddMinutes(1), SigningKeyId, keyPath, new Uri("https://catalog.example.test/managed/"), baseline.BundlePath));
             Directory.CreateDirectory(Path.Combine(application, "managed-catalog"));
             File.Copy(baseline.BundlePath, Path.Combine(application, ManagedCatalogStore.EmbeddedBundleRelativePath.Replace('/', Path.DirectorySeparatorChar)));
 
-            var keys = new Dictionary<string, string>(StringComparer.Ordinal) { [keyId] = key.ExportSubjectPublicKeyInfoPem() };
+            var keys = new Dictionary<string, string>(StringComparer.Ordinal) { [SigningKeyId] = key.ExportSubjectPublicKeyInfoPem() };
             var verifier = new ManagedCatalogVerifier(new("1.1.1", keys));
             var publication = verifier.VerifyPublication(update.ChannelMetadataPath, update.ChannelSignaturePath, update.BundlePath, DateTimeOffset.UtcNow);
             var bytes = File.ReadAllBytes(update.BundlePath);
             var channel = new StaticChannel(new(publication.Channel.Revision, publication.Channel.PreviousRevision,
                 publication.Channel.CatalogVersion, publication.Channel.MinimumAppVersion, publication.Channel.CreatedUtc,
                 publication.Channel.SigningKeyId, publication.Channel.BundleSha256, bytes));
-            return new(root, application, data, "1.1.1", new(verifier, channel), keys,
+            return new(root, keyPath, application, data, "1.1.1", new(verifier, channel), keys,
                 update.ChannelMetadataPath, update.ChannelSignaturePath, update.BundlePath, publication.Channel.BundleUri);
+        }
+
+        /// <summary>Publishes the canonical managed catalog as another signed revision with its own minimum release.</summary>
+        internal string PublishRevision(long revision, string minimumAppVersion)
+        {
+            var authoring = Path.Combine(root, $"authoring-{revision}");
+            Directory.CreateDirectory(Path.Combine(authoring, "manifests"));
+            File.Copy(Path.Combine(RepositoryRootLocator.Find(), "manifests", "managed-applications.json"),
+                Path.Combine(authoring, "manifests", "managed-applications.json"));
+            // The publisher verifies its output as the release named in VERSION.
+            File.WriteAllText(Path.Combine(authoring, "VERSION"), minimumAppVersion);
+            return new ManagedCatalogPublisher().Publish(new(authoring, Path.Combine(root, $"publication-{revision}-{minimumAppVersion}"),
+                $"2026.9.21.{revision}", revision, minimumAppVersion, DateTimeOffset.UtcNow.AddMinutes(-1), SigningKeyId, signingKeyPath,
+                new Uri("https://catalog.example.test/managed/"))).BundlePath;
         }
 
         public void Dispose()
