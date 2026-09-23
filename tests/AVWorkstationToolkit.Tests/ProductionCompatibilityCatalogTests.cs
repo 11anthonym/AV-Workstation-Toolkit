@@ -598,6 +598,7 @@ public sealed class ProductionCompatibilityCatalogTests
         var rdlDd = service.SearchDevices("DD-BTN44").Single(item => item.Hardware?.Id == "RDL.DDBTN44");
         Assert.AreEqual(HardwareLookupState.KnownExactModelWithVerifiedRelationships, rdlDd.LookupState);
         AssertModelSoftware(service, "DDS-BTN44", "RDL.DDSBTN44", "RDL.Console", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "DD-RN31", "RDL.DDRN31", "RDL.Console", DeviceSoftwarePurpose.Configuration);
 
         var nbp = service.SearchDevices("NBP1200C").Single(item => item.Hardware?.Id == "Extron.NBP1200C");
         Assert.AreEqual(HardwareDeviceCategory.ControlPanel, nbp.Hardware!.Category);
