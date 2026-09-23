@@ -1154,6 +1154,128 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task DeviceSearchListsDocumentedReferenceSoftwareInTheSoftwareTable()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "DD-BTN44";
+        await viewModel.SearchCompletion;
+
+        Assert.AreEqual("DD-BTN44", viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device).Title);
+        Assert.IsEmpty(viewModel.VisiblePackages);
+        var reference = (ReferenceSoftwareRowViewModel)viewModel.SoftwareRows.Single();
+        Assert.AreEqual("RDL.Console", reference.ProductId.Value);
+        Assert.AreEqual("RDL Console", reference.Name);
+        Assert.AreEqual("Radio Design Labs", reference.Vendor);
+        CollectionAssert.AreEqual(new[] { DeviceSoftwarePurpose.Configuration }, reference.Purposes.ToArray());
+        Assert.AreEqual("Configuration software for DD-BTN44.", reference.Note);
+        Assert.AreEqual("Reference only", reference.StatusLabel);
+        StringAssert.Contains(reference.StatusDetail, "doesn't install, update, or check");
+        Assert.AreEqual(string.Empty, reference.VersionLabel);
+        Assert.AreEqual(string.Empty, reference.AvailableLabel);
+        Assert.AreEqual(string.Empty, reference.RiskLabel);
+        Assert.AreEqual(string.Empty, reference.Priority);
+
+        viewModel.SearchText = string.Empty;
+        await viewModel.SearchCompletion;
+        Assert.IsFalse(viewModel.SoftwareRows.OfType<ReferenceSoftwareRowViewModel>().Any());
+        Assert.HasCount(viewModel.Packages.Count, viewModel.SoftwareRows);
+    }
+
+    [TestMethod]
+    public async Task SoftwareProductSearchListsReferenceOnlyProductInTheSoftwareTable()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+
+        viewModel.SearchText = "RDL Console";
+        await viewModel.SearchCompletion;
+
+        Assert.AreEqual("RDL Console", viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Software).Title);
+        var reference = (ReferenceSoftwareRowViewModel)viewModel.SoftwareRows.Single();
+        Assert.AreEqual("RDL.Console", reference.ProductId.Value);
+        Assert.IsEmpty(reference.Purposes);
+        Assert.AreEqual("Listed in the device reference catalog.", reference.Note);
+        Assert.AreEqual("Reference only", reference.StatusLabel);
+        Assert.IsFalse(reference.SelectionEnabled);
+    }
+
+    [TestMethod]
+    public async Task ReferenceOnlySoftwareRowsHaveNoInstallUpdateOrSelectionAuthority()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "DD-BTN44";
+        await viewModel.SearchCompletion;
+        var reference = viewModel.SoftwareRows.OfType<ReferenceSoftwareRowViewModel>().Single();
+
+        reference.Selected = true;
+        Assert.IsFalse(reference.Selected);
+        Assert.IsFalse(reference.SelectionEnabled);
+        Assert.IsFalse(reference.CanSelect);
+        StringAssert.Contains(reference.SelectionHint, "can't install or update");
+        Assert.AreEqual(0, viewModel.SelectedCount);
+        Assert.IsFalse(viewModel.CanInstall);
+        Assert.IsFalse(viewModel.CanUpdate);
+        Assert.IsFalse(viewModel.Packages.Any(item => item.Selected));
+
+        viewModel.SelectedTableRow = reference;
+        Assert.IsNull(viewModel.SelectedRow);
+        Assert.IsFalse(viewModel.GetPackageCommand.CanExecute(null));
+        Assert.IsTrue(viewModel.DetailsCommand.CanExecute(null));
+        viewModel.DetailsCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        Assert.AreEqual("RDL.Console", viewModel.SelectedCompatibilityDetail!.ContextId);
+        Assert.IsNull(viewModel.SelectedDetail);
+
+        // Quick views describe install state that reference-only software doesn't have, so they don't list it.
+        viewModel.QuickViewCommand.Execute("Missing");
+        await viewModel.SearchCompletion;
+        Assert.IsFalse(viewModel.SoftwareRows.OfType<ReferenceSoftwareRowViewModel>().Any());
+        Assert.IsNull(viewModel.SelectedTableRow);
+        Assert.AreEqual(0, viewModel.SelectedCount);
+        viewModel.QuickViewCommand.Execute("All");
+        await viewModel.SearchCompletion;
+        Assert.HasCount(1, viewModel.SoftwareRows.OfType<ReferenceSoftwareRowViewModel>());
+    }
+
+    [TestMethod]
+    public async Task DeviceSearchShowsDocumentedCatalogAppThroughItsOwnManagedRow()
+    {
+        var toolboxDefinition = new CatalogParser(new DateOnly(2026, 8, 28)).NormalizeManagedCatalog(
+            [new("Standard", "Crestron Toolbox", "Crestron.Toolbox", "Crestron", "None", "diagnostics", null, null)],
+            "NeverMatchThisFixture").Items.Single();
+        using var viewModel = new MainWindowViewModel(
+            new QueueCoordinator(CreatePlanWith(State(toolboxDefinition, PackageStatus.Missing, PackageAction.Install, false, string.Empty))),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+        var toolbox = viewModel.Packages.Single(item => item.Id == "Crestron.Toolbox");
+        var statusBefore = toolbox.StatusLabel;
+
+        viewModel.SearchText = "CP4N";
+        await viewModel.SearchCompletion;
+
+        Assert.AreSame(toolbox, viewModel.VisiblePackages.Single());
+        Assert.AreSame(toolbox, viewModel.SoftwareRows[0]);
+        Assert.AreEqual(statusBefore, toolbox.StatusLabel);
+        Assert.IsTrue(toolbox.SelectionEnabled);
+        var references = viewModel.SoftwareRows.OfType<ReferenceSoftwareRowViewModel>().ToArray();
+        Assert.IsFalse(references.Any(row => row.ProductId.Value == "Crestron.Toolbox"), "A catalog app was duplicated as reference-only software.");
+        var simpl = references.Single(row => row.ProductId.Value == "Crestron.SIMPLWindows");
+        CollectionAssert.Contains(simpl.Purposes.ToArray(), DeviceSoftwarePurpose.Programming);
+        StringAssert.Contains(simpl.Note, "CP4N");
+
+        toolbox.Selected = true;
+        Assert.AreEqual(1, viewModel.InstallCount);
+        Assert.AreEqual(1, viewModel.SelectedCount);
+        Assert.IsTrue(viewModel.CanInstall);
+    }
+
+    [TestMethod]
     public void RepositoryCatalogLoaderReadsAllThreeCurrentCatalogClasses()
     {
         var root = FindRepositoryRoot();
@@ -1267,6 +1389,13 @@ public sealed class CompiledPresentationTests
         var providers = new ProviderRefreshSummary(ProviderQuality.Complete, ProviderQuality.Complete, inventoryWarning ? ProviderQuality.Partial : ProviderQuality.Complete, ProviderQuality.Complete, warnings);
         var reboot = rebootPending ? new RebootState(true, [RebootReason.WindowsUpdate], "Windows Update") : RebootState.Clear;
         return new WorkstationPlan(states, summary, reboot, providers);
+    }
+
+    private static WorkstationPlan CreatePlanWith(PackageState additional)
+    {
+        var fixture = CreatePlan();
+        PackageState[] states = [.. fixture.Packages, additional];
+        return new WorkstationPlan(states, Summarize(states), fixture.Reboot, fixture.Providers);
     }
 
     private static WorkstationPlan CreateLargePlan(int count)

@@ -5,7 +5,7 @@ using AVWorkstationToolkit.Application.Details;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
-public sealed class PackageRowViewModel : ObservableObject
+public sealed class PackageRowViewModel : ObservableObject, ISoftwareTableRow
 {
     private readonly Action selectionChanged;
     private bool selected;
