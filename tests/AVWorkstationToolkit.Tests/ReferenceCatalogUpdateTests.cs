@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using AVWorkstationToolkit.App.Services;
 using AVWorkstationToolkit.Application.Compatibility;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
@@ -124,6 +125,101 @@ public sealed class ReferenceCatalogUpdateTests
         Assert.IsGreaterThan(0, set.Hardware.Models.Count);
         Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(1)));
     }
+
+    [TestMethod]
+    public async Task StoredRevisionSignedByAnUntrustedKeyIsKeptUnusedUntilATrustingBuildSelectsIt()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1)).State);
+        var before = fixture.SnapshotReferenceCatalog();
+
+        // A source build trusts no key, and another release may trust only different keys: neither can use it.
+        using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        foreach (var keys in new[]
+        {
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["other-2026-b"] = otherKey.ExportSubjectPublicKeyInfoPem() }
+        })
+        {
+            var verifier = new ReferenceCatalogBundleVerifier(new("1.1.1", keys));
+            Assert.ThrowsExactly<ReferenceCatalogSignerNotTrustedException>(() => verifier.VerifyDirectory(fixture.StoredCatalogDirectory(2)));
+            var set = new ReferenceCatalogStore(fixture.EmbeddedRoot, fixture.DataRoot, verifier).LoadActiveOrEmbedded();
+            Assert.AreNotEqual(2L, set.Source.Revision, "An unverifiable revision gained authority.");
+            CollectionAssert.AreEqual(before, fixture.SnapshotReferenceCatalog(), "An unverifiable signed revision or its state was changed.");
+        }
+
+        var trusting = fixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.AreEqual(2L, trusting.Source.Revision);
+        Assert.IsFalse(trusting.Source.IsEmbedded);
+    }
+
+    [TestMethod]
+    public void StoredRevisionFailingVerificationUnderATrustedKeyIsStillDeleted()
+    {
+        using var fixture = new BundleFixture();
+        using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        // It names the trusted key but carries another key's signature: tampered, not merely unverifiable.
+        fixture.ExtractStoredBundle(fixture.CreateBundle(3, 2, signingKey: otherKey), 3);
+
+        Assert.ThrowsExactly<CatalogValidationException>(() => fixture.CreateVerifier().VerifyDirectory(fixture.StoredCatalogDirectory(3)));
+        var set = fixture.CreateStore().LoadActiveOrEmbedded();
+        Assert.AreNotEqual(3L, set.Source.Revision);
+        Assert.IsFalse(Directory.Exists(fixture.StoredCatalogDirectory(3)));
+    }
+
+    [TestMethod]
+    public async Task LostAcceptedRevisionCanBeDownloadedAgainButOlderRevisionsStayRefused()
+    {
+        using var fixture = new BundleFixture();
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1)).State);
+        // The retained copy disappears while state.json still records revision 2 as accepted.
+        Directory.Delete(fixture.StoredCatalogDirectory(2), recursive: true);
+
+        Assert.AreEqual(ReferenceCatalogUpdateState.Current,
+            (await fixture.ActivateAsync(fixture.CreateBundle(1, 0), revision: 1)).State, "An older revision was offered after the loss.");
+        Assert.AreEqual(ReferenceCatalogUpdateState.Completed,
+            (await fixture.ActivateAsync(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1)).State, "The lost accepted revision could not be recovered.");
+        Assert.AreEqual(2L, fixture.CreateStore().LoadActiveOrEmbedded().Source.Revision);
+        Assert.AreEqual(ReferenceCatalogUpdateState.Current,
+            (await fixture.ActivateAsync(fixture.CreateBundle(2, 1), revision: 2, previousRevision: 1)).State, "A retained revision was activated again.");
+    }
+
+    [TestMethod]
+    public void SourceCompositionLeavesAProductionSignedRevisionInAnotherProfileForProduction()
+    {
+        var repository = BundleFixture.RepositoryRootPath();
+        var profile = Path.Combine(Path.GetTempPath(), $"awt-user-profile-{Guid.NewGuid():N}");
+        var catalogRoot = Path.Combine(profile, "ReferenceCatalog");
+        try
+        {
+            // A separate, real-user-style profile holding the production-signed revision tracked in this repository.
+            ZipFile.ExtractToDirectory(Path.Combine(repository, "catalog", "reference", "AVWT-Reference-Catalog.avwtcatalog"),
+                Path.Combine(catalogRoot, "catalogs", "1"));
+            File.WriteAllText(Path.Combine(catalogRoot, "state.json"),
+                "{\n  \"ActiveRevision\": 1,\n  \"LastCheckUtc\": \"2026-09-23T04:11:33.5882995+00:00\"\n}");
+            var before = SnapshotFiles(catalogRoot);
+
+            var source = CompiledAppComposition.Create(repository, profile);
+
+            Assert.AreEqual(0L, source.ReferenceCatalogUpdates.Status.CurrentRevision, "A source build used a catalog it cannot verify.");
+            CollectionAssert.AreEqual(before, SnapshotFiles(catalogRoot), "A source build changed another profile's signed catalog.");
+            var production = new ReferenceCatalogStore(repository, profile,
+                ProductionReferenceCatalogConfiguration.Create("1.1.1").BundleVerifier).LoadActiveOrEmbedded();
+            Assert.AreEqual(1L, production.Source.Revision);
+            Assert.IsFalse(production.Source.IsEmbedded);
+        }
+        finally
+        {
+            if (Directory.Exists(profile)) Directory.Delete(profile, recursive: true);
+        }
+    }
+
+    private static string[] SnapshotFiles(string root) => Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+        .Select(path => $"{Path.GetRelativePath(root, path)}|{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)))}")
+        .Order(StringComparer.Ordinal)
+        .ToArray();
 
     [TestMethod]
     public async Task OversizedBundleUnexpectedStoredFileAndMalformedStateFailClosedToEmbedded()
@@ -493,14 +589,18 @@ public sealed class ReferenceCatalogUpdateTests
             string? dataRootOverride = null,
             string applicationVersion = "1.1.1",
             TimeProvider? timeProvider = null,
-            TimeSpan? mutationLockTimeout = null)
+            TimeSpan? mutationLockTimeout = null) =>
+            new(EmbeddedRoot, dataRootOverride ?? DataRoot, CreateVerifier(trusted, applicationVersion), channel, timeProvider, mutationLockTimeout);
+
+        public ReferenceCatalogBundleVerifier CreateVerifier(bool trusted = true, string applicationVersion = "1.1.1")
         {
             IReadOnlyDictionary<string, string> keys = trusted
                 ? new Dictionary<string, string>(StringComparer.Ordinal) { ["test-2026-a"] = key.ExportSubjectPublicKeyInfoPem() }
                 : new Dictionary<string, string>(StringComparer.Ordinal);
-            return new(EmbeddedRoot, dataRootOverride ?? DataRoot,
-                new ReferenceCatalogBundleVerifier(new(applicationVersion, keys)), channel, timeProvider, mutationLockTimeout);
+            return new(new(applicationVersion, keys));
         }
+
+        public string[] SnapshotReferenceCatalog() => SnapshotFiles(Path.Combine(DataRoot, "ReferenceCatalog"));
 
         /// <summary>Drives the production path: signed channel check, then activation.</summary>
         public async Task<ReferenceCatalogUpdateStatus> ActivateAsync(

@@ -39,6 +39,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly ReadOnlyObservableCollection<PackageRowViewModel> visiblePackageView;
     private readonly BatchObservableCollection<CompatibilitySearchResultViewModel> compatibilityMatches = [];
     private readonly ReadOnlyObservableCollection<CompatibilitySearchResultViewModel> compatibilityMatchView;
+    private readonly BatchObservableCollection<ISoftwareTableRow> softwareRows = [];
+    private readonly ReadOnlyObservableCollection<ISoftwareTableRow> softwareRowView;
+    private RelatedSoftware relatedSoftware = RelatedSoftware.None;
     private readonly TimeSpan searchDebounce;
     private readonly Dispatcher? uiDispatcher;
     private IReadOnlyList<PackageSearchEntry> packageSearchSnapshot = [];
@@ -71,6 +74,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private FilterOption<PackageRole?> selectedRole;
     private QuickView quickView;
     private PackageRowViewModel? selectedRow;
+    private ISoftwareTableRow? selectedTableRow;
     private string sortMemberPath = string.Empty;
     private ListSortDirection? sortDirection;
     private string activityText = string.Empty;
@@ -128,6 +132,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         packageView = new ReadOnlyObservableCollection<PackageRowViewModel>(packages);
         visiblePackageView = new ReadOnlyObservableCollection<PackageRowViewModel>(visiblePackages);
         compatibilityMatchView = new ReadOnlyObservableCollection<CompatibilitySearchResultViewModel>(compatibilityMatches);
+        softwareRowView = new ReadOnlyObservableCollection<ISoftwareTableRow>(softwareRows);
         LiveRehearsalMode = liveRehearsalMode;
         if (actionCoordinator is not null) actionCoordinator.StateChanged += ActionCoordinator_StateChanged;
         PriorityOptions =
@@ -162,7 +167,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         InstallCommand = new AsyncRelayCommand(() => RunActionAsync(ManagedRequestAction.Install), () => CanInstall);
         UpdateCommand = new AsyncRelayCommand(() => RunActionAsync(ManagedRequestAction.Update), () => CanUpdate);
         CancelActionCommand = new AsyncRelayCommand(CancelActionAsync, () => CanCancelAction);
-        DetailsCommand = new RelayCommand(_ => ShowSelectedDetails(), _ => SelectedRow is not null);
+        DetailsCommand = new RelayCommand(_ => ShowSelectedDetails(), _ => SelectedRow is not null || SelectedTableRow is ReferenceSoftwareRowViewModel);
         GetPackageCommand = new AsyncRelayCommand(GetPackageAsync, CanGetPackage);
         DiagnosticsCommand = new RelayCommand(_ => ShowDiagnostics(), _ => plan is not null && !IsBusy);
         ExportPlanCommand = new RelayCommand(_ => ExportPlan(), _ => plan is not null && !IsBusy && applicationMenuWorkflow is not null);
@@ -175,6 +180,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public ReadOnlyObservableCollection<PackageRowViewModel> Packages => packageView;
     public IReadOnlyList<PackageRowViewModel> VisiblePackages => visiblePackageView;
+
+    // The Software table: the visible catalog rows followed by any reference-only software documented for the search results.
+    public IReadOnlyList<ISoftwareTableRow> SoftwareRows => softwareRowView;
     public IReadOnlyList<CompatibilitySearchResultViewModel> CompatibilityMatches => compatibilityMatchView;
     public IReadOnlyList<FilterOption<PackagePriority?>> PriorityOptions { get; }
     public IReadOnlyList<FilterOption<CatalogPreset>> CatalogPresetOptions { get; }
@@ -316,11 +324,25 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             if (!SetProperty(ref selectedRow, value)) return;
+            // Keep the table's selected item in step when code selects or clears a catalog row.
+            if (value is not null || selectedTableRow is PackageRowViewModel) SelectedTableRow = value;
             if (selectedDetail is not null && !selectedDetail.Detail.PackageId.Equals(value?.Id, StringComparison.OrdinalIgnoreCase))
                 SelectedDetail = null;
             DetailsCommand.RaiseCanExecuteChanged();
             GetPackageCommand.RaiseCanExecuteChanged();
             OnPropertyChanged(nameof(GetPackageButtonText));
+        }
+    }
+
+    // The table's selected item. Only a catalog row becomes SelectedRow, so package commands never see reference-only software.
+    public ISoftwareTableRow? SelectedTableRow
+    {
+        get => selectedTableRow;
+        set
+        {
+            if (!SetProperty(ref selectedTableRow, value)) return;
+            SelectedRow = value as PackageRowViewModel;
+            DetailsCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -578,13 +600,16 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             request.Query,
             request.QuickView,
             request.CatalogPreset);
+        // Catalog apps documented for the listed device and software results keep their own rows and every other filter.
+        var relatedQuery = query with { Search = string.Empty };
         var rows = new List<PackageRowViewModel>(request.PackageEntries.Count);
         Interlocked.Add(ref packageSearchRowsEvaluated, request.PackageEntries.Count);
         for (var index = 0; index < request.PackageEntries.Count; index++)
         {
             if ((index & 31) == 0) cancellationToken.ThrowIfCancellationRequested();
             var entry = request.PackageEntries[index];
-            if (queryService.Matches(entry.Item, query)) rows.Add(entry.Row);
+            if (queryService.Matches(entry.Item, query) ||
+                request.RelatedPackageIds.Contains(entry.Row.Id) && queryService.Matches(entry.Item, relatedQuery)) rows.Add(entry.Row);
         }
         cancellationToken.ThrowIfCancellationRequested();
         return ApplySort(rows, request.SortMemberPath, request.SortDirection).ToArray();
@@ -592,10 +617,27 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ApplyVisibleRows(IReadOnlyList<PackageRowViewModel> rows)
     {
-        if (!visiblePackages.ReplaceAll(rows)) return;
+        var visibleChanged = visiblePackages.ReplaceAll(rows);
+        var tableChanged = softwareRows.ReplaceAll(ComposeSoftwareRows());
+        if (!visibleChanged && !tableChanged) return;
         if (SelectedRow is not null && !visiblePackages.Contains(SelectedRow)) SelectedRow = null;
+        if (SelectedTableRow is not null && !softwareRows.Contains(SelectedTableRow)) SelectedTableRow = null;
         UpdateStatusText();
     }
+
+    private IReadOnlyList<ISoftwareTableRow> ComposeSoftwareRows()
+    {
+        if (relatedSoftware.ReferenceRows.Count == 0 || !ShowsReferenceSoftware ||
+            !relatedSoftware.Query.Equals(SearchText.Trim(), StringComparison.Ordinal))
+            return visiblePackages;
+        return [.. visiblePackages, .. relatedSoftware.ReferenceRows];
+    }
+
+    // Reference-only software has no profile, priority, manufacturer facet, discipline, role, preset, or install state,
+    // so it is listed only while none of those filters or quick views is narrowing the table.
+    private bool ShowsReferenceSoftware => QuickView == QuickView.All && SelectedCatalogPreset.Value == CatalogPreset.All &&
+        SelectedPriority.Value is null && SelectedManufacturer.Value == "All" && SelectedDiscipline.Value == CatalogDiscipline.All &&
+        SelectedRole.Value is null && StandardProfile && FieldProfile && DeveloperProfile && OptionalProfile;
 
     private void SearchStateChanged()
     {
@@ -653,13 +695,22 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private SearchResult ComputeSearch(SearchRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var rows = request.PrecomputedVisibleRows ?? ComputeVisibleRows(request, cancellationToken);
         if (compatibilityService is null || request.Query.Length < 2)
-            return new SearchResult(rows, [], 0, CompatibilitySearchOutcome.NoDeviceOrCatalogMatch);
+            return new SearchResult(request.PrecomputedVisibleRows ?? ComputeVisibleRows(request, cancellationToken), [], 0,
+                CompatibilitySearchOutcome.NoDeviceOrCatalogMatch, RelatedSoftware.None);
 
         var search = compatibilityService.Search(request.Query, cancellationToken);
         var matches = new List<CompatibilitySearchResultViewModel>(Math.Min(
             CompatibilityResultLimit, search.Devices.Count + search.Products.Count));
+        // Software documented for each listed result, in result order, with the purposes and devices that link it.
+        var documented = new OrderedDictionary<SoftwareProductId, (List<DeviceSoftwarePurpose> Purposes, List<string> Devices)>();
+        void Document(SoftwareProductId productId, DeviceSoftwarePurpose? purpose = null, string? device = null)
+        {
+            if (!documented.TryGetValue(productId, out var use)) documented.Add(productId, use = ([], []));
+            if (purpose is { } value && !use.Purposes.Contains(value)) use.Purposes.Add(value);
+            if (device is not null && !use.Devices.Contains(device, StringComparer.OrdinalIgnoreCase)) use.Devices.Add(device);
+        }
+
         foreach (var device in search.Devices)
         {
             if (matches.Count == CompatibilityResultLimit) break;
@@ -673,6 +724,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                     ? "This device is listed, but its software support hasn't been verified. This doesn't mean no software is needed. It can't be selected for install or update."
                     : "View software grouped by purpose. Device results can't be selected for install or update.",
                 () => OpenCompatibilityDeviceAsync(device, displayName)));
+            foreach (var software in compatibilityService.GetSoftwareForDevice(device).SelectMany(group => group.Software))
+                Document(software.ProductId, software.Purpose, displayName);
         }
 
         foreach (var product in search.Products)
@@ -685,12 +738,35 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 $"{product.Vendor} | {CompatibilityLabel(product.Lifecycle)}",
                 "View version information and the devices this software supports.",
                 () => OpenCompatibilityProductAsync(product.Id)));
+            Document(product.Id);
         }
-        return new SearchResult(rows, matches, search.Devices.Count + search.Products.Count, search.Outcome);
+
+        // A documented product that is also an app catalog record is shown through that record's own row; anything
+        // else is listed as reference-only software.
+        var packageIds = request.PackageEntries.Select(entry => entry.Row.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var relatedPackageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var referenceRows = new List<ReferenceSoftwareRowViewModel>();
+        foreach (var (productId, use) in documented)
+        {
+            if (packageIds.Contains(productId.Value))
+            {
+                relatedPackageIds.Add(productId.Value);
+                continue;
+            }
+            var product = compatibilityService.GetProduct(productId);
+            referenceRows.Add(new ReferenceSoftwareRowViewModel(product.Id, product.Name, product.Vendor, use.Purposes, use.Devices));
+        }
+
+        var rows = request.PrecomputedVisibleRows is { } precomputed && request.RelatedPackageIds.SetEquals(relatedPackageIds)
+            ? precomputed
+            : ComputeVisibleRows(request with { RelatedPackageIds = relatedPackageIds }, cancellationToken);
+        return new SearchResult(rows, matches, search.Devices.Count + search.Products.Count, search.Outcome,
+            new RelatedSoftware(request.Query, relatedPackageIds, referenceRows));
     }
 
     private void ApplySearchResult(SearchResult result)
     {
+        relatedSoftware = result.Related;
         ApplyVisibleRows(result.VisibleRows);
         compatibilityMatches.ReplaceAll(result.CompatibilityMatches);
         compatibilityTotalMatchCount = result.TotalCompatibilityMatches;
@@ -748,7 +824,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         QuickView,
         SelectedCatalogPreset.Value,
         sortMemberPath,
-        sortDirection);
+        sortDirection,
+        relatedSoftware.Query.Equals(query.Trim(), StringComparison.Ordinal) ? relatedSoftware.PackageIds : RelatedSoftware.None.PackageIds);
 
     private Task RunOnUiContextAsync(Action action)
     {
@@ -831,6 +908,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CatalogPreset CatalogPreset,
         string SortMemberPath,
         ListSortDirection? SortDirection,
+        IReadOnlySet<string> RelatedPackageIds,
         IReadOnlyList<PackageRowViewModel>? PrecomputedVisibleRows = null);
 
     private sealed record PackageSearchEntry(PackageRowViewModel Row, CatalogQueryItem Item);
@@ -839,7 +917,17 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IReadOnlyList<PackageRowViewModel> VisibleRows,
         IReadOnlyList<CompatibilitySearchResultViewModel> CompatibilityMatches,
         int TotalCompatibilityMatches,
-        CompatibilitySearchOutcome Outcome);
+        CompatibilitySearchOutcome Outcome,
+        RelatedSoftware Related);
+
+    // Software documented for one query's listed results: catalog apps shown through their own rows, and reference-only rows.
+    private sealed record RelatedSoftware(
+        string Query,
+        IReadOnlySet<string> PackageIds,
+        IReadOnlyList<ReferenceSoftwareRowViewModel> ReferenceRows)
+    {
+        public static RelatedSoftware None { get; } = new(string.Empty, new HashSet<string>(), []);
+    }
 
     private void SetQuickView(QuickView view)
     {
@@ -1043,6 +1131,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ShowSelectedDetails()
     {
+        if (SelectedTableRow is ReferenceSoftwareRowViewModel reference)
+        {
+            _ = OpenCompatibilityProductAsync(reference.ProductId);
+            return;
+        }
         if (SelectedRow is null || planCatalog is null) return;
         ExternalReleaseEvidence? release = null;
         plan?.ExternalReleases?.TryGetValue(SelectedRow.Id, out release);

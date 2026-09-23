@@ -54,7 +54,7 @@ public sealed class ReferenceCatalogBundleVerifier
     internal VerifiedReferenceCatalogBundle VerifyArchive(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        if (!policy.IsConfigured) throw new CatalogValidationException("No trusted reference-catalog signing key is configured.");
+        if (!policy.IsConfigured) throw new ReferenceCatalogSignerNotTrustedException("No trusted reference-catalog signing key is configured.");
         var files = CatalogBundleReader.ReadExact(
             stream,
             ReferenceCatalogBundleNames.BundleFiles,
@@ -65,6 +65,8 @@ public sealed class ReferenceCatalogBundleVerifier
 
         var manifestBytes = files[ReferenceCatalogBundleNames.Manifest];
         var manifest = new ReferenceCatalogManifestParser().ParseManifest(Decode(manifestBytes, "manifest"));
+        if (!policy.TrustedPublicKeys.ContainsKey(manifest.SigningKeyId))
+            throw new ReferenceCatalogSignerNotTrustedException("Reference catalog is signed by a key this build does not trust.");
         CatalogSignatureVerifier.VerifyP256(
             policy.TrustedPublicKeys,
             manifest.SigningKeyId,
@@ -149,6 +151,12 @@ public sealed class ReferenceCatalogBundleVerifier
         return root;
     }
 }
+
+/// <summary>
+/// The catalog names a signing key this build does not trust, or this build trusts no key at all. It is
+/// unverifiable here, which is not the same as corrupt: a build that trusts the key can still verify it.
+/// </summary>
+public sealed class ReferenceCatalogSignerNotTrustedException(string message) : CatalogValidationException(message);
 
 public sealed class ReferenceCatalogRequiresNewerApplicationException(string minimumVersion, long revision = 0)
     : Exception($"Reference catalog requires AV Workstation Toolkit {minimumVersion} or newer.")

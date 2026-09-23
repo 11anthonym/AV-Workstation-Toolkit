@@ -96,7 +96,7 @@ public partial class App : System.Windows.Application
             else
             {
                 var repositoryRoot = RepositoryRootLocator.Find();
-                var services = CompiledAppComposition.Create(repositoryRoot);
+                var services = CompiledAppComposition.Create(repositoryRoot, DataRootArgument(e.Args));
                 coordinator = services.Planning;
                 diagnostics = services.Diagnostics;
                 details = services.Details;
@@ -164,6 +164,15 @@ public partial class App : System.Windows.Application
     {
         using var identity = WindowsIdentity.GetCurrent();
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    // Lets a source run, such as the read-only QA check, use an isolated data root instead of the user's profile.
+    // A flag without a value must fail rather than quietly fall back to the real profile.
+    private static string? DataRootArgument(string[] args)
+    {
+        var index = Array.IndexOf(args, "--data-root");
+        if (index < 0) return null;
+        return index + 1 < args.Length ? args[index + 1] : throw new ArgumentException("--data-root requires a value.");
     }
 
     private static async Task CheckCatalogFreshnessAfterStartupAsync(IReferenceCatalogUpdateService service)

@@ -169,7 +169,7 @@ public partial class MainWindow : Window
         var diagnosticsWindow = new DiagnosticsWindow(diagnostics) { Owner = this };
         diagnosticsWindow.Show();
         diagnosticsWindow.UpdateLayout();
-        diagnosticsWindow.VerifySmokeContract();
+        diagnosticsWindow.VerifySmokeContract(expectedCatalogTotal: 3);
         diagnosticsWindow.Close();
         if (!viewModel.WarningVisible || !RebootBanner.IsVisible)
             throw new InvalidOperationException("Compiled WPF smoke did not present the deterministic reboot/provider warning.");
@@ -249,7 +249,14 @@ public partial class MainWindow : Window
         viewModel.QuickViewCommand.Execute("Missing");
         if (!viewModel.IsMissingQuickView)
             throw new InvalidOperationException("Compiled production smoke could not activate the Missing quick view.");
+        // The Missing view selects exactly the eligible installs it shows, and the All view keeps that selection.
+        var quickViewSelection = viewModel.Packages.Where(item => item.Selected).ToArray();
+        if (quickViewSelection.Any(item => !item.CanSelect || item.Action != AVWorkstationToolkit.Domain.Catalog.PackageAction.Install) ||
+            viewModel.VisiblePackages.Any(item => item.CanSelect && item.Action == AVWorkstationToolkit.Domain.Catalog.PackageAction.Install && !item.Selected))
+            throw new InvalidOperationException("Compiled production Missing quick view did not select exactly the eligible installs.");
         viewModel.QuickViewCommand.Execute("All");
+        if (viewModel.SelectedCount != quickViewSelection.Length || quickViewSelection.Any(item => !item.Selected))
+            throw new InvalidOperationException("Compiled production All view did not keep the quick-view selection.");
         viewModel.SetSort("VendorSortKey", ListSortDirection.Descending);
         var vendorOrder = viewModel.VisiblePackages.Select(item => item.VendorSortKey).ToArray();
         if (viewModel.SortDirection != ListSortDirection.Descending ||
@@ -257,6 +264,11 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Compiled production smoke could not apply the reviewed sort state.");
         viewModel.SetSort("ApplicationSortKey", ListSortDirection.Ascending);
 
+        // Which apps the quick view selected depends on this workstation's installed software, so the manual
+        // checkbox check starts from a known, empty selection.
+        viewModel.ClearSelection();
+        if (viewModel.SelectedCount != 0 || viewModel.Packages.Any(item => item.Selected))
+            throw new InvalidOperationException("Compiled production smoke could not clear the quick-view selection.");
         var selectable = viewModel.VisiblePackages.FirstOrDefault(item => item.SelectionEnabled)
             ?? throw new InvalidOperationException("Compiled production smoke found no safely selectable managed package.");
         PackageGrid.ScrollIntoView(selectable);
@@ -268,13 +280,20 @@ public partial class MainWindow : Window
         if (new CheckBoxAutomationPeer(checkBox).GetPattern(PatternInterface.Toggle) is not IToggleProvider toggle)
             throw new InvalidOperationException("Compiled production selection does not expose keyboard/automation toggle behavior.");
         toggle.Toggle();
-        if (!selectable.Selected || (!viewModel.CanInstall && !viewModel.CanUpdate))
+        var installs = selectable.Action == AVWorkstationToolkit.Domain.Catalog.PackageAction.Install ? 1 : 0;
+        var lowRisk = selectable.Risk == AVWorkstationToolkit.Domain.Catalog.PackageRisk.None;
+        // A low-risk selection enables its action at once; a risky one waits for acknowledgement instead.
+        if (!selectable.Selected || viewModel.SelectedCount != 1 || viewModel.InstallCount != installs || viewModel.UpdateCount != 1 - installs ||
+            viewModel.RiskAcknowledgementRequired == lowRisk || (installs == 1 ? viewModel.CanInstall : viewModel.CanUpdate) != lowRisk)
             throw new InvalidOperationException("Compiled production selection did not update the authoritative action state.");
         toggle.Toggle();
-        if (selectable.Selected)
+        if (selectable.Selected || viewModel.SelectedCount != 0)
             throw new InvalidOperationException("Compiled production deselection did not update the authoritative action state.");
 
-        viewModel.SelectedRow = viewModel.VisiblePackages[0];
+        // The detail check verifies a validated official product link, which managed WinGet records do not catalogue,
+        // so it opens the first row by name that has one rather than whichever record happens to sort first.
+        viewModel.SelectedRow = viewModel.VisiblePackages.FirstOrDefault(item => !string.IsNullOrWhiteSpace(item.Package.MetadataDetails.OfficialProductUri))
+            ?? throw new InvalidOperationException("Compiled production smoke found no package with a catalogued official product page.");
         viewModel.DetailsCommand.Execute(null);
         var detail = viewModel.SelectedDetail ?? throw new InvalidOperationException("Compiled production smoke did not prepare package details.");
         var detailWindow = new CatalogDetailWindow(detail) { Owner = this };
@@ -288,7 +307,8 @@ public partial class MainWindow : Window
         var diagnosticsWindow = new DiagnosticsWindow(diagnostics) { Owner = this };
         diagnosticsWindow.Show();
         diagnosticsWindow.UpdateLayout();
-        diagnosticsWindow.VerifySmokeContract();
+        // Production diagnostics count the whole loaded catalog, not the deterministic three-row plan.
+        diagnosticsWindow.VerifySmokeContract(viewModel.Packages.Count);
         diagnosticsWindow.Close();
 
         if (!SearchBox.Focusable || !PackageGrid.Focusable || !SearchBox.Focus())
