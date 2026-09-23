@@ -31,13 +31,12 @@ An offline, rejected, tampered, incompatible, or same/older revision leaves the 
 
 ## Production release gate
 
-No production managed key is provisioned in this development phase. `ProductionManagedCatalogConfiguration` therefore fails closed. Before a production application can ship, the owner must:
+The distinct ECDSA P-256 production public key is compiled under key ID `avwt-managed-2026-a`; its private key remains
+owner-controlled and external. Before a production application can ship, the owner must:
 
-1. provision a distinct ECDSA P-256 managed-catalog signing key under the approved signing policy;
-2. add only its public key and approved key ID to the compiled managed trust anchors;
-3. publish and independently verify revision 1 with the existing publisher;
-4. supply that verified revision as `ManagedCatalogBaselinePath` to the release build;
-5. verify the fixed public managed channel and immutable bundle;
-6. perform normal application/worker/MSI signing and release validation.
+1. publish and independently verify revision 1 with the existing publisher;
+2. supply that verified revision as `ManagedCatalogBaselinePath` to the release build;
+3. verify the fixed public managed channel and immutable bundle;
+4. perform normal application/worker/MSI signing and release validation.
 
 Development private keys and artifacts must remain isolated and must never become production trust.

@@ -9,7 +9,7 @@ public sealed record ManagedCatalogRuntimeServices(
 
 /// <summary>
 /// Fixed production origin and separately owned public trust anchors for executable managed policy.
-/// The empty anchor set is an intentional release gate until the owner provisions the production key.
+/// Only owner-approved ECDSA P-256 public keys belong here; private signing material remains external.
 /// </summary>
 public static class ProductionManagedCatalogConfiguration
 {
@@ -40,5 +40,13 @@ internal static class ProductionManagedCatalogTrustAnchors
 {
     // Owner-supplied ECDSA P-256 PUBLIC keys only. A development key must never be added here.
     internal static IReadOnlyDictionary<string, string> All { get; } =
-        new Dictionary<string, string>(StringComparer.Ordinal).ToFrozenDictionary(StringComparer.Ordinal);
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [ProductionManagedCatalogConfiguration.PrimarySigningKeyId] = """
+                -----BEGIN PUBLIC KEY-----
+                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE1hxbKkDGOxBCO9gzePbS1j6r3lNq
+                0zyZYtaM0l27AyNlG0wLdi4+Q8tDDwPUAq/RqQZC4GJq6Ue5JCR1S3BNlg==
+                -----END PUBLIC KEY-----
+                """
+        }.ToFrozenDictionary(StringComparer.Ordinal);
 }
