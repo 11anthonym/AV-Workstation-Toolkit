@@ -42,6 +42,16 @@
       "CompatibilityDeviceFamilyId": "RDL.DDSeriesBTN44"
     },
     {
+      "Id": "RDL.DDSeriesRN31",
+      "Manufacturer": "Radio Design Labs",
+      "Category": "AvInterface",
+      "Name": "RDL DD SERIES-RN31 Mic/Line Dante Interfaces",
+      "Aliases": [ "RDL DD-RN31", "DD-RN31" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships",
+      "CompatibilityDeviceFamilyId": "RDL.DDSeriesRN31"
+    },
+    {
       "Id": "Biamp.TesiraFamily",
       "Manufacturer": "Biamp",
       "Category": "AudioDsp",
@@ -421,6 +431,30 @@
       "FamilyId": "RDL.DDSeriesBTN44",
       "Name": "DDS-BTN44",
       "Aliases": [ "RDL DDS-BTN44", "DDS BTN44" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DDRN31",
+      "FamilyId": "RDL.DDSeriesRN31",
+      "Name": "DD-RN31",
+      "Aliases": [ "RDL DD-RN31", "DD RN31" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DDBRN31",
+      "FamilyId": "RDL.DDSeriesRN31",
+      "Name": "DDB-RN31",
+      "Aliases": [ "RDL DDB-RN31", "DDB RN31" ],
+      "Lifecycle": "Current",
+      "CoverageState": "VerifiedSoftwareRelationships"
+    },
+    {
+      "Id": "RDL.DDSRN31",
+      "FamilyId": "RDL.DDSeriesRN31",
+      "Name": "DDS-RN31",
+      "Aliases": [ "RDL DDS-RN31", "DDS RN31" ],
       "Lifecycle": "Current",
       "CoverageState": "VerifiedSoftwareRelationships"
     },
