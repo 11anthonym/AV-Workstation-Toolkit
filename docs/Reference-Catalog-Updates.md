@@ -26,7 +26,7 @@ The strict parsers reject unknown properties, invalid types, duplicate JSON prop
 
 - Detached ECDSA P-256/SHA-256 signatures use fixed-width IEEE P1363 encoding.
 - `SigningKeyId` must resolve to an exact public key compiled into the signed application. The private key is never present in this repository or the application.
-- The manifest hashes exactly the three approved JSON payloads with SHA-256 and carries a monotonically increasing `Revision`, `PreviousRevision`, schema/compatibility epochs, UTC creation time, record counts, and `MinimumAppVersion`. Each bundle is a complete snapshot, so clients may skip publisher revisions; `PreviousRevision` remains signed publisher history rather than an intermediate-install requirement. Activation still requires a revision greater than every revision the client has accepted.
+- The manifest hashes exactly the three approved JSON payloads with SHA-256 and carries a monotonically increasing `Revision`, `PreviousRevision`, schema/compatibility epochs, UTC creation time, record counts, and `MinimumAppVersion`. Each bundle is a complete snapshot, so clients may skip publisher revisions; `PreviousRevision` remains signed publisher history rather than an intermediate-install requirement. Activation still requires a revision greater than every revision the client has accepted, except that an accepted revision whose retained copy was lost may be downloaded again.
 - ZIP input is limited to five exact direct-child entries, 4 MiB compressed, 2 MiB per entry, and 3 MiB total expanded content. Nested paths, extra files, duplicate names, empty content, invalid UTF-8, and reparse points are rejected.
 - A configured online channel uses two exact source-controlled HTTPS URLs for metadata and its detached signature. Redirects, ambient credentials, arbitrary headers, caller-selected hosts, non-default ports, and unrestricted destinations are prohibited. Signed channel metadata names one `.avwtcatalog` URL on the compiled allowlist and its SHA-256. Responses and timeouts are bounded, and implausibly future metadata is rejected. Age alone does not invalidate an authentic signed pointer: descriptive catalog data carries no execution authority, so a hard expiry would only break updates whenever the pointer was not re-signed on a schedule.
 - The downloaded bundle is verified in memory. It is not activated until its channel identity, bundle signature, hashes, JSON, cross-references, compatibility version, and revision chain all pass.
@@ -42,7 +42,7 @@ ReferenceCatalog\
 └── staging\
 ```
 
-At most one downloaded revision is retained alongside the signed embedded baseline. Because a descriptive catalog can never grant execution authority, recovery is deliberately boring: anything that does not verify is deleted, and the next best verified catalog is used. There is no quarantine directory, no suppressed-revision state, and no rollback state machine. An activated catalog becomes effective for Device Lookup after the application restarts; startup revalidates the selected snapshot before use.
+At most one downloaded revision is retained alongside the signed embedded baseline. Because a descriptive catalog can never grant execution authority, recovery is deliberately boring: anything this build proves invalid is deleted, and the next best verified catalog is used. A revision signed by a key this build does not trust, such as any production revision seen by a source or development build (which trusts no key), is never used but is left in place for a build that trusts its signer. There is no quarantine directory, no suppressed-revision state, and no rollback state machine. An activated catalog becomes effective for Device Lookup after the application restarts; startup revalidates the selected snapshot before use.
 
 Activation writes all approved files into a same-root unique staging directory, flushes them, and revalidates the directory. A per-user named mutex serializes activation, state replacement, and cleanup across AVWT processes; downloads occur before that lock is acquired.
 
@@ -53,7 +53,7 @@ Activation has exactly one commit point: the atomic move of the verified staging
 - **Before the move**, any failure leaves nothing behind. The staging directory is removed, no revision becomes visible to startup selection, and the operation reports rejection. The move itself refuses to overwrite an existing revision, which is what keeps a committed revision immutable; a failed move is therefore also a pre-commit failure.
 - **After the move**, the revision is durable and the next startup will select it. The remaining bookkeeping — replacing `state.json` and deleting the superseded revision — is best-effort, because startup already repairs a stale state pointer and deletes superseded revisions. A failure in either step is not reported as rejection, since doing so would tell the operator that activation did not happen while the new revision was in fact already live on the next launch.
 
-A complete directory left by interruption before the state-pointer write is therefore recovered by the next local scan rather than being lost or double-reported. Orphan staging and state-temporary files are removed under the lock. Same- or lower-revision activation is rejected.
+A complete directory left by interruption before the state-pointer write is therefore recovered by the next local scan rather than being lost or double-reported. Orphan staging and state-temporary files are removed under the lock. Lower-revision activation is rejected, and so is the same revision while its copy is retained. If the accepted revision's retained copy is lost, that revision may be downloaded again; nothing older can.
 
 A catalog whose `MinimumAppVersion` is newer than the running application is rejected rather than retained; it is downloaded again after the application is upgraded. That trades one re-download for the removal of the incompatible-retention and suppression state it would otherwise require.
 
@@ -64,7 +64,7 @@ Startup performs no HTTP operation and never merges revisions:
 1. Read the atomic per-user state. Malformed state is discarded, not signed catalogs.
 2. Fully verify the embedded signed baseline when present.
 3. Verify each stored revision's signature, payload hashes, strict schemas, cross-references, counts, and app compatibility.
-4. Delete any stored revision that fails verification or requires a newer application, then use the next best verified catalog.
+4. Delete any stored revision that fails verification or requires a newer application, then use the next best verified catalog. A revision signed by a key this build does not trust is skipped, not deleted.
 5. Choose the highest compatible complete snapshot across the embedded baseline and the retained revision. A newer embedded baseline therefore outranks obsolete cached data; a newer compatible retained catalog outranks the embedded baseline.
 6. If no signed embedded baseline exists, development/bootstrap builds use their embedded raw manifests. A packaged signed baseline that exists but cannot be validated is a release error and never falls through to mutable raw data.
 
@@ -79,6 +79,8 @@ Revision state and retained directories remain under the user profile. Replacing
 | App upgrade embeds a newer baseline | Newer embedded revision | The superseded stored revision is deleted. |
 | Catalog requires a newer application | Existing effective local catalog | The incompatible catalog is rejected, not retained, and is downloaded again after the upgrade. |
 | Stored revision is corrupt or tampered | Signed embedded baseline | The failing revision is deleted; the embedded baseline keeps Device Lookup working. |
+| Stored revision is signed by a key this build does not trust | Next best verified catalog | The revision is never used here and is left in place; a build that trusts its signer still selects it. |
+| Accepted revision's retained copy is lost | Signed embedded baseline | Check now offers the same signed revision again; older revisions stay refused. |
 | Online channel unavailable, invalid, future-dated, or captive | Existing effective local catalog | Automatic failure is quiet/non-destructive; manual Check now reports failure. |
 | Signed pointer is old but authentic | Its named revision, subject to normal verification | Age alone never invalidates a signed pointer; replay of descriptive data grants no authority. |
 
@@ -108,6 +110,8 @@ The offline publisher, exact first-publication command, and immutable output con
 
 ## Verification
 
-Automated coverage exercises publisher bootstrap and previous-catalog builds, deterministic unsigned payloads, change/risk analysis, runtime bundle/channel round trips, signed online check/download/activation, offline behavior, an authentic but old signed pointer, invalid signature, corrupt hash, unsafe/extra ZIP entries, oversized input, unknown execution-shaped JSON, unsupported application version, unapproved bundle origin, active-file tampering, malformed state, embedded fallback, activation commit-point behavior on post-commit state-write and cleanup failure, pre-commit failure leaving nothing activated, and the actual WPF menu/ViewModel command path.
+Automated coverage exercises publisher bootstrap and previous-catalog builds, deterministic unsigned payloads, change/risk analysis, runtime bundle/channel round trips, signed online check/download/activation, offline behavior, an authentic but old signed pointer, invalid signature, corrupt hash, unsafe/extra ZIP entries, oversized input, unknown execution-shaped JSON, unsupported application version, unapproved bundle origin, active-file tampering, malformed state, embedded fallback, activation commit-point behavior on post-commit state-write and cleanup failure, pre-commit failure leaving nothing activated, an untrusted-signer revision kept but unused, a production-signed revision in another profile surviving a source composition, recovery of a lost accepted revision, and the actual WPF menu/ViewModel command path.
+
+Tests and QA compose against isolated temporary data roots. The packaged production smoke is the one QA step that uses the canonical profile, because the production data-root policy requires it; it restores and reports any change to the user's catalog folders as a failure.
 
 Human packaged-app verification remains pending: open `Help > Catalog updates`, verify the disabled/unconfigured online state, keyboard access, resize/high-DPI layout, rejection of an unsigned test bundle, and—after real trust anchors are provided—a successful signed update followed by restart and exact-model lookup.

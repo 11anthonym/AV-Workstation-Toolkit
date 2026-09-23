@@ -62,4 +62,4 @@ public static class CatalogTokens
     };
 }
 
-public sealed class CatalogValidationException(string message) : Exception(message);
+public class CatalogValidationException(string message) : Exception(message);

@@ -11,7 +11,8 @@ namespace AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 /// <summary>
 /// Stores at most one downloaded signed reference catalog alongside the signed embedded baseline.
 /// Descriptive catalog data can never grant execution authority, so recovery is deliberately boring:
-/// anything that does not verify is deleted and the next best verified catalog is used.
+/// anything this build proves invalid is deleted and the next best verified catalog is used. A revision
+/// signed by a key this build does not trust is never used here, but it is left in place for a build that does.
 /// </summary>
 public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
 {
@@ -144,7 +145,7 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
             if (!quietFailure)
                 Status = Status with { State = ReferenceCatalogUpdateState.Checking, Detail = "Checking the signed reference-catalog channel…" };
             var state = ReadStateRecoveringMalformed();
-            var available = await channel.GetLatestAsync(HighestRetainedRevision(state), cancellationToken).ConfigureAwait(false);
+            var available = await channel.GetLatestAsync(ForwardRevisionFloor(state), cancellationToken).ConfigureAwait(false);
             if (available is null)
             {
                 pending = null;
@@ -254,6 +255,11 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
                     throw new CatalogValidationException("Stored reference catalog revision does not match its directory.");
                 candidates.Add(new(revision, verified.Manifest.CatalogVersion, false, verified));
             }
+            catch (ReferenceCatalogSignerNotTrustedException)
+            {
+                // Unverifiable here, not proven corrupt: a source build trusts no key, and another release may trust
+                // other keys. It is not selected, but deleting it would destroy a download a trusting build can use.
+            }
             catch (Exception exception) when (exception is ReferenceCatalogRequiresNewerApplicationException || IsCatalogFailure(exception))
             {
                 TryDeleteStoredRevision(revision);
@@ -271,18 +277,21 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
 
     private void RequireForwardRevision(long revision, StateDocument state)
     {
-        if (revision <= HighestRetainedRevision(state))
+        if (revision <= ForwardRevisionFloor(state))
             throw new CatalogValidationException("Reference catalog rollback or same-revision activation is not permitted.");
     }
 
-    private long HighestRetainedRevision(StateDocument state)
+    // A new revision must be newer than every revision retained here and every revision already accepted. The one
+    // exception is the accepted revision itself once its retained copy is gone: downloading it again is recovery,
+    // not rollback, and anything older than it is still refused.
+    private long ForwardRevisionFloor(StateDocument state)
     {
-        var highest = state.ActiveRevision;
-        try { highest = Math.Max(highest, LoadEmbeddedCandidate()?.Revision ?? 0); }
+        var retained = 0L;
+        try { retained = LoadEmbeddedCandidate()?.Revision ?? 0; }
         catch (CatalogValidationException) { }
         foreach (var revision in EnumerateStoredRevisionDirectories())
-            highest = Math.Max(highest, revision);
-        return highest;
+            retained = Math.Max(retained, revision);
+        return state.ActiveRevision > retained ? state.ActiveRevision - 1 : retained;
     }
 
     private IEnumerable<long> EnumerateStoredRevisionDirectories()
