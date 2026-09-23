@@ -1185,6 +1185,31 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task DdRn31SearchListsRdlConsoleWithoutChangingSelectedActions()
+    {
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+        var missing = viewModel.Packages.Single(item => item.Id == "Fixture.Missing");
+        missing.Selected = true;
+
+        viewModel.SearchText = "DD-RN31";
+        await viewModel.SearchCompletion;
+
+        Assert.AreEqual("DD-RN31", viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device).Title);
+        var reference = (ReferenceSoftwareRowViewModel)viewModel.SoftwareRows.Single();
+        Assert.AreEqual("RDL.Console", reference.ProductId.Value);
+        CollectionAssert.AreEqual(new[] { DeviceSoftwarePurpose.Configuration }, reference.Purposes.ToArray());
+        Assert.AreEqual("Configuration software for DD-RN31.", reference.Note);
+        Assert.AreEqual("Reference only", reference.StatusLabel);
+        Assert.IsFalse(reference.SelectionEnabled);
+        Assert.IsTrue(missing.Selected);
+        Assert.AreEqual(1, viewModel.SelectedCount);
+        Assert.AreEqual(1, viewModel.InstallCount);
+        Assert.AreEqual(0, viewModel.UpdateCount);
+    }
+
+    [TestMethod]
     public async Task SoftwareProductSearchListsReferenceOnlyProductInTheSoftwareTable()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
