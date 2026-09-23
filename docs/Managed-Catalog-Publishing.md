@@ -5,8 +5,9 @@
 `AVWorkstationToolkit.CatalogPublisher managed` creates and verifies a local signed snapshot of the canonical
 `manifests/managed-applications.json`. The publisher remains offline: it cannot upload, activate, or add a trust
 anchor. Packaged application and worker runtimes can consume its output only when the signing public key was compiled
-into their managed-catalog trust policy. The owner-approved production public key is configured; no production-signed
-managed baseline or public managed feed has been created yet.
+into their managed-catalog trust policy. The owner-approved production public key is configured, and the owner-signed
+revision 1 is embedded from `catalog/managed/AVWT-Managed-Catalog.avwtmanaged`; no public managed feed has been
+published yet.
 
 The managed authority is separate from the descriptive Device Lookup authority:
 

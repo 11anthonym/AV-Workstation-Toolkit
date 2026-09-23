@@ -8,5 +8,6 @@ The bundle is public data and must verify as catalog ID `avwt-managed` with the 
 into both the application and worker. Never place a private key, unsigned manifest export, credentials, publisher
 working data, or development-signed bundle here.
 
-The distinct managed public trust anchor is configured, but no production managed baseline is present until the owner
-signs and approves revision 1. Production builds remain intentionally blocked until that signed bundle is supplied.
+The tracked bundle is the owner-signed and approved revision 1 (catalog version `2026.9.22.1`, key
+`avwt-managed-2026-a`), the current production baseline. Replacing it requires the normal signed managed-catalog
+publication and release review.
