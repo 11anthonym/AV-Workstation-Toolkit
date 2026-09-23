@@ -184,23 +184,51 @@ public sealed class ManagedCatalogRuntimeTests
     }
 
     [TestMethod]
-    public void ProductionManagedAuthorityFailsClosedUntilOwnerProvisioned()
+    public void ProductionManagedPublicKeyIsTheExactOwnerApprovedP256TrustAnchor()
     {
-        Assert.AreEqual(0, ProductionManagedCatalogConfiguration.TrustedPublicKeyCount);
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(() => ProductionManagedCatalogConfiguration.Create("1.1.1"));
-        StringAssert.Contains(exception.Message, "owner-provisioned");
+        var services = ProductionManagedCatalogConfiguration.Create("1.1.1");
+        var anchors = ProductionManagedCatalogTrustAnchors.All;
+
+        Assert.AreEqual(1, ProductionManagedCatalogConfiguration.TrustedPublicKeyCount);
+        Assert.HasCount(1, anchors);
+        Assert.AreEqual("avwt-managed-2026-a", anchors.Keys.Single());
+        Assert.IsTrue(anchors.TryGetValue(ProductionManagedCatalogConfiguration.PrimarySigningKeyId, out var pem));
+        Assert.IsFalse(anchors.ContainsKey(ProductionReferenceCatalogConfiguration.PrimarySigningKeyId));
+
+        using var key = ECDsa.Create();
+        key.ImportFromPem(pem);
+        Assert.AreEqual(256, key.KeySize);
+        Assert.AreEqual("1.2.840.10045.3.1.7", key.ExportParameters(false).Curve.Oid.Value);
+        Assert.AreEqual(
+            "6AF28934AAF117BA9A8967D691DDC23013EABF4F687BAE8A411D8CF6EF50F651",
+            Convert.ToHexString(SHA256.HashData(key.ExportSubjectPublicKeyInfo())),
+            "The production managed SPKI fingerprint changed without an explicit owner public-key handoff.");
+
+        using var referenceKey = ECDsa.Create();
+        referenceKey.ImportFromPem(ProductionReferenceCatalogTrustAnchors.All[
+            ProductionReferenceCatalogConfiguration.PrimarySigningKeyId]);
+        Assert.IsFalse(CryptographicOperations.FixedTimeEquals(
+            referenceKey.ExportSubjectPublicKeyInfo(), key.ExportSubjectPublicKeyInfo()));
+        Assert.IsNotNull(services.ChannelClient);
+        Assert.IsNotNull(services.Verifier);
     }
 
     [TestMethod]
-    public void PackagedStoreRequiresItsSignedEmbeddedBaseline()
+    public void ProductionManagedStoreRequiresAValidSignedEmbeddedBaseline()
     {
         using var fixture = RuntimeFixture.Create();
+        var verifier = ProductionManagedCatalogConfiguration.Create("1.1.1").Verifier;
+        var invalid = new ManagedCatalogStore(
+            fixture.ApplicationRoot, fixture.DataRoot, verifier, channel: null, requireSignedBaseline: true);
+        var invalidException = Assert.ThrowsExactly<CatalogValidationException>(() => invalid.LoadActiveOrEmbedded());
+        StringAssert.Contains(invalidException.Message, "signature");
+
         File.Delete(Path.Combine(fixture.ApplicationRoot,
             ManagedCatalogStore.EmbeddedBundleRelativePath.Replace('/', Path.DirectorySeparatorChar)));
-        var store = new ManagedCatalogStore(fixture.ApplicationRoot, fixture.DataRoot, fixture.RuntimeServices.Verifier,
-            channel: null, requireSignedBaseline: true);
-        var exception = Assert.ThrowsExactly<CatalogValidationException>(() => store.LoadActiveOrEmbedded());
-        StringAssert.Contains(exception.Message, "signed embedded");
+        var missing = new ManagedCatalogStore(
+            fixture.ApplicationRoot, fixture.DataRoot, verifier, channel: null, requireSignedBaseline: true);
+        var missingException = Assert.ThrowsExactly<CatalogValidationException>(() => missing.LoadActiveOrEmbedded());
+        StringAssert.Contains(missingException.Message, "signed embedded");
     }
 
     [TestMethod]

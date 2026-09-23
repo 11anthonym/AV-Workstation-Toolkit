@@ -227,6 +227,31 @@ public sealed class ManagedCatalogPublisherTests
         Assert.ThrowsExactly<CatalogValidationException>(() => fixture.Verifier().VerifyFile(duplicate));
     }
 
+    [TestMethod]
+    public void ProductionVerifierRejectsDevelopmentSignedAndUnsignedManagedBundles()
+    {
+        using var fixture = new ManagedPublisherFixture();
+        var result = fixture.Publish(1);
+        var productionVerifier = ProductionManagedCatalogConfiguration.Create("1.1.1").Verifier;
+
+        Assert.ThrowsExactly<CatalogValidationException>(() => productionVerifier.VerifyFile(result.BundlePath),
+            "A development signing-key ID must not be accepted by production.");
+
+        var developmentSignatureClaimingProductionId = fixture.ResignBundle(
+            result.BundlePath,
+            manifest => manifest["SigningKeyId"] = ProductionManagedCatalogConfiguration.PrimarySigningKeyId,
+            fixture.ManagedKey,
+            "development-signature-production-id");
+        Assert.ThrowsExactly<CatalogValidationException>(
+            () => productionVerifier.VerifyFile(developmentSignatureClaimingProductionId),
+            "A development signature must not be accepted under the production key ID.");
+
+        var unsignedEntries = ReadEntries(developmentSignatureClaimingProductionId);
+        unsignedEntries[ManagedCatalogBundleNames.Signature] = [];
+        var unsigned = fixture.WriteArchive("unsigned-production-id", unsignedEntries);
+        Assert.ThrowsExactly<CatalogValidationException>(() => productionVerifier.VerifyFile(unsigned));
+    }
+
     private static byte[] ReadEntry(string bundlePath, string name)
     {
         using var archive = ZipFile.OpenRead(bundlePath);
