@@ -373,13 +373,13 @@ public sealed class ActionWorkerOrchestratorTests
         var dryRunRequest = Request(dryRun: true, revision: revision);
         var dryRunProtocol = new MemoryProtocol(dryRunRequest);
         await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]))
-            { ManagedCatalogRevision = revision }, new FakeExecutor(), dryRunProtocol).RunAsync(dryRunRequest);
+        { ManagedCatalogRevision = revision }, new FakeExecutor(), dryRunProtocol).RunAsync(dryRunRequest);
         Assert.AreEqual(revision, dryRunProtocol.Result!.ManagedCatalogRevision);
 
         var failedRequest = Request(revision: revision);
         var failedProtocol = new MemoryProtocol(failedRequest);
         await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]))
-            { ManagedCatalogRevision = revision }, new FakeExecutor(PackageExecutionResult.Failure(17)), failedProtocol)
+        { ManagedCatalogRevision = revision }, new FakeExecutor(PackageExecutionResult.Failure(17)), failedProtocol)
             .RunAsync(failedRequest);
         Assert.AreEqual(ActionResultStatus.Failed, failedProtocol.Result!.Status);
         Assert.AreEqual(revision, failedProtocol.Result.ManagedCatalogRevision);
@@ -399,7 +399,7 @@ public sealed class ActionWorkerOrchestratorTests
                 Plan(both),
                 Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current), State("Vendor.Two")]),
                 Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)]))
-            { ManagedCatalogRevision = revision }, new FakeExecutor(PackageExecutionResult.Success), partialProtocol)
+        { ManagedCatalogRevision = revision }, new FakeExecutor(PackageExecutionResult.Success), partialProtocol)
             .RunAsync(partialRequest);
         Assert.AreEqual(ActionResultStatus.Blocked, partialProtocol.Result!.Status);
         CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.Succeeded, PackageOutcomeStatus.Blocked },

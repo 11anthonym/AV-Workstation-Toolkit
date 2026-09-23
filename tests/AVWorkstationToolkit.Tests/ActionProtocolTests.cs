@@ -357,48 +357,48 @@ public sealed class ActionProtocolTests
         var root = CreateTemporaryRoot();
         try
         {
-        var request = Request(["Vendor.One"]);
-        var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
-        var codec = new ActionResultCodec();
+            var request = Request(["Vendor.One"]);
+            var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
+            var codec = new ActionResultCodec();
 
-        // The three shapes ManagedWinGetArgumentPolicy can emit, all of which are legitimate results.
-        foreach (var tail in new[]
-        {
+            // The three shapes ManagedWinGetArgumentPolicy can emit, all of which are legitimate results.
+            foreach (var tail in new[]
+            {
             Array.Empty<string>(),                             // risk-bearing package
             ["--disable-interactivity"],                       // low risk, InstallerDefault
             new[] { "--silent", "--disable-interactivity" }    // low risk, Silent
         })
-        {
-            var parsed = codec.Parse(ResultJson(paths, "Succeeded", 0, PackageWithTail(tail)), request, paths);
-            Assert.AreEqual(ActionResultStatus.Succeeded, parsed.Status);
-            CollectionAssert.AreEqual(BaseVector.Concat(tail).ToArray(), parsed.Packages.Single().Arguments.ToArray());
-        }
+            {
+                var parsed = codec.Parse(ResultJson(paths, "Succeeded", 0, PackageWithTail(tail)), request, paths);
+                Assert.AreEqual(ActionResultStatus.Succeeded, parsed.Status);
+                CollectionAssert.AreEqual(BaseVector.Concat(tail).ToArray(), parsed.Packages.Single().Arguments.ToArray());
+            }
 
-        // Everything else stays rejected: an unexpected flag, a missing required flag, a reordered
-        // tail, a partially reviewed tail, an altered ID, and an altered source.
-        foreach (var rejected in new[]
-        {
+            // Everything else stays rejected: an unexpected flag, a missing required flag, a reordered
+            // tail, a partially reviewed tail, an altered ID, and an altered source.
+            foreach (var rejected in new[]
+            {
             new[] { "--silent", "--disable-interactivity", "--force" },
             ["--silent"],
             ["--disable-interactivity", "--silent"],
             ["--interactive"],
             new[] { "--disable-interactivity", "--disable-interactivity" }
         })
-        {
-            Assert.ThrowsExactly<ActionProtocolValidationException>(
-                () => codec.Parse(ResultJson(paths, "Succeeded", 0, PackageWithTail(rejected)), request, paths),
-                $"tail was accepted: {string.Join(' ', rejected)}");
-        }
+            {
+                Assert.ThrowsExactly<ActionProtocolValidationException>(
+                    () => codec.Parse(ResultJson(paths, "Succeeded", 0, PackageWithTail(rejected)), request, paths),
+                    $"tail was accepted: {string.Join(' ', rejected)}");
+            }
 
-        foreach (var (index, replacement) in new[] { (2, "Vendor.Other"), (5, "msstore"), (3, "--fuzzy"), (0, "uninstall") })
-        {
-            var altered = PackageWithTail(["--silent", "--disable-interactivity"]);
-            var vector = altered["Arguments"]!.AsArray();
-            vector[index] = replacement;
-            Assert.ThrowsExactly<ActionProtocolValidationException>(
-                () => codec.Parse(ResultJson(paths, "Succeeded", 0, altered), request, paths),
-                $"altered argument {index} was accepted: {replacement}");
-        }
+            foreach (var (index, replacement) in new[] { (2, "Vendor.Other"), (5, "msstore"), (3, "--fuzzy"), (0, "uninstall") })
+            {
+                var altered = PackageWithTail(["--silent", "--disable-interactivity"]);
+                var vector = altered["Arguments"]!.AsArray();
+                vector[index] = replacement;
+                Assert.ThrowsExactly<ActionProtocolValidationException>(
+                    () => codec.Parse(ResultJson(paths, "Succeeded", 0, altered), request, paths),
+                    $"altered argument {index} was accepted: {replacement}");
+            }
         }
         finally { Directory.Delete(root, true); }
     }
