@@ -232,6 +232,24 @@ public sealed class ManagedCatalogRuntimeTests
     }
 
     [TestMethod]
+    public void ProductionManagedStoreSelectsTheCommittedOwnerSignedBaseline()
+    {
+        using var fixture = RuntimeFixture.Create();
+        File.Copy(Path.Combine(RepositoryRootLocator.Find(), "catalog", "managed", "AVWT-Managed-Catalog.avwtmanaged"),
+            Path.Combine(fixture.ApplicationRoot, ManagedCatalogStore.EmbeddedBundleRelativePath.Replace('/', Path.DirectorySeparatorChar)),
+            overwrite: true);
+        var store = new ManagedCatalogStore(fixture.ApplicationRoot, fixture.DataRoot,
+            ProductionManagedCatalogConfiguration.Create("1.1.1").Verifier, channel: null, requireSignedBaseline: true);
+
+        var selected = store.LoadActiveOrEmbedded();
+
+        Assert.IsTrue(selected.Source.IsEmbedded);
+        Assert.AreEqual(1L, selected.Source.Revision, "The tracked managed baseline changed without an owner-approved revision handoff.");
+        Assert.AreEqual("2026.9.22.1", selected.Source.Version);
+        Assert.HasCount(30, selected.Catalog.Items);
+    }
+
+    [TestMethod]
     public async Task ManagedChannelUsesOnlyItsFixedApprovedOriginAndVerifiedBytes()
     {
         using var fixture = RuntimeFixture.Create();
