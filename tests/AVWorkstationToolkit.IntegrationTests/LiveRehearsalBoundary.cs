@@ -35,7 +35,7 @@ internal static class LiveRehearsalBoundary
         Directory.CreateDirectory(root);
         try
         {
-            var services = CompiledAppComposition.Create(Path.GetFullPath(repositoryRoot));
+            var services = CompiledAppComposition.Create(Path.GetFullPath(repositoryRoot), Path.Combine(root, "data"));
             var initialPlan = await services.Planning.RefreshAsync().ConfigureAwait(false);
             var candidate = initialPlan.Packages
                 .Where(item => item.Package.Authority == CatalogAuthority.ManagedWinGet &&

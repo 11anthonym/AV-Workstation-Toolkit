@@ -60,10 +60,18 @@ public sealed class LiveRehearsalTests
     public void NormalCompiledCompositionRemainsReadOnly()
     {
         var repository = RepositoryRootLocator.Find();
-        var normal = CompiledAppComposition.Create(repository);
+        var root = CreateRoot();
+        try
+        {
+            var normal = CompiledAppComposition.Create(repository, root);
 
-        Assert.IsNull(normal.Actions);
-        Assert.IsFalse(normal.IsProduction);
+            Assert.IsNull(normal.Actions);
+            Assert.IsFalse(normal.IsProduction);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
     }
 
     private static string CreateRoot()

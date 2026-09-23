@@ -70,6 +70,47 @@ function Invoke-Check {
     }
 }
 
+function Save-UserCatalogFolders {
+    # The production composition accepts only the canonical per-user data root, so the production smoke is the one
+    # packaged check that runs against the user's profile. Keep a verified copy of the catalog folders it could touch.
+    param([Parameter(Mandatory)][string]$BackupRoot)
+    $profileRoot = Join-Path $localApplicationData 'AVWorkstationToolkit'
+    New-Item -ItemType Directory -Path $BackupRoot -Force | Out-Null
+    $hashes = @{}
+    foreach ($folder in 'ReferenceCatalog','ManagedCatalog') {
+        $source = Join-Path $profileRoot $folder
+        if (-not (Test-Path -LiteralPath $source -PathType Container)) { continue }
+        Copy-Item -LiteralPath $source -Destination (Join-Path $BackupRoot $folder) -Recurse
+        foreach ($file in @(Get-ChildItem -LiteralPath $source -Recurse -File -Force)) {
+            $hashes[$file.FullName] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+        }
+    }
+    return $hashes
+}
+
+function Restore-UserCatalogFolders {
+    # Restores every saved file the check modified or deleted and reports every difference, including new files,
+    # which are left in place for review rather than deleted from the user's profile.
+    param([Parameter(Mandatory)][hashtable]$Before,[Parameter(Mandatory)][string]$BackupRoot)
+    $profileRoot = Join-Path $localApplicationData 'AVWorkstationToolkit'
+    $differences = [System.Collections.Generic.List[string]]::new()
+    foreach ($path in @($Before.Keys)) {
+        $current = if (Test-Path -LiteralPath $path -PathType Leaf) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash } else { '' }
+        if ($current -eq $Before[$path]) { continue }
+        $differences.Add("restored $path") | Out-Null
+        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $BackupRoot $path.Substring($profileRoot.Length + 1)) -Destination $path -Force
+    }
+    foreach ($folder in 'ReferenceCatalog','ManagedCatalog') {
+        $source = Join-Path $profileRoot $folder
+        if (-not (Test-Path -LiteralPath $source -PathType Container)) { continue }
+        foreach ($file in @(Get-ChildItem -LiteralPath $source -Recurse -File -Force)) {
+            if (-not $Before.ContainsKey($file.FullName)) { $differences.Add("added $($file.FullName)") | Out-Null }
+        }
+    }
+    return ,$differences.ToArray()
+}
+
 function Get-BoundedProcessDiagnostic {
     param([Parameter(Mandatory)][string]$Path)
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return '' }
@@ -562,10 +603,19 @@ try {
     }
     else {
         Invoke-Check 'Packaged production compiled WPF smoke opens and reopens cleanly' {
-            foreach ($attempt in 1..2) {
-                $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke')
-                Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke attempt $attempt failed. $script:LastLauncherStdErr"
+            $catalogBackup = Join-Path $temporaryRoot 'user-catalog-backup'
+            $catalogHashes = Save-UserCatalogFolders -BackupRoot $catalogBackup
+            $smokeFailure = $null
+            try {
+                foreach ($attempt in 1..2) {
+                    $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke')
+                    Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke attempt $attempt failed. $script:LastLauncherStdErr"
+                }
             }
+            catch { $smokeFailure = $_ }
+            $catalogDifferences = Restore-UserCatalogFolders -Before $catalogHashes -BackupRoot $catalogBackup
+            Assert-Equal 0 $catalogDifferences.Count "Packaged production smoke changed the user's catalog folders: $($catalogDifferences -join '; ')"
+            if ($null -ne $smokeFailure) { throw $smokeFailure }
         }
     }
 

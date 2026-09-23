@@ -1208,14 +1208,22 @@ public sealed class ProductionCompatibilityCatalogTests
     public void CompiledCompositionLoadsEmbeddedCompatibilityBoundaryReadOnly()
     {
         var root = RepositoryRoot();
-        var services = CompiledAppComposition.Create(root);
-        var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
+        var dataRoot = Path.Combine(Path.GetTempPath(), $"avwt-composition-{Guid.NewGuid():N}");
+        try
+        {
+            var services = CompiledAppComposition.Create(root, dataRoot);
+            var launcherSource = File.ReadAllText(Path.Combine(root, "src", "AVWorkstationToolkit.Launcher", "Program.cs"));
 
-        Assert.IsGreaterThan(0, services.Compatibility.SearchProducts().Count);
-        Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
-        StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
-        Assert.IsNull(services.Actions);
-        Assert.IsNull(services.PackageDelivery);
+            Assert.IsGreaterThan(0, services.Compatibility.SearchProducts().Count);
+            Assert.IsTrue(services.Compatibility.SearchDevices("CP4N").Any());
+            StringAssert.Contains(launcherSource, "manifests/software-compatibility.json");
+            Assert.IsNull(services.Actions);
+            Assert.IsNull(services.PackageDelivery);
+        }
+        finally
+        {
+            if (Directory.Exists(dataRoot)) Directory.Delete(dataRoot, recursive: true);
+        }
     }
 
     [TestMethod]

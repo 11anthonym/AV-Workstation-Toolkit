@@ -41,8 +41,9 @@ public sealed record CompiledAppServices(
 
 public static class CompiledAppComposition
 {
-    public static CompiledAppServices Create(string repositoryRoot)
-        => CreateCore(repositoryRoot, null, production: false);
+    // A source run uses the canonical per-user data root unless the caller supplies one; tests and QA always do.
+    public static CompiledAppServices Create(string repositoryRoot, string? dataRoot = null)
+        => CreateCore(repositoryRoot, dataRoot is null ? null : Path.GetFullPath(dataRoot), production: false);
 
     public static CompiledAppServices CreateProduction(
         string applicationRoot,
@@ -92,7 +93,7 @@ public static class CompiledAppComposition
             new ExternalInventoryMatcher(),
             externalReleases: new VendorExternalReleaseInventory(catalog));
         var canonicalDataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
-        var dataRoot = production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : canonicalDataRoot;
+        var dataRoot = production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : actionRoot ?? canonicalDataRoot;
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
         var version = packagedVersion ?? (File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown");
         var productionCatalog = production

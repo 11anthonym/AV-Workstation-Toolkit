@@ -10,7 +10,9 @@ if (-not (Test-Path -LiteralPath $appPath -PathType Leaf)) { throw "Compiled WPF
 # Started directly rather than through Start-Process so the sanitized startup diagnostic on standard
 # error is captured and reported; a failure that only prints an exit code is not actionable.
 $startInfo = [Diagnostics.ProcessStartInfo]::new($appPath)
-$startInfo.Arguments = '--read-only-check'
+# An isolated data root keeps this live check away from the user's catalogs, logs, and diagnostics.
+$dataRoot = Join-Path ([IO.Path]::GetTempPath()) ('avwt-readonly-' + [guid]::NewGuid().ToString('N'))
+$startInfo.Arguments = ('--read-only-check --data-root "{0}"' -f $dataRoot)
 $startInfo.UseShellExecute = $false
 $startInfo.RedirectStandardError = $true
 $timeoutMilliseconds = 180000
@@ -68,4 +70,7 @@ try {
     foreach ($line in @($diagnostic -split '\r?\n' | Where-Object { $_.Trim().Length -gt 0 })) { Write-Output $line.Trim() }
     Write-Output 'COMPILED_APP_READONLY_OK catalog=complete providers=bounded mutation=absent'
 }
-finally { $process.Dispose() }
+finally {
+    $process.Dispose()
+    Remove-Item -LiteralPath $dataRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
