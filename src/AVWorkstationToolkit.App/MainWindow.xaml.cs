@@ -169,7 +169,7 @@ public partial class MainWindow : Window
         var diagnosticsWindow = new DiagnosticsWindow(diagnostics) { Owner = this };
         diagnosticsWindow.Show();
         diagnosticsWindow.UpdateLayout();
-        diagnosticsWindow.VerifySmokeContract();
+        diagnosticsWindow.VerifySmokeContract(expectedCatalogTotal: 3);
         diagnosticsWindow.Close();
         if (!viewModel.WarningVisible || !RebootBanner.IsVisible)
             throw new InvalidOperationException("Compiled WPF smoke did not present the deterministic reboot/provider warning.");
@@ -307,7 +307,8 @@ public partial class MainWindow : Window
         var diagnosticsWindow = new DiagnosticsWindow(diagnostics) { Owner = this };
         diagnosticsWindow.Show();
         diagnosticsWindow.UpdateLayout();
-        diagnosticsWindow.VerifySmokeContract();
+        // Production diagnostics count the whole loaded catalog, not the deterministic three-row plan.
+        diagnosticsWindow.VerifySmokeContract(viewModel.Packages.Count);
         diagnosticsWindow.Close();
 
         if (!SearchBox.Focusable || !PackageGrid.Focusable || !SearchBox.Focus())
