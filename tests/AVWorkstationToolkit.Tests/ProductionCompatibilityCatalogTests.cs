@@ -631,6 +631,9 @@ public sealed class ProductionCompatibilityCatalogTests
         AssertModelSoftware(service, "VS 88H2", "Kramer.VS88H2", "Kramer.Network", DeviceSoftwarePurpose.Configuration);
         AssertModelSoftware(service, "AT OME MS42 HDBT", "Atlona.OMEMS42HDBT", "Atlona.VelocityDeviceManager", DeviceSoftwarePurpose.Configuration);
         AssertModelSoftware(service, "KD MS8x8G", "KeyDigital.MS8x8G", "KeyDigital.KDMSPro", DeviceSoftwarePurpose.Configuration);
+        AssertModelSoftware(service, "KD MS8x8G 2", "KeyDigital.MS8x8G2", "KeyDigital.KDMSPro", DeviceSoftwarePurpose.Discovery);
+        AssertModelSoftware(service, "KD MS8x8G 2", "KeyDigital.MS8x8G2", "KeyDigital.KDMSPro", DeviceSoftwarePurpose.Configuration);
+        Assert.AreEqual(Lifecycle.Discontinued, service.SearchDevices("KD MS8x8G").Single(item => item.Hardware?.Id == "KeyDigital.MS8x8G").Hardware!.Lifecycle);
 
         foreach (var (query, id, manufacturer, lifecycle) in new[]
         {
