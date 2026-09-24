@@ -36,7 +36,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/prodsp-audio-dsp-platform",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/dspcpro",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -74,7 +74,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/prodsp-audio-dsp-platform",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/dspconfigurator",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -116,7 +116,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/article/python",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/globalscripter",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -157,7 +157,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/article/controlscript",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/controlscriptutility",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -194,7 +194,7 @@
                                                               "macOS",
                                                               "Linux"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/article/controlscript",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/controlscriptvscode",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -232,7 +232,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/global-configurator-plus-and-professional",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/gcpro",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -271,7 +271,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/global-configurator-plus-and-professional",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/gcpro",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -391,7 +391,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/xtp-systems",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/xtpscs",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -545,7 +545,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/irlearner",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -586,7 +586,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/article/usbdrpk_fd",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -625,7 +625,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/tlcs",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -664,7 +664,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/globalconfigurator",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -703,7 +703,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/iplinkfilemanager",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]

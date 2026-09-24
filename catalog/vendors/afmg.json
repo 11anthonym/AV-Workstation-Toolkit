@@ -37,7 +37,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.afmg.eu/en/systune",
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/afmg-systune",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -198,7 +198,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.afmg.eu/en/soundflow",
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/afmg-soundflow",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

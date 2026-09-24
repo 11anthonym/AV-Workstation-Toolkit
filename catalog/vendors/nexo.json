@@ -36,7 +36,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.nexo-sa.com/software/ns-1/",
+                                          "OfficialProductUri":  "https://www.nexo-sa.com/systems/software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -83,7 +83,7 @@
                                                               "macOS",
                                                               "iOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.nexo-sa.com/software/nemo/",
+                                          "OfficialProductUri":  "https://www.nexo-sa.com/nemo/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

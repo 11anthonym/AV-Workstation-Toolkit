@@ -119,7 +119,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.barco.com/en/support/software",
+                                          "OfficialProductUri":  "https://www.barco.com/en/support/clickshare-configurator",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -188,7 +188,7 @@
                                           "DeploymentClass":  "ServerOnly",
                                           "MaintenancePolicy":  "VendorManaged",
                                           "VersionRule":  "ProjectPinned",
-                                          "CurrentOrLegacy":  "Current",
+                                          "CurrentOrLegacy":  "Discontinued",
                                           "LicensingModel":  [
                                                                  "HARDWARE-LICENSE"
                                                              ],

@@ -130,7 +130,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.afmg.eu/en/systune",
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/afmg-systune",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -291,7 +291,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.afmg.eu/en/soundflow",
+                                          "OfficialProductUri":  "https://www.afmg.eu/en/afmg-soundflow",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -1524,7 +1524,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.audio-technica.com/en-us/support/software-downloads",
+                                          "OfficialProductUri":  "https://www.audio-technica.com/en-us/wireless-manager",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2064,7 +2064,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.barco.com/en/support/software",
+                                          "OfficialProductUri":  "https://www.barco.com/en/support/clickshare-configurator",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -2133,7 +2133,7 @@
                                           "DeploymentClass":  "ServerOnly",
                                           "MaintenancePolicy":  "VendorManaged",
                                           "VersionRule":  "ProjectPinned",
-                                          "CurrentOrLegacy":  "Current",
+                                          "CurrentOrLegacy":  "Discontinued",
                                           "LicensingModel":  [
                                                                  "HARDWARE-LICENSE"
                                                              ],
@@ -5084,7 +5084,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/prodsp-audio-dsp-platform",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/dspcpro",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -5122,7 +5122,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/prodsp-audio-dsp-platform",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/dspconfigurator",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5164,7 +5164,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/article/python",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/globalscripter",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -5205,7 +5205,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/article/controlscript",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/controlscriptutility",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5242,7 +5242,7 @@
                                                               "macOS",
                                                               "Linux"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/article/controlscript",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/controlscriptvscode",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5280,7 +5280,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/global-configurator-plus-and-professional",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/gcpro",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -5319,7 +5319,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/global-configurator-plus-and-professional",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/gcpro",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -5439,7 +5439,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/technology/xtp-systems",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/xtpscs",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5593,7 +5593,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/irlearner",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5634,7 +5634,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/article/usbdrpk_fd",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5673,7 +5673,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/tlcs",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5712,7 +5712,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/globalconfigurator",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -5751,7 +5751,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.extron.com/product/software",
+                                          "OfficialProductUri":  "https://www.extron.com/product/software/iplinkfilemanager",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -7222,7 +7222,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://prosupport.logi.com/hc/en-us/articles/1500001344641-CollabOS-Guide",
+                                          "OfficialProductUri":  "https://hub.sync.logitech.com/collabosguides",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -7725,7 +7725,7 @@
                                                               "Windows",
                                                               "Server"
                                                           ],
-                                          "OfficialProductUri":  "https://medialon.com/",
+                                          "OfficialProductUri":  "https://7thsense.one/product/medialon-manager",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "WebPresence"
@@ -8668,7 +8668,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.nexo-sa.com/software/ns-1/",
+                                          "OfficialProductUri":  "https://www.nexo-sa.com/systems/software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -8715,7 +8715,7 @@
                                                               "macOS",
                                                               "iOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.nexo-sa.com/software/nemo/",
+                                          "OfficialProductUri":  "https://www.nexo-sa.com/nemo/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -10321,7 +10321,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.riedel.net/en/products-solutions/intercom/artist-matrix-intercom/software",
+                                          "OfficialProductUri":  "https://www.riedel.net/intercom/artist/director/",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -11970,7 +11970,7 @@
                                                               "Windows"
                                                           ],
                                           "OfficialProductUri":  "https://wisycom.com/product/wisycom-manager/",
-                                          "OfficialDownloadUri":  "https://wisycom.com/products/support/downloads-results-2/",
+                                          "OfficialDownloadUri":  "https://wisycom.com/products/support/media-downloads/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
