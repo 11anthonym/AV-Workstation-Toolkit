@@ -32,7 +32,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://martin-audio.com/downloads/software",
+                                          "OfficialProductUri":  "https://martin-audio.com/products/software/display3",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -71,7 +71,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://martin-audio.com/downloads/software",
+                                          "OfficialProductUri":  "https://martin-audio.com/products/software/vu-net",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

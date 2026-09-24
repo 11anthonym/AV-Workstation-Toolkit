@@ -52,7 +52,7 @@
                                                           ],
                                           "SideBySideSupported":  "Yes",
                                           "OfficialDownloadUri":  "https://packetsender.com/download",
-                                          "OfficialProductUri":  "https://packetsender.com/packetsender",
+                                          "OfficialProductUri":  "https://packetsender.com/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

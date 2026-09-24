@@ -52,7 +52,7 @@
                                                               "Windows"
                                                           ],
                                           "OfficialDownloadUri":  "https://video.matrox.com/en/apps/drivers/graphics/download/convertip",
-                                          "OfficialProductUri":  "https://video.matrox.com/en/products/infrastructure/convertip-series",
+                                          "OfficialProductUri":  "https://video.matrox.com/en/apps/drivers/graphics/download/convertip",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -107,7 +107,7 @@
                                                               "Server",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://video.matrox.com/en/products/infrastructure/convertip-series",
+                                          "OfficialProductUri":  "https://video.matrox.com/en/product/nmos-routers/conductip/",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ]

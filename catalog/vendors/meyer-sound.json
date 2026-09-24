@@ -88,7 +88,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://software.meyersound.com/",
+                                          "OfficialProductUri":  "https://software.meyersound.com/compass",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -131,7 +131,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.meyersound.com/products/en/index-en.html",
+                                          "OfficialProductUri":  "https://software.meyersound.com/nebra",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

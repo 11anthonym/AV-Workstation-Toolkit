@@ -37,7 +37,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.deltacast.tv/products/free-software/e-edid-editor",
+                                          "OfficialProductUri":  "https://www.deltacast.tv/products/free-software/e-edid-editor/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

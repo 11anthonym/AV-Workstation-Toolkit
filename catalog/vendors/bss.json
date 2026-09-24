@@ -34,7 +34,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://bssaudio.com/en-US/product_families/avx-suite",
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/products/avx-architect",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -226,7 +226,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://bssaudio.com/en-US/support_downloads/products",
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/softwares/hiqnet-london-architect-v6-02-r3-windows",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

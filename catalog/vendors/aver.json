@@ -65,7 +65,7 @@
                                                     ],
                                           "MaintenancePolicy":  "LegacyHold",
                                           "VersionRule":  "ProjectPinned",
-                                          "CurrentOrLegacy":  "Transition",
+                                          "CurrentOrLegacy":  "Discontinued",
                                           "LicensingModel":  [
                                                                  "FREE"
                                                              ],
@@ -80,7 +80,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=PTZApp+2",
+                                          "OfficialProductUri":  "https://communication.aver.com/model/ptzapp2",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -106,7 +106,7 @@
                                           "DeploymentClass":  "ManualHandoff",
                                           "MaintenancePolicy":  "VendorManaged",
                                           "VersionRule":  "Latest",
-                                          "CurrentOrLegacy":  "Current",
+                                          "CurrentOrLegacy":  "Discontinued",
                                           "LicensingModel":  [
                                                                  "FREE"
                                                              ],
@@ -123,7 +123,7 @@
                                                               "Windows",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=EZManager+2",
+                                          "OfficialProductUri":  "https://communication.aver.com/model/ezmanager2",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -157,7 +157,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=CaptureShare",
+                                          "OfficialProductUri":  "https://presentation.aver.com/model/captureshare",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -188,7 +188,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads",
+                                          "OfficialProductUri":  "https://www.aver.com/download-center",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -221,7 +221,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads",
+                                          "OfficialProductUri":  "https://www.aver.com/helpcenter-faq/professional-ptz-camera/ptz-management",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -254,7 +254,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=PTZ+Link",
+                                          "OfficialProductUri":  "https://presentation.aver.com/model/ptz-link",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]

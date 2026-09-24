@@ -640,7 +640,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.amx.com/en/softwares/tpdesign5-v1-5-111",
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/products/tpdesign5",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -679,7 +679,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/products/driver-design",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -718,7 +718,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/softwares/tpdesign4-v3-3-674",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -757,7 +757,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/products/filetransfer2",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -796,7 +796,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/products/iredit",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -878,7 +878,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.amx.com/en-US/software",
+                                          "OfficialProductUri":  "https://www.amx.com/en-US/products/n-able-pc",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -1593,7 +1593,7 @@
                                                     ],
                                           "MaintenancePolicy":  "LegacyHold",
                                           "VersionRule":  "ProjectPinned",
-                                          "CurrentOrLegacy":  "Transition",
+                                          "CurrentOrLegacy":  "Discontinued",
                                           "LicensingModel":  [
                                                                  "FREE"
                                                              ],
@@ -1608,7 +1608,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=PTZApp+2",
+                                          "OfficialProductUri":  "https://communication.aver.com/model/ptzapp2",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -1634,7 +1634,7 @@
                                           "DeploymentClass":  "ManualHandoff",
                                           "MaintenancePolicy":  "VendorManaged",
                                           "VersionRule":  "Latest",
-                                          "CurrentOrLegacy":  "Current",
+                                          "CurrentOrLegacy":  "Discontinued",
                                           "LicensingModel":  [
                                                                  "FREE"
                                                              ],
@@ -1651,7 +1651,7 @@
                                                               "Windows",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=EZManager+2",
+                                          "OfficialProductUri":  "https://communication.aver.com/model/ezmanager2",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -1685,7 +1685,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=CaptureShare",
+                                          "OfficialProductUri":  "https://presentation.aver.com/model/captureshare",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -1716,7 +1716,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads",
+                                          "OfficialProductUri":  "https://www.aver.com/download-center",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -1749,7 +1749,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads",
+                                          "OfficialProductUri":  "https://www.aver.com/helpcenter-faq/professional-ptz-camera/ptz-management",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -1782,7 +1782,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.aver.com/Downloads/search?q=PTZ+Link",
+                                          "OfficialProductUri":  "https://presentation.aver.com/model/ptz-link",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -2194,7 +2194,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "OfficialProductUri":  "https://www.biamp.com/workplace",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2227,7 +2227,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "OfficialProductUri":  "https://www.biamp.com/workplace",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2260,7 +2260,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "OfficialProductUri":  "https://www.biamp.com/workplace",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2292,7 +2292,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "OfficialProductUri":  "https://www.biamp.com/workplace",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2325,7 +2325,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.biamp.com/products/product-families/biamp-workplace",
+                                          "OfficialProductUri":  "https://www.biamp.com/workplace",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2598,7 +2598,7 @@
                                                               "macOS",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "OfficialProductUri":  "https://www.brightsign.biz/brightsign-players/software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2684,7 +2684,7 @@
                                           "SupportedOS":  [
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "OfficialProductUri":  "https://www.brightsign.biz/brightsign-players/software/",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ]
@@ -2771,7 +2771,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/releases",
+                                          "OfficialProductUri":  "https://www.brightsign.biz/brightsign-advantage/brightsign-os/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -2816,7 +2816,7 @@
                                                               "Embedded",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/diagnostic-web-server-apis",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -2862,7 +2862,7 @@
                                                               "Embedded",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/diagnostic-web-server-apis",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -2903,7 +2903,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/brightsign-shell",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -2943,7 +2943,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/brightscript-debugger",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -2978,7 +2978,7 @@
                                                               "macOS",
                                                               "Linux"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -3290,7 +3290,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://bssaudio.com/en-US/product_families/avx-suite",
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/products/avx-architect",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3482,7 +3482,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://bssaudio.com/en-US/support_downloads/products",
+                                          "OfficialProductUri":  "https://bssaudio.com/en-US/softwares/hiqnet-london-architect-v6-02-r3-windows",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3579,7 +3579,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://chamsyslighting.com/software/magicq-downloads/",
+                                          "OfficialProductUri":  "https://chamsyslighting.com/product/mediamaster-software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3674,7 +3674,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.christiedigital.com/en-gb/products/all-accessories/software/",
+                                          "OfficialProductUri":  "https://www.christiedigital.com/products/warping-blending/twist-series/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3728,7 +3728,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.christiedigital.com/products/warping-blending/mystique/mystique-premium-edition/",
+                                          "OfficialProductUri":  "https://www.christiedigital.com/products/warping-blending/mystique/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3813,7 +3813,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.christiedigital.com/en-gb/products/all-accessories/software/",
+                                          "OfficialProductUri":  "https://www.christiedigital.com/products/warping-blending/mystique/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -3861,7 +3861,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://help.webex.com/article/n1qv7av/Cisco-Webex-Device-Connector",
+                                          "OfficialProductUri":  "https://help.webex.com/en-us/article/383gbd/Cisco-Webex-Device-Connector",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -4749,7 +4749,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.deltacast.tv/products/free-software/e-edid-editor",
+                                          "OfficialProductUri":  "https://www.deltacast.tv/products/free-software/e-edid-editor/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -4992,7 +4992,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
-                                          "OfficialProductUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
+                                          "OfficialProductUri":  "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Concert.aspx",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -5043,7 +5043,7 @@
                                                               "Windows"
                                                           ],
                                           "OfficialDownloadUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
-                                          "OfficialProductUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
+                                          "OfficialProductUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/updaterator.aspx",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -6465,7 +6465,7 @@
                                                     ],
                                           "MaintenancePolicy":  "ProjectPinned",
                                           "VersionRule":  "ProjectPinned",
-                                          "CurrentOrLegacy":  "Unknown",
+                                          "CurrentOrLegacy":  "Legacy",
                                           "LicensingModel":  [
                                                                  "FREE"
                                                              ],
@@ -6476,7 +6476,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://jblpro.com/en-US/softwares",
+                                          "OfficialProductUri":  "https://jblpro.com/en-US/products/line-array-calculator-iii",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -6516,7 +6516,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://jblpro.com/en-US/softwares",
+                                          "OfficialProductUri":  "https://jblpro.com/en-US/products/performance-manager",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -6612,7 +6612,7 @@
                                                               "Server",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://www1.kramerav.com/br/page/kramer_network",
+                                          "OfficialProductUri":  "https://www1.kramerav.com/page/Kramer_network",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -6826,7 +6826,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://leaprofessional.com/products/sharkware/page/2/",
+                                          "OfficialProductUri":  "https://leaprofessional.com/products/sharkware/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -6962,7 +6962,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.lectrosonics.com/wireless-designer.html",
+                                          "OfficialProductUri":  "https://lectrosonics.com/wireless-designer/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -7014,7 +7014,7 @@
                                                               "Server",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://www.lg.com/global/business/supersign-cms",
+                                          "OfficialProductUri":  "https://www.lg.com/global/business/commercial-display/software-services/lg-supersign-cms/",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ]
@@ -7380,7 +7380,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.magewell.com/downloads",
+                                          "OfficialProductUri":  "https://www.magewell.com/downloads/usb-capture",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -7437,7 +7437,7 @@
                                                           ],
                                           "SideBySideSupported":  "Yes",
                                           "OfficialDownloadUri":  "https://www.malighting.com/downloads/products/grandMA3/",
-                                          "OfficialProductUri":  "https://www.malighting.com/grandma3/",
+                                          "OfficialProductUri":  "https://www.malighting.com/special/grandma3-onpc/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -7485,7 +7485,7 @@
                                                               "Windows"
                                                           ],
                                           "SideBySideSupported":  "Yes",
-                                          "OfficialProductUri":  "https://www.malighting.com/downloads/",
+                                          "OfficialProductUri":  "https://www.malighting.com/product-archive/product/grandma2-onpc-gMA2onPC/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -7522,7 +7522,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://martin-audio.com/downloads/software",
+                                          "OfficialProductUri":  "https://martin-audio.com/products/software/display3",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -7561,7 +7561,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://martin-audio.com/downloads/software",
+                                          "OfficialProductUri":  "https://martin-audio.com/products/software/vu-net",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -7617,7 +7617,7 @@
                                                               "Windows"
                                                           ],
                                           "OfficialDownloadUri":  "https://video.matrox.com/en/apps/drivers/graphics/download/convertip",
-                                          "OfficialProductUri":  "https://video.matrox.com/en/products/infrastructure/convertip-series",
+                                          "OfficialProductUri":  "https://video.matrox.com/en/apps/drivers/graphics/download/convertip",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -7672,7 +7672,7 @@
                                                               "Server",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://video.matrox.com/en/products/infrastructure/convertip-series",
+                                          "OfficialProductUri":  "https://video.matrox.com/en/product/nmos-routers/conductip/",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ]
@@ -7803,7 +7803,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "OfficialProductUri":  "https://documentation.mersive.com/en/solstice/manage-solstice/manage-solstice-locally-with-solstice-dashboard.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -7848,7 +7848,7 @@
                                                               "Windows",
                                                               "Server"
                                                           ],
-                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "OfficialProductUri":  "https://documentation.mersive.com/en/solstice/deploy-solstice/solstice-discovery-service--sds-.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -7985,7 +7985,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://software.meyersound.com/",
+                                          "OfficialProductUri":  "https://software.meyersound.com/compass",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -8028,7 +8028,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.meyersound.com/products/en/index-en.html",
+                                          "OfficialProductUri":  "https://software.meyersound.com/nebra",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -8071,7 +8071,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-hardware/drivers/debugger/usbview",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/usbview",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ],
@@ -8140,7 +8140,7 @@
                                                           ],
                                           "SideBySideSupported":  "Yes",
                                           "OfficialDownloadUri":  "https://learn.microsoft.com/sysinternals/downloads/sysinternals-suite",
-                                          "OfficialProductUri":  "https://learn.microsoft.com/sysinternals/",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/en-us/sysinternals/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ],
@@ -8205,7 +8205,7 @@
                                                               "Windows",
                                                               "Server"
                                                           ],
-                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-server/networking/technologies/pktmon/pktmon",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/en-us/windows-server/networking/technologies/pktmon/pktmon",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ],
@@ -8332,7 +8332,7 @@
                                                           ],
                                           "SideBySideSupported":  "Yes",
                                           "OfficialDownloadUri":  "https://packetsender.com/download",
-                                          "OfficialProductUri":  "https://packetsender.com/packetsender",
+                                          "OfficialProductUri":  "https://packetsender.com/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -8878,7 +8878,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.novastar.tech/download/data.html?catid=7\u0026typeid=",
+                                          "OfficialProductUri":  "https://www.novastar.tech/tpl/VMP_SOFTWARE.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -9062,7 +9062,7 @@
                                                               "Embedded"
                                                           ],
                                           "OfficialDownloadUri":  "https://support.obsidiancontrol.com/Content/Support/Downloads.htm",
-                                          "OfficialProductUri":  "https://obsidiancontrol.com/onyx",
+                                          "OfficialProductUri":  "https://www.obsidiancontrol.com/pages/onyx",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -9306,7 +9306,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "OfficialProductUri":  "https://pro-av.panasonic.net/en/software/ptz_vud/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -9341,7 +9341,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "OfficialProductUri":  "https://pro-av.panasonic.net/en/software/ptz_cc/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -9521,7 +9521,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.powersoft.com/en/software/armoniapluse",
+                                          "OfficialProductUri":  "https://www.powersoft.com/en/products/software/armoniaplus",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -9554,7 +9554,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.professionalwireless.com/",
+                                          "OfficialProductUri":  "https://www.professionalwireless.com/intermod-analysis/",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -9683,7 +9683,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.qsys.com/products-solutions/software-and-firmware/",
+                                          "OfficialProductUri":  "https://www.qsys.com/resources/software-and-firmware/unify-control-panel/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -10122,7 +10122,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://resolume.com/download/",
-                                          "OfficialProductUri":  "https://resolume.com/software/avenue-arena",
+                                          "OfficialProductUri":  "https://www.resolume.com/software/avenue-arena",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -10177,7 +10177,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://resolume.com/download/",
-                                          "OfficialProductUri":  "https://resolume.com/software/avenue-arena",
+                                          "OfficialProductUri":  "https://www.resolume.com/software/avenue-arena",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -10226,7 +10226,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://resolume.com/download/",
-                                          "OfficialProductUri":  "https://resolume.com/software/wire",
+                                          "OfficialProductUri":  "https://www.resolume.com/software/wire",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -10581,7 +10581,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://rtsintercoms.com/support/apps-and-tools/",
+                                          "OfficialProductUri":  "https://products.rtsintercoms.com/na/en/azedit",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -10665,7 +10665,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://products.rtsintercoms.com/emea/nl/downloads",
+                                          "OfficialProductUri":  "https://rtsintercoms.com/support/apps-and-tools/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -10718,7 +10718,7 @@
                                                               "iOS",
                                                               "Android"
                                                           ],
-                                          "OfficialProductUri":  "https://rtsintercoms.com/support/apps-and-tools/",
+                                          "OfficialProductUri":  "https://rtsintercoms.com/products/software/vlink/",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ]
@@ -11222,7 +11222,7 @@
                                           "SupportedOS":  [
                                                               "Server"
                                                           ],
-                                          "OfficialProductUri":  "https://www.shure.com/en-US/products/software/systemon",
+                                          "OfficialProductUri":  "https://www.shure.com/en-US/docs/guide/SystemOn",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -11445,7 +11445,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.symetrix.co/software-downloads/",
+                                          "OfficialProductUri":  "https://www.symetrix.co/composer/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -11678,7 +11678,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://www.tightvnc.com/download.php",
+                                          "OfficialProductUri":  "https://www.tightvnc.com/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ],
@@ -12097,7 +12097,7 @@
                                                               "iOS",
                                                               "Android"
                                                           ],
-                                          "OfficialProductUri":  "https://support.xilica.com/en/categories/1363970-software-downloads",
+                                          "OfficialProductUri":  "https://support.xilica.com/en/articles/3947330",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -12168,7 +12168,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://support.xilica.com/en/categories/1363970-software-downloads",
+                                          "OfficialProductUri":  "https://support.xilica.com/en/articles/3948482",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]

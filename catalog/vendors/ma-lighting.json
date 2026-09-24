@@ -52,7 +52,7 @@
                                                           ],
                                           "SideBySideSupported":  "Yes",
                                           "OfficialDownloadUri":  "https://www.malighting.com/downloads/products/grandMA3/",
-                                          "OfficialProductUri":  "https://www.malighting.com/grandma3/",
+                                          "OfficialProductUri":  "https://www.malighting.com/special/grandma3-onpc/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -100,7 +100,7 @@
                                                               "Windows"
                                                           ],
                                           "SideBySideSupported":  "Yes",
-                                          "OfficialProductUri":  "https://www.malighting.com/downloads/",
+                                          "OfficialProductUri":  "https://www.malighting.com/product-archive/product/grandma2-onpc-gMA2onPC/",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

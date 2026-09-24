@@ -19,7 +19,7 @@
                                                     ],
                                           "MaintenancePolicy":  "ProjectPinned",
                                           "VersionRule":  "ProjectPinned",
-                                          "CurrentOrLegacy":  "Unknown",
+                                          "CurrentOrLegacy":  "Legacy",
                                           "LicensingModel":  [
                                                                  "FREE"
                                                              ],
@@ -30,7 +30,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://jblpro.com/en-US/softwares",
+                                          "OfficialProductUri":  "https://jblpro.com/en-US/products/line-array-calculator-iii",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
@@ -70,7 +70,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://jblpro.com/en-US/softwares",
+                                          "OfficialProductUri":  "https://jblpro.com/en-US/products/performance-manager",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]

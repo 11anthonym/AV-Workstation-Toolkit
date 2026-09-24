@@ -105,7 +105,7 @@
                                                               "macOS"
                                                           ],
                                           "OfficialDownloadUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
-                                          "OfficialProductUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
+                                          "OfficialProductUri":  "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Concert.aspx",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"
@@ -156,7 +156,7 @@
                                                               "Windows"
                                                           ],
                                           "OfficialDownloadUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
-                                          "OfficialProductUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/software.aspx",
+                                          "OfficialProductUri":  "https://www.etcconnect.com/products/networking/system-configuration/software/updaterator.aspx",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

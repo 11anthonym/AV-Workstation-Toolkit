@@ -22,7 +22,7 @@
       "Vendor": "Biamp",
       "Name": "Biamp Canvas",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://support.biamp.com/Tesira/Software-Firmware",
+      "OfficialSourceUri": "https://products.biamp.com/product-details/-/o/ecom-item/900.0109.901",
       "Aliases": [ "Canvas", "Biamp Canvas Software" ]
     },
     {
@@ -38,7 +38,7 @@
       "Vendor": "Crestron",
       "Name": "Crestron SIMPL Windows",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.crestron.com/release_notes/simpl_release_notes.html",
+      "OfficialSourceUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-SIMPL",
       "Aliases": [ "SIMPL", "SIMPL Windows" ]
     },
     {
@@ -46,7 +46,7 @@
       "Vendor": "Crestron",
       "Name": "Crestron Database",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.crestron.com/release_notes/simpl_release_notes.html",
+      "OfficialSourceUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-SIMPL",
       "Aliases": [ "Crestron DB" ]
     },
     {
@@ -54,7 +54,7 @@
       "Vendor": "Crestron",
       "Name": "Crestron Device Database",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.crestron.com/release_notes/simpl_release_notes.html",
+      "OfficialSourceUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-SIMPL",
       "Aliases": [ "Device Database", "Crestron DevDB" ]
     },
     {
@@ -70,7 +70,7 @@
       "Vendor": "Crestron",
       "Name": "Crestron DM NVX Tool",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.crestron.com/getmedia/09678b09-2665-445a-acfd-084bc638fe02/ss_SW-DMNVXTOOL",
+      "OfficialSourceUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-DMNVXTOOL",
       "Aliases": [ "DM NVX Tool", "DM-NVX Tool" ]
     },
     {
@@ -198,7 +198,7 @@
       "Vendor": "AMX",
       "Name": "AMX TPDesign5",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.amx.com/en/softwares/tpdesign5-v1-5-111",
+      "OfficialSourceUri": "https://www.amx.com/en-US/products/tpdesign5",
       "Aliases": [ "TPDesign5", "TPDesign 5" ]
     },
     {
@@ -206,7 +206,7 @@
       "Vendor": "AMX",
       "Name": "AMX SVSI N-Able PC",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.amx.com/en-US/software",
+      "OfficialSourceUri": "https://www.amx.com/en-US/products/n-able-pc",
       "Aliases": [ "N-Able PC", "SVSI N-Able" ]
     },
     {
@@ -230,7 +230,7 @@
       "Vendor": "Angry IP Scanner Project",
       "Name": "Angry IP Scanner",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://angryip.org/download/",
+      "OfficialSourceUri": "https://angryip.org/",
       "Aliases": [ "Angry IP", "ipscan" ]
     },
     {
@@ -326,7 +326,7 @@
       "Vendor": "Audio-Technica",
       "Name": "Audio-Technica Wireless Manager",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://docs.audio-technica.com/all/WirelessManager_UM_V16_web_241006.pdf",
+      "OfficialSourceUri": "https://www.audio-technica.com/en-us/wireless-manager",
       "Aliases": [ "Wireless Manager", "Audio-Technica Wireless Manager" ]
     },
     {
@@ -342,7 +342,7 @@
       "Vendor": "AVer",
       "Name": "AVer Room Management",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.aver.com/Downloads/search?q=Room+Management",
+      "OfficialSourceUri": "https://communication.aver.com/model/room-management",
       "Aliases": [ "Room Management", "AVer Room Management" ]
     },
     {
@@ -350,7 +350,7 @@
       "Vendor": "AVer",
       "Name": "AVer PTZApp 2",
       "Lifecycle": "Legacy",
-      "OfficialSourceUri": "https://www.aver.com/Downloads/search?q=Room+Management",
+      "OfficialSourceUri": "https://communication.aver.com/model/ptzapp2",
       "Aliases": [ "PTZApp 2", "PTZApp2" ]
     },
     {
@@ -390,7 +390,7 @@
       "Vendor": "Blackmagic Design",
       "Name": "Blackmagic Desktop Video",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.blackmagicdesign.com/support/",
+      "OfficialSourceUri": "https://www.blackmagicdesign.com/products/decklink/software",
       "Aliases": [ "Desktop Video", "Blackmagic Desktop Video", "DeckLink Desktop Video" ]
     },
     {
@@ -414,7 +414,7 @@
       "Vendor": "BrightSign",
       "Name": "BrightAuthor:connected",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://support.brightsign.biz/hc/en-us/articles/34145328681243-BrightAuthor-connected-1-55-1-Available",
+      "OfficialSourceUri": "https://www.brightsign.biz/brightsign-players/software/",
       "Aliases": [ "BrightAuthor:connected", "BrightAuthor Connected", "BrightAuthor" ]
     },
     {
@@ -430,7 +430,7 @@
       "Vendor": "BrightSign",
       "Name": "BrightSignOS",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://docs.brightsign.biz/releases",
+      "OfficialSourceUri": "https://www.brightsign.biz/brightsign-advantage/brightsign-os/",
       "Aliases": [ "BrightSignOS", "BrightSign OS" ]
     },
     {
@@ -462,7 +462,7 @@
       "Vendor": "BSS",
       "Name": "BSS AVX Control",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://bssaudio.com/en-US/product_families/avx-suite",
+      "OfficialSourceUri": "https://bssaudio.com/en-US/products/avx-control",
       "Aliases": [ "AVX Control" ]
     },
     {
@@ -494,7 +494,7 @@
       "Vendor": "BSS",
       "Name": "BSS London Architect",
       "Lifecycle": "Legacy",
-      "OfficialSourceUri": "https://bssaudio.com/en-US/support_downloads/products",
+      "OfficialSourceUri": "https://bssaudio.com/en-US/softwares/hiqnet-london-architect-v6-02-r3-windows",
       "Aliases": [ "London Architect", "Soundweb London" ]
     },
     {
@@ -510,7 +510,7 @@
     "Vendor": "ChamSys",
     "Name": "ChamSys MagicQ",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "OfficialSourceUri": "https://chamsyslighting.com/product/magicq-software/",
     "Aliases": [
       "MagicQ",
       "Magic Q"
@@ -521,7 +521,7 @@
     "Vendor": "ChamSys",
     "Name": "ChamSys MediaMaster",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://chamsyslighting.com/software/magicq-downloads/",
+    "OfficialSourceUri": "https://chamsyslighting.com/product/mediamaster-software/",
     "Aliases": [
       "MediaMaster",
       "ChamSys MediaMaster"
@@ -543,7 +543,7 @@
     "Vendor": "Christie",
     "Name": "Christie Twist",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.christiedigital.com/products/all-accessories/software/",
+    "OfficialSourceUri": "https://www.christiedigital.com/products/warping-blending/twist-series/",
     "Aliases": [
       "Twist",
       "Christie Twist"
@@ -554,7 +554,7 @@
     "Vendor": "Christie",
     "Name": "Christie Mystique",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.christiedigital.com/en-gb/products/warping-blending/mystique/Mystique-pro-venue-edition/",
+    "OfficialSourceUri": "https://www.christiedigital.com/products/warping-blending/mystique/",
     "Aliases": [
       "Mystique",
       "Christie Mystique"
@@ -576,7 +576,7 @@
     "Vendor": "Christie",
     "Name": "Christie Guardian",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.christiedigital.com/products/all-accessories/software/",
+    "OfficialSourceUri": "https://www.christiedigital.com/products/warping-blending/mystique/",
     "Aliases": [
       "Guardian",
       "Christie Guardian"
@@ -609,7 +609,7 @@
     "Vendor": "Clear-Com",
     "Name": "Clear-Com Dynam-EC",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://clearcom.com/DownloadCenter/datasheets/EclipseHX/DynamEC_Datasheet.pdf",
+    "OfficialSourceUri": "https://www.clearcom.com/Products/Products-By-Name/Station-IC/dynam-ec",
     "Aliases": [
       "Dynam-EC",
       "Dynam EC"
@@ -702,7 +702,7 @@
     "Vendor": "d&b audiotechnik",
     "Name": "d&b NoizCalc",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.dbaudio.com/global/en/service-and-support/downloads/?category=14%2C24%2C12",
+    "OfficialSourceUri": "https://www.dbaudio.com/global/en/products/software/noizcalc/",
     "Aliases": [
       "NoizCalc",
       "d&b NoizCalc"
@@ -821,7 +821,7 @@
     "Vendor": "ETC",
     "Name": "ETC Eos Family Software",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://support.etcconnect.com/ETC/Consoles/Eos_Family/Software_and_Programming/All_Eos_Family_Software_Versions",
+    "OfficialSourceUri": "https://www.etcconnect.com/ETCnomad/",
     "Aliases": [
       "Eos",
       "ETCnomad",
@@ -833,7 +833,7 @@
     "Vendor": "ETC",
     "Name": "ETC Concert",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Software.aspx",
+    "OfficialSourceUri": "https://www.etcconnect.com/Products/Networking/System-Configuration/Software/Concert.aspx",
     "Aliases": [
       "Concert",
       "ETC Concert"
@@ -866,7 +866,7 @@
     "Vendor": "Extron",
     "Name": "Extron Global Scripter",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.extron.com/technology/landing/programming/content/english/content.html",
+    "OfficialSourceUri": "https://www.extron.com/product/software/globalscripter",
     "Aliases": [
       "Global Scripter",
       "GlobalScripter"
@@ -877,7 +877,7 @@
       "Vendor": "Extron",
       "Name": "Extron Global Configurator Plus",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.extron.com/article/gcpro",
+      "OfficialSourceUri": "https://www.extron.com/product/software/gcpro",
       "Aliases": [
         "Global Configurator Plus",
         "GCP"
@@ -888,7 +888,7 @@
       "Vendor": "Extron",
       "Name": "Extron Global Configurator Professional",
       "Lifecycle": "Current",
-      "OfficialSourceUri": "https://www.extron.com/article/gcpro",
+      "OfficialSourceUri": "https://www.extron.com/product/software/gcpro",
       "Aliases": [
         "Global Configurator Professional",
         "GC Professional",
@@ -922,7 +922,7 @@
     "Vendor": "Extron",
     "Name": "Extron XTP System Configuration Software",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.extron.com/product/software/xtpscs?src=software",
+    "OfficialSourceUri": "https://www.extron.com/product/software/xtpscs",
     "Aliases": [
       "XTP System Configuration",
       "XTP SCS"
@@ -977,7 +977,7 @@
     "Vendor": "Figure 53",
     "Name": "QLab",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://qlab.app/download/",
+    "OfficialSourceUri": "https://qlab.app/",
     "Aliases": [
       "QLab",
       "QLab 5"
@@ -988,7 +988,7 @@
     "Vendor": "FileZilla Project",
     "Name": "FileZilla Client",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://filezilla-project.org/download.php?show_all=1",
+    "OfficialSourceUri": "https://filezilla-project.org/",
     "Aliases": [
       "FileZilla",
       "FileZilla Client"
@@ -1158,7 +1158,7 @@
     "Vendor": "JBL Professional",
     "Name": "JBL Venue Synthesis",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://jblpro.com/en-US/products/performance-manager",
+    "OfficialSourceUri": "https://jblpro.com/en-US/products/venue-synthesis",
     "Aliases": [ "Venue Synthesis", "JBL Venue Synthesis", "JBL VS" ]
   },
   {
@@ -1198,7 +1198,7 @@
     "Vendor": "Lake",
     "Name": "Lake Controller",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.labgruppen.com/en/technologies/networking",
+    "OfficialSourceUri": "https://www.labgruppen.com/en/lake-processing",
     "Aliases": [ "Lake Controller", "Lake processing" ]
   },
   {
@@ -1206,7 +1206,7 @@
     "Vendor": "LEA Professional",
     "Name": "LEA Professional SharkWare",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://leaprofessional.com/products/sharkware/page/2/",
+    "OfficialSourceUri": "https://leaprofessional.com/products/sharkware/",
     "Aliases": [ "SharkWare", "LEA SharkWare", "LEA amplifier control" ]
   },
   {
@@ -1222,7 +1222,7 @@
     "Vendor": "LG",
     "Name": "LG SuperSign CMS",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://solutions.lg.com/us/software/supersign/supersign-downloads",
+    "OfficialSourceUri": "https://www.lg.com/global/business/commercial-display/software-services/lg-supersign-cms/",
     "Aliases": [ "SuperSign CMS", "LG SuperSign", "LG signage CMS" ]
   },
   {
@@ -1294,7 +1294,7 @@
     "Vendor": "MA Lighting",
     "Name": "grandMA3 onPC",
     "Lifecycle": "Current",
-    "OfficialSourceUri": "https://www.malighting.com/downloads/products/grandMA3/",
+    "OfficialSourceUri": "https://www.malighting.com/special/grandma3-onpc/",
     "Aliases": [ "grandMA3 onPC", "MA3 onPC", "grandMA3" ]
   },
   {
@@ -1302,24 +1302,24 @@
     "Vendor": "MA Lighting",
     "Name": "grandMA2 onPC",
     "Lifecycle": "Legacy",
-    "OfficialSourceUri": "https://www.malighting.com/downloads/",
+    "OfficialSourceUri": "https://www.malighting.com/product-archive/product/grandma2-onpc-gMA2onPC/",
     "Aliases": [ "grandMA2 onPC", "MA2 onPC", "grandMA2" ]
   },
   { "Id": "Magewell.USBCaptureUtility", "Vendor": "Magewell", "Name": "Magewell USB Capture Utility", "Lifecycle": "Current", "OfficialSourceUri": "https://www.magewell.com/downloads/usb-capture", "Aliases": [ "USB Capture Utility", "Magewell USB Capture", "Magewell capture utility" ] },
-  { "Id": "MartinAudio.Display3", "Vendor": "Martin Audio", "Name": "Martin Audio DISPLAY 3", "Lifecycle": "Current", "OfficialSourceUri": "https://martin-audio.com/support/software", "Aliases": [ "DISPLAY 3", "Martin Audio Display", "Martin Audio prediction" ] },
+  { "Id": "MartinAudio.Display3", "Vendor": "Martin Audio", "Name": "Martin Audio DISPLAY 3", "Lifecycle": "Current", "OfficialSourceUri": "https://martin-audio.com/products/software/display3", "Aliases": [ "DISPLAY 3", "Martin Audio Display", "Martin Audio prediction" ] },
   { "Id": "MartinAudio.VUNET", "Vendor": "Martin Audio", "Name": "Martin Audio VU-NET", "Lifecycle": "Current", "OfficialSourceUri": "https://martin-audio.com/products/software/vu-net", "Aliases": [ "VU-NET", "VUNET", "Martin Audio control" ] },
-  { "Id": "Matrox.ConvertIPManager", "Vendor": "Matrox Video", "Name": "Matrox ConvertIP Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://video.matrox.com/en/products/infrastructure/convertip-series", "Aliases": [ "ConvertIP Manager", "Matrox ConvertIP", "Matrox IP manager" ] },
-  { "Id": "Matrox.ConductIP", "Vendor": "Matrox Video", "Name": "Matrox ConductIP", "Lifecycle": "Current", "OfficialSourceUri": "https://video.matrox.com/en/products/infrastructure/convertip-series/conductip", "Aliases": [ "ConductIP", "Matrox ConductIP" ] },
+  { "Id": "Matrox.ConvertIPManager", "Vendor": "Matrox Video", "Name": "Matrox ConvertIP Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://video.matrox.com/en/apps/drivers/graphics/download/convertip", "Aliases": [ "ConvertIP Manager", "Matrox ConvertIP", "Matrox IP manager" ] },
+  { "Id": "Matrox.ConductIP", "Vendor": "Matrox Video", "Name": "Matrox ConductIP", "Lifecycle": "Current", "OfficialSourceUri": "https://video.matrox.com/en/product/nmos-routers/conductip/", "Aliases": [ "ConductIP", "Matrox ConductIP" ] },
   { "Id": "Medialon.Manager", "Vendor": "Medialon", "Name": "Medialon Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://7thsense.one/product/medialon-manager", "Aliases": [ "Medialon Manager", "Medialon show control", "Manager V7" ] },
   { "Id": "Medialon.Marquee", "Vendor": "Medialon", "Name": "Medialon Marquee", "Lifecycle": "Current", "OfficialSourceUri": "https://7thsense.one/product/medialon-marquee", "Aliases": [ "Medialon Marquee", "Marquee show control" ] },
   { "Id": "Mersive.SolsticeApp", "Vendor": "Mersive", "Name": "Mersive Solstice App", "Lifecycle": "Current", "OfficialSourceUri": "https://www.mersive.com/guides/deploy-solstice/", "Aliases": [ "Solstice App", "Mersive Solstice" ] },
-  { "Id": "Mersive.SolsticeDashboard", "Vendor": "Mersive", "Name": "Mersive Solstice Dashboard", "Lifecycle": "Current", "OfficialSourceUri": "https://documentation.mersive.com/content/pdf/solsticedashboardadminguide.pdf", "Aliases": [ "Solstice Dashboard", "Mersive Dashboard" ] },
-  { "Id": "Mersive.SolsticeDiscoveryService", "Vendor": "Mersive", "Name": "Mersive Solstice Discovery Service", "Lifecycle": "Current", "OfficialSourceUri": "https://documentation.mersive.com/content/pdf/solsticedeploymentguide.pdf", "Aliases": [ "Solstice Discovery Service", "SDS", "Mersive discovery" ] },
-  { "Id": "MeyerSound.MAPP3D", "Vendor": "Meyer Sound", "Name": "Meyer Sound MAPP 3D", "Lifecycle": "Current", "OfficialSourceUri": "https://software.meyersound.com/", "Aliases": [ "MAPP 3D", "Meyer Sound MAPP", "MAPP3D" ] },
-  { "Id": "MeyerSound.Compass", "Vendor": "Meyer Sound", "Name": "Meyer Sound Compass", "Lifecycle": "Current", "OfficialSourceUri": "https://software.meyersound.com/", "Aliases": [ "Meyer Sound Compass", "Compass control" ] },
+  { "Id": "Mersive.SolsticeDashboard", "Vendor": "Mersive", "Name": "Mersive Solstice Dashboard", "Lifecycle": "Current", "OfficialSourceUri": "https://documentation.mersive.com/en/solstice/manage-solstice/manage-solstice-locally-with-solstice-dashboard.html", "Aliases": [ "Solstice Dashboard", "Mersive Dashboard" ] },
+  { "Id": "Mersive.SolsticeDiscoveryService", "Vendor": "Mersive", "Name": "Mersive Solstice Discovery Service", "Lifecycle": "Current", "OfficialSourceUri": "https://documentation.mersive.com/en/solstice/deploy-solstice/solstice-discovery-service--sds-.html", "Aliases": [ "Solstice Discovery Service", "SDS", "Mersive discovery" ] },
+  { "Id": "MeyerSound.MAPP3D", "Vendor": "Meyer Sound", "Name": "Meyer Sound MAPP 3D", "Lifecycle": "Current", "OfficialSourceUri": "https://software.meyersound.com/mapp-3d", "Aliases": [ "MAPP 3D", "Meyer Sound MAPP", "MAPP3D" ] },
+  { "Id": "MeyerSound.Compass", "Vendor": "Meyer Sound", "Name": "Meyer Sound Compass", "Lifecycle": "Current", "OfficialSourceUri": "https://software.meyersound.com/compass", "Aliases": [ "Meyer Sound Compass", "Compass control" ] },
   { "Id": "MeyerSound.Nebra", "Vendor": "Meyer Sound", "Name": "Meyer Sound Nebra", "Lifecycle": "Current", "OfficialSourceUri": "https://software.meyersound.com/nebra", "Aliases": [ "Meyer Sound Nebra", "Nebra" ] },
-  { "Id": "Microsoft.USBView", "Vendor": "Microsoft", "Name": "Microsoft USBView", "Lifecycle": "Current", "OfficialSourceUri": "https://learn.microsoft.com/windows-hardware/drivers/debugger/usbview", "Aliases": [ "USBView", "Microsoft USB viewer" ] },
-  { "Id": "Microsoft.Sysinternals", "Vendor": "Microsoft", "Name": "Microsoft Sysinternals Suite", "Lifecycle": "Current", "OfficialSourceUri": "https://learn.microsoft.com/sysinternals/", "Aliases": [ "Sysinternals", "Sysinternals Suite" ] },
+  { "Id": "Microsoft.USBView", "Vendor": "Microsoft", "Name": "Microsoft USBView", "Lifecycle": "Current", "OfficialSourceUri": "https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/usbview", "Aliases": [ "USBView", "Microsoft USB viewer" ] },
+  { "Id": "Microsoft.Sysinternals", "Vendor": "Microsoft", "Name": "Microsoft Sysinternals Suite", "Lifecycle": "Current", "OfficialSourceUri": "https://learn.microsoft.com/en-us/sysinternals/", "Aliases": [ "Sysinternals", "Sysinternals Suite" ] },
   { "Id": "Avnu.MilanManager", "Vendor": "Milan Manager", "Name": "Milan Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://milanmanager.com/", "Aliases": [ "Milan Manager", "Milan-AVB Manager", "Milan AVB" ] },
   { "Id": "MultipleVendors.AVBInteroperability", "Vendor": "Multiple vendors", "Name": "AVB/Milan interoperability guidance", "Lifecycle": "Current", "OfficialSourceUri": "https://milanmanager.com/", "Aliases": [ "AVB interoperability", "Milan interoperability", "multi-vendor AVB" ] },
   { "Id": "NagleCode.PacketSender", "Vendor": "NagleCode", "Name": "Packet Sender", "Lifecycle": "Current", "OfficialSourceUri": "https://packetsender.com/", "Aliases": [ "Packet Sender", "NagleCode Packet Sender" ] },
@@ -1328,27 +1328,27 @@
   { "Id": "NETGEAR.EngageController", "Vendor": "NETGEAR", "Name": "NETGEAR Engage Controller", "Lifecycle": "Current", "OfficialSourceUri": "https://www.netgear.com/business/management/engage-software/", "Aliases": [ "NETGEAR Engage", "Engage Controller", "Netgear AV controller" ] },
   { "Id": "NEXO.NS1", "Vendor": "NEXO", "Name": "NEXO NS-1", "Lifecycle": "Current", "OfficialSourceUri": "https://www.nexo-sa.com/systems/software/", "Aliases": [ "NS-1", "NEXO system configuration", "NEXO prediction" ] },
   { "Id": "NEXO.NeMo", "Vendor": "NEXO", "Name": "NEXO NeMo", "Lifecycle": "Current", "OfficialSourceUri": "https://www.nexo-sa.com/nemo/", "Aliases": [ "NeMo", "NEXO NeMo", "NEXO system management" ] },
-  { "Id": "NEXO.NeFu", "Vendor": "NEXO", "Name": "NEXO NeFu", "Lifecycle": "Current", "OfficialSourceUri": "https://www.nexo-sa.com/software/", "Aliases": [ "NeFu", "NEXO firmware utility", "NEXO firmware update" ] },
+  { "Id": "NEXO.NeFu", "Vendor": "NEXO", "Name": "NEXO NeFu", "Lifecycle": "Current", "OfficialSourceUri": "https://nexo-sa.com/software-update/doc/nefu/", "Aliases": [ "NeFu", "NEXO firmware utility", "NEXO firmware update" ] },
   { "Id": "NovaStar.NovaLCT", "Vendor": "NovaStar", "Name": "NovaStar NovaLCT", "Lifecycle": "Current", "OfficialSourceUri": "https://www.novastar.tech/download/data.html?catid=7&typeid=", "Aliases": [ "NovaLCT", "NovaStar LED configuration" ] },
   { "Id": "NovaStar.SmartLCT", "Vendor": "NovaStar", "Name": "NovaStar SmartLCT", "Lifecycle": "Current", "OfficialSourceUri": "https://www.novastar.tech/download/data.html?catid=7&typeid=", "Aliases": [ "SmartLCT", "NovaStar screen configuration" ] },
   { "Id": "NovaStar.ViPlexExpress", "Vendor": "NovaStar", "Name": "NovaStar ViPlex Express", "Lifecycle": "Current", "OfficialSourceUri": "https://www.novastar.tech/download/data.html?catid=7&typeid=", "Aliases": [ "ViPlex Express", "NovaStar signage player" ] },
-  { "Id": "NovaStar.VMP", "Vendor": "NovaStar", "Name": "NovaStar VMP", "Lifecycle": "Current", "OfficialSourceUri": "https://www.novastar.tech/download/data.html?catid=7&typeid=", "Aliases": [ "COEX VMP", "NovaStar VMP", "NovaStar COEX" ] },
+  { "Id": "NovaStar.VMP", "Vendor": "NovaStar", "Name": "NovaStar VMP", "Lifecycle": "Current", "OfficialSourceUri": "https://www.novastar.tech/tpl/VMP_SOFTWARE.html", "Aliases": [ "COEX VMP", "NovaStar VMP", "NovaStar COEX" ] },
   { "Id": "Nureva.App", "Vendor": "Nureva", "Name": "Nureva App", "Lifecycle": "Current", "OfficialSourceUri": "https://support.nureva.com/docs/get-started-with-the-nureva-app", "Aliases": [ "Nureva App", "Nureva setup" ] },
   { "Id": "Nureva.Console", "Vendor": "Nureva", "Name": "Nureva Console", "Lifecycle": "Current", "OfficialSourceUri": "https://www.nureva.com/software-and-services/console", "Aliases": [ "Nureva Console", "Nureva remote management" ] },
   { "Id": "Nureva.ConsoleClient", "Vendor": "Nureva", "Name": "Nureva Console Client", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.nureva.com/docs/download-nureva-console-client", "Aliases": [ "Nureva Console Client", "Nureva legacy client" ] },
-  { "Id": "OBSProject.OBSStudio", "Vendor": "OBS Project", "Name": "OBS Studio", "Lifecycle": "Current", "OfficialSourceUri": "https://obsproject.com/download", "Aliases": [ "OBS", "Open Broadcaster Software", "OBS Studio" ] },
-  { "Id": "Obsidian.ONYX", "Vendor": "Obsidian Control Systems", "Name": "ONYX", "Lifecycle": "Current", "OfficialSourceUri": "https://support.obsidiancontrol.com/Content/Support/Downloads.htm", "Aliases": [ "ONYX", "Obsidian ONYX", "ONYX for PC" ] },
-  { "Id": "OpenSoundMeter.OpenSoundMeter", "Vendor": "Open Sound Meter", "Name": "Open Sound Meter", "Lifecycle": "Current", "OfficialSourceUri": "https://opensoundmeter.com/releases", "Aliases": [ "Open Sound Meter", "OSM measurement" ] },
+  { "Id": "OBSProject.OBSStudio", "Vendor": "OBS Project", "Name": "OBS Studio", "Lifecycle": "Current", "OfficialSourceUri": "https://obsproject.com/", "Aliases": [ "OBS", "Open Broadcaster Software", "OBS Studio" ] },
+  { "Id": "Obsidian.ONYX", "Vendor": "Obsidian Control Systems", "Name": "ONYX", "Lifecycle": "Current", "OfficialSourceUri": "https://www.obsidiancontrol.com/pages/onyx", "Aliases": [ "ONYX", "Obsidian ONYX", "ONYX for PC" ] },
+  { "Id": "OpenSoundMeter.OpenSoundMeter", "Vendor": "Open Sound Meter", "Name": "Open Sound Meter", "Lifecycle": "Current", "OfficialSourceUri": "https://opensoundmeter.com/", "Aliases": [ "Open Sound Meter", "OSM measurement" ] },
   { "Id": "Panasonic.MediaProductionSuite", "Vendor": "Panasonic", "Name": "Panasonic Media Production Suite", "Lifecycle": "Current", "OfficialSourceUri": "https://pro-av.panasonic.net/en/software/mps/", "Aliases": [ "Media Production Suite", "Panasonic MPS", "Panasonic PTZ control" ] },
   { "Id": "Panasonic.EasyIPSetupToolPlus", "Vendor": "Panasonic", "Name": "Panasonic EasyIP Setup Tool Plus", "Lifecycle": "Legacy", "OfficialSourceUri": "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads", "Aliases": [ "EasyIP Setup Tool Plus", "Panasonic EasyIP" ] },
-  { "Id": "Panasonic.PTZVirtualUSBDriver", "Vendor": "Panasonic", "Name": "Panasonic PTZ Virtual USB Driver", "Lifecycle": "Current", "OfficialSourceUri": "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads", "Aliases": [ "PTZ Virtual USB Driver", "Panasonic virtual USB" ] },
-  { "Id": "Panasonic.PTZControlCenter", "Vendor": "Panasonic", "Name": "Panasonic PTZ Control Center", "Lifecycle": "Legacy", "OfficialSourceUri": "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads", "Aliases": [ "PTZ Control Center", "Panasonic PTZ Control" ] },
+  { "Id": "Panasonic.PTZVirtualUSBDriver", "Vendor": "Panasonic", "Name": "Panasonic PTZ Virtual USB Driver", "Lifecycle": "Current", "OfficialSourceUri": "https://pro-av.panasonic.net/en/software/ptz_vud/", "Aliases": [ "PTZ Virtual USB Driver", "Panasonic virtual USB" ] },
+  { "Id": "Panasonic.PTZControlCenter", "Vendor": "Panasonic", "Name": "Panasonic PTZ Control Center", "Lifecycle": "Legacy", "OfficialSourceUri": "https://pro-av.panasonic.net/en/software/ptz_cc/", "Aliases": [ "PTZ Control Center", "Panasonic PTZ Control" ] },
   { "Id": "Panasonic.GeometryManagerPro", "Vendor": "Panasonic", "Name": "Panasonic Geometry Manager Pro", "Lifecycle": "Current", "OfficialSourceUri": "https://docs.connect.panasonic.com/projector/products/geometry/", "Aliases": [ "Geometry Manager Pro", "Panasonic geometry" ] },
-  { "Id": "PingmanTools.PingPlotter", "Vendor": "Pingman Tools", "Name": "PingPlotter", "Lifecycle": "Current", "OfficialSourceUri": "https://www.pingplotter.com/download/", "Aliases": [ "PingPlotter", "Pingman PingPlotter", "network path diagnostics" ] },
+  { "Id": "PingmanTools.PingPlotter", "Vendor": "Pingman Tools", "Name": "PingPlotter", "Lifecycle": "Current", "OfficialSourceUri": "https://www.pingplotter.com/", "Aliases": [ "PingPlotter", "Pingman PingPlotter", "network path diagnostics" ] },
   { "Id": "Planar.WallDirectorOS", "Vendor": "Planar", "Name": "Planar WallDirector OS", "Lifecycle": "Current", "OfficialSourceUri": "https://www.planar.com/products/planar-walldirector/planar-walldirector-os/", "Aliases": [ "WallDirector OS", "Planar WallDirector", "Planar video wall controller" ] },
   { "Id": "Powersoft.ArmoniaPlus", "Vendor": "Powersoft", "Name": "Powersoft ArmoniaPlus", "Lifecycle": "Current", "OfficialSourceUri": "https://www.powersoft.com/en/products/software/armoniaplus", "Aliases": [ "ArmoniaPlus", "Armonia Plus", "Powersoft amplifier control" ] },
   { "Id": "PWS.IAS", "Vendor": "Professional Wireless Systems", "Name": "Professional Wireless Systems IAS", "Lifecycle": "Current", "OfficialSourceUri": "https://www.professionalwireless.com/intermod-analysis/", "Aliases": [ "IAS", "PWS IAS", "Intermodulation Analysis System" ] },
-  { "Id": "QLCPlus.QLCPlus", "Vendor": "QLC+ Project", "Name": "QLC+", "Lifecycle": "Current", "OfficialSourceUri": "https://qlcplus.org/download", "Aliases": [ "QLC+", "Q Light Controller", "QLC Plus" ] },
+  { "Id": "QLCPlus.QLCPlus", "Vendor": "QLC+ Project", "Name": "QLC+", "Lifecycle": "Current", "OfficialSourceUri": "https://www.qlcplus.org/", "Aliases": [ "QLC+", "Q Light Controller", "QLC Plus" ] },
   { "Id": "Rane.Halogen", "Vendor": "Rane Commercial", "Name": "Rane Halogen", "Lifecycle": "Current", "OfficialSourceUri": "https://www.ranecommercial.com/halogen", "Aliases": [ "Halogen", "Rane HAL", "Rane DSP configuration" ] },
   { "Id": "RationalAcoustics.SmaartSuite", "Vendor": "Rational Acoustics", "Name": "Rational Acoustics Smaart Suite", "Lifecycle": "Current", "OfficialSourceUri": "https://www.rationalacoustics.com/collections/smaart-suite", "Aliases": [ "Smaart Suite", "Smaart", "Smaart v9" ] },
   { "Id": "RationalAcoustics.SmaartRT", "Vendor": "Rational Acoustics", "Name": "Rational Acoustics Smaart RT", "Lifecycle": "Current", "OfficialSourceUri": "https://support.rationalacoustics.com/support/solutions/articles/150000188536-which-edition-of-smaart-is-right-for-me-", "Aliases": [ "Smaart RT", "Smaart Real Time" ] },
@@ -1369,7 +1369,7 @@
   { "Id": "RTS.AZedit", "Vendor": "RTS Intercoms", "Name": "RTS AZedit", "Lifecycle": "Current", "OfficialSourceUri": "https://products.rtsintercoms.com/na/en/azedit", "Aliases": [ "AZedit", "RTS AZedit", "RTS matrix configuration" ] },
   { "Id": "RTS.IPedit", "Vendor": "RTS Intercoms", "Name": "RTS IPedit", "Lifecycle": "Current", "OfficialSourceUri": "https://products.rtsintercoms.com/emea/en/ipedit", "Aliases": [ "IPedit", "RTS IPedit", "RTS OMNEO configuration" ] },
   { "Id": "RTS.OMNEOSuite", "Vendor": "RTS Intercoms", "Name": "RTS OMNEO Suite", "Lifecycle": "Current", "OfficialSourceUri": "https://rtsintercoms.com/support/apps-and-tools/", "Aliases": [ "OMNEO Suite", "RTS OMNEO", "RTS firmware suite" ] },
-  { "Id": "RTS.VLink", "Vendor": "RTS Intercoms", "Name": "RTS VLink", "Lifecycle": "Current", "OfficialSourceUri": "https://rtsintercoms.com/support/apps-and-tools/", "Aliases": [ "RTS VLink", "VLink intercom", "RTS virtual intercom" ] },
+  { "Id": "RTS.VLink", "Vendor": "RTS Intercoms", "Name": "RTS VLink", "Lifecycle": "Current", "OfficialSourceUri": "https://rtsintercoms.com/products/software/vlink/", "Aliases": [ "RTS VLink", "VLink intercom", "RTS virtual intercom" ] },
   { "Id": "sACNView.sACNView", "Vendor": "sACNView Project", "Name": "sACNView", "Lifecycle": "Current", "OfficialSourceUri": "https://sacnview.org/", "Aliases": [ "sACNView", "E1.31 monitor", "sACN analyzer" ] },
   { "Id": "Samsung.MagicINFOAuthor", "Vendor": "Samsung", "Name": "Samsung MagicINFO Author", "Lifecycle": "Current", "OfficialSourceUri": "https://www.samsung.com/us/business/solutions/digital-signage-solutions/magicinfo/", "Aliases": [ "MagicINFO Author", "Samsung MagicINFO", "Samsung signage authoring" ] },
   { "Id": "Samsung.MagicINFOServer", "Vendor": "Samsung", "Name": "Samsung MagicINFO Server", "Lifecycle": "Current", "OfficialSourceUri": "https://www.samsung.com/us/business/solutions/digital-signage-solutions/magicinfo/", "Aliases": [ "MagicINFO Server", "Samsung signage server" ] },
@@ -1379,15 +1379,15 @@
   { "Id": "Sennheiser.TransmitterManager", "Vendor": "Sennheiser", "Name": "Sennheiser Transmitter Manager", "Lifecycle": "Legacy", "OfficialSourceUri": "https://www.sennheiser.com/en-au/terms-and-conditions/sennheiser-transmitter-manager", "Aliases": [ "Sennheiser Transmitter Manager", "STM Sennheiser" ] },
   { "Id": "Sennheiser.SpecteraLinkDesk", "Vendor": "Sennheiser", "Name": "Sennheiser Spectera LinkDesk", "Lifecycle": "Current", "OfficialSourceUri": "https://www.sennheiser.com/en-us/catalog/products/software/spectera-link-desk-829c7449/spectera-linkdesk-linkdesk", "Aliases": [ "Spectera LinkDesk", "Sennheiser LinkDesk", "Spectera monitoring" ] },
   { "Id": "SharpNEC.NaViSetAdministrator2", "Vendor": "Sharp NEC Display Solutions", "Name": "NaViSet Administrator 2", "Lifecycle": "Current", "OfficialSourceUri": "https://proav.sharpusa.com/monitor-download/navisetdownloadcontact", "Aliases": [ "NaViSet Administrator 2", "NaViSet", "NEC display management" ] },
-  { "Id": "Shure.Designer", "Vendor": "Shure", "Name": "Shure Designer", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/docs/guide/Designer", "Aliases": [ "Shure Designer", "Designer System Configuration Software", "Designer 6" ] },
+  { "Id": "Shure.Designer", "Vendor": "Shure", "Name": "Shure Designer", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/designer_software", "Aliases": [ "Shure Designer", "Designer System Configuration Software", "Designer 6" ] },
   { "Id": "Shure.UpdateUtility", "Vendor": "Shure", "Name": "Shure Update Utility", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/shure_update_utility", "Aliases": [ "Shure Update Utility", "SUU", "Shure firmware utility" ] },
   { "Id": "Shure.IntelliMixRoom", "Vendor": "Shure", "Name": "Shure IntelliMix Room", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/intellimix_room", "Aliases": [ "IntelliMix Room", "IMX Room", "Shure software DSP" ] },
-  { "Id": "Shure.SystemOn", "Vendor": "Shure", "Name": "Shure SystemOn", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/systemon", "Aliases": [ "Shure SystemOn", "SystemOn Audio Asset Management", "Shure monitoring" ] },
+  { "Id": "Shure.SystemOn", "Vendor": "Shure", "Name": "Shure SystemOn", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/docs/guide/SystemOn", "Aliases": [ "Shure SystemOn", "SystemOn Audio Asset Management", "Shure monitoring" ] },
   { "Id": "Sony.RMIPSetupTool", "Vendor": "Sony Professional", "Name": "Sony RM-IP Setup Tool", "Lifecycle": "Current", "OfficialSourceUri": "https://pro.sony/ue_US/product-resources/knowledge-panel/knowledge-brc-x400-srg-x400-srg-x120-ilme-fr7", "Aliases": [ "RM-IP Setup Tool", "Sony PTZ setup", "Sony BRC SRG setup" ] },
   { "Id": "SoundBase.SE", "Vendor": "SoundBase", "Name": "SoundBase SE", "Lifecycle": "Current", "OfficialSourceUri": "https://www.sennheiser.com/en-gb/catalog/products/software/soundbase/soundbase-se-888888", "Aliases": [ "SoundBase SE", "SoundBase desktop", "wireless monitoring" ] },
   { "Id": "SoundBase.Pro", "Vendor": "SoundBase", "Name": "SoundBase Pro", "Lifecycle": "Current", "OfficialSourceUri": "https://docs.soundbase.app/get-started/soundbase-desktop/", "Aliases": [ "SoundBase Pro", "SoundBase Desktop", "RF device monitoring" ] },
   { "Id": "StudioCoast.vMix", "Vendor": "StudioCoast", "Name": "vMix", "Lifecycle": "Current", "OfficialSourceUri": "https://www.vmix.com/software/", "Aliases": [ "vMix", "vMix live production", "StudioCoast vMix" ] },
-  { "Id": "Symetrix.Composer", "Vendor": "Symetrix", "Name": "Symetrix Composer", "Lifecycle": "Current", "OfficialSourceUri": "https://www.symetrix.co/software-downloads/", "Aliases": [ "Symetrix Composer", "Composer 9", "Symetrix DSP configuration" ] },
+  { "Id": "Symetrix.Composer", "Vendor": "Symetrix", "Name": "Symetrix Composer", "Lifecycle": "Current", "OfficialSourceUri": "https://www.symetrix.co/composer/", "Aliases": [ "Symetrix Composer", "Composer 9", "Symetrix DSP configuration" ] },
   { "Id": "Symetrix.SymVue", "Vendor": "Symetrix", "Name": "SymVue", "Lifecycle": "Current", "OfficialSourceUri": "https://www.symetrix.co/software-downloads/", "Aliases": [ "SymVue", "Symetrix end-user control" ] },
   { "Id": "Symetrix.Jupiter", "Vendor": "Symetrix", "Name": "Symetrix Jupiter", "Lifecycle": "Legacy", "OfficialSourceUri": "https://www.symetrix.co/software-downloads/", "Aliases": [ "Symetrix Jupiter", "Jupiter DSP" ] },
   { "Id": "Symetrix.SymNetDesigner", "Vendor": "Symetrix", "Name": "SymNet Designer", "Lifecycle": "Legacy", "OfficialSourceUri": "https://www.symetrix.co/software-downloads/", "Aliases": [ "SymNet Designer", "SymNet DSP" ] },
@@ -1400,35 +1400,35 @@
   { "Id": "Wisycom.Manager", "Vendor": "Wisycom", "Name": "Wisycom Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://wisycom.com/product/wisycom-manager/", "Aliases": [ "Wisycom Manager", "Wisycom wireless manager", "Wisycom configuration" ] },
   { "Id": "WolfVision.VSolutionLinkPro", "Vendor": "WolfVision", "Name": "WolfVision vSolution Link Pro", "Lifecycle": "Current", "OfficialSourceUri": "https://wolfvision.com/en/support/vsolution-link-pro", "Aliases": [ "vSolution Link Pro", "WolfVision Link Pro", "Cynap management" ] },
   { "Id": "Xilica.Designer", "Vendor": "Xilica", "Name": "Xilica Designer", "Lifecycle": "Current", "OfficialSourceUri": "https://support.xilica.com/en/articles/3947394", "Aliases": [ "Xilica Designer", "Xilica DSP design", "Solaro Designer" ] },
-  { "Id": "Xilica.XTouch", "Vendor": "Xilica", "Name": "Xilica XTouch", "Lifecycle": "Current", "OfficialSourceUri": "https://support.xilica.com/en/categories/1363970-software-downloads", "Aliases": [ "XTouch", "Xilica XTouch", "Xilica control app" ] },
+  { "Id": "Xilica.XTouch", "Vendor": "Xilica", "Name": "Xilica XTouch", "Lifecycle": "Current", "OfficialSourceUri": "https://support.xilica.com/en/articles/3947330", "Aliases": [ "XTouch", "Xilica XTouch", "Xilica control app" ] },
   { "Id": "Xilica.XConsole", "Vendor": "Xilica", "Name": "Xilica XConsole", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.xilica.com/en/categories/1363970-software-downloads", "Aliases": [ "XConsole", "Xilica X Series", "Xilica XP XD XA" ] },
-  { "Id": "Xilica.XLink", "Vendor": "Xilica", "Name": "Xilica XLink", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.xilica.com/en/categories/1363970-software-downloads", "Aliases": [ "XLink", "Xilica XLink", "Xilica legacy utility" ] },
+  { "Id": "Xilica.XLink", "Vendor": "Xilica", "Name": "Xilica XLink", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.xilica.com/en/articles/3948482", "Aliases": [ "XLink", "Xilica XLink", "Xilica legacy utility" ] },
   { "Id": "Yamaha.MTXMRXEditor", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha MTX-MRX Editor", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/mtx_editor/index.html", "Aliases": [ "MTX-MRX Editor", "Yamaha MTX Editor", "Yamaha MRX Editor" ] },
   { "Id": "Yamaha.ProVisionaireDesign", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Design", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html", "Aliases": [ "ProVisionaire Design", "Yamaha PV Design", "Yamaha DSP design" ] },
-  { "Id": "Yamaha.ProVisionaireControlPlus", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Control PLUS", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html", "Aliases": [ "ProVisionaire Control PLUS", "ProVisionaire Control", "Yamaha control panel" ] },
-  { "Id": "Yamaha.ProVisionaireKiosk", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Kiosk", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_design/downloads.html", "Aliases": [ "ProVisionaire Kiosk", "Yamaha Kiosk", "Yamaha operator control" ] },
+  { "Id": "Yamaha.ProVisionaireControlPlus", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Control PLUS", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/provisionaire_control/index.html", "Aliases": [ "ProVisionaire Control PLUS", "ProVisionaire Control", "Yamaha control panel" ] },
+  { "Id": "Yamaha.ProVisionaireKiosk", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Kiosk", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html", "Aliases": [ "ProVisionaire Kiosk", "Yamaha Kiosk", "Yamaha operator control" ] },
   { "Id": "Yamaha.ProVisionaireEdge", "Vendor": "Yamaha Professional Audio", "Name": "Yamaha ProVisionaire Edge", "Lifecycle": "Current", "OfficialSourceUri": "https://usa.yamaha.com/products/proaudio/software/provisionaire/downloads.html", "Aliases": [ "ProVisionaire Edge", "Yamaha Edge", "Yamaha monitoring" ] },
   { "Id": "Yealink.USBConnect", "Vendor": "Yealink", "Name": "Yealink USB Connect", "Lifecycle": "Current", "OfficialSourceUri": "https://www.yealink.com/en/product-resource/usb-connect-management", "Aliases": [ "Yealink USB Connect", "USB Connect", "Yealink device utility" ] },
   { "Id": "Yealink.YDMP", "Vendor": "Yealink", "Name": "Yealink Device Management Platform", "Lifecycle": "Current", "OfficialSourceUri": "https://www.yealink.com/en/product-detail/management-cloud-service", "Aliases": [ "Yealink YDMP", "Yealink Device Management Platform", "Yealink on-prem management" ] },
   { "Id": "Yealink.YMCS", "Vendor": "Yealink", "Name": "Yealink Management Cloud Service", "Lifecycle": "Current", "OfficialSourceUri": "https://www.yealink.com/en/product-detail/management-cloud-service", "Aliases": [ "Yealink YMCS", "Yealink Management Cloud Service", "Yealink cloud management" ] },
   { "Id": "ZeeVee.ZyPerManagementPlatform", "Vendor": "ZeeVee", "Name": "ZeeVee ZyPer Management Platform", "Lifecycle": "Current", "OfficialSourceUri": "https://www.zeevee.com/av-over-ip/management/", "Aliases": [ "ZyPer Management Platform", "ZMP", "MaestroZ", "ZeeVee ZyPer management" ] },
-  { "Id": "Crestron.AviaAudioTool", "Vendor": "Crestron", "Name": "Crestron Avia Audio Tool", "Lifecycle": "Current", "OfficialSourceUri": "https://www.crestron.com/getmedia/b2d79154-8dd4-477b-8504-796520e10122/mg_qs_dsp-860_dsp-1280_dsp-1281_dsp-1282_dsp-1283", "Aliases": [ "Avia Audio Tool", "Crestron Avia Tool" ] },
+  { "Id": "Crestron.AviaAudioTool", "Vendor": "Crestron", "Name": "Crestron Avia Audio Tool", "Lifecycle": "Current", "OfficialSourceUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-AAT", "Aliases": [ "Avia Audio Tool", "Crestron Avia Tool" ] },
   { "Id": "Polycom.SoundStructureStudio", "Vendor": "Polycom", "Name": "Polycom SoundStructure Studio", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.hp.com/us-en/document/ish_10198660-10198574-16", "Aliases": [ "SoundStructure Studio", "Poly SoundStructure Studio" ] },
   { "Id": "Aurora.IPBaseTManager", "Vendor": "Aurora Multimedia", "Name": "Aurora IPBaseT Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://auroramultimedia.com/products/ipbaset-manager/", "Aliases": [ "IPBaseT Manager", "Aurora IPBaseT Manager", "IPBT Manager" ] },
   { "Id": "Visionary.VLite", "Vendor": "Visionary Solutions", "Name": "Visionary VLite", "Lifecycle": "Current", "OfficialSourceUri": "https://visionary-av.com/project/duete5-wp-encoder/", "Aliases": [ "VLite", "Vision Lite", "Visionary Vision Lite" ] },
   { "Id": "WyreStorm.ManagementSuite", "Vendor": "WyreStorm", "Name": "WyreStorm Management Suite", "Lifecycle": "Current", "OfficialSourceUri": "https://www.wyrestorm.com/management-suite/", "Aliases": [ "WyreStorm Management Suite", "NetworkHD Series Console", "Series Console" ] },
   { "Id": "JustAddPower.AMP", "Vendor": "Just Add Power", "Name": "Just Add Power AMP", "Lifecycle": "Current", "OfficialSourceUri": "https://support.justaddpower.com/home/", "Aliases": [ "AMP", "Advanced Matrix Programmer", "Just Add Power AMP" ] },
-  { "Id": "JustAddPower.JADConfig", "Vendor": "Just Add Power", "Name": "Just Add Power JADConfig", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.justaddpower.com/kb/article/69-jadconfig-download-configure-a-2g-omega-or-ultra-series-vlan-switching-system/", "Aliases": [ "JADConfig", "Just Add Power JADConfig" ] },
+  { "Id": "JustAddPower.JADConfig", "Vendor": "Just Add Power", "Name": "Just Add Power JADConfig", "Lifecycle": "Legacy", "OfficialSourceUri": "https://support.justaddpower.com/kb/article/69-download-jadconfig-and-configure-a-just-add-power-system-2g-omega-and-ultra-series/", "Aliases": [ "JADConfig", "Just Add Power JADConfig" ] },
   { "Id": "PTZOptics.CameraManagementPlatform", "Vendor": "PTZOptics", "Name": "PTZOptics Camera Management Platform", "Lifecycle": "Current", "OfficialSourceUri": "https://docs.ptzoptics.com/apps/downloads/", "Aliases": [ "Camera Management Platform", "PTZOptics CMP", "PTZOptics camera management" ] },
   { "Id": "RDL.Console", "Vendor": "Radio Design Labs", "Name": "RDL Console", "Lifecycle": "Current", "OfficialSourceUri": "https://rdlnet.com/console-software/", "Aliases": [ "RDL Console", "RDL Console 2.0", "RDL Bluetooth configuration" ] },
-  { "Id": "Kramer.KUpload", "Vendor": "Kramer", "Name": "Kramer K-Upload", "Lifecycle": "Legacy", "OfficialSourceUri": "https://k.kramerav.com/support/product_downloads.asp?pid=3692&pt=5", "Aliases": [ "K-Upload", "Kramer K Upload", "SL-240C firmware utility" ] },
+  { "Id": "Kramer.KUpload", "Vendor": "Kramer", "Name": "Kramer K-Upload", "Lifecycle": "Legacy", "OfficialSourceUri": "https://k.kramerav.com/support/download.asp?f=60602", "Aliases": [ "K-Upload", "Kramer K Upload", "SL-240C firmware utility" ] },
   { "Id": "Kramer.SiteCTRL", "Vendor": "Kramer", "Name": "Kramer Site-CTRL", "Lifecycle": "Legacy", "OfficialSourceUri": "https://www1.kramerav.com/product/site-ctrl%E2%84%A2", "Aliases": [ "Site-CTRL", "Kramer Site CTRL", "RC-74DL monitoring" ] },
   { "Id": "Extron.PCS", "Vendor": "Extron", "Name": "Extron Product Configuration Software", "Lifecycle": "Current", "OfficialSourceUri": "https://www.extron.com/product/software/pcscs", "Aliases": [ "Extron PCS", "Product Configuration Software" ] },
   { "Id": "Kramer.Network", "Vendor": "Kramer", "Name": "Kramer Network", "Lifecycle": "Current", "OfficialSourceUri": "https://www1.kramerav.com/page/Kramer_network", "Aliases": [ "Kramer Network", "Kramer Network software" ] },
   { "Id": "KeyDigital.KDMSPro", "Vendor": "Key Digital", "Name": "Key Digital Management Software Pro", "Lifecycle": "Current", "OfficialSourceUri": "https://www.keydigital.org/product/kdms-tm-pro-1810", "Aliases": [ "KDMS Pro", "Key Digital KDMS Pro" ] },
-  { "Id": "Shure.WirelessWorkbench", "Vendor": "Shure", "Name": "Shure Wireless Workbench", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/docs/quickstart/WIRELESS-WORKBENCH", "Aliases": [ "Wireless Workbench", "WWB", "Shure WWB" ] },
+  { "Id": "Shure.WirelessWorkbench", "Vendor": "Shure", "Name": "Shure Wireless Workbench", "Lifecycle": "Current", "OfficialSourceUri": "https://www.shure.com/en-US/products/software/wwb", "Aliases": [ "Wireless Workbench", "WWB", "Shure WWB" ] },
   { "Id": "Sennheiser.ControlCockpit", "Vendor": "Sennheiser", "Name": "Sennheiser Control Cockpit", "Lifecycle": "Current", "OfficialSourceUri": "https://www.sennheiser.com/en-us/catalog/products/software/control-cockpit/control-cockpit-111111", "Aliases": [ "Control Cockpit", "Sennheiser Control Cockpit", "SCC" ] },
-  { "Id": "AudioTechnica.DigitalMicrophoneManager", "Vendor": "Audio-Technica", "Name": "Audio-Technica Digital Microphone Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://docs.audio-technica.com/all/DigitalMicrophoneManager-UM-EN_v9.pdf", "Aliases": [ "Digital Microphone Manager", "Audio-Technica DMM", "AT DMM" ] },
+  { "Id": "AudioTechnica.DigitalMicrophoneManager", "Vendor": "Audio-Technica", "Name": "Audio-Technica Digital Microphone Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://www.audio-technica.com/en-us/digital-microphone-manager", "Aliases": [ "Digital Microphone Manager", "Audio-Technica DMM", "AT DMM" ] },
   { "Id": "Blackmagic.HyperDeckSetup", "Vendor": "Blackmagic Design", "Name": "Blackmagic HyperDeck Setup", "Lifecycle": "Current", "OfficialSourceUri": "https://www.blackmagicdesign.com/products/hyperdeckstudio/techspecs", "Aliases": [ "HyperDeck Setup", "Blackmagic HyperDeck utility" ] },
   { "Id": "AJA.EMiniSetup", "Vendor": "AJA Video Systems", "Name": "AJA eMini-Setup", "Lifecycle": "Current", "OfficialSourceUri": "https://www.aja.com/products/aja-emini-setup", "Aliases": [ "AJA eMini Setup", "eMini-Setup" ] },
   { "Id": "ListenTechnologies.ListenWIFIManager", "Vendor": "Listen Technologies", "Name": "ListenWIFI Manager", "Lifecycle": "Current", "OfficialSourceUri": "https://www.listentech.com/listenwifi-support/", "Aliases": [ "ListenWIFI Manager Software", "Listen WiFi Manager" ] },

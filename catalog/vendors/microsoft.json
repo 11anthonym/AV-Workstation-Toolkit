@@ -39,7 +39,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-hardware/drivers/debugger/usbview",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/usbview",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ],
@@ -108,7 +108,7 @@
                                                           ],
                                           "SideBySideSupported":  "Yes",
                                           "OfficialDownloadUri":  "https://learn.microsoft.com/sysinternals/downloads/sysinternals-suite",
-                                          "OfficialProductUri":  "https://learn.microsoft.com/sysinternals/",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/en-us/sysinternals/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ],
@@ -173,7 +173,7 @@
                                                               "Windows",
                                                               "Server"
                                                           ],
-                                          "OfficialProductUri":  "https://learn.microsoft.com/windows-server/networking/technologies/pktmon/pktmon",
+                                          "OfficialProductUri":  "https://learn.microsoft.com/en-us/windows-server/networking/technologies/pktmon/pktmon",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ],

@@ -44,7 +44,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.magewell.com/downloads",
+                                          "OfficialProductUri":  "https://www.magewell.com/downloads/usb-capture",
                                           "ValidationMethod":  [
                                                                    "Registry",
                                                                    "OfficialVersionPage"

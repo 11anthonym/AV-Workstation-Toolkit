@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-24 — One official product page per product
+
+- Every product now opens the same official page from Device Lookup and from the Software table, and a test keeps the reference catalog, vendor sources, and operational catalog in agreement. Extron PCS, for example, opens its /product/software/pcscs page everywhere, including its vendor-page handoff.
+- Replaced generic, moved, and mismatched product links for 118 products: sign-in and software-index pages (Crestron, AMX), download-search results (AVer), docs pages that now return "Not found" (BrightSign), PDFs used as product pages (Audio-Technica, Mersive, Crestron), and pages for the wrong product (JBL Venue Synthesis, ChamSys MediaMaster, Matrox ConductIP). Components without their own page link to the parent application's page.
+- Marked AVer EZManager 2 and PTZApp 2 discontinued and JBL Line Array Calculator legacy in the vendor sources, as their vendors state.
+- Reference-catalog links reach users through the next signed reference revision; vendor-source and operational-catalog links reach users with the next application build.
+
 ## 2026-09-24 — RDL usability and verified catalog links
 
 - Software details now list every model a documented device relationship covers, so RDL Console shows DD-RN31, DDB-RN31, and DDS-RN31 together.

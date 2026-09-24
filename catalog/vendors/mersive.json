@@ -73,7 +73,7 @@
                                                               "Windows",
                                                               "macOS"
                                                           ],
-                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "OfficialProductUri":  "https://documentation.mersive.com/en/solstice/manage-solstice/manage-solstice-locally-with-solstice-dashboard.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -118,7 +118,7 @@
                                                               "Windows",
                                                               "Server"
                                                           ],
-                                          "OfficialProductUri":  "https://www.mersive.com/guides/deploy-solstice/",
+                                          "OfficialProductUri":  "https://documentation.mersive.com/en/solstice/deploy-solstice/solstice-discovery-service--sds-.html",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

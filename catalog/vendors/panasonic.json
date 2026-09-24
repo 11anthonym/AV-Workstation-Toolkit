@@ -117,7 +117,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "OfficialProductUri":  "https://pro-av.panasonic.net/en/software/ptz_vud/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -152,7 +152,7 @@
                                           "SupportedOS":  [
                                                               "Windows"
                                                           ],
-                                          "OfficialProductUri":  "https://eu.connect.panasonic.com/it/en/broadcast-proav/broadcast-proav-software-downloads",
+                                          "OfficialProductUri":  "https://pro-av.panasonic.net/en/software/ptz_cc/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]

@@ -111,6 +111,26 @@ public sealed class SoftwareCompatibilityCatalogTests
     }
 
     [TestMethod]
+    public void ProductsInSeveralProductionCatalogsShareOneOfficialProductPage()
+    {
+        var root = RepositoryRoot();
+        var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
+        var packages = parser.ParseExternalCatalog(File.ReadAllText(Path.Combine(root, "manifests", "external-applications.json"))).Items
+            .Concat(parser.ParseExternalCatalog(File.ReadAllText(Path.Combine(root, "manifests", "commercial-av-catalog.json")), CatalogAuthority.AwarenessOnly).Items)
+            .Select(item => (item.Id, Uri: item.MetadataDetails.OfficialProductUri));
+        var products = new CompatibilityCatalogParser().Parse(File.ReadAllText(Path.Combine(root, "manifests", "software-compatibility.json"))).Products
+            .Select(item => (Id: item.Id.Value, Uri: item.OfficialSourceUri.OriginalString));
+
+        // The same product must open the same official page from Device Lookup and from the Software table.
+        var disagreements = packages.Concat(products).Where(item => item.Uri.Length > 0)
+            .GroupBy(item => item.Id, StringComparer.Ordinal)
+            .Where(group => group.Select(item => item.Uri).Distinct(StringComparer.Ordinal).Count() > 1)
+            .Select(group => group.Key)
+            .ToArray();
+        Assert.HasCount(0, disagreements, $"Products link to different official pages: {string.Join(", ", disagreements)}");
+    }
+
+    [TestMethod]
     public void ParserRejectsUnknownFieldsAndDuplicateJsonProperties()
     {
         var parser = new CompatibilityCatalogParser();

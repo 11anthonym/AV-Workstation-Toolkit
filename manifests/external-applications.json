@@ -131,7 +131,7 @@
         "DownloadDifficulty": "RESTRICTED",
         "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-VTPRO-E",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -169,7 +169,7 @@
         "DownloadDifficulty": "RESTRICTED",
         "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-SIMPL",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -208,7 +208,7 @@
         "Requirements": { "RequiresDealerAccount": true },
         "Architecture": ["Unknown"],
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-SIMPL",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -247,7 +247,7 @@
         "Requirements": { "RequiresDealerAccount": true },
         "Architecture": ["Unknown"],
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-SIMPL",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -286,7 +286,7 @@
         "Requirements": { "RequiresDealerAccount": true, "RequiresTraining": true },
         "SystemImpact": { "InstallsDriver": true, "FirmwareUtility": true },
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-TB",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -324,7 +324,7 @@
         "DownloadDifficulty": "RESTRICTED",
         "Requirements": { "RequiresDealerAccount": true },
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/Software-Firmware/Software",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-VTPRO-E",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -363,7 +363,7 @@
         "Requirements": { "RequiresDealerAccount": true },
         "SystemImpact": { "InstallsService": true, "OpensListener": true, "FirmwareUtility": true },
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.crestron.com/getmedia/09678b09-2665-445a-acfd-084bc638fe02/ss_SW-DMNVXTOOL",
+        "OfficialProductUri": "https://www.crestron.com/Products/Catalog/Control-and-Management/Software/Programming-Commissioning/SW-DMNVXTOOL",
         "ValidationMethod": ["Registry", "ParentProviderCatalog"]
       }
     },
@@ -456,7 +456,7 @@
         "DownloadAccess": ["PUBLIC-PAGE"],
         "DownloadDifficulty": "EASY",
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://support.biamp.com/Tesira/Software-Firmware",
+        "OfficialProductUri": "https://products.biamp.com/product-details/-/o/ecom-item/900.0109.901",
         "ValidationMethod": ["Registry", "OfficialVersionPage"]
       }
     },
@@ -812,7 +812,7 @@
         "SystemImpact": { "InstallsService": true, "OpensListener": true },
         "Architecture": ["x64", "Server", "Web"],
         "SupportedOS": ["Windows", "Server", "Web"],
-        "OfficialProductUri": "https://docs.cloud.sennheiser.com/en-us/control-cockpit/index.html",
+        "OfficialProductUri": "https://www.sennheiser.com/en-us/catalog/products/software/control-cockpit/control-cockpit-111111",
         "OfficialDownloadUri": "https://docs.cloud.sennheiser.com/en-us/control-cockpit/control-cockpit/downloading-installing-software.html",
         "ValidationMethod": ["Registry", "OfficialVersionPage"]
       }
@@ -922,7 +922,7 @@
       },
       "Delivery": {
         "Mode": "VendorPage",
-        "Uri": "https://www.extron.com/article/sw_79-562-01"
+        "Uri": "https://www.extron.com/product/software/pcscs"
       },
       "Metadata": {
         "Vendor": "Extron",
@@ -940,7 +940,7 @@
         "Requirements": { "RequiresDealerAccount": true },
         "SystemImpact": { "FirmwareUtility": true },
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.extron.com/article/sw_79-562-01",
+        "OfficialProductUri": "https://www.extron.com/product/software/pcscs",
         "ValidationMethod": ["Registry", "ManualInventory"]
       }
     },
@@ -1063,7 +1063,7 @@
         "SystemImpact": { "InstallsDriver": true, "InstallsService": true },
         "Architecture": ["x64"],
         "SupportedOS": ["Windows"],
-        "OfficialProductUri": "https://www.dell.com/support/home/",
+        "OfficialProductUri": "https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=0t5nn",
         "ValidationMethod": ["Registry", "ManualInventory"]
       }
     }

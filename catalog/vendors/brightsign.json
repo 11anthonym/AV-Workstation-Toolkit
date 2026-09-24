@@ -34,7 +34,7 @@
                                                               "macOS",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "OfficialProductUri":  "https://www.brightsign.biz/brightsign-players/software/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -120,7 +120,7 @@
                                           "SupportedOS":  [
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/user-guides",
+                                          "OfficialProductUri":  "https://www.brightsign.biz/brightsign-players/software/",
                                           "ValidationMethod":  [
                                                                    "WebPresence"
                                                                ]
@@ -207,7 +207,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/releases",
+                                          "OfficialProductUri":  "https://www.brightsign.biz/brightsign-advantage/brightsign-os/",
                                           "ValidationMethod":  [
                                                                    "OfficialVersionPage"
                                                                ]
@@ -252,7 +252,7 @@
                                                               "Embedded",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/diagnostic-web-server-apis",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -298,7 +298,7 @@
                                                               "Embedded",
                                                               "Web"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/diagnostic-web-server-apis",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -339,7 +339,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/brightsign-shell",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -379,7 +379,7 @@
                                           "SupportedOS":  [
                                                               "Embedded"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop/brightscript-debugger",
                                           "ValidationMethod":  [
                                                                    "EmbeddedInterface"
                                                                ]
@@ -414,7 +414,7 @@
                                                               "macOS",
                                                               "Linux"
                                                           ],
-                                          "OfficialProductUri":  "https://docs.brightsign.biz/developers/",
+                                          "OfficialProductUri":  "https://docs.brightsign.biz/develop",
                                           "ValidationMethod":  [
                                                                    "Unknown"
                                                                ]
