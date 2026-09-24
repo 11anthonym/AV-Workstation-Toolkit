@@ -204,14 +204,13 @@ A beta is an unsigned `ReleaseCandidate` build published as a GitHub pre-release
 
 ## Release checklist
 
-1. Confirm `main` is clean. While the repository remains private under the
-   current GitHub account capability, branch protection/rulesets are unavailable
-   (`Upgrade to GitHub Pro or make this repository public to enable this
-   feature`). Immediately after making the repository public, configure and
-   verify `main` protection before normal public development continues: require
-   pull-request changes and the existing `core-qa` and `package` checks, and
-   prevent force pushes and branch deletion while retaining an owner recovery
-   path.
+1. Confirm `main` is clean. The repository has been public since 2026-09-24.
+   `main` protection blocks force pushes and branch deletion for everyone,
+   including administrators; the owner can still change the rule, which is the
+   recovery path. By owner decision on 2026-09-24, pull requests and the
+   `core-qa` and `package` checks are not yet required because the owner
+   changes `main` directly. Require them before accepting outside
+   contributions.
 2. Run full source QA and targeted PSScriptAnalyzer with zero findings.
 3. Build from a clean checkout using the pinned toolchain.
 4. Run package QA and inspect the actual UI on an interactive Windows desktop.
