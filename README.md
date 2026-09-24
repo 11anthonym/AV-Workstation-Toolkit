@@ -52,12 +52,13 @@ and release artifacts.
 
 ## Download / releases
 
-This repository is private while release readiness is reviewed. No public
-release under the AV Workstation Toolkit identity is available. When
-the owner publishes a release, the canonical location will be the
+Releases are published on the
 [GitHub releases page](https://github.com/11anthonym/AV-Workstation-Toolkit/releases).
+The current release is the unsigned public beta
+[`1.1.1-beta.1`](docs/releases/1.1.1-beta.1.md). Verify each download against
+the published SHA-256 checksum list before running it.
 
-The planned 1.1.1 release-candidate outputs are:
+The 1.1.1 outputs are:
 
 - run `AV-Workstation-Toolkit-1.1.1-win-x64.exe` directly;
 - install `AV-Workstation-Toolkit-1.1.1-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
@@ -69,8 +70,8 @@ CycloneDX SBOM, a release manifest, and a SHA-256 checksum list. The checksum
 list covers the other seven assets and does not hash itself.
 
 AV Workstation Toolkit has prepared a fail-closed SignPath release workflow.
-Current artifacts remain unsigned until external configuration and approval are
-completed. Authenticode signing does not
+Current artifacts remain unsigned, including the public beta, until external
+configuration and approval are completed. Authenticode signing does not
 guarantee that SmartScreen or an organization's endpoint policy will accept a
 new binary.
 

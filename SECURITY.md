@@ -6,15 +6,11 @@ suspected vulnerabilities responsibly.
 
 ## Supported versions
 
-The project has not yet published its first public release under the current
-identity. During private release-readiness work, security fixes are applied to
-the current `main` branch and current 1.1.1 release candidate. Historical
-1.1.0 and earlier packages are unsupported and must not be treated as current
-release artifacts.
-
-After public release, the latest published version and current `main` branch
-will receive security fixes. Older versions may be asked to reproduce against
-the latest version before a fix is prepared.
+The first public release is the unsigned beta `1.1.1-beta.1`. Security fixes
+are applied to the current `main` branch and released in the next beta or
+release. Historical 1.1.0 and earlier packages are unsupported and must not be
+treated as current release artifacts. Reports against an older release may be
+asked to reproduce against the latest release before a fix is prepared.
 
 ## Reporting a vulnerability
 

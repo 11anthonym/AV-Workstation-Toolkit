@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-24 — 1.1.1 Beta 1
+
+- First public release: the unsigned beta `1.1.1-beta.1`, built on the `ReleaseCandidate` channel and published as a GitHub pre-release under the new [beta publication procedure](Packaging-and-Release.md#beta-publication). Its [release packet](releases/1.1.1-beta.1.md) covers verification, requirements, and known limitations.
+- New installations start from signed reference catalog revision 3 (`2026.9.24.1`) instead of revision 1.
+
 ## 2026-09-24 — One official product page per product
 
 - Every product now opens the same official page from Device Lookup and from the Software table, and a test keeps the reference catalog, vendor sources, and operational catalog in agreement. Extron PCS, for example, opens its /product/software/pcscs page everywhere, including its vendor-page handoff.

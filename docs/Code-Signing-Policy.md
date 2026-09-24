@@ -28,11 +28,12 @@ artifacts through an immutable-pinned SignPath action. A version tag must match
 manual approval, signer identity, valid RFC3161 timestamps, and
 signature-required package QA are mandatory. Missing configuration fails closed.
 
-Development and release-candidate builds may remain explicitly unsigned. If an
-initial unsigned public artifact is later needed to establish public project
-history before a SignPath application, the owner must approve a separate,
-clearly labeled release-candidate publication procedure. Production mode must
-not be weakened or described as unsigned to create that path.
+Development and release-candidate builds may remain explicitly unsigned. Public
+unsigned artifacts are published only as clearly labeled betas under the
+[beta publication procedure](Packaging-and-Release.md#beta-publication), each
+with the owner's explicit approval; the owner approved `1.1.1-beta.1` on
+2026-09-24. Production mode must not be weakened or described as unsigned to
+create that path.
 
 ## Hosted-signing model
 

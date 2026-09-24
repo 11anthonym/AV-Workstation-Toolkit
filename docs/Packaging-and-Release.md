@@ -1,6 +1,6 @@
 # AV Workstation Toolkit 1.1.1 Packaging and Release
 
-AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The standard release set contains exactly eight assets: those three delivery formats, the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. The checksum list hashes the other seven assets and intentionally does not hash itself. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Current release candidates are unsigned and are not yet public artifacts.
+AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The standard release set contains exactly eight assets: those three delivery formats, the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. The checksum list hashes the other seven assets and intentionally does not hash itself. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Public beta releases are unsigned release-candidate builds published as GitHub pre-releases under the [beta publication procedure](#beta-publication); production releases remain signature-required.
 
 ## Runtime layout
 
@@ -190,6 +190,17 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-Endpo
 ```
 
 The optional scan uses an existing valid Microsoft-signed `MpCmdRun.exe`, reports unavailable versus passed, and fails on a nonzero scan/detection result. It does not change Defender policy, disable remediation, add exclusions, or upload artifacts to a public service. Pass `-RequireDefender` only on a release machine where Defender availability is an explicit prerequisite.
+
+## Beta publication
+
+A beta is an unsigned `ReleaseCandidate` build published as a GitHub pre-release. It exists so the project can have public, verifiable artifacts before hosted signing is operational. It never uses the production channel, the signature-required QA mode, or the `v*.*.*` production tag, and each beta requires the owner's explicit approval.
+
+1. Start from a clean checkout of current `main`, with AV Workstation Toolkit closed so the build does not replace an executable in use.
+2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate`. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, and unsigned signature state.
+3. Run full source QA and `tests\Test-Package.ps1`. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
+4. Tag the built commit `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
+5. Create a GitHub pre-release from that tag, titled `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\X.Y.Z` and the release packet `docs\releases\X.Y.Z-beta.N.md` as its notes, followed by the asset checksums and QA results.
+6. Never replace a published asset. A corrected beta gets a new `N` and a new tag.
 
 ## Release checklist
 
