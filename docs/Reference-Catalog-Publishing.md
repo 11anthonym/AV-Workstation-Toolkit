@@ -23,6 +23,8 @@ dotnet run --project .\tools\AVWorkstationToolkit.CatalogPublisher\AVWorkstation
 
 The default output is `artifacts/catalog-feed`, which must not already exist. Output is staged beside that directory and moved into place only after bundle and channel round-trip verification succeeds. Given identical catalog inputs and metadata, payload, change-summary, and manifest bytes are deterministic. ECDSA signing may produce a different valid signature on a later independent run, so the signed bundle and its channel hash become one immutable publication unit and must never be mixed across runs.
 
+The publisher signs the manifest bytes it reads from `--repository-root`. A Windows checkout with `core.autocrlf=true` holds CRLF copies, which still verify but no longer match the committed blobs byte for byte. Sign from an LF export of the reviewed commit (for example, `git -c core.autocrlf=false archive`) so anyone can compare the signed payloads with `git show <commit>:manifests/<file>`.
+
 For a later snapshot, supply the prior signed bundle. `PreviousRevision` is derived from that verified bundle; bootstrap revision 1 needs no artificial revision-zero bundle. If the previous bundle used another still-trusted key, supply its public key separately:
 
 ```powershell

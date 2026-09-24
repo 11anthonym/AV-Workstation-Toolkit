@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-24 — RDL usability and verified catalog links
+
+- Software details now list every model a documented device relationship covers, so RDL Console shows DD-RN31, DDB-RN31, and DDS-RN31 together.
+- Corrected reference-catalog official and evidence links found by the 440-URL audit, including RDL Console, which now opens RDL's Console Software page instead of a D-BTN21 device page. These reach users through the next signed reference revision.
+- Added Key Digital KD-MS8x8G-2 with its product-documented KDMS Pro relationships, marked KD-MS8x8G discontinued, and added Barco's current "Video wall Manager" name for WallConnect.
+- Corrected embedded vendor-source links, mainly Extron software pages, and marked Barco XMS Edge discontinued. These reach users with the next application build.
+
 ## 2026-09-23 — Reference software in the Software table and managed revision-1 baseline
 
 - Device Lookup searches now list documented reference-only software, such as RDL Console for DD-RN31, as informational rows in the main Software table. These rows have no install, update, version, or selection state, and catalog apps keep their own rows.
