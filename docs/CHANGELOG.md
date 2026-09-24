@@ -6,6 +6,7 @@
 - Corrected reference-catalog official and evidence links found by the 440-URL audit, including RDL Console, which now opens RDL's Console Software page instead of a D-BTN21 device page. These reach users through the next signed reference revision.
 - Added Key Digital KD-MS8x8G-2 with its product-documented KDMS Pro relationships, marked KD-MS8x8G discontinued, and added Barco's current "Video wall Manager" name for WallConnect.
 - Corrected embedded vendor-source links, mainly Extron software pages, and marked Barco XMS Edge discontinued. These reach users with the next application build.
+- Resolved the remaining audit findings that official sources could settle. Symetrix Composer 8.5 is no longer labelled LTS, because Symetrix does not call it that. The Soundvision archive release family is removed, because L-Acoustics publishes no archived Soundvision versions. HyperDeck Setup now links to the HyperDeck Studio specifications that name it, and VLite now links to the 5-Series page that distributes VLite 3. Barco ClickShare Configurator is marked discontinued in the vendor source.
 
 ## 2026-09-23 — Reference software in the Software table and managed revision-1 baseline
 

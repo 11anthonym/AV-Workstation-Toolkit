@@ -1153,6 +1153,7 @@ public sealed class ProductionCompatibilityCatalogTests
         Assert.IsFalse(service.SearchDevices("Tera Term device").Any());
         Assert.IsFalse(service.SearchDevices("vMix device").Any());
         Assert.HasCount(2, service.GetReleaseFamilies(new SoftwareProductId("Symetrix.Composer")));
+        Assert.IsFalse(service.GetReleaseFamilies(new SoftwareProductId("Symetrix.Composer")).Any(item => item.Kind == ReleaseFamilyKind.Lts));
     }
 
     [TestMethod]
