@@ -129,6 +129,28 @@ public partial class MainWindow : Window
             ?? throw new InvalidOperationException("Compiled WPF smoke did not surface the known RackLink hardware identity.");
         if (!unresolvedHardware.Subtitle.Contains("not yet verified", StringComparison.OrdinalIgnoreCase) || unresolvedHardware.CanSelect)
             throw new InvalidOperationException("Compiled WPF smoke did not preserve explicit unresolved hardware coverage.");
+        // An operator reaches reference-only configuration software from a device: DD-RN31 → RDL Console.
+        viewModel.SearchText = "DD-RN31";
+        await viewModel.SearchCompletion.ConfigureAwait(true);
+        var rdlDevice = viewModel.CompatibilityMatches.SingleOrDefault(item => item.Kind == CompatibilitySearchResultKind.Device)
+            ?? throw new InvalidOperationException("Compiled WPF smoke did not surface DD-RN31 through Device Lookup.");
+        if (!viewModel.SoftwareRows.OfType<ReferenceSoftwareRowViewModel>().Any(row => row.ProductId.Value == "RDL.Console" && !row.SelectionEnabled))
+            throw new InvalidOperationException("Compiled WPF smoke did not list RDL Console as reference-only software for DD-RN31.");
+        rdlDevice.OpenCommand.Execute(null);
+        for (var attempt = 0; attempt < 20 && viewModel.SelectedCompatibilityDetail is null; attempt++)
+            await Task.Delay(10).ConfigureAwait(true);
+        var rdlDetail = viewModel.SelectedCompatibilityDetail
+            ?? throw new InvalidOperationException("Compiled WPF smoke did not open DD-RN31 details.");
+        var rdlWindow = new CatalogDetailWindow(rdlDetail) { Owner = this };
+        rdlWindow.Show();
+        rdlWindow.UpdateLayout();
+        rdlWindow.VerifyCompatibilitySmokeContract("RDL.DDSeriesRN31");
+        rdlDetail.RelatedSoftware.First(item => item.ProductName == "RDL Console").OpenCommand.Execute(null);
+        for (var attempt = 0; attempt < 20 && rdlWindow.DataContext == rdlDetail; attempt++)
+            await Task.Delay(10).ConfigureAwait(true);
+        rdlWindow.UpdateLayout();
+        rdlWindow.VerifyCompatibilitySmokeContract("RDL.Console");
+        rdlWindow.Close();
         viewModel.SearchText = string.Empty;
         await viewModel.SearchCompletion.ConfigureAwait(true);
         UpdateLayout();

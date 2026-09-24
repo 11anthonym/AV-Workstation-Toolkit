@@ -109,9 +109,10 @@ public sealed class CompatibilityDetailViewModel : ObservableObject, IReadOnlyDe
         };
         foreach (var device in devices)
         {
-            groups.Add(Group(DeviceName(device), device.Purposes.Select(purpose =>
+            // The group is titled with one model, so list every model the relation covers.
+            groups.Add(Group(DeviceName(device), [("Models", Values(device.ExactModelIds)), .. device.Purposes.Select(purpose =>
                 (Label(purpose.Purpose), RelationSummary(purpose.Applicability, purpose.Confidence,
-                    ReleaseFamilyText(queries, product.Id, purpose.ReleaseFamilyId), purpose.Constraints))).ToArray()));
+                    ReleaseFamilyText(queries, product.Id, purpose.ReleaseFamilyId), purpose.Constraints)))]));
         }
 
         var viewModel = new CompatibilityDetailViewModel(queries, handoffs, product.Id.Value, "Software", product.Name,

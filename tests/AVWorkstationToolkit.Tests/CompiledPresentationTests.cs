@@ -1210,6 +1210,39 @@ public sealed class CompiledPresentationTests
     }
 
     [TestMethod]
+    public async Task DdRn31DetailLeadsToTheRdlConsolePageAndBackToEveryCoveredModel()
+    {
+        var handoff = new RecordingCompatibilityHandoff();
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), handoffService: handoff,
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.Zero);
+        await viewModel.RefreshAsync();
+        viewModel.SearchText = "DDRN31";
+        await viewModel.SearchCompletion;
+        viewModel.CompatibilityMatches.Single(item => item.Kind == CompatibilitySearchResultKind.Device).OpenCommand.Execute(null);
+        await WaitForAsync(() => viewModel.SelectedCompatibilityDetail is not null);
+        var device = viewModel.SelectedCompatibilityDetail!;
+        CompatibilityDetailViewModel? console = null;
+        device.NavigationRequested += detail => console = detail;
+
+        Assert.AreEqual("DD-RN31", device.Name);
+        var related = device.RelatedSoftware.Single();
+        Assert.AreEqual("RDL Console", related.ProductName);
+        Assert.AreEqual("Configuration", related.Purpose);
+        related.OpenCommand.Execute(null);
+        await WaitForAsync(() => console is not null);
+
+        Assert.AreEqual("RDL.Console", console!.ContextId);
+        var official = console.Links.Single(link => link.Label == "Official product page");
+        Assert.AreEqual("https://rdlnet.com/console-software/", official.Description);
+        official.Command.Execute(null);
+        Assert.AreEqual(OfficialUriKind.Product, handoff.Intent!.Kind);
+        Assert.AreEqual("https://rdlnet.com/console-software/", handoff.Intent.Uri.AbsoluteUri);
+        Assert.AreEqual("DD-RN31, DDB-RN31, DDS-RN31",
+            console.Groups.Single(group => group.Name == "DD-RN31").Fields.Single(field => field.Label == "Models").Value);
+        Assert.IsFalse(viewModel.Packages.Any(item => item.Selected));
+    }
+
+    [TestMethod]
     public async Task SoftwareProductSearchListsReferenceOnlyProductInTheSoftwareTable()
     {
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
