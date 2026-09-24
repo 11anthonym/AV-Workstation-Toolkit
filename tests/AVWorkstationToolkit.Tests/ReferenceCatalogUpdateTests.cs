@@ -196,9 +196,9 @@ public sealed class ReferenceCatalogUpdateTests
         {
             // A separate, real-user-style profile holding the production-signed revision tracked in this repository.
             ZipFile.ExtractToDirectory(Path.Combine(repository, "catalog", "reference", "AVWT-Reference-Catalog.avwtcatalog"),
-                Path.Combine(catalogRoot, "catalogs", "1"));
+                Path.Combine(catalogRoot, "catalogs", "3"));
             File.WriteAllText(Path.Combine(catalogRoot, "state.json"),
-                "{\n  \"ActiveRevision\": 1,\n  \"LastCheckUtc\": \"2026-09-23T04:11:33.5882995+00:00\"\n}");
+                "{\n  \"ActiveRevision\": 3,\n  \"LastCheckUtc\": \"2026-09-23T04:11:33.5882995+00:00\"\n}");
             var before = SnapshotFiles(catalogRoot);
 
             var source = CompiledAppComposition.Create(repository, profile);
@@ -207,7 +207,7 @@ public sealed class ReferenceCatalogUpdateTests
             CollectionAssert.AreEqual(before, SnapshotFiles(catalogRoot), "A source build changed another profile's signed catalog.");
             var production = new ReferenceCatalogStore(repository, profile,
                 ProductionReferenceCatalogConfiguration.Create("1.1.1").BundleVerifier).LoadActiveOrEmbedded();
-            Assert.AreEqual(1L, production.Source.Revision);
+            Assert.AreEqual(3L, production.Source.Revision);
             Assert.IsFalse(production.Source.IsEmbedded);
         }
         finally
