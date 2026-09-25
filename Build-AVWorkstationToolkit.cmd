@@ -16,12 +16,10 @@ if not "%AVWORKSTATIONTOOLKIT_BUILD_EXIT%"=="0" (
     exit /b %AVWORKSTATIONTOOLKIT_BUILD_EXIT%
 )
 
-set /p AVWORKSTATIONTOOLKIT_VERSION=<"%~dp0VERSION"
+rem The build prints its own release folder: a beta's name (1.1.1-beta.2) is not in VERSION,
+rem and an older folder for the same VERSION may still exist.
 echo.
 echo Build complete. The release folder and its files are listed above.
-if exist "%~dp0artifacts\release\%AVWORKSTATIONTOOLKIT_VERSION%\AV-Workstation-Toolkit-%AVWORKSTATIONTOOLKIT_VERSION%-win-x64.exe" echo Standalone app: artifacts\release\%AVWORKSTATIONTOOLKIT_VERSION%\AV-Workstation-Toolkit-%AVWORKSTATIONTOOLKIT_VERSION%-win-x64.exe
-if exist "%~dp0artifacts\release\%AVWORKSTATIONTOOLKIT_VERSION%\AV-Workstation-Toolkit-%AVWORKSTATIONTOOLKIT_VERSION%-x64.msi" echo Installer:      artifacts\release\%AVWORKSTATIONTOOLKIT_VERSION%\AV-Workstation-Toolkit-%AVWORKSTATIONTOOLKIT_VERSION%-x64.msi
-if exist "%~dp0artifacts\release\%AVWORKSTATIONTOOLKIT_VERSION%\AV-Workstation-Toolkit-%AVWORKSTATIONTOOLKIT_VERSION%-offline-bundle.zip" echo Offline bundle: artifacts\release\%AVWORKSTATIONTOOLKIT_VERSION%\AV-Workstation-Toolkit-%AVWORKSTATIONTOOLKIT_VERSION%-offline-bundle.zip
 
 popd
 exit /b 0
