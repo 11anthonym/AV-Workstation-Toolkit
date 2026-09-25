@@ -39,9 +39,7 @@ and release artifacts.
 - [QA report](docs/AV-Workstation-Toolkit-QA-Report.md)
 - [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
 - [Change log](docs/CHANGELOG.md)
-- [Reusable snapshot script](scripts/Get-WorkstationSnapshot.ps1)
-- [Allowlisted deployment script](scripts/Invoke-AVWorkstationToolkitDeployment.ps1)
-- [Allowlisted maintenance script](scripts/Invoke-AVWorkstationToolkitMaintenance.ps1)
+- [Repository scripts: snapshot, readiness, and catalog authoring](scripts/README.md)
 - [Managed application catalog](manifests/managed-applications.json)
 - [Managed catalog signing contract](docs/Managed-Catalog-Publishing.md)
 - [External application catalog](manifests/external-applications.json)
@@ -162,7 +160,7 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-
 
 Release outputs are written beneath `artifacts\release\1.1.1` and are ignored by Git.
 
-The command-line deployment and maintenance scripts remain available for operators who prefer a terminal, but the desktop app is the primary workflow.
+Install and update applications from the desktop app. The repository scripts are read-only evidence and readiness tools plus catalog-authoring helpers; none of them installs software.
 
 ## Repository map
 
@@ -186,8 +184,7 @@ The command-line deployment and maintenance scripts remain available for operato
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV awareness metadata |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Rights-gated authoring command for hash-pinned offline payloads |
 | `external-packages/` | Local third-party payload depot; always ignored by Git |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavior characterization plus development/operator tooling; not packaged |
-| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization source; not packaged or launched in production |
+| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Shared module for the repository scripts, offline-bundle build, and source QA; not packaged |
 | `tests/` | Non-installing safety, parser, policy, UI smoke, deterministic fixtures, and process/provider boundary tests |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\logs` | Installed/portable execution evidence |
 | `%LOCALAPPDATA%\AVWorkstationToolkit\reports` | Installed/portable exported plans |
@@ -203,7 +200,7 @@ The command-line deployment and maintenance scripts remain available for operato
 - Record every install with source, version rule, owner, validation, and exception reason.
 - Never use a workstation's raw winget export as an unattended deployment manifest.
 - Never manage BitLocker, EDR/antivirus, SCCM/Intune, VPN/security clients, or corporate remote-support agents through this project. The deployment tool is limited to explicitly approved user applications.
-- Installation and maintenance are plan-only unless an explicit change switch is supplied. Explicit Windows Update or Component Based Servicing reboot state blocks risk-bearing driver, service, and listener actions but is a warning for ordinary low-risk applications; generic queued file cleanup is not treated as a reboot signal.
+- Refresh is read-only. Nothing is installed or updated until you select applications and confirm the exact package list. Explicit Windows Update or Component Based Servicing reboot state blocks risk-bearing driver, service, and listener actions but is a warning for ordinary low-risk applications; generic queued file cleanup is not treated as a reboot signal.
 
 ## Local evidence
 

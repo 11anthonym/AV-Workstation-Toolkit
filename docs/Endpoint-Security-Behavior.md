@@ -158,4 +158,4 @@ For a suspected false positive, a release operator should:
 
 ## Compiled-runtime migration status
 
-The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the complete production runtime. The former PowerShell application runtime is retired from packaging and the process-launch contract. PowerShell remains only for build, QA, maintenance, optional snapshot tooling, and legacy behavior characterization. The isolated one-package action worker remains independently constrained.
+The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the complete production runtime. The former PowerShell application runtime is retired from packaging and the process-launch contract. PowerShell remains only for build, QA, catalog authoring, optional snapshot and readiness tooling, and legacy behavior characterization; no repository script installs or updates software. The isolated one-package action worker remains independently constrained.

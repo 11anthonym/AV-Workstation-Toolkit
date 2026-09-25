@@ -3150,108 +3150,6 @@ function Get-AVWorkstationToolkitPlan {
     return $plan
 }
 
-function Assert-AVWorkstationToolkitRequest {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)][ValidateSet('Install','Update')][string]$Action,
-        [Parameter(Mandatory)][string[]]$PackageId,
-        [Parameter(Mandatory)]$Plan,
-        [switch]$RiskAcknowledged
-    )
-
-    $ids = @($PackageId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
-    if ($ids.Count -eq 0) { throw 'No packages were selected.' }
-
-    $selected = [System.Collections.Generic.List[object]]::new()
-    foreach ($id in $ids) {
-        $item = @($Plan.Packages | Where-Object Id -eq $id)
-        if ($item.Count -ne 1) { throw "Package is not in the approved catalog: $id" }
-        $item = $item[0]
-
-        if ($Action -eq 'Install' -and $item.Action -ne 'Install') {
-            throw "Package is not eligible for installation: $id ($($item.Status))."
-        }
-        if ($Action -eq 'Update' -and $item.Action -ne 'Update') {
-            throw "Package is not eligible for update: $id ($($item.Status))."
-        }
-        if ($Plan.Reboot.Pending -and $item.Risk -ne 'None') {
-            throw "Risk-bearing package is blocked while reboot pending: $id ($($item.Risk); $($Plan.Reboot.Summary))."
-        }
-        if ($item.Risk -ne 'None' -and -not $RiskAcknowledged) {
-            throw "Explicit risk acknowledgement is required for $id ($($item.Risk))."
-        }
-        $selected.Add($item) | Out-Null
-    }
-    return @($selected)
-}
-
-function Get-AVWorkstationToolkitWingetArguments {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)][ValidateSet('Install','Update')][string]$Action,
-        [Parameter(Mandatory)]$Package
-    )
-
-    $verb = if ($Action -eq 'Install') { 'install' } else { 'upgrade' }
-    $arguments = @(
-        $verb,'--id',$Package.Id,'--exact','--source','winget',
-        '--accept-package-agreements','--accept-source-agreements'
-    )
-    if ($Package.Risk -eq 'None') {
-        # --silent makes WinGet pass /quiet to the installer, including to 'msiexec /x <ProductCode>'
-        # for a manifest that upgrades by uninstalling the previous version. A machine-scope MSI
-        # uninstall cannot obtain elevation under /quiet for a standard user, so msiexec returns 1603
-        # and WinGet reports 0x8A150030. A reviewed InstallerDefault package omits the flag.
-        # Re-resolved here rather than trusted: this function is exported, so a caller can supply a
-        # Package object that never passed the catalog loader. The same contract therefore applies at
-        # both boundaries, including the wrong-type rejection.
-        $mode = Resolve-AVWorkstationToolkitInstallerMode -InputObject $Package -PackageId ([string]$Package.Id)
-        $isSilent = [string]::Equals($mode,'Silent',[StringComparison]::Ordinal)
-        if ($isSilent) { $arguments += '--silent' }
-        # Always retained for a low-risk package: WinGet itself never waits on a prompt.
-        $arguments += '--disable-interactivity'
-    }
-    return @($arguments)
-}
-
-function New-AVWorkstationToolkitActionRequest {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)][ValidateSet('Install','Update')][string]$Action,
-        [Parameter(Mandatory)][string[]]$PackageId,
-        [bool]$RiskAcknowledged = $false,
-        [bool]$DryRun = $false,
-        [string]$RequestsRoot = (Join-Path (Get-AVWorkstationToolkitDataRoot) 'logs\requests')
-    )
-
-    $ids = @($PackageId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    if ($ids.Count -eq 0) { throw 'An action request requires at least one package ID.' }
-    if ($ids.Count -gt 100) { throw 'An action request cannot contain more than 100 package IDs.' }
-
-    $requestDirectory = [IO.Path]::GetFullPath($RequestsRoot)
-    New-Item -ItemType Directory -Path $requestDirectory -Force | Out-Null
-    $requestName = 'request-{0}-{1}' -f (Get-Date -Format 'yyyyMMdd-HHmmss'),([guid]::NewGuid().ToString('N').Substring(0,8))
-    $requestPath = Join-Path $requestDirectory ($requestName + '.json')
-    $request = [ordered]@{
-        SchemaVersion = 2
-        RequestId = $requestName
-        Action = $Action
-        PackageIds = @($ids)
-        RiskAcknowledged = $RiskAcknowledged
-        DryRun = $DryRun
-        ManagedCatalogRevision = 0
-    }
-    $request | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $requestPath -Encoding UTF8
-
-    [pscustomobject]@{
-        Name = $requestName
-        RequestPath = $requestPath
-        ProgressPath = Join-Path $requestDirectory ($requestName + '.progress.jsonl')
-        ResultPath = Join-Path $requestDirectory ($requestName + '.result.json')
-        CancelPath = Join-Path $requestDirectory ($requestName + '.cancel')
-    }
-}
-
 function ConvertTo-AVWorkstationToolkitProcessArgument {
     param([AllowEmptyString()][string]$Value)
 
@@ -3285,40 +3183,6 @@ function ConvertTo-AVWorkstationToolkitProcessArgument {
     if ($backslashes -gt 0) { [void]$builder.Append(('\' * ($backslashes * 2))) }
     [void]$builder.Append('"')
     return $builder.ToString()
-}
-
-function Start-AVWorkstationToolkitDirectProcess {
-    param(
-        [Parameter(Mandatory)][string]$FilePath,
-        [string[]]$Arguments = @(),
-        [string]$WorkingDirectory,
-        [switch]$CreateNoWindow
-    )
-
-    if (-not [IO.Path]::IsPathRooted($FilePath)) { throw 'Direct process paths must be absolute.' }
-    $resolvedFilePath = [IO.Path]::GetFullPath($FilePath)
-    if (-not (Test-Path -LiteralPath $resolvedFilePath -PathType Leaf)) {
-        throw "Approved process executable was not found: $resolvedFilePath"
-    }
-    $startInfo = [Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = $resolvedFilePath
-    $startInfo.Arguments = (@($Arguments | ForEach-Object { ConvertTo-AVWorkstationToolkitProcessArgument -Value ([string]$_) }) -join ' ')
-    $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = [bool]$CreateNoWindow
-    if (-not [string]::IsNullOrWhiteSpace($WorkingDirectory)) {
-        $resolvedWorkingDirectory = [IO.Path]::GetFullPath($WorkingDirectory)
-        if (-not (Test-Path -LiteralPath $resolvedWorkingDirectory -PathType Container)) {
-            throw "Approved process working directory was not found: $resolvedWorkingDirectory"
-        }
-        $startInfo.WorkingDirectory = $resolvedWorkingDirectory
-    }
-    $process = [Diagnostics.Process]::new()
-    $process.StartInfo = $startInfo
-    if (-not $process.Start()) {
-        $process.Dispose()
-        throw "Windows did not start the approved process: $resolvedFilePath"
-    }
-    return $process
 }
 
 function Get-AVWorkstationToolkitExplorerArgumentString {
@@ -3382,54 +3246,6 @@ function Open-AVWorkstationToolkitHttpsUri {
         throw 'Windows did not open the approved HTTPS address.'
     }
     $process.Dispose()
-}
-
-function Start-AVWorkstationToolkitWorker {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)][string]$RequestPath,
-        [string]$DataRoot,
-        [switch]$Wait
-    )
-
-    $WorkerPath = Join-Path $PSScriptRoot 'Invoke-AVWorkstationToolkitAction.ps1'
-    $resolvedDataRoot = Get-AVWorkstationToolkitDataRoot -Path $DataRoot
-    $requestsRoot = [IO.Path]::GetFullPath((Join-Path $resolvedDataRoot 'logs\requests'))
-    $resolvedRequestPath = [IO.Path]::GetFullPath($RequestPath)
-    if (-not (Test-Path -LiteralPath $WorkerPath -PathType Leaf)) { throw "AV Workstation Toolkit worker not found: $WorkerPath" }
-    if (-not (Test-Path -LiteralPath $resolvedRequestPath -PathType Leaf)) { throw "AV Workstation Toolkit request not found: $resolvedRequestPath" }
-    if (-not [IO.Path]::GetDirectoryName($resolvedRequestPath).Equals($requestsRoot,[StringComparison]::OrdinalIgnoreCase) -or
-        [IO.Path]::GetExtension($resolvedRequestPath) -ine '.json' -or
-        [IO.Path]::GetFileNameWithoutExtension($resolvedRequestPath) -notmatch '^request-\d{8}-\d{6}-[a-f0-9]{8}$') {
-        throw 'AV Workstation Toolkit workers accept only a direct request JSON child of the resolved logs\requests directory.'
-    }
-    if (Test-AVWorkstationToolkitElevated) { throw 'AV Workstation Toolkit workers must start from a standard-user PowerShell session.' }
-
-    $powershellExe = [IO.Path]::GetFullPath((Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'))
-    $arguments = @(
-        '-NoProfile','-ExecutionPolicy','RemoteSigned','-File',[IO.Path]::GetFullPath($WorkerPath),
-        '-RequestPath',$resolvedRequestPath,'-DataRoot',$resolvedDataRoot
-    )
-    $process = Start-AVWorkstationToolkitDirectProcess -FilePath $powershellExe -Arguments $arguments -WorkingDirectory $PSScriptRoot -CreateNoWindow
-    if ($Wait) { $process.WaitForExit() }
-    return $process
-}
-
-function Test-AVWorkstationToolkitInstalled {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Id)
-
-    $inventory = Get-AVWorkstationToolkitWingetInventory
-    return $inventory.Available -and @($inventory.Packages | Where-Object Id -eq $Id).Count -gt 0
-}
-
-function Test-AVWorkstationToolkitCurrent {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Id)
-
-    if (-not (Test-AVWorkstationToolkitInstalled -Id $Id)) { return $false }
-    $result = Invoke-AVWorkstationToolkitWingetCapture -Arguments @('list','--id',$Id,'--exact','--upgrade-available','--source','winget','--disable-interactivity','--accept-source-agreements')
-    return $result.ExitCode -eq 0 -and (Test-AVWorkstationToolkitInventoryTextReliable -Text $result.Output) -and -not (Test-AVWorkstationToolkitIdInText -Text $result.Output -Id $Id)
 }
 
 function Remove-AVWorkstationToolkitAnsi {
@@ -3656,14 +3472,8 @@ Export-ModuleMember -Function @(
     'ConvertFrom-AVWorkstationToolkitWingetUpgradeText',
     'Test-AVWorkstationToolkitIdInText',
     'Get-AVWorkstationToolkitPlan',
-    'Assert-AVWorkstationToolkitRequest',
-    'Get-AVWorkstationToolkitWingetArguments',
-    'New-AVWorkstationToolkitActionRequest',
     'Open-AVWorkstationToolkitExplorerPath',
     'Open-AVWorkstationToolkitHttpsUri',
-    'Start-AVWorkstationToolkitWorker',
-    'Test-AVWorkstationToolkitInstalled',
-    'Test-AVWorkstationToolkitCurrent',
     'Remove-AVWorkstationToolkitAnsi',
     'Protect-AVWorkstationToolkitSensitiveText',
     'Get-AVWorkstationToolkitDiagnostics',
