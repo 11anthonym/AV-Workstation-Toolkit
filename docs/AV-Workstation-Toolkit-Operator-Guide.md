@@ -30,7 +30,7 @@ The initial refresh is read-only. It runs WinGet inventory commands, inspects st
 | Manual update | An external vendor reports a newer catalogued version | No; use the delivery button |
 | Held | Installed, but automated maintenance is prohibited by catalog policy | No |
 | Manual | Deployment requires a separately verified manual artifact or decision | No |
-| Detected | An inventory-only dependency or OEM component was detected | No |
+| Detected | An inventory-only application, dependency, or OEM component was detected; if its installer reports no usable version, the installed version shows as unknown | No |
 | Not detected | An inventory-only dependency or OEM component was not detected; no install is implied | No |
 | Inventory incomplete | One or more uninstall-registry sources were unavailable and the remaining sources could not prove whether this product is installed | No |
 | Inventory unavailable | No uninstall-registry source was available for this detector-backed product | No |

@@ -6,6 +6,11 @@
                          "Name":  "Crestron Construct",
                          "Id":  "Crestron.Construct",
                          "Note":  "Current Crestron user-interface authoring environment; acquisition remains through official Crestron access channels.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Crestron Construct(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Crestron",
                                           "ProductFamily":  "Construct",
@@ -128,6 +133,11 @@
                          "Name":  "Crestron Studio",
                          "Id":  "Crestron.Studio",
                          "Note":  "Legacy installed-base support awareness; do not select for new projects without an explicit compatibility requirement.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Crestron Studio(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Crestron",
                                           "ProductFamily":  "Crestron Studio",

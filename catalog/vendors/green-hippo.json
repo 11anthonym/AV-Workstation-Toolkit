@@ -8,7 +8,7 @@
                          "KnownVersion":  "4.9.4",
                          "Note":  "Media-server software tied to Hippotizer hardware and software-assurance eligibility; project and server versions must remain coordinated.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Hippotizer(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Green Hippo\\s+)?Hippotizer(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

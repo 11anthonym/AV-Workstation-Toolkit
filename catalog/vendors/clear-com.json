@@ -144,6 +144,11 @@
                          "Name":  "Clear-Com FreeSpeak II Configuration Editor",
                          "Id":  "ClearCom.FreeSpeakIIConfigurationEditor",
                          "Note":  "Configuration and firmware utility for installed FreeSpeak II systems; retain release compatibility with base-station firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^FreeSpeak II Configuration Editor(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Clear-Com",
                                           "ProductFamily":  "FreeSpeak II",

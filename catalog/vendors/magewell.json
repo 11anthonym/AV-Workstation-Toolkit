@@ -7,7 +7,7 @@
                          "Id":  "Magewell.USBCaptureUtility",
                          "Note":  "Configuration, diagnostics, and firmware utility for supported Magewell USB Capture devices; obtain the release for the exact hardware family and operating system.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:Magewell )?USB Capture Utility(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Magewell\\s+)?USB Capture Utility(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

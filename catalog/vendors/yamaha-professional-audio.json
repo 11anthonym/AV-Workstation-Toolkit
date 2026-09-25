@@ -6,6 +6,11 @@
                          "Name":  "Yamaha ProVisionaire Design",
                          "Id":  "Yamaha.ProVisionaireDesign",
                          "Note":  "Current Yamaha system design and DSP configuration platform; preserve project and device-firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Design(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -44,6 +49,11 @@
                          "Name":  "Yamaha ProVisionaire Control PLUS",
                          "Id":  "Yamaha.ProVisionaireControlPlus",
                          "Note":  "Custom-control interface authoring software for supported Yamaha systems; maintain version alignment with deployed projects.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Control(?!\\s+KIOSK)(?:\\s+PLUS)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -79,6 +89,11 @@
                          "Name":  "Yamaha ProVisionaire Kiosk",
                          "Id":  "Yamaha.ProVisionaireKiosk",
                          "Note":  "Runtime control application for ProVisionaire projects; install only on an approved operator workstation or appliance.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Control KIOSK(?![A-Za-z])|^Yamaha ProVisionaire Kiosk(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -114,6 +129,11 @@
                          "Name":  "Yamaha ProVisionaire Edge",
                          "Id":  "Yamaha.ProVisionaireEdge",
                          "Note":  "Monitoring and management component for supported Yamaha systems; listener and service behavior require deployment review.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Edge(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",

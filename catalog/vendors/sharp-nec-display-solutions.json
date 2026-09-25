@@ -6,6 +6,11 @@
                          "Name":  "Sharp NEC NaViSet Administrator 2",
                          "Id":  "SharpNEC.NaViSetAdministrator2",
                          "Note":  "Display and projector asset management, control, and monitoring utility; network and service scope require approval.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:(?:Sharp\\s+)?NEC\\s+)?NaViSet Administrator 2(?![A-Za-z0-9])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Sharp NEC Display Solutions",
                                           "ProductFamily":  "NaViSet",

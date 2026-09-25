@@ -6,6 +6,11 @@
                          "Name":  "L-Acoustics Soundvision",
                          "Id":  "LAcoustics.Soundvision",
                          "Note":  "Current L-Acoustics 3D electroacoustic and mechanical system-design software.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:L-Acoustics\\s+)?Soundvision(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "L-Acoustics",
                                           "ProductFamily":  "Soundvision",
@@ -43,6 +48,11 @@
                          "Name":  "L-Acoustics LA Network Manager",
                          "Id":  "LAcoustics.LANetworkManager",
                          "Note":  "Amplified-controller configuration, monitoring, tuning, and firmware software; maintain compatibility with Soundvision data and device firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:LA|L-Acoustics)\\s+Network Manager(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "L-Acoustics",
                                           "ProductFamily":  "LA Network Manager",

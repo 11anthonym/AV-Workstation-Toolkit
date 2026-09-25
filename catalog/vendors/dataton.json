@@ -9,7 +9,7 @@
                          "KnownVersion":  "7.8.2",
                          "Note":  "Multi-display show authoring and playback suite. Producer is free, while media-server output and advanced Asset Manager functions require licensing; upgrades can require intermediate versions.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^WATCHOUT(?: 7)?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Dataton\\s+)?WATCHOUT(?: 7)?(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

@@ -58,7 +58,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Crestron MasterInstaller(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Crestron MasterInstaller(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -108,7 +108,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^(?:Crestron )?(?:VisionTools Pro-e|VT Pro-e)(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Crestron\\s+)?(?:VisionTools Pro-e|VT Pro-e)(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -146,7 +146,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^(?:Crestron )?SIMPL(?:[ +#]|\\s)*Windows(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Crestron\\s+)?SIMPL(?:[ +#]|\\s)*Windows?(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -184,7 +184,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^Crestron Database(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Crestron Database(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -223,7 +223,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^(?:Crestron )?Device Database(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Crestron\\s+Device Database(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -262,7 +262,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^(?:Crestron )?Toolbox(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Crestron\\s+Toolbox(?![A-Za-z])|^Toolbox(?:\\s+v?\\d[\\d.]*)?$",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -301,7 +301,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^(?:Crestron )?Smart Graphics(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Crestron\\s+Smart\\s?Graphics(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -339,7 +339,7 @@
       "KnownVersion": "",
       "Detection": {
         "Mode": "Registry",
-        "RegistryDisplayNamePattern": "^(?:Crestron )?DM[ -]?NVX Tool(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Crestron\\s+)?DM[ -]?NVX Tool(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -377,7 +377,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "5.7.0",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Biamp )?Tesira(?: Software)?(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Biamp\\s*)?Tesira(?:\\s+Software)?(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -427,7 +427,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "5.7.0",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Biamp\\s+)?Canvas(?:\\s+Software)?(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Biamp\\s*Canvas(?:\\s+Software)?(?![A-Za-z])|^Canvas(?:\\s+Software)?(?:\\s+v?\\d[\\d.]*)?$",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "SameMajorMinor"
       },
@@ -470,7 +470,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "1.9.0",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Biamp\\s+)?Vocia(?:\\s+Software)?(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Biamp\\s*)?Vocia(?!\\s*Firmware)(?:\\s+Software)?(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -515,7 +515,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "4.18.1.2",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Dante Controller(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Audinate\\s+)?Dante Controller(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -561,7 +561,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "6.10.0",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Shure Designer(?:\\s|$)|^Designer 6(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Shure Designer(?![A-Za-z])|^Designer 6(?![A-Za-z0-9])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -606,7 +606,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "7.8.3",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Shure )?Wireless Workbench(?: 7)?(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Shure\\s+)?Wireless Workbench(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -650,7 +650,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "2.8.16",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Shure\\s+Update\\s+Utility(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Shure\\s+Update\\s+Utility(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -694,7 +694,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "2.8.16",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Shure\\s+(?:Web\\s+Device\\s+)?Discovery(?:\\s+(?:Application|App))?(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^Shure\\s+(?:Web\\s+Device\\s+)?Discovery(?:\\s+(?:Application|App))?(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -738,7 +738,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "1.2.0",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Shure\\s+)?Microflex\\s+Wireless(?:\\s+Software)?(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Shure\\s+)?Microflex\\s+Wireless(?:\\s+Software)?(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -781,7 +781,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "9.2",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Sennheiser Control Cockpit(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Sennheiser\\s+)?Control Cockpit(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -827,7 +827,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "4.9.0",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Sennheiser\\s+)?Wireless\\s+Systems\\s+Manager(?:\\s|$)|^Sennheiser\\s+WSM(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Sennheiser\\s+)?Wireless\\s+Systems\\s+Manager(?![A-Za-z])|^Sennheiser\\s+WSM(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -870,7 +870,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Extron Toolbelt(?:\\s|$)|^Toolbelt(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Toolbelt(?![A-Za-z])|^Toolbelt(?:\\s+v?\\d[\\d.]*)?$",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -912,7 +912,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "",
       "Detection": {
-        "RegistryDisplayNamePattern": "^Extron (?:Product Configuration Software|PCS)(?:\\s|$)|^Product Configuration Software(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)(?:Product Configuration Software|PCS)(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -954,7 +954,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "",
       "Detection": {
-        "RegistryDisplayNamePattern": "^FileZilla Client(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^FileZilla(?: Client)?(?:\\s+\\d|$)",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },
@@ -995,7 +995,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Java|OpenJDK|Eclipse Temurin|Microsoft Build of OpenJDK|Amazon Corretto)(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Java|OpenJDK|Eclipse Temurin|Microsoft Build of OpenJDK|Amazon Corretto)(?!\\s+Auto\\s+Updater)(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+(?:\\.\\d+){1,3})",
         "VersionPolicy": "AtLeast"
       },
@@ -1036,7 +1036,7 @@
       "Maintenance": "Hold",
       "KnownVersion": "",
       "Detection": {
-        "RegistryDisplayNamePattern": "^(?:Waves MaxxAudio|Waves Audio|MaxxAudio|Dell Optimizer)(?:\\s|$)",
+        "RegistryDisplayNamePattern": "^(?:Waves MaxxAudio|Waves Audio|MaxxAudio|Dell Optimizer)(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
         "VersionPolicy": "AtLeast"
       },

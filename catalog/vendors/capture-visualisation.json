@@ -8,7 +8,7 @@
                          "KnownVersion":  "2026.0.39",
                          "Note":  "Lighting design and visualization suite with Art-Net, sACN, MA-Net, NDI, OSC, and other production-network integrations. Demo/student and paid editions have distinct rights and limits.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Capture(?: 20\\d{2})?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Capture(?: 20\\d{2})?(?:\\s+v?\\d[\\d.]*)?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

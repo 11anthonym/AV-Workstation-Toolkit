@@ -9,7 +9,7 @@
                          "KnownVersion":  "3.0.20",
                          "Note":  "Free EDID and DisplayID file editor for diagnosing source/display compatibility. Editing a file does not by itself write EDID to arbitrary hardware; deployment remains device-specific.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^AW EDID Editor(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Analog Way\\s+)?AW EDID Editor(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

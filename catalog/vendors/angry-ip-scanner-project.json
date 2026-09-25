@@ -8,7 +8,7 @@
                          "KnownVersion":  "3.9.3",
                          "Note":  "Free open-source IP and port scanner with installer and portable builds. Use only within the approved network scope and account for the bundled or external Java runtime choice.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Angry IP Scanner(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Angry IP Scanner(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

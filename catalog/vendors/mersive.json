@@ -6,6 +6,11 @@
                          "Name":  "Mersive Solstice App",
                          "Id":  "Mersive.SolsticeApp",
                          "Note":  "User sharing and collaboration client for Solstice systems; deploy only where the client workflow is approved.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Mersive Solstice|Solstice Client)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Mersive",
                                           "ProductFamily":  "Solstice",
@@ -45,6 +50,11 @@
                          "Name":  "Solstice Dashboard",
                          "Id":  "Mersive.SolsticeDashboard",
                          "Note":  "Legacy Solstice management application; use Solstice Cloud or current vendor workflows for new deployments.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Mersive\\s+)?Solstice Dashboard(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Mersive",
                                           "ProductFamily":  "Solstice",
@@ -83,6 +93,11 @@
                          "Name":  "Solstice Discovery Service",
                          "Id":  "Mersive.SolsticeDiscoveryService",
                          "Note":  "Free on-premises discovery server for Solstice clients; listener and server placement must be approved by network administration.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Mersive\\s+)?Solstice Discovery Service(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Mersive",
                                           "ProductFamily":  "Solstice",

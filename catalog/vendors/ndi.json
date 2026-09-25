@@ -9,7 +9,7 @@
                          "KnownVersion":  "6.3.2",
                          "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. NDI Analysis is a separate utility and NDI Remote has been discontinued. Some suite components expose sources, listeners, or services; commercial-use terms require vendor review.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^NDI(?: \\d+)? Tools(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:NewTek\\s+)?NDI(?:\\s+\\d+(?:\\.\\d+)?)?\\s+Tools(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

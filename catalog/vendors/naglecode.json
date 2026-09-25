@@ -9,7 +9,7 @@
                          "KnownVersion":  "8.10.4",
                          "Note":  "Free TCP, UDP, SSL/TLS, DTLS, and HTTP client/server test utility with portable and installed Windows builds. Listener and traffic-generation modes require authorization for the target network.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Packet Sender(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Packet Sender(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

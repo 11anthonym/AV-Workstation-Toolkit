@@ -7,7 +7,7 @@
                          "Id":  "OBSProject.OBSStudio",
                          "Note":  "Open-source recording and live-streaming application. Plugins, virtual-camera use, capture drivers, and listening services must be evaluated for the intended workstation role.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^OBS Studio(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^OBS Studio(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

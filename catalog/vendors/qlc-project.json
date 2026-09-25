@@ -8,7 +8,7 @@
                          "KnownVersion":  "5.0.0",
                          "Note":  "Open-source cross-platform lighting console with DMX, Art-Net, sACN, OSC, MIDI, scripting, and optional web control. Output and listener functions require explicit network approval.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^QLC\\+(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:QLC\\+|Q Light Controller Plus)(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

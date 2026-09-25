@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-24 — Installed-application detection
+
+- Fixed installed applications showing as not installed. Detection patterns now match the names installers actually register, including vendor prefixes such as "Extron Electronics - Toolbelt", joined names such as "BiampCanvas" and "Crestron SmartGraphics", singular forms such as "Crestron SIMPL Window", versions attached without a space such as "Crestron Device Database200.460.001.00", and vendor-prefixed names such as "ChamSys MagicQ" and "ETC Net3 Concert". 60 existing detectors were corrected.
+- Added installed-application detection to 61 more commercial AV applications, including Extron configuration tools, AMX NetLinx Studio and TPDesign, Symetrix Composer, Yamaha ProVisionaire, NovaStar, Mersive Solstice, Poly Lens Desktop, Bose ControlSpace Designer, L-Acoustics tools, Epson iProjection, and Logitech Sync. 97 of the 283 commercial records and all 25 operational records can now report installed state.
+- Tightened patterns that could claim unrelated software, such as vMix codecs, Canon EOS Utility, Capture One, and Vocia firmware.
+- An inventory-only application whose installer reports no usable version now shows as installed with an unknown version instead of "Couldn't check status".
+- A test resolves 172 real installed-program names, including look-alikes, against the shipped catalogs.
+
 ## 2026-09-24 — 1.1.1 Beta 1
 
 - First public release: the unsigned beta `1.1.1-beta.1`, built on the `ReleaseCandidate` channel and published as a GitHub pre-release under the new [beta publication procedure](Packaging-and-Release.md#beta-publication). Its [release packet](releases/1.1.1-beta.1.md) covers verification, requirements, and known limitations.

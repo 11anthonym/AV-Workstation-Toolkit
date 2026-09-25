@@ -6,6 +6,11 @@
                          "Name":  "Bose ControlSpace Designer",
                          "Id":  "Bose.ControlSpaceDesigner",
                          "Note":  "Bose Professional DSP design and commissioning software; version and firmware selection remain project-specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Bose\\s+)?ControlSpace(?:\\s+Designer)?(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Bose Professional",
                                           "ProductFamily":  "ControlSpace",

@@ -6,6 +6,11 @@
                          "Name":  "Extron DSP Configurator Pro",
                          "Id":  "Extron.DSPConfiguratorPro",
                          "Note":  "DSP design and commissioning software for supported Extron audio processors; requires Extron access and product-specific validation.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)DSP Configurator Pro(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "ProDSP",
@@ -46,6 +51,11 @@
                          "Name":  "Extron DSP Configurator",
                          "Id":  "Extron.DSPConfigurator",
                          "Note":  "DSP configuration software retained for supported and installed Extron audio products.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)DSP Configurator(?!\\s*Pro)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "ProDSP",
@@ -84,6 +94,11 @@
                          "Name":  "Extron Global Scripter",
                          "Id":  "Extron.GlobalScripter",
                          "Note":  "Python control-system development environment; install only for an identified Extron control project and approved training path.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Scripter(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Control Professional",
@@ -126,6 +141,11 @@
                          "Name":  "Extron ControlScript Deployment Utility",
                          "Id":  "Extron.ControlScriptDeploymentUtility",
                          "Note":  "Deployment utility for approved ControlScript projects; it is not a general-purpose automatic deployment target.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)ControlScript Deployment Utility(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "ControlScript",
@@ -204,6 +224,11 @@
                          "Name":  "Extron Global Configurator Plus",
                          "Id":  "Extron.GlobalConfiguratorPlus",
                          "Note":  "Configuration software for supported Extron control systems; maintain per-project compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Configurator Plus(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Global Configurator",
@@ -242,6 +267,11 @@
                          "Name":  "Extron Global Configurator Professional",
                          "Id":  "Extron.GlobalConfiguratorProfessional",
                          "Note":  "Advanced Extron control configuration software; training and account authorization are prerequisites.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Configurator Professional(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Global Configurator",
@@ -281,6 +311,11 @@
                          "Name":  "Extron GUI Designer",
                          "Id":  "Extron.GUIDesigner",
                          "Note":  "User-interface design software for supported Extron touchpanels and control interfaces.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)GUI Designer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "GUI Designer",
@@ -318,6 +353,11 @@
                          "Name":  "Extron Videowall Configuration Software",
                          "Id":  "Extron.VCS",
                          "Note":  "Videowall processor configuration utility; select only for supported Extron processors and project firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)(?:Videowall Configuration Software|VCS)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Videowall",
@@ -358,6 +398,11 @@
                          "Name":  "Extron XTP System Configuration Software",
                          "Id":  "Extron.XTPSystemConfiguration",
                          "Note":  "Configuration and firmware utility for Extron XTP systems; preserve system-level firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)XTP System Configuration(?: Software)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "XTP Systems",
@@ -401,6 +446,11 @@
                          "Name":  "Extron EDID Manager",
                          "Id":  "Extron.EDIDManager",
                          "Note":  "EDID inspection and management utility for supported Extron products and field troubleshooting.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)EDID Manager(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "EDID Tools",
@@ -439,6 +489,11 @@
                          "Name":  "Extron Firmware Loader",
                          "Id":  "Extron.FirmwareLoader",
                          "Note":  "Firmware transfer utility; all device updates remain deliberate, model-specific, and outside automatic deployment.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Firmware Loader(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Firmware Tools",
@@ -480,6 +535,11 @@
                          "Name":  "Extron DataViewer",
                          "Id":  "Extron.DataViewer",
                          "Note":  "Serial and network command-testing utility for authorized AV device troubleshooting.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)DataViewer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Engineering Utilities",
@@ -518,6 +578,11 @@
                          "Name":  "Extron IR Learner",
                          "Id":  "Extron.IRLearner",
                          "Note":  "Infrared learning utility retained for devices and control projects that require custom IR drivers.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)IR Learner(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Engineering Utilities",
@@ -596,6 +661,11 @@
                          "Name":  "Extron GUI Configurator",
                          "Id":  "Extron.GUIConfigurator",
                          "Note":  "Legacy user-interface software retained only for installed systems that cannot be migrated safely.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)GUI Configurator(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "GUI Configurator",
@@ -635,6 +705,11 @@
                          "Name":  "Extron Global Configurator Classic",
                          "Id":  "Extron.GlobalConfiguratorClassic",
                          "Note":  "Legacy control configuration software; retain only for explicit installed-base project support.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Configurator(?!\\s*(?:Plus|Professional))(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Global Configurator",
@@ -674,6 +749,11 @@
                          "Name":  "Extron IP Link File Manager",
                          "Id":  "Extron.IPLinkFileManager",
                          "Note":  "Legacy IP Link support utility; do not deploy without a specific installed-system requirement.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)IP Link File Manager(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "IP Link",

@@ -6,6 +6,11 @@
                          "Name":  "Logitech Sync",
                          "Id":  "Logitech.Sync",
                          "Note":  "Room-device monitoring and management platform with local agent and cloud components; service and account scope require approval.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Logitech Sync(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Logitech",
                                           "ProductFamily":  "Sync",

@@ -6,6 +6,11 @@
                          "Name":  "Christie Twist",
                          "Id":  "Christie.Twist",
                          "Note":  "Projector warping and blending software; free and licensed capability tiers must be distinguished per projector and project.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Christie TWIST(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Christie",
                                           "ProductFamily":  "Twist",
