@@ -6,6 +6,11 @@
                          "Name":  "AFMG SysTune",
                          "Id":  "AFMG.SysTune",
                          "Note":  "Licensed real-time acoustic measurement and analysis software for commissioning and tuning work.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?SysTune(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "SysTune",
@@ -47,6 +52,11 @@
                          "Name":  "EASE 5",
                          "Id":  "AFMG.EASE5",
                          "Note":  "Licensed room-acoustics and sound-system modeling platform for design engineers.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASE 5(?![A-Za-z0-9])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASE",
@@ -90,6 +100,11 @@
                          "Name":  "EASE Focus 3",
                          "Id":  "AFMG.EASEFocus3",
                          "Note":  "Free loudspeaker-system prediction tool using supported manufacturer data; validate the GLL and product version used in each design.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASE Focus 3(?![A-Za-z0-9])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASE Focus",
@@ -125,6 +140,11 @@
                          "Name":  "EASERA",
                          "Id":  "AFMG.EASERA",
                          "Note":  "Licensed room-acoustics and electroacoustic measurement software for specialized commissioning roles.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASERA(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASERA",
@@ -167,6 +187,11 @@
                          "Name":  "AFMG SoundFlow",
                          "Id":  "AFMG.SoundFlow",
                          "Note":  "Specialized sound absorption and transmission-loss simulation software for acoustical design work.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^AFMG\\s+SoundFlow(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "SoundFlow",
@@ -208,6 +233,11 @@
                          "Name":  "EASE SpeakerLab",
                          "Id":  "AFMG.EASESpeakerLab",
                          "Note":  "Licensed loudspeaker data authoring and GLL modeling software for specialized manufacturer and design workflows.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASE SpeakerLab(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASE",

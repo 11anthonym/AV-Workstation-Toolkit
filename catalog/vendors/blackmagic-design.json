@@ -8,7 +8,7 @@
                          "Id":  "Blackmagic.DesktopVideo",
                          "Note":  "Unified driver and utility package for supported DeckLink, UltraStudio, Intensity, and Teranex hardware; installation changes system drivers and can require a restart.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Blackmagic Desktop Video(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic\\s+)?Desktop Video(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -64,7 +64,7 @@
                          "Id":  "Blackmagic.ATEMSoftwareControl",
                          "Note":  "Free hardware-control application for ATEM switchers; the package also carries device setup and firmware-update functions, so match it to the target switcher and production workflow.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic )?ATEM Software Control(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic\\s+)?ATEM Software Control(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

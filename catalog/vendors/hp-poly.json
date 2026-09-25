@@ -79,6 +79,11 @@
                          "Name":  "Poly Lens Desktop",
                          "Id":  "HP.PolyLensDesktop",
                          "Note":  "Transition and legacy awareness: use HP Poly Studio App where current vendor guidance supports it.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Poly Lens Desktop(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "HP Poly",
                                           "ProductFamily":  "Poly Lens",

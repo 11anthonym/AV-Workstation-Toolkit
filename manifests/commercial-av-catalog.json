@@ -99,6 +99,11 @@
                          "Name":  "AFMG SysTune",
                          "Id":  "AFMG.SysTune",
                          "Note":  "Licensed real-time acoustic measurement and analysis software for commissioning and tuning work.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?SysTune(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "SysTune",
@@ -140,6 +145,11 @@
                          "Name":  "EASE 5",
                          "Id":  "AFMG.EASE5",
                          "Note":  "Licensed room-acoustics and sound-system modeling platform for design engineers.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASE 5(?![A-Za-z0-9])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASE",
@@ -183,6 +193,11 @@
                          "Name":  "EASE Focus 3",
                          "Id":  "AFMG.EASEFocus3",
                          "Note":  "Free loudspeaker-system prediction tool using supported manufacturer data; validate the GLL and product version used in each design.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASE Focus 3(?![A-Za-z0-9])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASE Focus",
@@ -218,6 +233,11 @@
                          "Name":  "EASERA",
                          "Id":  "AFMG.EASERA",
                          "Note":  "Licensed room-acoustics and electroacoustic measurement software for specialized commissioning roles.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASERA(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASERA",
@@ -260,6 +280,11 @@
                          "Name":  "AFMG SoundFlow",
                          "Id":  "AFMG.SoundFlow",
                          "Note":  "Specialized sound absorption and transmission-loss simulation software for acoustical design work.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^AFMG\\s+SoundFlow(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "SoundFlow",
@@ -301,6 +326,11 @@
                          "Name":  "EASE SpeakerLab",
                          "Id":  "AFMG.EASESpeakerLab",
                          "Note":  "Licensed loudspeaker data authoring and GLL modeling software for specialized manufacturer and design workflows.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AFMG\\s+)?EASE SpeakerLab(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AFMG",
                                           "ProductFamily":  "EASE",
@@ -345,7 +375,7 @@
                          "KnownVersion":  "18.0",
                          "Note":  "Unified AJA hardware driver, firmware, Control Panel, Control Room, System Test, and application-plugin package; third-party application and hardware compatibility must be checked before changing versions.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^AJA Desktop Software(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^AJA Desktop Software(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -400,7 +430,7 @@
                          "Id":  "AlcornMcBride.WinScriptLive",
                          "Note":  "Show-control programming and commissioning environment for supported Alcorn McBride controllers; preserve the project-specific controller and firmware compatibility.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^WinScript Live(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^WinScript Live(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -573,6 +603,11 @@
                          "Name":  "AMX NetLinx Studio 4",
                          "Id":  "AMX.NetLinxStudio4",
                          "Note":  "Primary AMX NetLinx programming environment; version selection remains project and controller-family specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?NetLinx Studio(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "NetLinx",
@@ -613,6 +648,11 @@
                          "Name":  "AMX TPDesign5",
                          "Id":  "AMX.TPDesign5",
                          "Note":  "Current AMX touchpanel interface design software; keep output compatible with the target panel family and controller project.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?TPDesign5(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "TPDesign",
@@ -689,6 +729,11 @@
                          "Name":  "AMX TPDesign4",
                          "Id":  "AMX.TPDesign4",
                          "Note":  "Legacy AMX touchpanel authoring software retained for installed panels and projects that require the older format.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?TPDesign4(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "TPDesign",
@@ -767,6 +812,11 @@
                          "Name":  "AMX IREdit",
                          "Id":  "AMX.IREdit",
                          "Note":  "Legacy infrared driver utility retained for installed AMX control projects.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?IREdit(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "NetLinx Utilities",
@@ -933,7 +983,7 @@
                          "KnownVersion":  "3.0.20",
                          "Note":  "Free EDID and DisplayID file editor for diagnosing source/display compatibility. Editing a file does not by itself write EDID to arbitrary hardware; deployment remains device-specific.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^AW EDID Editor(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Analog Way\\s+)?AW EDID Editor(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -980,7 +1030,7 @@
                          "KnownVersion":  "3.9.3",
                          "Note":  "Free open-source IP and port scanner with installer and portable builds. Use only within the approved network scope and account for the bundled or external Java runtime choice.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Angry IP Scanner(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Angry IP Scanner(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -1069,6 +1119,11 @@
                          "Name":  "Ashly Protea DSP Software",
                          "Id":  "Ashly.ProteaDSP",
                          "Note":  "Legacy Ashly DSP configuration suite retained for installed Protea-family systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Ashly\\s+)?Protea(?:\\s+NE)?\\s+Software(?:\\s+Suite)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Ashly Audio",
                                           "ProductFamily":  "Protea",
@@ -1579,6 +1634,11 @@
                          "Name":  "AVer PTZApp 2",
                          "Id":  "AVer.PTZApp2",
                          "Note":  "Transition awareness: AVer Room Management is the successor; retain PTZApp 2 only for a documented device or workflow dependency.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^AVer PTZApp(?:\\s*2)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AVer",
                                           "ProductFamily":  "PTZApp",
@@ -1837,7 +1897,7 @@
                          "KnownVersion":  "19.2",
                          "Note":  "Lighting-console programming and control suite. Current releases require an AvoKey for output/simulation functions, and newer show files are not backward compatible.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:Avolites )?Titan PC Suite(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Avolites\\s+)?Titan PC Suite(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },
@@ -1890,7 +1950,7 @@
                          "Id":  "AVStumpfl.PIXERA",
                          "Note":  "Media-server authoring, control, and playback platform. Creator permits free preprogramming with watermarked output; production use requires the appropriate license and server design.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^PIXERA(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:AV Stumpfl\\s+)?PIXERA(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -2427,7 +2487,7 @@
                          "Id":  "Blackmagic.DesktopVideo",
                          "Note":  "Unified driver and utility package for supported DeckLink, UltraStudio, Intensity, and Teranex hardware; installation changes system drivers and can require a restart.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Blackmagic Desktop Video(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic\\s+)?Desktop Video(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -2483,7 +2543,7 @@
                          "Id":  "Blackmagic.ATEMSoftwareControl",
                          "Note":  "Free hardware-control application for ATEM switchers; the package also carries device setup and firmware-update functions, so match it to the target switcher and production workflow.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic )?ATEM Software Control(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Blackmagic\\s+)?ATEM Software Control(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -2533,6 +2593,11 @@
                          "Name":  "Bose ControlSpace Designer",
                          "Id":  "Bose.ControlSpaceDesigner",
                          "Note":  "Bose Professional DSP design and commissioning software; version and firmware selection remain project-specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Bose\\s+)?ControlSpace(?:\\s+Designer)?(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Bose Professional",
                                           "ProductFamily":  "ControlSpace",
@@ -2570,6 +2635,11 @@
                          "Name":  "BrightSign Author",
                          "Id":  "BrightSign.Author",
                          "Note":  "Current BrightSign presentation-authoring application, formerly branded BrightAuthor:connected.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:BA\\s*connected|BrightAuthor\\s*:?\\s*connected|BrightSign Author)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BrightSign",
                                           "ProductFamily":  "BrightSign Author",
@@ -3024,6 +3094,11 @@
                          "Name":  "BrightAuthor Classic",
                          "Id":  "BrightSign.BrightAuthorClassic",
                          "Note":  "Legacy authoring software retained for installed BrightSign projects that cannot be migrated immediately.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^BrightAuthor(?!\\s*:?\\s*connected)(?![A-Za-z:])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BrightSign",
                                           "ProductFamily":  "BrightAuthor",
@@ -3419,6 +3494,11 @@
                          "Name":  "BSS Audio Architect",
                          "Id":  "BSS.AudioArchitect",
                          "Note":  "Installed-base configuration software for legacy BSS and Harman systems; use only for projects that require it.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:HiQnet\\s+)?Audio Architect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BSS",
                                           "ProductFamily":  "Audio Architect",
@@ -3456,6 +3536,11 @@
                          "Name":  "BSS London Architect",
                          "Id":  "BSS.LondonArchitect",
                          "Note":  "Legacy Soundweb London design software retained for installed projects that predate Audio Architect or AVX.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:BSS\\s+|HiQnet\\s+)?London Architect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BSS",
                                           "ProductFamily":  "Soundweb London",
@@ -3494,7 +3579,7 @@
                          "KnownVersion":  "2026.0.39",
                          "Note":  "Lighting design and visualization suite with Art-Net, sACN, MA-Net, NDI, OSC, and other production-network integrations. Demo/student and paid editions have distinct rights and limits.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Capture(?: 20\\d{2})?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Capture(?: 20\\d{2})?(?:\\s+v?\\d[\\d.]*)?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -3591,7 +3676,7 @@
                          "KnownVersion":  "1.9.8.3",
                          "Note":  "Free multi-platform lighting control, visualization, pixel-mapping, and media-playback software. Hardware unlocks additional output; Art-Net, sACN, web, and console networking can expose listeners.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^MagicQ(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ChamSys\\s+)?MagicQ(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -3641,6 +3726,11 @@
                          "Name":  "Christie Twist",
                          "Id":  "Christie.Twist",
                          "Note":  "Projector warping and blending software; free and licensed capability tiers must be distinguished per projector and project.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Christie TWIST(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Christie",
                                           "ProductFamily":  "Twist",
@@ -4053,6 +4143,11 @@
                          "Name":  "Clear-Com FreeSpeak II Configuration Editor",
                          "Id":  "ClearCom.FreeSpeakIIConfigurationEditor",
                          "Note":  "Configuration and firmware utility for installed FreeSpeak II systems; retain release compatibility with base-station firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^FreeSpeak II Configuration Editor(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Clear-Com",
                                           "ProductFamily":  "FreeSpeak II",
@@ -4182,6 +4277,11 @@
                          "Name":  "Colorlight LEDVISION",
                          "Id":  "Colorlight.LEDVISION",
                          "Note":  "Colorlight LED display configuration and sender/receiver management software; acquisition and driver impact require official-channel verification.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Colorlight\\s+)?LEDVISION(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Colorlight",
                                           "ProductFamily":  "LEDVISION",
@@ -4223,6 +4323,11 @@
                          "Name":  "Crestron Construct",
                          "Id":  "Crestron.Construct",
                          "Note":  "Current Crestron user-interface authoring environment; acquisition remains through official Crestron access channels.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Crestron Construct(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Crestron",
                                           "ProductFamily":  "Construct",
@@ -4345,6 +4450,11 @@
                          "Name":  "Crestron Studio",
                          "Id":  "Crestron.Studio",
                          "Note":  "Legacy installed-base support awareness; do not select for new projects without an explicit compatibility requirement.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Crestron Studio(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Crestron",
                                           "ProductFamily":  "Crestron Studio",
@@ -4656,7 +4766,7 @@
                          "KnownVersion":  "7.8.2",
                          "Note":  "Multi-display show authoring and playback suite. Producer is free, while media-server output and advanced Asset Manager functions require licensing; upgrades can require intermediate versions.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^WATCHOUT(?: 7)?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Dataton\\s+)?WATCHOUT(?: 7)?(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -4719,7 +4829,7 @@
                          "Id":  "Deltacast.EEDIDEditor",
                          "Note":  "Free Windows utility for reading, writing, and editing EDID files; hardware write operations must be limited to supported interfaces and approved test equipment.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:DELTACAST )?E-EDID Editor(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:DELTACAST\\s+)?E-EDID Editor(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -4760,6 +4870,11 @@
                          "Name":  "Disguise Designer",
                          "Id":  "Disguise.Designer",
                          "Note":  "Visual-experience design and show-control software. Starter requires a free Disguise Cloud account; Pro requires a paid subscription, and production servers carry their own licensed configuration.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:disguise\\s+)?d3(?:\\s+v?\\d[\\d.]*)?$|^disguise\\s+designer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Disguise",
                                           "ProductFamily":  "Designer",
@@ -4855,6 +4970,11 @@
                          "Name":  "Epson iProjection",
                          "Id":  "Epson.iProjection",
                          "Note":  "Wireless presentation client for supported Epson projectors; install only where its network-sharing workflow is approved.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Epson\\s+)?iProjection(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Epson",
                                           "ProductFamily":  "Projectors",
@@ -4895,7 +5015,7 @@
                          "KnownVersion":  "3.3.9",
                          "Note":  "Eos show-programming software is free for offline editing; ETCnomad output uses an authorized USB key or interface. Networked devices must use matching Eos, fixture-library, and language versions.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:ETC )?Eos(?: Family)?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ETC\\s+)?Eos Family(?![A-Za-z])|^ETC\\s+Eos(?![A-Za-z])|^ETCnomad(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },
@@ -4952,7 +5072,7 @@
                          "KnownVersion":  "4.7.4",
                          "Note":  "Configuration and diagnostics software for ETC networked lighting devices; keep configurations and device firmware under project change control.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:ETC )?Concert(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ETC\\s+)?(?:Net3\\s+)?Concert(?:\\s+v?\\d[\\d.]*)?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -5005,7 +5125,7 @@
                          "KnownVersion":  "7.0.1",
                          "Note":  "Firmware download and deployment utility for supported ETC lighting-network devices; firmware application requires an approved maintenance window and verified device family.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:ETC )?UpdaterAtor(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ETC\\s+)?UpdaterAtor(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -5054,6 +5174,11 @@
                          "Name":  "Extron DSP Configurator Pro",
                          "Id":  "Extron.DSPConfiguratorPro",
                          "Note":  "DSP design and commissioning software for supported Extron audio processors; requires Extron access and product-specific validation.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)DSP Configurator Pro(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "ProDSP",
@@ -5094,6 +5219,11 @@
                          "Name":  "Extron DSP Configurator",
                          "Id":  "Extron.DSPConfigurator",
                          "Note":  "DSP configuration software retained for supported and installed Extron audio products.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)DSP Configurator(?!\\s*Pro)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "ProDSP",
@@ -5132,6 +5262,11 @@
                          "Name":  "Extron Global Scripter",
                          "Id":  "Extron.GlobalScripter",
                          "Note":  "Python control-system development environment; install only for an identified Extron control project and approved training path.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Scripter(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Control Professional",
@@ -5174,6 +5309,11 @@
                          "Name":  "Extron ControlScript Deployment Utility",
                          "Id":  "Extron.ControlScriptDeploymentUtility",
                          "Note":  "Deployment utility for approved ControlScript projects; it is not a general-purpose automatic deployment target.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)ControlScript Deployment Utility(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "ControlScript",
@@ -5252,6 +5392,11 @@
                          "Name":  "Extron Global Configurator Plus",
                          "Id":  "Extron.GlobalConfiguratorPlus",
                          "Note":  "Configuration software for supported Extron control systems; maintain per-project compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Configurator Plus(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Global Configurator",
@@ -5290,6 +5435,11 @@
                          "Name":  "Extron Global Configurator Professional",
                          "Id":  "Extron.GlobalConfiguratorProfessional",
                          "Note":  "Advanced Extron control configuration software; training and account authorization are prerequisites.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Configurator Professional(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Global Configurator",
@@ -5329,6 +5479,11 @@
                          "Name":  "Extron GUI Designer",
                          "Id":  "Extron.GUIDesigner",
                          "Note":  "User-interface design software for supported Extron touchpanels and control interfaces.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)GUI Designer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "GUI Designer",
@@ -5366,6 +5521,11 @@
                          "Name":  "Extron Videowall Configuration Software",
                          "Id":  "Extron.VCS",
                          "Note":  "Videowall processor configuration utility; select only for supported Extron processors and project firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)(?:Videowall Configuration Software|VCS)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Videowall",
@@ -5406,6 +5566,11 @@
                          "Name":  "Extron XTP System Configuration Software",
                          "Id":  "Extron.XTPSystemConfiguration",
                          "Note":  "Configuration and firmware utility for Extron XTP systems; preserve system-level firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)XTP System Configuration(?: Software)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "XTP Systems",
@@ -5449,6 +5614,11 @@
                          "Name":  "Extron EDID Manager",
                          "Id":  "Extron.EDIDManager",
                          "Note":  "EDID inspection and management utility for supported Extron products and field troubleshooting.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)EDID Manager(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "EDID Tools",
@@ -5487,6 +5657,11 @@
                          "Name":  "Extron Firmware Loader",
                          "Id":  "Extron.FirmwareLoader",
                          "Note":  "Firmware transfer utility; all device updates remain deliberate, model-specific, and outside automatic deployment.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Firmware Loader(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Firmware Tools",
@@ -5528,6 +5703,11 @@
                          "Name":  "Extron DataViewer",
                          "Id":  "Extron.DataViewer",
                          "Note":  "Serial and network command-testing utility for authorized AV device troubleshooting.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)DataViewer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Engineering Utilities",
@@ -5566,6 +5746,11 @@
                          "Name":  "Extron IR Learner",
                          "Id":  "Extron.IRLearner",
                          "Note":  "Infrared learning utility retained for devices and control projects that require custom IR drivers.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)IR Learner(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Engineering Utilities",
@@ -5644,6 +5829,11 @@
                          "Name":  "Extron GUI Configurator",
                          "Id":  "Extron.GUIConfigurator",
                          "Note":  "Legacy user-interface software retained only for installed systems that cannot be migrated safely.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)GUI Configurator(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "GUI Configurator",
@@ -5683,6 +5873,11 @@
                          "Name":  "Extron Global Configurator Classic",
                          "Id":  "Extron.GlobalConfiguratorClassic",
                          "Note":  "Legacy control configuration software; retain only for explicit installed-base project support.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)Global Configurator(?!\\s*(?:Plus|Professional))(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "Global Configurator",
@@ -5722,6 +5917,11 @@
                          "Name":  "Extron IP Link File Manager",
                          "Id":  "Extron.IPLinkFileManager",
                          "Note":  "Legacy IP Link support utility; do not deploy without a specific installed-system requirement.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Extron(?:\\s+Electronics)?\\s*-\\s*(?:Extron\\s+)?|Extron\\s+)IP Link File Manager(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Extron",
                                           "ProductFamily":  "IP Link",
@@ -5848,7 +6048,7 @@
                          "Id":  "FlachmannUndHeggelbacher.Docklight",
                          "Note":  "Serial, TCP, and UDP monitoring, simulation, and scripting utility. Evaluation and licensed editions differ, and TCP/UDP server modes open listeners.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Docklight(?: Scripting)?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Docklight(?: Scripting)?(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -5943,7 +6143,7 @@
                          "KnownVersion":  "4.9.4",
                          "Note":  "Media-server software tied to Hippotizer hardware and software-assurance eligibility; project and server versions must remain coordinated.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Hippotizer(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Green Hippo\\s+)?Hippotizer(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -6076,6 +6276,11 @@
                          "Name":  "Poly Lens Desktop",
                          "Id":  "HP.PolyLensDesktop",
                          "Note":  "Transition and legacy awareness: use HP Poly Studio App where current vendor guidance supports it.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Poly Lens Desktop(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "HP Poly",
                                           "ProductFamily":  "Poly Lens",
@@ -6199,6 +6404,11 @@
                          "Name":  "Huddly Desktop App",
                          "Id":  "Huddly.DesktopApp",
                          "Note":  "Legacy Huddly camera application retained for models such as Huddly GO when current vendor guidance still requires it.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Huddly(?:\\s+(?:Desktop\\s+)?App)?(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Huddly",
                                           "ProductFamily":  "Huddly Cameras",
@@ -6326,6 +6536,11 @@
                          "Name":  "Jabra Direct",
                          "Id":  "Jabra.Direct",
                          "Note":  "Free local management and firmware utility for supported Jabra headsets and conferencing devices.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Jabra Direct(?!\\s+Drivers)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Jabra",
                                           "ProductFamily":  "Jabra Software",
@@ -6527,6 +6742,11 @@
                          "Id":  "Kramer.KConfig",
                          "KnownVersion":  "3.6.13.0",
                          "Note":  "Windows design, configuration, deployment, and firmware utility for supported Kramer room-control products. Confirm controller generation and project compatibility before use.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Kramer\\s+)?K-Config\\d?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Kramer",
                                           "ProductFamily":  "Kramer Control",
@@ -6666,6 +6886,11 @@
                          "Name":  "L-Acoustics Soundvision",
                          "Id":  "LAcoustics.Soundvision",
                          "Note":  "Current L-Acoustics 3D electroacoustic and mechanical system-design software.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:L-Acoustics\\s+)?Soundvision(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "L-Acoustics",
                                           "ProductFamily":  "Soundvision",
@@ -6703,6 +6928,11 @@
                          "Name":  "L-Acoustics LA Network Manager",
                          "Id":  "LAcoustics.LANetworkManager",
                          "Note":  "Amplified-controller configuration, monitoring, tuning, and firmware software; maintain compatibility with Soundvision data and device firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:LA|L-Acoustics)\\s+Network Manager(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "L-Acoustics",
                                           "ProductFamily":  "LA Network Manager",
@@ -7063,6 +7293,11 @@
                          "Name":  "Lightware Device Controller",
                          "Id":  "Lightware.LDC",
                          "Note":  "Primary Lightware configuration and commissioning utility for supported devices.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Lightware Device Controller(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Lightware",
                                           "ProductFamily":  "Device Controller",
@@ -7141,6 +7376,11 @@
                          "Name":  "Logitech Sync",
                          "Id":  "Logitech.Sync",
                          "Note":  "Room-device monitoring and management platform with local agent and cloud components; service and account scope require approval.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Logitech Sync(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Logitech",
                                           "ProductFamily":  "Sync",
@@ -7343,7 +7583,7 @@
                          "Id":  "Magewell.USBCaptureUtility",
                          "Note":  "Configuration, diagnostics, and firmware utility for supported Magewell USB Capture devices; obtain the release for the exact hardware family and operating system.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:Magewell )?USB Capture Utility(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Magewell\\s+)?USB Capture Utility(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -7393,7 +7633,7 @@
                          "KnownVersion":  "2.4.2.2",
                          "Note":  "MA Lighting console software for programming, backup, and hardware-enabled output. Installation can add a USB driver, requires administrator mode, and supports multiple installed releases for project compatibility.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^grandMA3 onPC(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^grandMA3 onPC(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },
@@ -7450,7 +7690,7 @@
                          "KnownVersion":  "3.9.61.5",
                          "Note":  "Installed-base support for grandMA2 systems and show files. Keep archived releases isolated and use only when the target system cannot migrate to grandMA3.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^grandMA2 onPC(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^grandMA2 onPC(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },
@@ -7574,7 +7814,7 @@
                          "KnownVersion":  "2.07.00.340",
                          "Note":  "Commissioning utility for Matrox ConvertIP endpoints, including discovery, routing, licensing, and firmware operations. Firmware and codec licensing are device-specific.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Matrox ConvertIP Manager(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Matrox\\s+)?ConvertIP Manager(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -7683,7 +7923,7 @@
                          "Id":  "Medialon.Manager",
                          "Note":  "Licensed show-control programming and runtime platform; maintain the release required by the target Medialon system and project files.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Medialon Manager(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Medialon Manager(?!\\s+Panel)(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -7736,6 +7976,11 @@
                          "Name":  "Mersive Solstice App",
                          "Id":  "Mersive.SolsticeApp",
                          "Note":  "User sharing and collaboration client for Solstice systems; deploy only where the client workflow is approved.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Mersive Solstice|Solstice Client)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Mersive",
                                           "ProductFamily":  "Solstice",
@@ -7775,6 +8020,11 @@
                          "Name":  "Solstice Dashboard",
                          "Id":  "Mersive.SolsticeDashboard",
                          "Note":  "Legacy Solstice management application; use Solstice Cloud or current vendor workflows for new deployments.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Mersive\\s+)?Solstice Dashboard(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Mersive",
                                           "ProductFamily":  "Solstice",
@@ -7813,6 +8063,11 @@
                          "Name":  "Solstice Discovery Service",
                          "Id":  "Mersive.SolsticeDiscoveryService",
                          "Note":  "Free on-premises discovery server for Solstice clients; listener and server placement must be approved by network administration.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Mersive\\s+)?Solstice Discovery Service(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Mersive",
                                           "ProductFamily":  "Solstice",
@@ -8289,7 +8544,7 @@
                          "KnownVersion":  "8.10.4",
                          "Note":  "Free TCP, UDP, SSL/TLS, DTLS, and HTTP client/server test utility with portable and installed Windows builds. Listener and traffic-generation modes require authorization for the target network.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Packet Sender(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Packet Sender(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -8371,7 +8626,7 @@
                          "KnownVersion":  "6.3.2",
                          "Note":  "Official NDI utility suite including Discovery, Access Manager, Router, Test Patterns, Studio Monitor, Webcam Input, Screen Capture, Bridge, and plugins. NDI Analysis is a separate utility and NDI Remote has been discontinued. Some suite components expose sources, listeners, or services; commercial-use terms require vendor review.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^NDI(?: \\d+)? Tools(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:NewTek\\s+)?NDI(?:\\s+\\d+(?:\\.\\d+)?)?\\s+Tools(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -8725,6 +8980,11 @@
                          "Name":  "NovaStar NovaLCT",
                          "Id":  "NovaStar.NovaLCT",
                          "Note":  "Widely used LED display configuration and calibration tool; installer may add serial drivers and should be project-pinned.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^NovaLCT(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "NovaStar",
                                           "ProductFamily":  "Synchronous Control",
@@ -8768,6 +9028,11 @@
                          "Name":  "NovaStar SmartLCT",
                          "Id":  "NovaStar.SmartLCT",
                          "Note":  "LED screen configuration and mapping software for supported NovaStar systems; maintain controller and project compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^SmartLCT(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "NovaStar",
                                           "ProductFamily":  "LED Configuration",
@@ -8806,6 +9071,11 @@
                          "Name":  "NovaStar ViPlex Express",
                          "Id":  "NovaStar.ViPlexExpress",
                          "Note":  "Content publishing and player-management software for NovaStar asynchronous signage systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^ViPlex Express(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "NovaStar",
                                           "ProductFamily":  "Nova Cloud",
@@ -9019,7 +9289,7 @@
                          "KnownVersion":  "4.32.1311",
                          "Note":  "Windows lighting-control software with one free Art-Net/sACN universe and hardware or USB-key licensing for larger systems; network output and remote features require approval.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^ONYX(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:Obsidian\\s+)?ONYX(?:\\s+v?\\d[\\d.]*)?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -9074,7 +9344,7 @@
                          "Id":  "OBSProject.OBSStudio",
                          "Note":  "Open-source recording and live-streaming application. Plugins, virtual-camera use, capture drivers, and listening services must be evaluated for the intended workstation role.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^OBS Studio(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^OBS Studio(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -9131,7 +9401,7 @@
                          "KnownVersion":  "1.5.2",
                          "Detection":  {
                                            "Mode":  "Registry",
-                                           "RegistryDisplayNamePattern":  "^Open Sound Meter(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Open Sound Meter(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -9393,7 +9663,7 @@
                          "Id":  "PingmanTools.PingPlotter",
                          "Note":  "Continuous latency, route, and packet-loss visualization for network troubleshooting. Paid and trial editions differ; monitoring targets must be authorized.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^PingPlotter(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^PingPlotter(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -9489,6 +9759,11 @@
                          "Name":  "Powersoft ArmoníaPlus",
                          "Id":  "Powersoft.ArmoniaPlus",
                          "Note":  "Current Powersoft amplifier design, control, monitoring, and firmware platform; project and device compatibility govern updates.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Powersoft\\s+)?Armon[i\\u00ed]a\\s?Plus(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Powersoft",
                                           "ProductFamily":  "ArmoníaPlus",
@@ -9566,7 +9841,7 @@
                          "KnownVersion":  "5.0.0",
                          "Note":  "Open-source cross-platform lighting console with DMX, Art-Net, sACN, OSC, MIDI, scripting, and optional web control. Output and listener functions require explicit network approval.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^QLC\\+(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:QLC\\+|Q Light Controller Plus)(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -9618,6 +9893,11 @@
                          "Name":  "Q-SYS UCI Viewer",
                          "Id":  "QSC.QSYSUCIViewer",
                          "Note":  "Standalone UCI client; keep its major/minor release aligned with the target Q-SYS design and Core firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Q-SYS UCI Viewer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Q-SYS",
                                           "ProductFamily":  "Q-SYS",
@@ -9774,6 +10054,11 @@
                          "Name":  "Rane Halogen",
                          "Id":  "Rane.Halogen",
                          "Note":  "Rane HAL DSP design and commissioning software; maintain project and hardware firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Rane\\s+)?Halogen(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Rane Commercial",
                                           "ProductFamily":  "HAL",
@@ -9815,6 +10100,11 @@
                          "Name":  "Rational Acoustics Smaart Suite",
                          "Id":  "RationalAcoustics.SmaartSuite",
                          "Note":  "Full licensed Smaart acoustic measurement suite; license activation, calibrated hardware, and trained operating practice are prerequisites.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Smaart(?: Suite)?(?:\\s+v?\\d[\\d.]*)?(?:\\s+Demo)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Rational Acoustics",
                                           "ProductFamily":  "Smaart",
@@ -10027,7 +10317,7 @@
                          "Id":  "RealTerm.RealTerm",
                          "Note":  "Engineering terminal for binary serial streams, RS-485, Winsock/Telnet, capture, and automation. Retain for difficult installed-base protocol work; current support status is not asserted.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^RealTerm(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^RealTerm(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -10077,7 +10367,7 @@
                          "KnownVersion":  "7.27.1",
                          "Note":  "Live visual, projection-mapping, and multi-output media-server software; project files, plugins, capture drivers, and output licensing must be validated before show use.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Resolume Arena(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Resolume Arena(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -10135,7 +10425,7 @@
                          "KnownVersion":  "7.27.1",
                          "Note":  "Live visual performance software; keep show files, plugins, capture drivers, and the licensed feature set aligned with the production environment.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Resolume Avenue(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Resolume Avenue(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -10190,7 +10480,7 @@
                          "KnownVersion":  "7.27.1",
                          "Note":  "Node-based patching environment for Resolume effects, sources, and mixers; plugin compatibility follows the target Resolume release.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Resolume Wire(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Resolume Wire(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -10376,6 +10666,11 @@
                          "Name":  "Room EQ Wizard",
                          "Id":  "REW.RoomEQWizard",
                          "Note":  "Widely used acoustic measurement and analysis application; verify calibration, Java/runtime requirements, and commercial-use support needs.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Room EQ Wizard(?![A-Za-z])|^REW(?:\\s+V?\\d[\\d.]*(?:\\s+beta\\s+\\d+)?)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Room EQ Wizard",
                                           "ProductFamily":  "REW",
@@ -10730,7 +11025,7 @@
                          "Id":  "sACNView.sACNView",
                          "Note":  "Free protocol analyzer, monitor, transmitter, snapshot, and PCAP-playback utility for ANSI E1.31 sACN. Transmit and listen functions must be used only on an authorized lighting network.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^sACNView(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^sACNView(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -10780,6 +11075,11 @@
                          "Name":  "Samsung MagicINFO Author",
                          "Id":  "Samsung.MagicINFOAuthor",
                          "Note":  "Samsung digital-signage content authoring application; project and player compatibility govern deployment.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^MagicInfo(?: Premium)? Author(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Samsung",
                                           "ProductFamily":  "MagicINFO",
@@ -11089,6 +11389,11 @@
                          "Name":  "Sharp NEC NaViSet Administrator 2",
                          "Id":  "SharpNEC.NaViSetAdministrator2",
                          "Note":  "Display and projector asset management, control, and monitoring utility; network and service scope require approval.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:(?:Sharp\\s+)?NEC\\s+)?NaViSet Administrator 2(?![A-Za-z0-9])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Sharp NEC Display Solutions",
                                           "ProductFamily":  "NaViSet",
@@ -11364,7 +11669,7 @@
                          "KnownVersion":  "29.0",
                          "Note":  "Windows live-production, recording, streaming, replay, and network-video application. It offers both perpetual and subscription licensing and can expose streaming and remote-production services.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^vMix(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^vMix(?:\\s+[\\d.]+)?(?:\\s+x(?:64|86))?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -11418,6 +11723,11 @@
                          "Name":  "Symetrix Composer",
                          "Id":  "Symetrix.Composer",
                          "Note":  "Primary Symetrix DSP design, control, and commissioning environment for supported systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Symetrix\\s+)?Composer(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Symetrix",
                                           "ProductFamily":  "Composer",
@@ -11455,6 +11765,11 @@
                          "Name":  "Symetrix SymVue",
                          "Id":  "Symetrix.SymVue",
                          "Note":  "Operator control application generated from Composer projects; runtime deployment remains project-specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^SymVue(?: for Composer)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Symetrix",
                                           "ProductFamily":  "Composer",
@@ -11569,7 +11884,7 @@
                          "KnownVersion":  "5.6.2",
                          "Note":  "Free terminal emulator supporting serial, Telnet, SSH, file transfer, and scripting. Portable and installer builds are available from the signed project release page.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Tera Term(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Tera Term(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -11644,6 +11959,11 @@
                          "Name":  "TightVNC remote desktop software",
                          "Id":  "TightVNC.RemoteDesktop",
                          "Note":  "Remote-support awareness only. The official Windows distribution includes viewer and server components; server/service or listener use requires explicit organizational approval and remains outside AVWT installation, update, and worker authority.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^TightVNC(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "TightVNC",
                                           "ProductFamily":  "TightVNC",
@@ -12178,6 +12498,11 @@
                          "Name":  "Yamaha ProVisionaire Design",
                          "Id":  "Yamaha.ProVisionaireDesign",
                          "Note":  "Current Yamaha system design and DSP configuration platform; preserve project and device-firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Design(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -12216,6 +12541,11 @@
                          "Name":  "Yamaha ProVisionaire Control PLUS",
                          "Id":  "Yamaha.ProVisionaireControlPlus",
                          "Note":  "Custom-control interface authoring software for supported Yamaha systems; maintain version alignment with deployed projects.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Control(?!\\s+KIOSK)(?:\\s+PLUS)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -12251,6 +12581,11 @@
                          "Name":  "Yamaha ProVisionaire Kiosk",
                          "Id":  "Yamaha.ProVisionaireKiosk",
                          "Note":  "Runtime control application for ProVisionaire projects; install only on an approved operator workstation or appliance.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Control KIOSK(?![A-Za-z])|^Yamaha ProVisionaire Kiosk(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -12286,6 +12621,11 @@
                          "Name":  "Yamaha ProVisionaire Edge",
                          "Id":  "Yamaha.ProVisionaireEdge",
                          "Note":  "Monitoring and management component for supported Yamaha systems; listener and service behavior require deployment review.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yamaha ProVisionaire Edge(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yamaha Professional Audio",
                                           "ProductFamily":  "ProVisionaire",
@@ -12326,6 +12666,11 @@
                          "Name":  "Yealink USB Connect",
                          "Id":  "Yealink.USBConnect",
                          "Note":  "Local configuration, diagnostics, and firmware utility for supported Yealink USB devices.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yealink USB Connect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yealink",
                                           "ProductFamily":  "Device Management",

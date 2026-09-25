@@ -88,6 +88,11 @@
                          "Name":  "Huddly Desktop App",
                          "Id":  "Huddly.DesktopApp",
                          "Note":  "Legacy Huddly camera application retained for models such as Huddly GO when current vendor guidance still requires it.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Huddly(?:\\s+(?:Desktop\\s+)?App)?(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Huddly",
                                           "ProductFamily":  "Huddly Cameras",

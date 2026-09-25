@@ -8,7 +8,7 @@
                          "KnownVersion":  "3.3.9",
                          "Note":  "Eos show-programming software is free for offline editing; ETCnomad output uses an authorized USB key or interface. Networked devices must use matching Eos, fixture-library, and language versions.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:ETC )?Eos(?: Family)?(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ETC\\s+)?Eos Family(?![A-Za-z])|^ETC\\s+Eos(?![A-Za-z])|^ETCnomad(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },
@@ -65,7 +65,7 @@
                          "KnownVersion":  "4.7.4",
                          "Note":  "Configuration and diagnostics software for ETC networked lighting devices; keep configurations and device firmware under project change control.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:ETC )?Concert(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ETC\\s+)?(?:Net3\\s+)?Concert(?:\\s+v?\\d[\\d.]*)?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -118,7 +118,7 @@
                          "KnownVersion":  "7.0.1",
                          "Note":  "Firmware download and deployment utility for supported ETC lighting-network devices; firmware application requires an approved maintenance window and verified device family.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:ETC )?UpdaterAtor(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ETC\\s+)?UpdaterAtor(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

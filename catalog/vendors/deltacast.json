@@ -7,7 +7,7 @@
                          "Id":  "Deltacast.EEDIDEditor",
                          "Note":  "Free Windows utility for reading, writing, and editing EDID files; hardware write operations must be limited to supported interfaces and approved test equipment.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^(?:DELTACAST )?E-EDID Editor(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:DELTACAST\\s+)?E-EDID Editor(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

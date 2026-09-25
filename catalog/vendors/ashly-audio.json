@@ -46,6 +46,11 @@
                          "Name":  "Ashly Protea DSP Software",
                          "Id":  "Ashly.ProteaDSP",
                          "Note":  "Legacy Ashly DSP configuration suite retained for installed Protea-family systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Ashly\\s+)?Protea(?:\\s+NE)?\\s+Software(?:\\s+Suite)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Ashly Audio",
                                           "ProductFamily":  "Protea",

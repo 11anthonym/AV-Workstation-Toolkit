@@ -6,6 +6,11 @@
                          "Name":  "Powersoft ArmoníaPlus",
                          "Id":  "Powersoft.ArmoniaPlus",
                          "Note":  "Current Powersoft amplifier design, control, monitoring, and firmware platform; project and device compatibility govern updates.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Powersoft\\s+)?Armon[i\\u00ed]a\\s?Plus(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Powersoft",
                                           "ProductFamily":  "ArmoníaPlus",

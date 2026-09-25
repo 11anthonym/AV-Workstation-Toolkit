@@ -1,0 +1,975 @@
+{
+  "Description": "Real Windows installed-program DisplayNames (or a vendor naming convention seen across its other products) and the single catalog record each must resolve to; null means no record may claim it. Observed names come from public Advanced Uninstaller program records or maintainer workstations.",
+  "Entries": [
+    {
+      "DisplayName": "Extron Electronics - Toolbelt",
+      "Expected": "Extron.Toolbelt",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Toolbelt",
+      "Expected": "Extron.Toolbelt",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Toolbelt 2.24",
+      "Expected": "Extron.Toolbelt",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron - Toolbelt",
+      "Expected": "Extron.Toolbelt",
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Extron Electronics - Extron Product Configuration Software",
+      "Expected": "Extron.PCS",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron - Extron Product Configuration Software",
+      "Expected": "Extron.PCS",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron PCS",
+      "Expected": "Extron.PCS",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron SIMPL Window 4.1900.00.00",
+      "Expected": "Crestron.SIMPLWindows",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron SIMPL Windows",
+      "Expected": "Crestron.SIMPLWindows",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron SmartGraphics 2.15.08.21",
+      "Expected": "Crestron.SmartGraphics",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron Smart Graphics",
+      "Expected": "Crestron.SmartGraphics",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron Device Database200.460.001.00",
+      "Expected": "Crestron.DeviceDatabase",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron Database 228.55.001.00",
+      "Expected": "Crestron.Database",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron Toolbox 3.1390.0008.3",
+      "Expected": "Crestron.Toolbox",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron MasterInstaller",
+      "Expected": "Crestron.MasterInstaller",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron VisionTools Pro-e 6.2.02.08",
+      "Expected": "Crestron.VTProE",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron DM NVX Tool 4.1.0.0688",
+      "Expected": "Crestron.DMNVXTool",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Tesira",
+      "Expected": "Biamp.Tesira",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "BiampCanvas",
+      "Expected": "Biamp.Canvas",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Biamp Canvas",
+      "Expected": "Biamp.Canvas",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Shure Designer",
+      "Expected": "Shure.Designer",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Wireless Workbench 6",
+      "Expected": "Shure.WirelessWorkbench",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Shure Wireless Workbench 6",
+      "Expected": "Shure.WirelessWorkbench",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Shure Update Utility",
+      "Expected": "Shure.UpdateUtility",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Shure Web Device Discovery",
+      "Expected": "Shure.Discovery",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Shure Microflex Wireless 1.0.0-130",
+      "Expected": "Shure.MicroflexWireless",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Wireless Systems Manager",
+      "Expected": "Sennheiser.WirelessSystemsManager",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "FileZilla Client 3.56.2",
+      "Expected": "FileZilla.Client",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "FileZilla 3.25.1",
+      "Expected": "FileZilla.Client",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Q-SYS Designer 9.8",
+      "Expected": "QSC.QSYSDesigner.LTS",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "WinScript Live",
+      "Expected": "AlcornMcBride.WinScriptLive",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Avolites Titan PC Suite 11.3",
+      "Expected": "Avolites.TitanPCSuite",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Avolites Titan PC Suite (All Applications)",
+      "Expected": "Avolites.TitanPCSuite",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "ChamSys MagicQ",
+      "Expected": "ChamSys.MagicQ",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "WATCHOUT 6",
+      "Expected": "Dataton.WATCHOUT7",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "WATCHOUT 7",
+      "Expected": "Dataton.WATCHOUT7",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Eos Family ETCnomad Software",
+      "Expected": "ETC.EosFamily",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Concert",
+      "Expected": "ETC.Concert",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "ETC Net3 Concert",
+      "Expected": "ETC.Concert",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "UpdaterAtor 6.0.3.9.0.31",
+      "Expected": "ETC.UpdaterAtor",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Docklight V2.1.10",
+      "Expected": "FlachmannUndHeggelbacher.Docklight",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Docklight Scripting V2.4.11",
+      "Expected": "FlachmannUndHeggelbacher.Docklight",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "grandMA3 onPC 2.1.1",
+      "Expected": "MALighting.grandMA3onPC",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "grandMA2 onPC 3.9",
+      "Expected": "MALighting.grandMA2onPC",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Medialon Manager 7",
+      "Expected": "Medialon.Manager",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "NDI 6 Tools",
+      "Expected": "NDI.NDITools",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "NewTek NDI Tools",
+      "Expected": "NDI.NDITools",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "NewTek NDI 3.8 Tools",
+      "Expected": "NDI.NDITools",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Onyx",
+      "Expected": "Obsidian.ONYX",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Realterm 3.0.1.44",
+      "Expected": "RealTerm.RealTerm",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Resolume Arena 7.22.2 rev 42470",
+      "Expected": "Resolume.Arena",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Resolume Avenue 3.1.3",
+      "Expected": "Resolume.Avenue",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "sACNView",
+      "Expected": "sACNView.sACNView",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "vMix",
+      "Expected": "StudioCoast.vMix",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "vMix 23.0.68 x64",
+      "Expected": "StudioCoast.vMix",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron - DSP Configurator Pro",
+      "Expected": "Extron.DSPConfiguratorPro",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron - DSP Configurator",
+      "Expected": "Extron.DSPConfigurator",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - DSP Configurator",
+      "Expected": "Extron.DSPConfigurator",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - Global Scripter",
+      "Expected": "Extron.GlobalScripter",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - ControlScript Deployment Utility",
+      "Expected": "Extron.ControlScriptDeploymentUtility",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - Global Configurator Plus",
+      "Expected": "Extron.GlobalConfiguratorPlus",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - Global Configurator Professional",
+      "Expected": "Extron.GlobalConfiguratorProfessional",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - Global Configurator 3.5",
+      "Expected": "Extron.GlobalConfiguratorClassic",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - GUI Designer",
+      "Expected": "Extron.GUIDesigner",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - GUI Configurator",
+      "Expected": "Extron.GUIConfigurator",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - Videowall Configuration Software",
+      "Expected": "Extron.VCS",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - XTP System Configuration Software",
+      "Expected": "Extron.XTPSystemConfiguration",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - EDID Manager",
+      "Expected": "Extron.EDIDManager",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - Firmware Loader",
+      "Expected": "Extron.FirmwareLoader",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - DataViewer",
+      "Expected": "Extron.DataViewer",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Extron Electronics - IR Learner",
+      "Expected": "Extron.IRLearner",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Extron Electronics - IP Link File Manager",
+      "Expected": "Extron.IPLinkFileManager",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "NetLinx Studio 4",
+      "Expected": "AMX.NetLinxStudio4",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "NetLinx Studio",
+      "Expected": "AMX.NetLinxStudio4",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "TPDesign4",
+      "Expected": "AMX.TPDesign4",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "TPDesign5",
+      "Expected": "AMX.TPDesign5",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "IREdit",
+      "Expected": "AMX.IREdit",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "AVer PTZApp 2",
+      "Expected": "AVer.PTZApp2",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "AVer PTZApp",
+      "Expected": "AVer.PTZApp2",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "AFMG SoundFlow",
+      "Expected": "AFMG.SoundFlow",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "EASE Focus 3",
+      "Expected": "AFMG.EASEFocus3",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "EASERA 1.2",
+      "Expected": "AFMG.EASERA",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "AFMG SysTune 1.4",
+      "Expected": "AFMG.SysTune",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "EASE 5",
+      "Expected": "AFMG.EASE5",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "EASE SpeakerLab",
+      "Expected": "AFMG.EASESpeakerLab",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "London Architect",
+      "Expected": "BSS.LondonArchitect",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Audio Architect 2.45",
+      "Expected": "BSS.AudioArchitect",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron Construct 1.2500.26",
+      "Expected": "Crestron.Construct",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Crestron Studio v1.81.096.00",
+      "Expected": "Crestron.Studio",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "BA connected 1.6.38",
+      "Expected": "BrightSign.Author",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "BrightAuthor",
+      "Expected": "BrightSign.BrightAuthorClassic",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Smaart 8",
+      "Expected": "RationalAcoustics.SmaartSuite",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Smaart 7",
+      "Expected": "RationalAcoustics.SmaartSuite",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Smaart Suite",
+      "Expected": "RationalAcoustics.SmaartSuite",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Composer 7.1",
+      "Expected": "Symetrix.Composer",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "SymVue for Composer 8.2",
+      "Expected": "Symetrix.SymVue",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "FreeSpeak II Configuration Editor",
+      "Expected": "ClearCom.FreeSpeakIIConfigurationEditor",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Yamaha ProVisionaire Control V3.9",
+      "Expected": "Yamaha.ProVisionaireControlPlus",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Yamaha ProVisionaire Control KIOSK V3.7",
+      "Expected": "Yamaha.ProVisionaireKiosk",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Yamaha ProVisionaire Design V1.4",
+      "Expected": "Yamaha.ProVisionaireDesign",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Yamaha ProVisionaire Edge V1.0",
+      "Expected": "Yamaha.ProVisionaireEdge",
+      "Source": "Vendor naming convention"
+    },
+    {
+      "DisplayName": "Christie TWIST 1.6.3",
+      "Expected": "Christie.Twist",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "NovaLCT V5.5.0",
+      "Expected": "NovaStar.NovaLCT",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "SmartLCT Ver3.1.0",
+      "Expected": "NovaStar.SmartLCT",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "ViPlex Express V1.3.7",
+      "Expected": "NovaStar.ViPlexExpress",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Q-Sys UCI Viewer",
+      "Expected": "QSC.QSYSUCIViewer",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Poly Lens Desktop",
+      "Expected": "HP.PolyLensDesktop",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Jabra Direct",
+      "Expected": "Jabra.Direct",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Mersive Solstice",
+      "Expected": "Mersive.SolsticeApp",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Solstice Client",
+      "Expected": "Mersive.SolsticeApp",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Solstice Dashboard",
+      "Expected": "Mersive.SolsticeDashboard",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Solstice Discovery Service",
+      "Expected": "Mersive.SolsticeDiscoveryService",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Huddly",
+      "Expected": "Huddly.DesktopApp",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Lightware Device Controller",
+      "Expected": "Lightware.LDC",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "MagicInfo Author",
+      "Expected": "Samsung.MagicINFOAuthor",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "MagicInfo Premium Author",
+      "Expected": "Samsung.MagicINFOAuthor",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Kramer K-Config3",
+      "Expected": "Kramer.KConfig",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "ControlSpace Designer",
+      "Expected": "Bose.ControlSpaceDesigner",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "ControlSpace 5.14",
+      "Expected": "Bose.ControlSpaceDesigner",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "L-ACOUSTICS SOUNDVISION",
+      "Expected": "LAcoustics.Soundvision",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "L-Acoustics Soundvision 3.10.1",
+      "Expected": "LAcoustics.Soundvision",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "LA Network Manager 3.9.0",
+      "Expected": "LAcoustics.LANetworkManager",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "L-ACOUSTICS Network Manager",
+      "Expected": "LAcoustics.LANetworkManager",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Epson iProjection Ver.3.34",
+      "Expected": "Epson.iProjection",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "NaViSet Administrator 2 2.0.22.141029",
+      "Expected": "SharpNEC.NaViSetAdministrator2",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Logitech Sync",
+      "Expected": "Logitech.Sync",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Toolbelt Pro Suite",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "PCSX2",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "SIMPL+ Cross Compiler",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Toolbelt",
+      "Expected": "Extron.Toolbelt",
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Toolbox for Revit",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "TesiraFORTE Remote",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Canvas X",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Vocia Firmware 1.7.7",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Designer 3",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "FileZilla Server 1.8",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Java Auto Updater",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "JavaRa",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "WinScript",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Pixelorama",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Capture One",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Capture Client",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "EOS Utility",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "EOS Webcam Utility",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Concert Creator RTX",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Hippo Animator 4.4",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Medialon Manager Panel 7",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "NDI 4 SDK",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "ONYX PosterShop 12",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "vMix Video Codec version 2.1",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "vMix Title Designer",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "vMix 26 Patch",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Firmware Loader",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "SoundFlow",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "BrightAuthor:connected",
+      "Expected": "BrightSign.Author",
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Smaart RT",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Smaart LE",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Composer Studio",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Poly Lens Control Service",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Jabra Direct Drivers 3.8.689.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Huddly Connect",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "ControlSpace AMS-8 Live Installer Software",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Bose ControlSpace Remote admin 2.10",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "ControlSpace Designer PM8500 Firmware Update v1.153",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "NEC NaViSet 1.1.27.00",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Logitech SyncAgent",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Microsoft Visual Studio Code (User)",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Notepad++ (x64)",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "PuTTY release 0.85 (64-bit)",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Advanced IP Scanner 2.5.1",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "MobaXterm",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "VLC media player",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "TeamViewer",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Crestron EDK version 1.0.7.8",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Crestron Xpanel Uninstall",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Crestron CCS-UC-SB-1 DFU Driver v1.11.1",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "TightVNC",
+      "Expected": "TightVNC.RemoteDesktop",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "TightVNC 2.7.10.0",
+      "Expected": "TightVNC.RemoteDesktop",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Room EQ Wizard 5.20",
+      "Expected": "REW.RoomEQWizard",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "REW V5.20 beta 48",
+      "Expected": "REW.RoomEQWizard",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "d3",
+      "Expected": "Disguise.Designer",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Halogen",
+      "Expected": "Rane.Halogen",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Protea Software Suite",
+      "Expected": "Ashly.ProteaDSP",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Yealink USB Connect",
+      "Expected": "Yealink.USBConnect",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Armon\u00EDaPlus",
+      "Expected": "Powersoft.ArmoniaPlus",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "LEDVISION 8.5",
+      "Expected": "Colorlight.LEDVISION",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "TigerVNC Server 64-bit 1.12.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "DemoForge Mirage Driver for TightVNC 2.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "D3DGear",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Crestron D3Pro Theme v2.02.017.00 (Black-Green)",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Armon\u00EDa",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "LEDSetting 9.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Shure System API (remove only)",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "ClickShare",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    }
+  ]
+}

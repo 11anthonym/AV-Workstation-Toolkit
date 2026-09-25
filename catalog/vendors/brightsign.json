@@ -6,6 +6,11 @@
                          "Name":  "BrightSign Author",
                          "Id":  "BrightSign.Author",
                          "Note":  "Current BrightSign presentation-authoring application, formerly branded BrightAuthor:connected.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:BA\\s*connected|BrightAuthor\\s*:?\\s*connected|BrightSign Author)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BrightSign",
                                           "ProductFamily":  "BrightSign Author",
@@ -460,6 +465,11 @@
                          "Name":  "BrightAuthor Classic",
                          "Id":  "BrightSign.BrightAuthorClassic",
                          "Note":  "Legacy authoring software retained for installed BrightSign projects that cannot be migrated immediately.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^BrightAuthor(?!\\s*:?\\s*connected)(?![A-Za-z:])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BrightSign",
                                           "ProductFamily":  "BrightAuthor",

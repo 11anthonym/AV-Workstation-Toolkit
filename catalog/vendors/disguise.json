@@ -6,6 +6,11 @@
                          "Name":  "Disguise Designer",
                          "Id":  "Disguise.Designer",
                          "Note":  "Visual-experience design and show-control software. Starter requires a free Disguise Cloud account; Pro requires a paid subscription, and production servers carry their own licensed configuration.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:disguise\\s+)?d3(?:\\s+v?\\d[\\d.]*)?$|^disguise\\s+designer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Disguise",
                                           "ProductFamily":  "Designer",

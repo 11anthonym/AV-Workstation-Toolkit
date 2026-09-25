@@ -8,7 +8,7 @@
                          "Id":  "AVStumpfl.PIXERA",
                          "Note":  "Media-server authoring, control, and playback platform. Creator permits free preprogramming with watermarked output; production use requires the appropriate license and server design.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^PIXERA(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:AV Stumpfl\\s+)?PIXERA(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

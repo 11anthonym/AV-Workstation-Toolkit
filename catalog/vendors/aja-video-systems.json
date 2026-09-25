@@ -8,7 +8,7 @@
                          "KnownVersion":  "18.0",
                          "Note":  "Unified AJA hardware driver, firmware, Control Panel, Control Room, System Test, and application-plugin package; third-party application and hardware compatibility must be checked before changing versions.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^AJA Desktop Software(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^AJA Desktop Software(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

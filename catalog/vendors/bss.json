@@ -163,6 +163,11 @@
                          "Name":  "BSS Audio Architect",
                          "Id":  "BSS.AudioArchitect",
                          "Note":  "Installed-base configuration software for legacy BSS and Harman systems; use only for projects that require it.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:HiQnet\\s+)?Audio Architect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BSS",
                                           "ProductFamily":  "Audio Architect",
@@ -200,6 +205,11 @@
                          "Name":  "BSS London Architect",
                          "Id":  "BSS.LondonArchitect",
                          "Note":  "Legacy Soundweb London design software retained for installed projects that predate Audio Architect or AVX.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:BSS\\s+|HiQnet\\s+)?London Architect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "BSS",
                                           "ProductFamily":  "Soundweb London",

@@ -43,6 +43,11 @@
                          "Name":  "Epson iProjection",
                          "Id":  "Epson.iProjection",
                          "Note":  "Wireless presentation client for supported Epson projectors; install only where its network-sharing workflow is approved.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Epson\\s+)?iProjection(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Epson",
                                           "ProductFamily":  "Projectors",

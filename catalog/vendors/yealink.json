@@ -6,6 +6,11 @@
                          "Name":  "Yealink USB Connect",
                          "Id":  "Yealink.USBConnect",
                          "Note":  "Local configuration, diagnostics, and firmware utility for supported Yealink USB devices.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yealink USB Connect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yealink",
                                           "ProductFamily":  "Device Management",

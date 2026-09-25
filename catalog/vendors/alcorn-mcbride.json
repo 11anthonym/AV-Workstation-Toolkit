@@ -7,7 +7,7 @@
                          "Id":  "AlcornMcBride.WinScriptLive",
                          "Note":  "Show-control programming and commissioning environment for supported Alcorn McBride controllers; preserve the project-specific controller and firmware compatibility.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^WinScript Live(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^WinScript Live(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

@@ -6,6 +6,11 @@
                          "Name":  "Symetrix Composer",
                          "Id":  "Symetrix.Composer",
                          "Note":  "Primary Symetrix DSP design, control, and commissioning environment for supported systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Symetrix\\s+)?Composer(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Symetrix",
                                           "ProductFamily":  "Composer",
@@ -43,6 +48,11 @@
                          "Name":  "Symetrix SymVue",
                          "Id":  "Symetrix.SymVue",
                          "Note":  "Operator control application generated from Composer projects; runtime deployment remains project-specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^SymVue(?: for Composer)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Symetrix",
                                           "ProductFamily":  "Composer",

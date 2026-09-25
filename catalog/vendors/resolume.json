@@ -9,7 +9,7 @@
                          "KnownVersion":  "7.27.1",
                          "Note":  "Live visual, projection-mapping, and multi-output media-server software; project files, plugins, capture drivers, and output licensing must be validated before show use.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Resolume Arena(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Resolume Arena(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -67,7 +67,7 @@
                          "KnownVersion":  "7.27.1",
                          "Note":  "Live visual performance software; keep show files, plugins, capture drivers, and the licensed feature set aligned with the production environment.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Resolume Avenue(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Resolume Avenue(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },
@@ -122,7 +122,7 @@
                          "KnownVersion":  "7.27.1",
                          "Note":  "Node-based patching environment for Resolume effects, sources, and mixers; plugin compatibility follows the target Resolume release.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Resolume Wire(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Resolume Wire(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

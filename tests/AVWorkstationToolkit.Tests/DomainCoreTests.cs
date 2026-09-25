@@ -112,6 +112,20 @@ public sealed class DomainCoreTests
     }
 
     [TestMethod]
+    public void InventoryOnlyMatchWithoutUsableVersionIsStillInstalled()
+    {
+        var external = Definition("External.Package", CatalogAuthority.OperationalExternal, ProviderKind.External,
+            detection: DetectionMode.Registry, release: ReleaseMode.InventoryOnly, delivery: DeliveryMode.VendorPage);
+        var state = new PlanningService().Evaluate(external, new PackageEvidence(true, true, false, InventoryQuality.PackageError, true,
+            string.Empty, [], false, string.Empty, "A matching installation was found, but its version could not be validated.", string.Empty));
+
+        Assert.AreEqual(PackageStatus.Inventory, state.Status);
+        Assert.IsTrue(state.Installed);
+        Assert.AreEqual(string.Empty, state.InstalledVersion);
+        Assert.AreEqual(PolicyDisposition.NotActionable, new SelectionPolicy().Evaluate(state, RebootState.Clear, false).Disposition);
+    }
+
+    [TestMethod]
     public void SelectionAndRebootPolicyRemainRiskSensitive()
     {
         var planner = new PlanningService();

@@ -7,7 +7,7 @@
                          "Id":  "Medialon.Manager",
                          "Note":  "Licensed show-control programming and runtime platform; maintain the release required by the target Medialon system and project files.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^Medialon Manager(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^Medialon Manager(?!\\s+Panel)(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

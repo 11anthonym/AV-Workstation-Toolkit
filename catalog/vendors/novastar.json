@@ -6,6 +6,11 @@
                          "Name":  "NovaStar NovaLCT",
                          "Id":  "NovaStar.NovaLCT",
                          "Note":  "Widely used LED display configuration and calibration tool; installer may add serial drivers and should be project-pinned.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^NovaLCT(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "NovaStar",
                                           "ProductFamily":  "Synchronous Control",
@@ -49,6 +54,11 @@
                          "Name":  "NovaStar SmartLCT",
                          "Id":  "NovaStar.SmartLCT",
                          "Note":  "LED screen configuration and mapping software for supported NovaStar systems; maintain controller and project compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^SmartLCT(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "NovaStar",
                                           "ProductFamily":  "LED Configuration",
@@ -87,6 +97,11 @@
                          "Name":  "NovaStar ViPlex Express",
                          "Id":  "NovaStar.ViPlexExpress",
                          "Note":  "Content publishing and player-management software for NovaStar asynchronous signage systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^ViPlex Express(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "NovaStar",
                                           "ProductFamily":  "Nova Cloud",

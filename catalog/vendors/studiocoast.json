@@ -8,7 +8,7 @@
                          "KnownVersion":  "29.0",
                          "Note":  "Windows live-production, recording, streaming, replay, and network-video application. It offers both perpetual and subscription licensing and can expose streaming and remote-production services.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^vMix(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^vMix(?:\\s+[\\d.]+)?(?:\\s+x(?:64|86))?$",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

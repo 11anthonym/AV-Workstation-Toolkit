@@ -6,6 +6,11 @@
                          "Name":  "Jabra Direct",
                          "Id":  "Jabra.Direct",
                          "Note":  "Free local management and firmware utility for supported Jabra headsets and conferencing devices.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Jabra Direct(?!\\s+Drivers)(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Jabra",
                                           "ProductFamily":  "Jabra Software",

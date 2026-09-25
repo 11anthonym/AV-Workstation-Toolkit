@@ -6,6 +6,11 @@
                          "Name":  "AMX NetLinx Studio 4",
                          "Id":  "AMX.NetLinxStudio4",
                          "Note":  "Primary AMX NetLinx programming environment; version selection remains project and controller-family specific.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?NetLinx Studio(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "NetLinx",
@@ -46,6 +51,11 @@
                          "Name":  "AMX TPDesign5",
                          "Id":  "AMX.TPDesign5",
                          "Note":  "Current AMX touchpanel interface design software; keep output compatible with the target panel family and controller project.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?TPDesign5(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "TPDesign",
@@ -122,6 +132,11 @@
                          "Name":  "AMX TPDesign4",
                          "Id":  "AMX.TPDesign4",
                          "Note":  "Legacy AMX touchpanel authoring software retained for installed panels and projects that require the older format.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?TPDesign4(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "TPDesign",
@@ -200,6 +215,11 @@
                          "Name":  "AMX IREdit",
                          "Id":  "AMX.IREdit",
                          "Note":  "Legacy infrared driver utility retained for installed AMX control projects.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:AMX\\s+)?IREdit(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AMX",
                                           "ProductFamily":  "NetLinx Utilities",

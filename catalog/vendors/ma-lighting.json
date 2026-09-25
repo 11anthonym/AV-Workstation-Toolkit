@@ -8,7 +8,7 @@
                          "KnownVersion":  "2.4.2.2",
                          "Note":  "MA Lighting console software for programming, backup, and hardware-enabled output. Installation can add a USB driver, requires administrator mode, and supports multiple installed releases for project compatibility.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^grandMA3 onPC(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^grandMA3 onPC(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },
@@ -65,7 +65,7 @@
                          "KnownVersion":  "3.9.61.5",
                          "Note":  "Installed-base support for grandMA2 systems and show files. Keep archived releases isolated and use only when the target system cannot migrate to grandMA3.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^grandMA2 onPC(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^grandMA2 onPC(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "SameMajorMinor"
                                        },

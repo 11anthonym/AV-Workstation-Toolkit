@@ -6,6 +6,11 @@
                          "Name":  "Rational Acoustics Smaart Suite",
                          "Id":  "RationalAcoustics.SmaartSuite",
                          "Note":  "Full licensed Smaart acoustic measurement suite; license activation, calibrated hardware, and trained operating practice are prerequisites.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Smaart(?: Suite)?(?:\\s+v?\\d[\\d.]*)?(?:\\s+Demo)?$",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Rational Acoustics",
                                           "ProductFamily":  "Smaart",

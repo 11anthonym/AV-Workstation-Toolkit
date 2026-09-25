@@ -7,7 +7,7 @@
                          "Id":  "RealTerm.RealTerm",
                          "Note":  "Engineering terminal for binary serial streams, RS-485, Winsock/Telnet, capture, and automation. Retain for difficult installed-base protocol work; current support status is not asserted.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^RealTerm(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^RealTerm(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

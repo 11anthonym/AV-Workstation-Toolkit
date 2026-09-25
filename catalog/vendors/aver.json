@@ -51,6 +51,11 @@
                          "Name":  "AVer PTZApp 2",
                          "Id":  "AVer.PTZApp2",
                          "Note":  "Transition awareness: AVer Room Management is the successor; retain PTZApp 2 only for a documented device or workflow dependency.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^AVer PTZApp(?:\\s*2)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "AVer",
                                           "ProductFamily":  "PTZApp",

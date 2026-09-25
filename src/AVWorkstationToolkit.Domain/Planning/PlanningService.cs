@@ -97,7 +97,9 @@ public sealed class PlanningService
         else if (package.ReleaseMode == ReleaseMode.InventoryOnly)
         {
             availableVersion = string.Empty;
-            if (reliable && installed)
+            // A registry match is positive evidence even when the entry reports no usable version;
+            // inventory-only records never compare versions.
+            if (installed)
             {
                 status = PackageStatus.Inventory;
                 detail = "Installed application recorded for inventory; AV Workstation Toolkit will not change it.";

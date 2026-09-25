@@ -46,7 +46,7 @@
                          "KnownVersion":  "1.9.8.3",
                          "Note":  "Free multi-platform lighting control, visualization, pixel-mapping, and media-playback software. Hardware unlocks additional output; Art-Net, sACN, web, and console networking can expose listeners.",
                          "Detection":  {
-                                           "RegistryDisplayNamePattern":  "^MagicQ(?:\\s|$)",
+                                           "RegistryDisplayNamePattern":  "^(?:ChamSys\\s+)?MagicQ(?![A-Za-z])",
                                            "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
                                            "VersionPolicy":  "AtLeast"
                                        },

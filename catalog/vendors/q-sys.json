@@ -6,6 +6,11 @@
                          "Name":  "Q-SYS UCI Viewer",
                          "Id":  "QSC.QSYSUCIViewer",
                          "Note":  "Standalone UCI client; keep its major/minor release aligned with the target Q-SYS design and Core firmware.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Q-SYS UCI Viewer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Q-SYS",
                                           "ProductFamily":  "Q-SYS",
