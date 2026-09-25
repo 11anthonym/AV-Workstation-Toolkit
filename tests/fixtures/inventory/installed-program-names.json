@@ -860,6 +860,96 @@
       "DisplayName": "TeamViewer",
       "Expected": null,
       "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "TightVNC",
+      "Expected": "TightVNC.RemoteDesktop",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "TightVNC 2.7.10.0",
+      "Expected": "TightVNC.RemoteDesktop",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Room EQ Wizard 5.20",
+      "Expected": "REW.RoomEQWizard",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "REW V5.20 beta 48",
+      "Expected": "REW.RoomEQWizard",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "d3",
+      "Expected": "Disguise.Designer",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Halogen",
+      "Expected": "Rane.Halogen",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Protea Software Suite",
+      "Expected": "Ashly.ProteaDSP",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Yealink USB Connect",
+      "Expected": "Yealink.USBConnect",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "Armon\u00EDaPlus",
+      "Expected": "Powersoft.ArmoniaPlus",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "LEDVISION 8.5",
+      "Expected": "Colorlight.LEDVISION",
+      "Source": "Observed installed-program name"
+    },
+    {
+      "DisplayName": "TigerVNC Server 64-bit 1.12.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "DemoForge Mirage Driver for TightVNC 2.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "D3DGear",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Crestron D3Pro Theme v2.02.017.00 (Black-Green)",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Armon\u00EDa",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "LEDSetting 9.0",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "Shure System API (remove only)",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
+    },
+    {
+      "DisplayName": "ClickShare",
+      "Expected": null,
+      "Source": "Look-alike that must not be misattributed"
     }
   ]
 }

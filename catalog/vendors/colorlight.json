@@ -6,6 +6,11 @@
                          "Name":  "Colorlight LEDVISION",
                          "Id":  "Colorlight.LEDVISION",
                          "Note":  "Colorlight LED display configuration and sender/receiver management software; acquisition and driver impact require official-channel verification.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Colorlight\\s+)?LEDVISION(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Colorlight",
                                           "ProductFamily":  "LEDVISION",

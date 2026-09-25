@@ -6,6 +6,11 @@
       "Name": "TightVNC remote desktop software",
       "Id": "TightVNC.RemoteDesktop",
       "Note": "Remote-support awareness only. The official Windows distribution includes viewer and server components; server/service or listener use requires explicit organizational approval and remains outside AVWT installation, update, and worker authority.",
+      "Detection":  {
+                        "RegistryDisplayNamePattern":  "^TightVNC(?![A-Za-z])",
+                        "RegistryVersionPattern":  "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                        "VersionPolicy":  "AtLeast"
+                    },
       "Metadata": {
         "Vendor": "TightVNC",
         "ProductFamily": "TightVNC",

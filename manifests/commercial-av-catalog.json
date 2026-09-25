@@ -1119,6 +1119,11 @@
                          "Name":  "Ashly Protea DSP Software",
                          "Id":  "Ashly.ProteaDSP",
                          "Note":  "Legacy Ashly DSP configuration suite retained for installed Protea-family systems.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Ashly\\s+)?Protea(?:\\s+NE)?\\s+Software(?:\\s+Suite)?(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Ashly Audio",
                                           "ProductFamily":  "Protea",
@@ -4272,6 +4277,11 @@
                          "Name":  "Colorlight LEDVISION",
                          "Id":  "Colorlight.LEDVISION",
                          "Note":  "Colorlight LED display configuration and sender/receiver management software; acquisition and driver impact require official-channel verification.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Colorlight\\s+)?LEDVISION(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Colorlight",
                                           "ProductFamily":  "LEDVISION",
@@ -4860,6 +4870,11 @@
                          "Name":  "Disguise Designer",
                          "Id":  "Disguise.Designer",
                          "Note":  "Visual-experience design and show-control software. Starter requires a free Disguise Cloud account; Pro requires a paid subscription, and production servers carry their own licensed configuration.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:disguise\\s+)?d3(?:\\s+v?\\d[\\d.]*)?$|^disguise\\s+designer(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Disguise",
                                           "ProductFamily":  "Designer",
@@ -9744,6 +9759,11 @@
                          "Name":  "Powersoft ArmoníaPlus",
                          "Id":  "Powersoft.ArmoniaPlus",
                          "Note":  "Current Powersoft amplifier design, control, monitoring, and firmware platform; project and device compatibility govern updates.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Powersoft\\s+)?Armon[i\\u00ed]a\\s?Plus(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Powersoft",
                                           "ProductFamily":  "ArmoníaPlus",
@@ -10034,6 +10054,11 @@
                          "Name":  "Rane Halogen",
                          "Id":  "Rane.Halogen",
                          "Note":  "Rane HAL DSP design and commissioning software; maintain project and hardware firmware compatibility.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^(?:Rane\\s+)?Halogen(?:\\s+v?\\d[\\d.]*)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Rane Commercial",
                                           "ProductFamily":  "HAL",
@@ -10641,6 +10666,11 @@
                          "Name":  "Room EQ Wizard",
                          "Id":  "REW.RoomEQWizard",
                          "Note":  "Widely used acoustic measurement and analysis application; verify calibration, Java/runtime requirements, and commercial-use support needs.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Room EQ Wizard(?![A-Za-z])|^REW(?:\\s+V?\\d[\\d.]*(?:\\s+beta\\s+\\d+)?)?$",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Room EQ Wizard",
                                           "ProductFamily":  "REW",
@@ -11929,6 +11959,11 @@
                          "Name":  "TightVNC remote desktop software",
                          "Id":  "TightVNC.RemoteDesktop",
                          "Note":  "Remote-support awareness only. The official Windows distribution includes viewer and server components; server/service or listener use requires explicit organizational approval and remains outside AVWT installation, update, and worker authority.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^TightVNC(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "TightVNC",
                                           "ProductFamily":  "TightVNC",
@@ -12631,6 +12666,11 @@
                          "Name":  "Yealink USB Connect",
                          "Id":  "Yealink.USBConnect",
                          "Note":  "Local configuration, diagnostics, and firmware utility for supported Yealink USB devices.",
+                         "Detection":  {
+                                           "RegistryDisplayNamePattern":  "^Yealink USB Connect(?![A-Za-z])",
+                                           "RegistryVersionPattern":  "(?\u003cVersion\u003e\\d+\\.\\d+(?:\\.\\d+){0,2})",
+                                           "VersionPolicy":  "AtLeast"
+                                       },
                          "Metadata":  {
                                           "Vendor":  "Yealink",
                                           "ProductFamily":  "Device Management",
