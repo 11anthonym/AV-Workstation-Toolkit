@@ -17,6 +17,11 @@
       "Source": "Observed installed-program name"
     },
     {
+      "DisplayName": "Extron - Toolbelt",
+      "Expected": "Extron.Toolbelt",
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
       "DisplayName": "Extron Electronics - Extron Product Configuration Software",
       "Expected": "Extron.PCS",
       "Source": "Observed installed-program name"
@@ -858,6 +863,21 @@
     },
     {
       "DisplayName": "TeamViewer",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Crestron EDK version 1.0.7.8",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Crestron Xpanel Uninstall",
+      "Expected": null,
+      "Source": "Installed on a maintainer workstation"
+    },
+    {
+      "DisplayName": "Crestron CCS-UC-SB-1 DFU Driver v1.11.1",
       "Expected": null,
       "Source": "Installed on a maintainer workstation"
     },

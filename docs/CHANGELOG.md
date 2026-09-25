@@ -6,7 +6,7 @@
 - Added installed-application detection to 69 more commercial AV applications, including Extron configuration tools, AMX NetLinx Studio and TPDesign, Symetrix Composer, Yamaha ProVisionaire, NovaStar, Mersive Solstice, Poly Lens Desktop, Bose ControlSpace Designer, L-Acoustics tools, Epson iProjection, Logitech Sync, Disguise Designer, Rane Halogen, Ashly Protea, Powersoft ArmoníaPlus, Colorlight LEDVISION, Yealink USB Connect, Room EQ Wizard, and TightVNC. 105 of the 283 commercial records and all 25 operational records can now report installed state.
 - Tightened patterns that could claim unrelated software, such as vMix codecs, Canon EOS Utility, Capture One, and Vocia firmware.
 - An inventory-only application whose installer reports no usable version now shows as installed with an unknown version instead of "Couldn't check status".
-- A test resolves 190 real installed-program names, including look-alikes, against the shipped catalogs.
+- A test resolves 194 real installed-program names, including look-alikes, against the shipped catalogs.
 
 ## 2026-09-24 — 1.1.1 Beta 1
 
