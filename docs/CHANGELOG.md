@@ -6,6 +6,7 @@
 - When no reference-catalog update channel is configured, the status detail now says so without calling the build's source a private repository.
 - Removed the retired PowerShell/XAML desktop host (`app/AVWorkstationToolkit.xaml`, `scripts/Start-AVWorkstationToolkit.ps1`, `scripts/AVWorkstationToolkit.Vendor.psm1`), the unused `scripts/AppProfiles.psd1` fixture, and the two core-module helpers only that host called. None was packaged or launched. Source QA drops the checks that read the host's source or loaded its XAML; each maps to existing compiled presentation, delivery, protocol, and smoke coverage. The window-title identity check now reads the shipping `MainWindow.xaml`. The packaged launcher still deletes these files from older runtime caches.
 - The release build's reparse-point check now also covers `assets/` and `tools/`.
+- Added bug-report and catalog-correction issue forms that warn against posting diagnostics, snapshots, or credentials, a security contact link to SECURITY.md, and a pull request template that asks for Windows validation results and the safety boundaries touched.
 
 ## 2026-09-24 — 1.1.1 Beta 1
 

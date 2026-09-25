@@ -1,0 +1,64 @@
+name: Bug report
+description: Report something AV Workstation Toolkit does wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report a security vulnerability here. Follow [SECURITY.md](https://github.com/11anthonym/AV-Workstation-Toolkit/blob/main/SECURITY.md) instead.
+
+        Issues are public. Do not attach full diagnostic exports, snapshots, logs, or exported plans; they can contain user, computer, network, and software details.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in Help > About AV Workstation Toolkit, or in the release file name.
+      placeholder: 1.1.1-beta.1
+    validations:
+      required: true
+  - type: dropdown
+    id: form
+    attributes:
+      label: How you run it
+      options:
+        - Direct EXE download
+        - MSI install
+        - Portable ZIP
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2 x64
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. See ...
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Relevant diagnostics lines
+      description: Paste only the lines that matter, after removing user names, computer names, host names, IP addresses, and anything credential-like.
+      render: text
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Before submitting
+      options:
+        - label: I removed credentials and details that identify my workstation, users, or network.
+          required: true
