@@ -1,6 +1,14 @@
 # Change Log
 
+## 2026-09-25 — Version 1.1.2
+
+- The source version is now 1.1.2: `VERSION`, the launcher, worker, and development-host assembly and file versions, the launcher manifest, the window title, and the repository script module. Builds extract to `runtime\1.1.2` and write to `artifacts\release\1.1.2`, and the 1.1.2 MSI upgrades an installed 1.1.1 build or beta.
+- Catalog minimum application versions stay `1.1.1`, so earlier builds and betas keep receiving signed catalog updates.
+- The search-debounce tests no longer depend on wall-clock timing. `MainWindowViewModel` takes an optional `TimeProvider` for the debounce (production uses the system clock); the tests advance a stepped clock and wait for the refresh's own search before typing, with every assertion kept.
+
 ## 2026-09-25 — Public-repository cleanup
+
+- The allowlisted command-line deployment and maintenance scripts and their PowerShell action worker remain supported; the cleanup keeps them and their source-QA checks.
 
 - Updated the README, contributing guide, endpoint-security baseline, SignPath readiness record, security audit, and QA report, which still described the repository as private and unreleased. The contributing guide now welcomes issues and states that outside pull requests wait until `main` requires pull requests and the `core-qa` and `package` checks.
 - When no reference-catalog update channel is configured, the status detail now says so without calling the build's source a private repository.

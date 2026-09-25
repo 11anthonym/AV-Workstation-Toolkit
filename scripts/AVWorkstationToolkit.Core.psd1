@@ -1,6 +1,6 @@
 @{
     RootModule = 'AVWorkstationToolkit.Core.psm1'
-    ModuleVersion = '1.1.1'
+    ModuleVersion = '1.1.2'
     GUID = '8f5ce752-7e4f-4f9c-91a3-7113a970db91'
     Author = 'AV Workstation Toolkit contributors'
     CompanyName = 'AV Workstation Toolkit Project'

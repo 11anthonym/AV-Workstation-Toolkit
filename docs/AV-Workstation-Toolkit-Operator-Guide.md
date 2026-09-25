@@ -1,4 +1,4 @@
-# AV Workstation Toolkit 1.1.1 Operator Guide
+# AV Workstation Toolkit 1.1.2 Operator Guide
 
 AV Workstation Toolkit is the primary interface for installing and maintaining explicitly approved user applications. It is a local Windows desktop tool with no remote installation endpoint. Refresh performs read-only WinGet inventory, uninstall-registry inventory, and bounded HTTPS version checks for catalogued external vendors. SFTP is contacted only after the operator selects the Crestron delivery workflow.
 
@@ -8,7 +8,7 @@ AV Workstation Toolkit is the primary interface for installing and maintaining e
 - Launch from a standard-user session. Do not use **Run as administrator**; AV Workstation Toolkit refuses elevated startup, while individual installers can still request elevation through Windows.
 - Save work before beginning an install or update wave.
 - Treat a Windows Update or Component Based Servicing reboot banner as an actionable warning. Ordinary low-risk application changes remain available, but driver-, service-, and listener-bearing actions are blocked until Windows is restarted and the plan is refreshed. Generic queued file-renames are intentionally ignored because they are frequently stale and do not provide an operator-resolution path.
-- For the direct release, run `AV-Workstation-Toolkit-1.1.1-win-x64.exe`. For an installed build, use the Start-menu shortcut created by the reviewed MSI. The optional ZIP contains the same one-file executable.
+- For the direct release, run `AV-Workstation-Toolkit-1.1.2-win-x64.exe`. For an installed build, use the Start-menu shortcut created by the reviewed MSI. The optional ZIP contains the same one-file executable.
 - For source development, confirm catalog changes have passed `tests/Run-Tests.ps1`.
 
 ## Launch

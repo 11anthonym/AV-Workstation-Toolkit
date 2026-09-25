@@ -29,7 +29,7 @@ Build-AVWorkstationToolkit.cmd
 
 The build runs `tests\Run-Tests.ps1` and `tests\Test-CompiledRuntime.ps1` first
 unless you pass `-SkipTests`. The standalone result is written to
-`artifacts\release\1.1.1\AV-Workstation-Toolkit-1.1.1-win-x64.exe`, next to the
+`artifacts\release\1.1.2\AV-Workstation-Toolkit-1.1.2-win-x64.exe`, next to the
 MSI and ZIP; `artifacts\` is ignored by Git. Double-click
 `Launch-AVWorkstationToolkit.cmd` to run the built executable. Before the first
 build, it starts the compiled App project directly.

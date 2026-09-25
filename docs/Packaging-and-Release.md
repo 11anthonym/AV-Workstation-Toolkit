@@ -1,4 +1,4 @@
-# AV Workstation Toolkit 1.1.1 Packaging and Release
+# AV Workstation Toolkit 1.1.2 Packaging and Release
 
 AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The standard release set contains exactly eight assets: those three delivery formats, the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. The checksum list hashes the other seven assets and intentionally does not hash itself. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Public beta releases are unsigned release-candidate builds published as GitHub pre-releases under the [beta publication procedure](#beta-publication); production releases remain signature-required.
 
@@ -9,7 +9,7 @@ The direct release executable can run from any normal user-writable directory. T
 The launcher embeds the .NET 10.0.11 LTS compiled WPF application, the self-contained compiled worker, and reviewed catalogs/notices, so target systems do not need a separate .NET installation or adjacent scripts. Desktop App Installer/WinGet is the managed-package prerequisite. PowerShell is not required by the packaged application runtime. The launcher:
 
 1. enumerates its compile-time embedded runtime resources;
-2. restores changed or missing files into `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\1.1.1`, verifies every extracted SHA-256 hash against the embedded bytes, and leaves matching files untouched;
+2. restores changed or missing files into `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\1.1.2`, verifies every extracted SHA-256 hash against the embedded bytes, and leaves matching files untouched;
 3. rejects invalid resource paths and reparse-point cache paths;
 4. refuses an elevated operator token;
 5. starts the compiled WPF App in-process for normal startup;
@@ -22,7 +22,7 @@ Installed and portable runs write mutable data beneath `%LOCALAPPDATA%\AVWorksta
 
 ```text
 %LOCALAPPDATA%\AVWorkstationToolkit
-├── runtime\1.1.1
+├── runtime\1.1.2
 │   ├── worker\AVWorkstationToolkit.Worker.exe
 │   ├── manifests
 │   ├── notices
@@ -37,7 +37,7 @@ MSI uninstall intentionally preserves this evidence. Remove it only through an a
 
 ### Legacy data compatibility
 
-On the first packaged launch, the 1.1.1 runtime checks the historical `%LOCALAPPDATA%\AVinite` root and progressively establishes `%LOCALAPPDATA%\AVWorkstationToolkit`. Migration is intentionally non-destructive and allowlisted: AV Workstation Toolkit can copy a validated SFTP host store, bounded launcher/request logs, and hash-matching vendor-cache payload metadata. It never copies runtime scripts, arbitrary files, reports, or snapshots; rejects reparse-point roots and paths; does not overwrite existing new-state files; writes a completion marker; and leaves the historical directory in place for retention review. Repeated launches read the marker without rewriting migrated files.
+On the first packaged launch, the runtime checks the historical `%LOCALAPPDATA%\AVinite` root and progressively establishes `%LOCALAPPDATA%\AVWorkstationToolkit`. Migration is intentionally non-destructive and allowlisted: AV Workstation Toolkit can copy a validated SFTP host store, bounded launcher/request logs, and hash-matching vendor-cache payload metadata. It never copies runtime scripts, arbitrary files, reports, or snapshots; rejects reparse-point roots and paths; does not overwrite existing new-state files; writes a completion marker; and leaves the historical directory in place for retention review. Repeated launches read the marker without rewriting migrated files.
 
 New SFTP credentials use the `AVWorkstationToolkit:VendorSftp:` Credential Manager prefix. The compiled credential service can read the historical credential target only as a fallback, and an explicit **Forget saved** action removes both identities. Password material is never copied into files, arguments, logs, or diagnostics.
 
@@ -64,7 +64,7 @@ From the repository root, the supported fresh-clone build entry point is:
 Build-AVWorkstationToolkit.cmd
 ```
 
-The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.1` (for a beta, `artifacts\release\1.1.1-beta.N`; see [beta naming](#beta-naming)).
+The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.2` (for a beta, `artifacts\release\1.1.2-beta.N`; see [beta naming](#beta-naming)).
 
 The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, Apache-2.0 license, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
 
@@ -101,7 +101,7 @@ Create a bundled entry only after confirming redistribution rights:
 
 The authoring command writes the catalog metadata and copies the installer beneath `external-packages\packages`; that depot is ignored by Git. Executables and MSIs must have a valid Authenticode signature unless the operator explicitly supplies `-AllowUnsignedPayload` after an independent trust review. Archive payloads also require that explicit override because ZIP files cannot carry Authenticode signatures.
 
-`-BuildOfflineBundle` refuses an absent, changed, reparse-point, or signer-mismatched payload. It emits `AV-Workstation-Toolkit-1.1.1-offline-bundle.zip` with this layout:
+`-BuildOfflineBundle` refuses an absent, changed, reparse-point, or signer-mismatched payload. It emits `AV-Workstation-Toolkit-1.1.2-offline-bundle.zip` with this layout:
 
 ```text
 AVWorkstationToolkit.exe
@@ -185,7 +185,7 @@ On a Windows release machine, request a safe Defender custom scan of the complet
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1 `
-  -ReleaseRoot .\artifacts\release\1.1.1 `
+  -ReleaseRoot .\artifacts\release\1.1.2 `
   -ScanWithDefender
 ```
 

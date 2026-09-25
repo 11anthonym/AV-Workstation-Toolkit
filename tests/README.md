@@ -68,7 +68,7 @@ Run the focused production-source/process-policy scan independently, with an opt
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1 `
-  -ReleaseRoot .\artifacts\release\1.1.1 -ScanWithDefender
+  -ReleaseRoot .\artifacts\release\1.1.2 -ScanWithDefender
 ```
 
 Package QA copies the direct release EXE into an otherwise empty directory, prepares and verifies its PowerShell-free embedded compiled runtime and exact worker, runs the compiled-production WPF smoke twice to exercise reopen behavior, removes recognized stale runtime files, repairs deliberately modified cache content, confirms one-file ZIP parity, and administratively extracts the MSI without registering or installing it.

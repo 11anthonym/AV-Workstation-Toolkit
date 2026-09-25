@@ -1,4 +1,4 @@
-# AV Workstation Toolkit 1.1.1 Architecture and Safety Model
+# AV Workstation Toolkit 1.1.2 Architecture and Safety Model
 
 ## Design goal
 

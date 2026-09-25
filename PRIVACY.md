@@ -5,7 +5,7 @@ telemetry, analytics, advertising, crash-reporting service, cloud account, or
 inbound command server. It does not send diagnostics, logs, snapshots, plans,
 credentials, or software inventory to the project maintainers.
 
-This policy describes version 1.1.1 as implemented in the maintained source.
+This policy describes version 1.1.2 as implemented in the maintained source.
 It deliberately does not claim that the application never uses the network:
 inventory and vendor-provider workflows can make bounded outbound requests.
 

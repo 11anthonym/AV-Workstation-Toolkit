@@ -22,9 +22,9 @@
     <RootNamespace>AVWorkstationToolkit.Launcher</RootNamespace>
     <Title>AV Workstation Toolkit</Title>
     <AssemblyTitle>AV Workstation Toolkit</AssemblyTitle>
-    <Version>1.1.1</Version>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.2</Version>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.2.0</FileVersion>
     <Company>AV Workstation Toolkit Project</Company>
     <Product>AV Workstation Toolkit</Product>
     <Authors>AV Workstation Toolkit contributors</Authors>

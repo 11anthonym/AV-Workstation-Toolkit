@@ -17,9 +17,9 @@
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     <AssemblyName>AVWorkstationToolkit.Worker</AssemblyName>
     <RootNamespace>AVWorkstationToolkit.Worker</RootNamespace>
-    <Version>1.1.1</Version>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.2</Version>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.2.0</FileVersion>
     <Company>AV Workstation Toolkit Project</Company>
     <Product>AV Workstation Toolkit compiled worker</Product>
     <Authors>AV Workstation Toolkit contributors</Authors>

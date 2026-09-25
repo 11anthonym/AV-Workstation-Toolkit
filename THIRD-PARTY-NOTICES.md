@@ -6,7 +6,7 @@ Toolkit. AV Workstation Toolkit itself is licensed under
 licenses, and this document does not replace those licenses.
 
 Versions are taken from the locked NuGet graph, pinned build projects, and
-immutable GitHub Actions references used for version 1.1.1. “Distributed”
+immutable GitHub Actions references used for version 1.1.2. “Distributed”
 means present in the normal EXE/MSI/ZIP release chain. Commercial AV products
 listed in the application catalog are metadata records only; their software is
 not part of this project or its normal release artifacts.
