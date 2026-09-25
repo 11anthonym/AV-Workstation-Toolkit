@@ -1280,7 +1280,7 @@ Invoke-Check 'Credential-like values are redacted from operational text' {
 }
 Invoke-Check 'Compiled presentation is production-composed and strict' {
     $agents = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AGENTS.md') -Raw
-    $architecture = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CSharp-Migration-Architecture.md') -Raw
+    $architecture = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\AV-Workstation-Toolkit-Architecture-and-Safety.md') -Raw
     $solution = Get-Content -LiteralPath (Join-Path $repositoryRoot 'AVWorkstationToolkit.slnx') -Raw
     $appProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj') -Raw
     $domainSource = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Domain') -Recurse -File -Filter '*.cs' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
@@ -1495,7 +1495,7 @@ Invoke-Check 'AV Workstation Toolkit v1.1.1 identity is consistent across source
     foreach ($path in @(
         'README.md','CONTRIBUTING.md','PRIVACY.md','SECURITY.md','THIRD-PARTY-NOTICES.md',
         'docs\AV-Workstation-Toolkit-Operator-Guide.md','docs\AV-Workstation-Toolkit-Architecture-and-Safety.md',
-        'docs\AV-Workstation-Toolkit-Security-Audit.md','docs\AV-Workstation-Toolkit-QA-Report.md',
+        'docs\records\AV-Workstation-Toolkit-Security-Audit.md','docs\records\AV-Workstation-Toolkit-QA-Report.md',
         'docs\Code-Signing-Policy.md','docs\SignPath-Readiness.md'
     )) {
         Assert-True (Test-Path -LiteralPath (Join-Path $repositoryRoot $path) -PathType Leaf) "Renamed documentation is missing: $path"
@@ -1654,7 +1654,7 @@ Invoke-Check 'Tagged workflow and release documentation agree on eight standard 
 
     foreach ($relativePath in @(
         'README.md','docs\Packaging-and-Release.md','docs\Endpoint-Security-Behavior.md',
-        'docs\SignPath-Readiness.md','docs\AV-Workstation-Toolkit-QA-Report.md'
+        'docs\SignPath-Readiness.md','docs\records\AV-Workstation-Toolkit-QA-Report.md'
     )) {
         $document = Get-Content -LiteralPath (Join-Path $repositoryRoot $relativePath) -Raw
         Assert-True ($document -match '(?i)(?:exactly|all) eight (?:standard )?assets') "$relativePath does not state the eight-asset release boundary."
@@ -2026,7 +2026,7 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
     }
 }
 Invoke-Check 'Defender investigation keeps historical and current specimens distinct' {
-    $path = Join-Path $repositoryRoot 'docs\Defender-False-Positive-Investigation.md'
+    $path = Join-Path $repositoryRoot 'docs\records\Defender-False-Positive-Investigation.md'
     Assert-True (Test-Path -LiteralPath $path -PathType Leaf) 'Maintained Defender investigation is missing.'
     $document = Get-Content -LiteralPath $path -Raw
     $historicalHash = '47DF422857F9A7B92902469ABB841E6E7942DD2978C0998548C00F7419AD95A8'

@@ -202,7 +202,7 @@ Roles remain normalized, independently composable metadata. A query can intersec
 
 `MaintenancePolicy`, `VersionRule`, `VersionCoupling`, `CurrentOrLegacy`, and `SideBySideSupported` remain separate compatibility dimensions. They can later express project- or firmware-specific toolchain requirements, but AV Workstation Toolkit does not create compatibility rules without authoritative evidence.
 
-Workflow metadata is additive and independently filterable; it does not replace manufacturer or discipline identity. This supports future workflow and manufacturer overlays without turning categories into profiles or action permission. The prioritized unresolved research is maintained in [Workstation-Research-Backlog.md](Workstation-Research-Backlog.md).
+Workflow metadata is additive and independently filterable; it does not replace manufacturer or discipline identity. This supports future workflow and manufacturer overlays without turning categories into profiles or action permission. Prioritized unresolved research is tracked in the [catalog research issues](https://github.com/11anthonym/AV-Workstation-Toolkit/issues?q=is%3Aissue+%22Catalog+research%22+in%3Atitle).
 
 ## Source policy
 
@@ -223,8 +223,10 @@ When adding or changing a record:
 5. Add registry detection only when the installed display name and version behavior have representative evidence.
 6. Add a live version parser only when an official credential-free page has a bounded, stable pattern. Otherwise use inventory or awareness state.
 7. Reuse an existing parent provider when products share a secure feed. Do not duplicate credentials or trust policy.
-8. Never add a direct or bundled installer without source, redistribution, hash, size, and signer controls.
-9. Update the decision register for a deployment-policy decision; broad awareness records do not each need a deployment approval row.
+8. Never add a direct or bundled installer without source, redistribution, hash, size, and signer controls. Public availability alone is not redistribution permission; review the product's license before any offline bundling.
+9. Record a deployment-policy decision in the change log; broad awareness records do not each need their own approval entry.
 10. Run the full source QA, package build, and package QA before release.
+
+Re-verify a record whenever its authoritative domain, publisher, signature policy, download strategy, or lifecycle changes, and quarantine a discontinued or conflicting record until a person resolves it.
 
 The catalog's breadth is not an installation target. Role, client equipment, project version, organizational approval, user entitlement, and an explicit operator action remain required.

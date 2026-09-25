@@ -1,5 +1,7 @@
 # AV Workstation Toolkit 1.1.1 Security Audit
 
+> **Dated record.** This is the security audit of the 1.1.1 release candidate, kept for provenance. Its statements about repository visibility and signing status were updated on 2026-09-25; its findings describe the audited build. Current boundaries are maintained in the [architecture and safety model](../AV-Workstation-Toolkit-Architecture-and-Safety.md) and [endpoint-security behavior](../Endpoint-Security-Behavior.md).
+
 **Audit date:** 2026-08-26; compiled-runtime reconciliation: 2026-08-31; release-candidate reconciliation: 2026-09-01
 **Scope:** standalone compiled launcher/WPF App, embedded-runtime extraction and verification, independent compiled worker, MSI/portable/offline-bundle packaging, WinGet, operational external and commercial AV awareness catalogs, normalized metadata and filtering, vendor release awareness, compiled HTTPS/SFTP/Credential Manager services, vendor cache, developer/QA tooling, logging, release artifacts, publication privacy, third-party notices, and release provenance
 **Execution context reviewed:** self-contained .NET 10.0.11 compiled runtime, Desktop App Installer/winget, standard-user token; Windows PowerShell 5.1 only for retained build/QA and historical characterization
@@ -16,7 +18,7 @@ The publication-readiness pass did not change product functionality, make the
 repository public, publish a release, submit a SignPath Foundation application,
 or imply signing approval. The repository was private at the time; it became
 public on 2026-09-24 with the unsigned `1.1.1-beta.1` pre-release. The project
-is licensed under [Apache-2.0](../LICENSE).
+is licensed under [Apache-2.0](../../LICENSE).
 
 ## Threat model
 
@@ -136,7 +138,7 @@ Local administrators are outside the enforceable boundary because they can repla
 - immutable GitHub Action commit pins, non-persistent checkout credentials, and a content-hashed NuGet dependency lock are enforced by regression tests;
 - the tagged-release workflow rejects replacement of existing release assets;
 - the release checksum list covers the distributables, versioned Apache-2.0 license, third-party notice, SBOM, and release manifest while excluding only itself to avoid a circular digest;
-- current runtime dependencies and build/test tools are classified in the [third-party notices](../THIRD-PARTY-NOTICES.md), while commercial AV catalog entries remain outside the software distribution boundary;
+- current runtime dependencies and build/test tools are classified in the [third-party notices](../../THIRD-PARTY-NOTICES.md), while commercial AV catalog entries remain outside the software distribution boundary;
 - documented automatic network behavior is limited to WinGet inventory/update metadata and configured operational vendor/parent release checks; downloads, browser handoffs, authenticated SFTP, and change actions retain their explicit operator gates;
 - deterministic multi-viewport layout metrics and packaged WPF smoke behavior
   are retained while unreliable black-frame captures and stale preview images
@@ -165,10 +167,10 @@ Local administrators are outside the enforceable boundary because they can repla
 17. **Project reputation.** SignPath Foundation acceptance is discretionary and executable projects may need independently verifiable reputation. No technical control in this repository can satisfy or guarantee that non-code factor.
 
 Publication policies and current operating boundaries are maintained in the
-[privacy policy](../PRIVACY.md), [security policy](../SECURITY.md),
-[code signing policy](Code-Signing-Policy.md),
-[SignPath readiness record](SignPath-Readiness.md), and
-[third-party notices](../THIRD-PARTY-NOTICES.md).
+[privacy policy](../../PRIVACY.md), [security policy](../../SECURITY.md),
+[code signing policy](../Code-Signing-Policy.md),
+[SignPath readiness record](../SignPath-Readiness.md), and
+[third-party notices](../../THIRD-PARTY-NOTICES.md).
 
 ## Verification evidence
 

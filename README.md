@@ -1,13 +1,16 @@
-# AV Workstation Toolkit — AV/IT Workstation Setup and Maintenance
+# AV Workstation Toolkit
 
-AV Workstation Toolkit is a Windows application for planning, installing, and
-maintaining a controlled AV/IT workstation software baseline. The repository
-contains the reusable product, its policy catalogs, build pipeline, operator
-guidance, and verification evidence. Personal workstation assessments and
-other machine-specific operational evidence are excluded from maintained source
-and release artifacts.
+AV Workstation Toolkit is a Windows desktop application for planning, installing,
+and maintaining a controlled AV/IT workstation software baseline. It knows the
+engineering tools AV and IT teams use, shows what is installed and out of date,
+and installs or updates only applications your team has explicitly approved.
 
-## What AV Workstation Toolkit does
+The project is in **public beta**. The current release is the unsigned
+[`1.1.1-beta.1`](docs/releases/1.1.1-beta.1.md); use it on test or pilot
+workstations until you have reviewed it against your organization's software
+policy.
+
+## What it does
 
 - inventories approved WinGet applications and supported external AV tools;
 - distinguishes managed packages, manual vendor handoffs, inventory-only
@@ -19,44 +22,12 @@ and release artifacts.
   without turning that knowledge into uncontrolled software execution;
 - keeps diagnostics, logs, credentials, and vendor-cache evidence local.
 
-## Start here
-
-- [Desktop app operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md)
-- [Packaging and release guide](docs/Packaging-and-Release.md)
-- [Endpoint-security behavior baseline](docs/Endpoint-Security-Behavior.md)
-- [Security policy](SECURITY.md)
-- [Privacy policy](PRIVACY.md)
-- [Code signing policy](docs/Code-Signing-Policy.md)
-- [SignPath readiness record](docs/SignPath-Readiness.md)
-- [Third-party notices](THIRD-PARTY-NOTICES.md)
-- [Contributing](CONTRIBUTING.md)
-- [Architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md)
-- [C# migration architecture contract](docs/CSharp-Migration-Architecture.md)
-- [C# migration coverage and retirement matrix](docs/CSharp-Migration-Coverage.md)
-- [Commercial AV catalog model](docs/Commercial-AV-Catalog.md)
-- [Workstation research reconciliation and backlog](docs/Workstation-Research-Backlog.md)
-- [Security audit](docs/AV-Workstation-Toolkit-Security-Audit.md)
-- [QA report](docs/AV-Workstation-Toolkit-QA-Report.md)
-- [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
-- [Change log](docs/CHANGELOG.md)
-- [Repository scripts: snapshot, readiness, and catalog authoring](scripts/README.md)
-- [Managed application catalog](manifests/managed-applications.json)
-- [Managed catalog signing contract](docs/Managed-Catalog-Publishing.md)
-- [External application catalog](manifests/external-applications.json)
-- [Commercial AV catalog model and source workflow](docs/Commercial-AV-Catalog.md)
-- [External provider and credential guide](docs/External-Provider-Guide.md)
-- [Team winget baseline](manifests/winget-team-baseline.json)
-- [Manifest usage notes](manifests/README.md)
-
-## Download / releases
+## Download
 
 Releases are published on the
 [GitHub releases page](https://github.com/11anthonym/AV-Workstation-Toolkit/releases).
-The current release is the unsigned public beta
-[`1.1.1-beta.1`](docs/releases/1.1.1-beta.1.md). Verify each download against
-the published SHA-256 checksum list before running it.
-
-The 1.1.1 outputs are:
+Verify each download against the published SHA-256 checksum list before running
+it. The 1.1.1 outputs are:
 
 - run `AV-Workstation-Toolkit-1.1.1-win-x64.exe` directly;
 - install `AV-Workstation-Toolkit-1.1.1-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
@@ -73,122 +44,87 @@ configuration and approval are completed. Authenticode signing does not
 guarantee that SmartScreen or an organization's endpoint policy will accept a
 new binary.
 
-The executable carries the .NET 10 LTS compiled WPF application and an independently
-validating compiled worker. On launch it restores and hash-verifies its versioned
-runtime cache beneath `%LOCALAPPDATA%\AVWorkstationToolkit\runtime` and stores mutable
-data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`. PowerShell is not part of the
-packaged application runtime. The bootstrap removes only specifically recognized
-retired runtime files left by earlier versions and never falls back to them.
+## Requirements
 
-## Build from source
+- Windows 10 or Windows 11 x64.
+- A standard-user session. The app refuses to start elevated; individual
+  installers can still request elevation through Windows.
+- App Installer/WinGet for managed applications.
 
-After cloning the repository, compile every release artifact with one command
-from the repository root:
+The download is self-contained, so no separate .NET installation is needed. The
+executable carries the .NET 10 LTS compiled WPF application and an independently
+validating compiled worker. On launch it restores and hash-verifies its
+versioned runtime cache beneath `%LOCALAPPDATA%\AVWorkstationToolkit\runtime` and
+stores mutable data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`. PowerShell is
+not part of the packaged application runtime.
 
-```cmd
-Build-AVWorkstationToolkit.cmd
-```
+## Quick start
 
-The standalone result is written to
-`artifacts\release\1.1.1\AV-Workstation-Toolkit-1.1.1-win-x64.exe`. Double-click
-`Launch-AVWorkstationToolkit.cmd` after building to run that compiled executable. Before the
-first build, the launcher starts the compiled App project directly.
+1. Download and verify a release, then launch it as a standard user.
+2. Let the first read-only refresh finish. It checks installed software and
+   bounded vendor release pages; it changes nothing.
+3. Use **Missing apps** or **Available updates**, select only the applications
+   you need, and choose **Install selected** or **Update selected**.
+4. Review the exact package list, and the separate risk prompt for any driver-,
+   service-, or listener-bearing application, before confirming.
 
-AV Workstation Toolkit combines 30 exact-ID WinGet applications, 25 operational external records, and 283 non-deployable commercial AV awareness records. The resulting 338-record catalog can describe role, discipline, workflow, lifecycle, licensing, distribution policy, installation form, metadata verification, provenance, access restrictions, account/training requirements, workstation impact, supported platform, version policy, and official source without turning catalog knowledge into installation permission.
+The [operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md) explains
+every status, filter, delivery button, and failure path.
 
-WinGet apps can be selected for managed install or update. External apps use fail-closed vendor-page, signed direct-download, authenticated-SFTP, parent-provider, rights-approved offline-bundle, inventory-only, or awareness modes. Every external app remains on manual deployment and maintenance hold, never enters the WinGet action worker, and is never executed by AV Workstation Toolkit. A pending Windows reboot remains prominent: low-risk applications may continue, while driver-, service-, and listener-bearing actions are blocked until restart.
+## The catalog
 
-The commercial catalog spans control, DSP, AVoIP, Dante/Milan/AVB, RF, measurement, prediction, conferencing, cameras, displays, signage, BrightSign, dvLED, intercom, media servers/show control, broadcast/NDI, lighting, field diagnostics, network/serial/USB/EDID tools, firmware utilities, servers, web services, embedded interfaces, and legacy support. Use the [catalog model](docs/Commercial-AV-Catalog.md) for taxonomy and filtering behavior and the [external provider guide](docs/External-Provider-Guide.md) for exact acquisition boundaries.
+AV Workstation Toolkit combines 30 exact-ID WinGet applications, 25 operational
+external records, and 283 non-deployable commercial AV awareness records. The
+resulting 338-record catalog can describe role, discipline, workflow, lifecycle,
+licensing, distribution policy, installation form, metadata verification,
+provenance, access restrictions, account/training requirements, workstation
+impact, supported platform, version policy, and official source without turning
+catalog knowledge into installation permission.
 
-Crestron retains one common secure MasterInstaller provider. Toolbox, SIMPL Windows, VT Pro-e, Database, Device Database, Smart Graphics, and DM NVX Tool are independently detectable children, but all inherit the same seven-product allowlist, host-key trust, constrained SFTP root, signer policy, and per-user Credential Manager workflow. AV Workstation Toolkit does not create seven independent credential or download paths.
+WinGet apps can be selected for managed install or update. External apps use
+fail-closed vendor-page, signed direct-download, authenticated-SFTP,
+parent-provider, rights-approved offline-bundle, inventory-only, or awareness
+modes. Every external app remains on manual deployment and maintenance hold,
+never enters the WinGet action worker, and is never executed by AV Workstation
+Toolkit. For example, Q-SYS Designer LTS stays vendor-page-only because its
+license restricts redistribution, and Crestron's seven MasterInstaller tools
+share one host-key-verified SFTP provider and credential workflow.
 
-Q-SYS Designer Software LTS remains vendor-page-only. AV Workstation Toolkit recognizes installed versions, checks the official Q-SYS page for the current LTS version, and opens the vendor download page when a newer or missing version needs attention. Q-SYS 9.13.2 is intentionally not embedded because the [Q-SYS EULA](https://help.qsys.com/q-sys_9.13/Content/Legal.htm) prohibits external redistribution.
+The **Device Lookup** view answers "what software does this device need?" from a
+separately signed reference catalog that updates in the app.
 
-For software that your organization is authorized to redistribute, add a hash-pinned local payload and build an offline delivery ZIP:
+## Documentation
 
-```powershell
-.\scripts\Add-AVWorkstationToolkitExternalPackage.ps1 `
-  -Name 'Example Designer' `
-  -Id 'Vendor.ExampleDesigner' `
-  -Version '1.2.3' `
-  -Vendor 'Example Vendor' `
-  -ApplicationType DSPAudio `
-  -InstallerPath 'C:\ApprovedInstallers\ExampleDesigner.msi' `
-  -RegistryDisplayNamePattern '^Example Designer(?:\s|$)' `
-  -ReleaseVersionPattern 'Example Designer v(?<Version>\d+\.\d+\.\d+)' `
-  -ReleaseUri 'https://vendor.example/downloads' `
-  -Note 'Approved engineering application' `
-  -RedistributionAuthorized
+**Using the app**
 
-.\Build-AVWorkstationToolkit.cmd -BuildOfflineBundle
-```
+- [Operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md)
+- [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
+- [Repository scripts: snapshot, readiness, and catalog authoring](scripts/README.md)
+- [Release notes for 1.1.1 Beta 1](docs/releases/1.1.1-beta.1.md) and the [change log](docs/CHANGELOG.md)
 
-The authoring command copies the payload into the git-ignored local depot and embeds its SHA-256 hash and signer policy in the catalog. The offline ZIP contains `AVWorkstationToolkit.exe` plus the verified package. AV Workstation Toolkit shows the file in Explorer for deliberate user handoff; it does not silently execute third-party installers.
+**Security, privacy, and trust**
 
-Run the complete non-installing QA suite after any code or catalog edit:
+- [Security policy](SECURITY.md) and [privacy policy](PRIVACY.md)
+- [Architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md)
+- [Endpoint-security behavior](docs/Endpoint-Security-Behavior.md)
+- [Code signing policy](docs/Code-Signing-Policy.md) and [SignPath readiness](docs/SignPath-Readiness.md)
+- [Third-party notices](THIRD-PARTY-NOTICES.md)
+- Dated records: the [1.1.1 security audit](docs/records/AV-Workstation-Toolkit-Security-Audit.md),
+  [1.1.1 packaging QA report](docs/records/AV-Workstation-Toolkit-QA-Report.md), and
+  [Defender false-positive investigation](docs/records/Defender-False-Positive-Investigation.md)
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Run-Tests.ps1
-```
+**Catalogs**
 
-The shipping implementation is the compiled C# WPF App and independent compiled
-worker. Its typed Domain/Application layers own catalog, filtering, planning,
-policy, request/IPC, Windows inventory, vendor delivery, diagnostics, and exact-ID
-worker behavior. Build it, run the deterministic test suite, and exercise the
-worker, action-flow, WPF and live-rehearsal boundaries with:
+- [Commercial AV catalog model](docs/Commercial-AV-Catalog.md)
+- [External provider and credential guide](docs/External-Provider-Guide.md)
+- [Manifest notes](manifests/README.md)
+- Signed catalog updates: [managed apps](docs/Managed-Catalog-Updates.md) and [device reference](docs/Reference-Catalog-Updates.md)
+- Catalog publishing: [managed apps](docs/Managed-Catalog-Publishing.md) and [device reference](docs/Reference-Catalog-Publishing.md)
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledRuntime.ps1
-```
+**Building and contributing**
 
-An optional non-mutating host integration check reports which read-only providers
-were actually exercised and which were unavailable; workstation package contents
-are not treated as golden test data:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledReadOnlyIntegration.ps1 -NoBuild
-```
-
-GitHub Actions also runs the host-independent safety subset and targeted PSScriptAnalyzer policy on a clean Windows runner for every push to `main` and every pull request.
-
-Build and verify all three distributables:
-
-```powershell
-.\Build-AVWorkstationToolkit.cmd
-powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-Package.ps1
-```
-
-Release outputs are written beneath `artifacts\release\1.1.1` and are ignored by Git.
-
-Install and update applications from the desktop app. The repository scripts are read-only evidence and readiness tools plus catalog-authoring helpers; none of them installs software.
-
-## Repository map
-
-| Path | Purpose |
-|---|---|
-| `src/AVWorkstationToolkit.Launcher/` | Self-contained compiled WPF bootstrap and embedded-runtime integrity |
-| `src/AVWorkstationToolkit.Domain/` | Production typed catalog, version, filtering, planning, and policy implementation |
-| `src/AVWorkstationToolkit.Application/` | Production use-case and infrastructure-abstraction layer |
-| `src/AVWorkstationToolkit.Infrastructure.Windows/` | Production Windows inventory, process, file, vendor, credential, and trust adapters |
-| `src/AVWorkstationToolkit.App/` | Production compiled WPF composition and presentation |
-| `src/AVWorkstationToolkit.Worker/` | Production independent compiled action worker |
-| `AVWorkstationToolkit.slnx` | Locked, warning-clean .NET 10 migration solution |
-| `installer/` | Pinned WiX x64 MSI project |
-| `build/` | Reproducible staging, signing, packaging, and checksum workflow |
-| `catalog/vendors/` | Authoritative per-manufacturer awareness sources; never loaded directly at runtime |
-| `Build-AVWorkstationToolkit.cmd` | One-command release build from a fresh clone |
-| `.github/workflows/release.yml` | Tag-validated GitHub release build and asset publication |
-| `docs/` | Operator guidance, architecture, security audit, QA evidence, onboarding playbook, and change log |
-| `manifests/managed-applications.json` | Canonical approved exact-ID WinGet catalog; the only managed-package source the product loads |
-| `manifests/external-applications.json` | Operational external detection/version/provider policy |
-| `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV awareness metadata |
-| `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Rights-gated authoring command for hash-pinned offline payloads |
-| `external-packages/` | Local third-party payload depot; always ignored by Git |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Shared module for the repository scripts, offline-bundle build, and source QA; not packaged |
-| `tests/` | Non-installing safety, parser, policy, UI smoke, deterministic fixtures, and process/provider boundary tests |
-| `%LOCALAPPDATA%\AVWorkstationToolkit\logs` | Installed/portable execution evidence |
-| `%LOCALAPPDATA%\AVWorkstationToolkit\reports` | Installed/portable exported plans |
-| `logs/`, `reports/` | Source-checkout evidence; ignored by Git |
+- [Contributing](CONTRIBUTING.md): build from source, tests, offline bundles, and the repository map
+- [Packaging and release](docs/Packaging-and-Release.md)
 
 ## Operating rules
 
@@ -204,10 +140,11 @@ Install and update applications from the desktop app. The repository scripts are
 
 ## Local evidence
 
-Raw snapshots and execution logs are intentionally ignored by Git. Packaged
-runs place them under `%LOCALAPPDATA%\AVWorkstationToolkit`; source checkouts retain
-repository-local folders. Treat this output as sensitive operational evidence
-and store it only in an approved restricted location.
+Logs, exported plans, diagnostics, and snapshots stay on the workstation.
+Packaged runs place them under `%LOCALAPPDATA%\AVWorkstationToolkit`; source
+checkouts use repository-local folders that Git ignores. Treat this output as
+sensitive operational evidence, store it only in an approved restricted
+location, and never attach it unredacted to a public issue.
 
 ## Uninstallation
 
@@ -235,12 +172,6 @@ behavior, including automatic WinGet/vendor release checks and explicit HTTPS
 or authenticated-SFTP handoffs. AV Workstation Toolkit has no telemetry,
 analytics, or crash-reporting service.
 
-The maintained execution and release boundaries are described in the
-[architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md),
-[signed managed-catalog update model](docs/Managed-Catalog-Updates.md),
-[endpoint-security baseline](docs/Endpoint-Security-Behavior.md), and
-[security audit](docs/AV-Workstation-Toolkit-Security-Audit.md).
-
 ## Code signing
 
 Current development, release-candidate, and beta artifacts are unsigned. The build
@@ -256,15 +187,10 @@ repository.
 AV Workstation Toolkit is licensed under the [Apache License 2.0](LICENSE)
 ([SPDX: Apache-2.0](https://spdx.org/licenses/Apache-2.0.html)). Third-party
 components remain governed by their own licenses; see
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
-
-## Third-party notices
-
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) identifies runtime, build,
-test, hosted-service, and system dependencies; their roles and versions; what
-is actually distributed; and relevant notice requirements. Commercial AV
-products in the catalog are metadata only and are not redistributed project
-dependencies.
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), which identifies runtime,
+build, test, hosted-service, and system dependencies and what is actually
+distributed. Commercial AV products in the catalog are metadata only and are
+not redistributed project dependencies.
 
 ## Contributing and project status
 

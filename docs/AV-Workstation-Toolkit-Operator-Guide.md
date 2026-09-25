@@ -165,4 +165,4 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-
 
 The MSI installs the standalone executable beneath `%ProgramFiles%\AVWorkstationToolkit` and creates a Start-menu shortcut. Uninstall removes the executable and shortcut but deliberately preserves `%LOCALAPPDATA%\AVWorkstationToolkit` operational evidence and runtime cache.
 
-See [AV Workstation Toolkit Security Audit](AV-Workstation-Toolkit-Security-Audit.md) for the v1 threat model, remediated findings, and residual release risks.
+See [AV Workstation Toolkit Security Audit](records/AV-Workstation-Toolkit-Security-Audit.md) for the v1 threat model, remediated findings, and residual release risks.

@@ -104,7 +104,7 @@ The forbidden-product guard fails closed if a future catalog edit contains a sec
 For commercial AV metadata, verify exact name, lifecycle, platform, licensing, access restrictions, and official URL against vendor documentation. Use explicit unknown values when evidence is incomplete. Community sources may identify a candidate but cannot authorize a download URL or override vendor policy. See [Commercial-AV-Catalog.md](Commercial-AV-Catalog.md) for the schema, taxonomy, and review checklist.
 
 See `AV-Workstation-Toolkit-Architecture-and-Safety.md` for the frontend trust boundaries,
-`AV-Workstation-Toolkit-Security-Audit.md` for the finding register, and
+`records/AV-Workstation-Toolkit-Security-Audit.md` for the 1.1.1 finding register, and
 `AV-Workstation-Toolkit-Operator-Guide.md` for status meanings, selection, evidence, and
 failure handling. Keep workstation-specific deployment results in the approved
 evidence store rather than in reusable product documentation.

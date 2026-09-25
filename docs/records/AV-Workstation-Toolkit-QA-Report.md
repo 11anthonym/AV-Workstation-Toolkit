@@ -1,5 +1,7 @@
 # AV Workstation Toolkit 1.1.1 Packaging QA Report
 
+> **Dated record.** This is the packaging QA result of the 2026-09-01 release-candidate gate, kept for provenance. Current release gates and commands are maintained in [Packaging and release](../Packaging-and-Release.md).
+
 **Validation date:** 2026-09-01
 **Target runtime:** Windows 10/11 x64, self-contained .NET 10.0.11 compiled WPF App and worker, Desktop App Installer/WinGet 1.29; PowerShell is repository build/QA/operator tooling only
 **Change activity during QA:** No application install, update, uninstall, reboot, service, driver, listener, or security-management change
@@ -12,7 +14,7 @@ Interactive release QA runs all fifteen package checks. Hosted CI uses the expli
 
 AV Workstation Toolkit is functionally packaged for direct download but remains unsigned. It is preparing an application to SignPath Foundation; it has not been accepted or integrated. Windows may therefore show an unknown-publisher warning, and organization-authenticated distribution still requires an approved code-signing path. Workstation readiness is independent of packaging: explicit Windows Update and Component Based Servicing reboot states are prominent warnings, permit ordinary low-risk applications, and block driver-, service-, and listener-bearing changes. Generic queued file-renames are not treated as reboot states.
 
-Technical QA does not authorize publication. AV Workstation Toolkit is licensed under [Apache-2.0](../LICENSE), but the repository was still private and no public release or SignPath submission was made during this pass. The repository became public on 2026-09-24 with the unsigned `1.1.1-beta.1` pre-release. Owner approval, publication review, and the documented signing/release gates remain required.
+Technical QA does not authorize publication. AV Workstation Toolkit is licensed under [Apache-2.0](../../LICENSE), but the repository was still private and no public release or SignPath submission was made during this pass. The repository became public on 2026-09-24 with the unsigned `1.1.1-beta.1` pre-release. Owner approval, publication review, and the documented signing/release gates remain required.
 
 ## Packaging result
 
@@ -122,4 +124,4 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-
 - An interactive Windows desktop pass confirms default and minimum layouts before publication.
 - A fresh readiness plan confirms no Windows Update or Component Based Servicing reboot before any application change wave.
 
-Security findings and residual conditions are documented in [AV Workstation Toolkit Security Audit](AV-Workstation-Toolkit-Security-Audit.md). Packaging procedures are in [Packaging-and-Release.md](Packaging-and-Release.md).
+Security findings and residual conditions are documented in [AV Workstation Toolkit Security Audit](AV-Workstation-Toolkit-Security-Audit.md). Packaging procedures are in [Packaging-and-Release.md](../Packaging-and-Release.md).
