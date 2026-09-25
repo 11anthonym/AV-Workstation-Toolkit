@@ -4,7 +4,7 @@ AV Workstation Toolkit is a local Windows application for planning, installing, 
 
 ## Read first
 
-Before changing runtime behavior, read `docs/AV-Workstation-Toolkit-Architecture-and-Safety.md`, `docs/Endpoint-Security-Behavior.md`, and the tests that cover the area you are touching. Packaging or release changes also require `docs/Packaging-and-Release.md` and `docs/Code-Signing-Policy.md`. `docs/CSharp-Migration-Architecture.md` and `docs/CSharp-Migration-Coverage.md` are historical records of the completed PowerShell-to-C# migration; consult them for background, but they do not impose obligations on ordinary product work.
+Before changing runtime behavior, read `docs/AV-Workstation-Toolkit-Architecture-and-Safety.md`, `docs/Endpoint-Security-Behavior.md`, and the tests that cover the area you are touching. Packaging or release changes also require `docs/Packaging-and-Release.md` and `docs/Code-Signing-Policy.md`. The completed PowerShell-to-C# migration records were removed on 2026-09-25; git history keeps them for background, and they impose no obligations on product work. Dated audit and QA records live in `docs/records/`.
 
 ## Source map and dependency rules
 

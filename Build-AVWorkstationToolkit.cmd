@@ -4,7 +4,7 @@ pushd "%~dp0"
 
 echo Building AV Workstation Toolkit...
 rem Let Windows PowerShell rebuild its own module path. This avoids inheriting
-rem PowerShell 7-only modules when the build is started from pwsh or Codex.
+rem PowerShell 7-only modules when the build is started from pwsh or another tool.
 set "PSModulePath="
 "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy RemoteSigned -File "%~dp0build\Build-Release.ps1" %*
 set "AVWORKSTATIONTOOLKIT_BUILD_EXIT=%ERRORLEVEL%"

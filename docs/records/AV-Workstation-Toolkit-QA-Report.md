@@ -1,5 +1,7 @@
 # AV Workstation Toolkit 1.1.1 Packaging QA Report
 
+> **Dated record.** This is the packaging QA result of the 2026-09-01 release-candidate gate, kept for provenance. Current release gates and commands are maintained in [Packaging and release](../Packaging-and-Release.md).
+
 **Validation date:** 2026-09-01
 **Target runtime:** Windows 10/11 x64, self-contained .NET 10.0.11 compiled WPF App and worker, Desktop App Installer/WinGet 1.29; PowerShell is repository build/QA/operator tooling only
 **Change activity during QA:** No application install, update, uninstall, reboot, service, driver, listener, or security-management change
@@ -12,7 +14,7 @@ Interactive release QA runs all fifteen package checks. Hosted CI uses the expli
 
 AV Workstation Toolkit is functionally packaged for direct download but remains unsigned. It is preparing an application to SignPath Foundation; it has not been accepted or integrated. Windows may therefore show an unknown-publisher warning, and organization-authenticated distribution still requires an approved code-signing path. Workstation readiness is independent of packaging: explicit Windows Update and Component Based Servicing reboot states are prominent warnings, permit ordinary low-risk applications, and block driver-, service-, and listener-bearing changes. Generic queued file-renames are not treated as reboot states.
 
-Technical QA does not authorize publication. AV Workstation Toolkit is licensed under [Apache-2.0](../LICENSE), but the repository remains private and no public release or SignPath submission was made during this pass. Owner approval, publication review, and the documented signing/release gates remain required.
+Technical QA does not authorize publication. AV Workstation Toolkit is licensed under [Apache-2.0](../../LICENSE), but the repository was still private and no public release or SignPath submission was made during this pass. The repository became public on 2026-09-24 with the unsigned `1.1.1-beta.1` pre-release. Owner approval, publication review, and the documented signing/release gates remain required.
 
 ## Packaging result
 
@@ -62,7 +64,7 @@ Technical QA does not authorize publication. AV Workstation Toolkit is licensed 
 | Endpoint-trust process and packaging policy | Pass | Five reviewed direct-launch categories across 97 scanned maintained files plus static rejection of encoded/bypass, security-tampering, proxy-binary, generic-shell, temporary-script, and packer patterns |
 | Runtime cache stability | Pass | A second launcher verification preserves every extracted file hash and timestamp while tampered content is repaired on the next run |
 | Supply-chain metadata | Pass | Locked NuGet vulnerability audit, deterministic license-aware CycloneDX 1.6 SBOM, reviewed notices, schema-v3 release provenance, manifest-inclusive artifact hashes, and explicit signing/timestamp state |
-| Publication privacy and history | Pass for current private source | The fresh source tree passed identifier/path review and Gitleaks 8.30.1; the canonical private GitHub repository begins at the reviewed zero-parent root, has no tags or releases, and current `main` has successful hosted QA |
+| Publication privacy and history | Pass for the source at this gate | The fresh source tree passed identifier/path review and Gitleaks 8.30.1; the canonical GitHub repository, then private, began at the reviewed zero-parent root with no tags or releases, and `main` had successful hosted QA |
 | Strict compiled-bridge request schema and shared path containment | Pass | Static source checks plus hostile packaged request rejection |
 | Compiled action-request boundary | Pass, production | Typed schema-only model; strict types/unknown/duplicate/schema/null/ID/size rejection; direct-child/reparse path policy; exact plan-action/authority/risk checks; duplicate IDs authorized once; live persistence is contained beneath the canonical production root and consumed only by the exact compiled worker |
 | Compiled IPC/file lifecycle | Pass, production | Create-new/flush/atomic-move persistence, canonical artifact derivation, bounded incremental progress, strict result correlation, cooperative cancellation, independent worker lifetime, and restart recovery |
@@ -122,4 +124,4 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-
 - An interactive Windows desktop pass confirms default and minimum layouts before publication.
 - A fresh readiness plan confirms no Windows Update or Component Based Servicing reboot before any application change wave.
 
-Security findings and residual conditions are documented in [AV Workstation Toolkit Security Audit](AV-Workstation-Toolkit-Security-Audit.md). Packaging procedures are in [Packaging-and-Release.md](Packaging-and-Release.md).
+Security findings and residual conditions are documented in [AV Workstation Toolkit Security Audit](AV-Workstation-Toolkit-Security-Audit.md). Packaging procedures are in [Packaging-and-Release.md](../Packaging-and-Release.md).

@@ -3,8 +3,6 @@
 `managed-applications.json` is the **canonical** managed-package definition: the strict schema-v1
 artifact that the compiled application loads and embeds. Every managed exact-ID record is authored
 here first. The supported PowerShell deployment and maintenance workflows load this JSON directly.
-`scripts/AppProfiles.psd1` remains only for explicitly selected legacy characterization; it is not
-the operational managed execution catalog, and current source QA does not require catalog parity.
 
 `winget-team-baseline.json` is the approved low-risk Standard profile for AV/IT workstations, kept
 as an operator `winget import` deliverable. It is **not** embedded in the shipping runtime because no

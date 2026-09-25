@@ -399,7 +399,7 @@ if ($launcherProjectIdentity -notmatch ('<Version>' + [regex]::Escape($Version) 
     throw "Launcher project or application manifest does not match release version $Version."
 }
 
-$releaseSourceRoots = @('app','catalog','scripts','manifests','docs','src','installer','build','tests')
+$releaseSourceRoots = @('assets','catalog','scripts','manifests','docs','src','installer','build','tests','tools')
 $sourceReparsePoints = @($releaseSourceRoots | ForEach-Object {
     Get-ChildItem -LiteralPath (Join-Path $repositoryRoot $_) -Recurse -Force -ErrorAction Stop |
         Where-Object { ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 }

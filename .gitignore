@@ -43,7 +43,7 @@ credential-exports/
 *.user
 *.suo
 
-# Local Codex workspace policy is machine-specific, not application source.
+# Local coding-assistant workspace settings are machine-specific, not application source.
 .codex/
 .codex-remote-attachments/
 .claude/

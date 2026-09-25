@@ -1,6 +1,15 @@
 # Change Log
 
-## 2026-09-24 — Beta version identity
+## 2026-09-25 — Public-repository cleanup
+
+- Updated the README, contributing guide, endpoint-security baseline, SignPath readiness record, security audit, and QA report, which still described the repository as private and unreleased. The contributing guide now welcomes issues and states that outside pull requests wait until `main` requires pull requests and the `core-qa` and `package` checks.
+- When no reference-catalog update channel is configured, the status detail now says so without calling the build's source a private repository.
+- Removed the retired PowerShell/XAML desktop host (`app/AVWorkstationToolkit.xaml`, `scripts/Start-AVWorkstationToolkit.ps1`, `scripts/AVWorkstationToolkit.Vendor.psm1`), the unused `scripts/AppProfiles.psd1` fixture, and the two core-module helpers only that host called. None was packaged or launched. Source QA drops the checks that read the host's source or loaded its XAML; each maps to existing compiled presentation, delivery, protocol, and smoke coverage. The window-title identity check now reads the shipping `MainWindow.xaml`. The packaged launcher still deletes these files from older runtime caches.
+- The release build's reparse-point check now also covers `assets/` and `tools/`.
+- Added bug-report and catalog-correction issue forms that warn against posting diagnostics, snapshots, or credentials, a security contact link to SECURITY.md, and a pull request template that asks for Windows validation results and the safety boundaries touched.
+- Reorganized the documentation for public readers. The README now leads with what the app does, download and verification, requirements, a quick start, and a grouped documentation index; build, test, offline-bundle, and repository-map material moved to CONTRIBUTING.md. The completed C# migration records were removed (git history keeps them); their still-current layering, executable-mode, and signing facts moved into the architecture and safety model. The 1.1.1 security audit, packaging QA report, and Defender investigation moved to `docs/records/` as dated records. The workstation research backlog became the [catalog research issues](https://github.com/11anthonym/AV-Workstation-Toolkit/issues?q=is%3Aissue+%22Catalog+research%22+in%3Atitle), and its two standing rules joined the catalog change-control checklist, which no longer points to the retired decision register.
+
+## 2026-09-25 — Beta version identity
 
 - A beta now carries its pre-release name wherever people identify a build: `1.1.1-beta.2` in artifact file names, the release folder, diagnostics, the SBOM, the release manifest, and the Windows product version, and "1.1.1 Beta 2" in the window title and About box. Build it with `-BuildChannel ReleaseCandidate -PrereleaseLabel beta.N` and check it with `Test-Package.ps1 -PrereleaseLabel beta.N`.
 - Assembly, file, and MSI versions, the runtime folder, and the version compared with catalog minimums stay numeric, so catalog updates are unaffected. The build refuses a label outside the `ReleaseCandidate` channel.
