@@ -73,7 +73,10 @@ not part of the packaged application runtime.
    service-, or listener-bearing application, before confirming.
 
 The [operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md) explains
-every status, filter, delivery button, and failure path.
+every status, filter, delivery button, and failure path. Operators who prefer a
+terminal can plan, install, and update approved applications with the
+allowlisted [command-line deployment and maintenance scripts](scripts/README.md);
+the desktop app is the primary workflow.
 
 ## The catalog
 
@@ -103,7 +106,7 @@ separately signed reference catalog that updates in the app.
 
 - [Operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md)
 - [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
-- [Repository scripts: snapshot, readiness, and catalog authoring](scripts/README.md)
+- [Repository scripts: command-line deployment and maintenance, snapshot, readiness, and catalog authoring](scripts/README.md)
 - Release notes for [1.1.1 Beta 2](docs/releases/1.1.1-beta.2.md) and [Beta 1](docs/releases/1.1.1-beta.1.md), and the [change log](docs/CHANGELOG.md)
 
 **Security, privacy, and trust**
@@ -140,7 +143,7 @@ separately signed reference catalog that updates in the app.
 - Record every install with source, version rule, owner, validation, and exception reason.
 - Never use a workstation's raw winget export as an unattended deployment manifest.
 - Never manage BitLocker, EDR/antivirus, SCCM/Intune, VPN/security clients, or corporate remote-support agents through this project. The deployment tool is limited to explicitly approved user applications.
-- Refresh is read-only. Nothing is installed or updated until you select applications and confirm the exact package list. Explicit Windows Update or Component Based Servicing reboot state blocks risk-bearing driver, service, and listener actions but is a warning for ordinary low-risk applications; generic queued file cleanup is not treated as a reboot signal.
+- Installation and maintenance are plan-only unless an explicit change switch is supplied. Explicit Windows Update or Component Based Servicing reboot state blocks risk-bearing driver, service, and listener actions but is a warning for ordinary low-risk applications; generic queued file cleanup is not treated as a reboot signal.
 
 ## Local evidence
 

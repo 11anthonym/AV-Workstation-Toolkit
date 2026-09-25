@@ -376,8 +376,10 @@ Invoke-Check 'Module manifest is valid and versioned' {
     Assert-Equal '1.1.1' ([string]$manifest.Version) 'Module version differs.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitDataRoot' 'Data-root resolver is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Invoke-AVWorkstationToolkitLegacyDataMigration' 'Legacy data migration seam is not exported.'
+    Assert-Contains @($manifest.ExportedFunctions.Keys) 'New-AVWorkstationToolkitActionRequest' 'Request builder is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Open-AVWorkstationToolkitExplorerPath' 'Bounded Explorer handoff is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Open-AVWorkstationToolkitHttpsUri' 'Bounded HTTPS handoff is not exported.'
+    Assert-Contains @($manifest.ExportedFunctions.Keys) 'Start-AVWorkstationToolkitWorker' 'Worker launcher is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitWingetInventory' 'Structured inventory reader is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitExternalInventory' 'External application inventory reader is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitExternalReleaseInfo' 'External release checker is not exported.'
@@ -499,6 +501,7 @@ Invoke-Check 'RealVNC remains viewer-only on deployment and maintenance hold' {
     $heldItem = @($heldPlan.Packages | Where-Object Id -eq 'RealVNC.VNCViewer')[0]
     Assert-Equal 'Held' $heldItem.Status 'Installed RealVNC update was not held.'
     Assert-True (-not $heldItem.CanSelect -and $heldItem.Action -eq 'None') 'Held RealVNC update remained selectable.'
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Update -PackageId 'RealVNC.VNCViewer' -Plan $heldPlan } 'not eligible for update' 'RealVNC maintenance hold was bypassed.'
 }
 Invoke-Check 'Approved developer runtimes are present without VirtualBox' {
     foreach ($id in @('Python.Launcher','Python.Python.3.11','Microsoft.DotNet.SDK.8')) {
@@ -881,6 +884,7 @@ Invoke-Check 'External registry inventory drives a non-automated Q-SYS update' {
     Assert-Equal '9.13.2' $qsys.AvailableVersion 'Q-SYS available version differs.'
     Assert-True (-not $qsys.CanSelect) 'Q-SYS vendor update became automatically selectable.'
     Assert-True $qsys.DeliveryAvailable 'Q-SYS vendor handoff is unavailable.'
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Update -PackageId $item.Id -Plan $manualPlan } 'not eligible for update' 'External vendor update entered the automated worker.'
 }
 Invoke-Check 'External online-check failure retains the catalog baseline' {
     $item = @($externalCatalog | Where-Object Id -eq 'QSC.QSYSDesigner.LTS')[0]
@@ -1047,6 +1051,56 @@ Invoke-Check 'Truncated winget inventory fails the entire plan closed' {
     Assert-Equal $expectedWinGetCount @($truncatedPlan.Packages | Where-Object { $_.Provider -eq 'WinGet' -and $_.Status -eq 'Error' }).Count 'Truncated inventory did not fail WinGet state closed.'
     Assert-Equal 0 $truncatedPlan.Summary.Selectable 'Truncated inventory left selectable packages.'
 }
+Invoke-Check 'Valid missing package installation request is accepted' {
+    $selected = @(Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Notepad++.Notepad++' -Plan $plan)
+    Assert-Equal 1 $selected.Count 'Valid request selection differs.'
+}
+Invoke-Check 'Duplicate request IDs collapse to one exact package' {
+    $selected = @(Assert-AVWorkstationToolkitRequest -Action Install -PackageId @('Notepad++.Notepad++','Notepad++.Notepad++') -Plan $plan)
+    Assert-Equal 1 $selected.Count 'Duplicate request was not normalized.'
+}
+Invoke-Check 'Unknown package request is rejected' {
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Unknown.Package' -Plan $plan } 'not in the approved catalog' 'Unknown package was accepted.'
+}
+Invoke-Check 'Wrong action for package state is rejected' {
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Update -PackageId 'Notepad++.Notepad++' -Plan $plan } 'not eligible for update' 'Wrong action was accepted.'
+}
+Invoke-Check 'Manual and held packages cannot be requested' {
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'RealVNC.VNCViewer' -Plan $plan } 'not eligible for installation' 'Manual hold was bypassed.'
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Update -PackageId 'PJO2.tftpd64' -Plan $plan -RiskAcknowledged } 'not eligible for update' 'Maintenance hold was bypassed.'
+}
+Invoke-Check 'Risk-bearing package requires run-specific acknowledgement' {
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Insecure.Nmap' -Plan $plan } 'risk acknowledgement' 'Risk acknowledgement was bypassed.'
+    $selected = @(Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Insecure.Nmap' -Plan $plan -RiskAcknowledged)
+    Assert-Equal 1 $selected.Count 'Acknowledged risk request was not accepted.'
+}
+Invoke-Check 'Pending reboot permits low-risk managed changes' {
+    $pendingPlan = Get-AVWorkstationToolkitPlan -CatalogPath $catalogPath -InstalledText $installedText -UpgradeText $upgradeText -ExternalInventory $externalInventoryAbsent -ExternalReleaseInfo $externalReleaseBaseline -RebootState ([pscustomobject]@{Pending=$true;Reasons=@('Test');Summary='Test reboot warning'}) -WingetVersion 'v-test'
+    $selected = @(Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Notepad++.Notepad++' -Plan $pendingPlan)
+    Assert-Equal 1 $selected.Count 'Low-risk request was blocked by a pending reboot.'
+}
+Invoke-Check 'Pending reboot blocks risk-bearing managed changes' {
+    $pendingPlan = Get-AVWorkstationToolkitPlan -CatalogPath $catalogPath -InstalledText $installedText -UpgradeText $upgradeText -ExternalInventory $externalInventoryAbsent -ExternalReleaseInfo $externalReleaseBaseline -RebootState ([pscustomobject]@{Pending=$true;Reasons=@('Test');Summary='Test reboot warning'}) -WingetVersion 'v-test'
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Insecure.Nmap' -Plan $pendingPlan -RiskAcknowledged } 'Risk-bearing package is blocked while reboot pending' 'Pending reboot allowed a risk-bearing request.'
+}
+Invoke-Check 'Fresh reboot state is enforced between packages in a multi-package request' {
+    $clearPlan = [pscustomobject]@{
+        Reboot=[pscustomobject]@{Pending=$false;Summary='Clear'}
+        Packages=@(
+            [pscustomobject]@{Id='Low.Risk';Action='Install';Status='Missing';Risk='None'},
+            [pscustomobject]@{Id='Risk.Service';Action='Install';Status='Missing';Risk='Service'}
+        )
+    }
+    Assert-Equal 2 @(Assert-AVWorkstationToolkitRequest -Action Install -PackageId @('Low.Risk','Risk.Service') -Plan $clearPlan -RiskAcknowledged).Count 'Initial multi-package request was not valid.'
+    $freshPlan = [pscustomobject]@{
+        Reboot=[pscustomobject]@{Pending=$true;Summary='Became pending during run'}
+        Packages=$clearPlan.Packages
+    }
+    Assert-Equal 1 @(Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Low.Risk' -Plan $freshPlan).Count 'Fresh reboot state blocked the next low-risk package.'
+    Assert-Throws { Assert-AVWorkstationToolkitRequest -Action Install -PackageId 'Risk.Service' -Plan $freshPlan -RiskAcknowledged } 'Risk-bearing package is blocked while reboot pending' 'Fresh reboot state did not block the next risk-bearing package.'
+    $workerSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1') -Raw
+    Assert-True ($workerSource -match '\$freshPlan\s*=\s*Get-AVWorkstationToolkitPlan' -and $workerSource -match 'Assert-AVWorkstationToolkitRequest[\s\S]+?-Plan\s+\$freshPlan') 'Worker does not re-plan and revalidate between packages.'
+}
 Invoke-Check 'Generic file cleanup queues cannot trigger the reboot gate' {
     $source = Get-Content -LiteralPath $moduleImplementationPath -Raw
     Assert-True ($source -notmatch 'PendingFileRenameOperations') 'The generic pending-file-rename registry value is still used by the core.'
@@ -1056,6 +1110,24 @@ Invoke-Check 'Unavailable winget fails the plan closed' {
     $unavailable = Get-AVWorkstationToolkitPlan -CatalogPath $catalogPath -InstalledText '' -UpgradeText '' -ExternalInventory $externalInventoryAbsent -ExternalReleaseInfo $externalReleaseBaseline -RebootState $clearReboot -WingetVersion 'Unavailable'
     Assert-Equal $expectedWinGetCount @($unavailable.Packages | Where-Object { $_.Provider -eq 'WinGet' -and $_.Status -eq 'Error' }).Count 'Unavailable winget did not mark every WinGet item as error.'
     Assert-Equal 0 $unavailable.Summary.Selectable 'Unavailable winget left selectable items.'
+}
+Invoke-Check 'Shared request builder emits the strict schema and derived paths' {
+    $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-request-{0}' -f [guid]::NewGuid().ToString('N'))
+    try {
+        $requestFiles = New-AVWorkstationToolkitActionRequest -Action Install -PackageId @('7zip.7zip') -RequestsRoot $temporaryRoot
+        Assert-True (Test-Path -LiteralPath $requestFiles.RequestPath -PathType Leaf) 'Request file was not created.'
+        $request = Get-Content -LiteralPath $requestFiles.RequestPath -Raw | ConvertFrom-Json
+        Assert-Equal 2 $request.SchemaVersion 'Request schema version differs.'
+        Assert-Equal 0 $request.ManagedCatalogRevision 'Source-checkout request revision differs.'
+        Assert-Equal $requestFiles.Name $request.RequestId 'Request ID differs from filename.'
+        Assert-Equal 'Install' $request.Action 'Request action differs.'
+        Assert-Equal '7zip.7zip' @($request.PackageIds)[0] 'Request package ID differs.'
+        Assert-True ($request.RiskAcknowledged -is [bool] -and $request.DryRun -is [bool]) 'Request Boolean fields were not preserved.'
+        Assert-True ($requestFiles.ProgressPath -like ($temporaryRoot + '*')) 'Progress path is not derived from the request root.'
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
+    }
 }
 Invoke-Check 'Generated winget baseline agrees with the canonical managed JSON catalog' {
     # An operator deliverable only. It is intentionally not embedded in the shipping runtime because
@@ -1225,12 +1297,71 @@ Invoke-Check 'Baseline generation reads only the canonical managed JSON catalog'
         finally { Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue }
     }
 }
+Invoke-Check 'Low-risk install arguments are exact, sourced, silent, and never bulk' {
+    $package = @($plan.Packages | Where-Object Id -eq 'Notepad++.Notepad++')[0]
+    $arguments = @(Get-AVWorkstationToolkitWingetArguments -Action Install -Package $package)
+    Assert-Equal 'install' $arguments[0] 'Install verb differs.'
+    Assert-Contains $arguments '--id' 'Package ID flag missing.'
+    Assert-Contains $arguments $package.Id 'Exact package ID missing.'
+    Assert-Contains $arguments '--exact' 'Exact flag missing.'
+    Assert-Contains $arguments '--source' 'Source flag missing.'
+    Assert-Contains $arguments 'winget' 'winget source missing.'
+    Assert-Contains $arguments '--silent' 'Silent flag missing for low-risk package.'
+    Assert-Contains $arguments '--disable-interactivity' 'Disable-interactivity flag missing for low-risk package.'
+    Assert-NotContains $arguments '--all' 'Bulk update flag present.'
+}
+Invoke-Check 'InstallerDefault omits only --silent and every other low-risk package is unchanged' {
+    # PuTTY upgrades by uninstalling the previous machine-scope MSI. With --silent WinGet runs
+    # 'msiexec /x <ProductCode> /quiet', which cannot elevate for a standard user, returns 1603 and
+    # reports 0x8A150030. Ordering is asserted in full: the compiled result codec accepts only the
+    # exact reviewed vectors, so a correct set in the wrong order would still be rejected.
+    $putty = @($plan.Packages | Where-Object Id -eq 'PuTTY.PuTTY')[0]
+    Assert-Equal 'InstallerDefault' $putty.InstallerMode 'PuTTY is not marked InstallerDefault in the supported PowerShell catalog.'
+    Assert-Equal 'None' $putty.Risk 'Installer mode must not be expressed through PuTTY risk.'
+    foreach ($case in @(
+        [pscustomobject]@{ Action='Install'; Verb='install' }
+        [pscustomobject]@{ Action='Update';  Verb='upgrade' }
+    )) {
+        $actual = @(Get-AVWorkstationToolkitWingetArguments -Action $case.Action -Package $putty)
+        $expected = @($case.Verb,'--id','PuTTY.PuTTY','--exact','--source','winget',
+            '--accept-package-agreements','--accept-source-agreements','--disable-interactivity')
+        Assert-Equal ($expected -join ' ') ($actual -join ' ') "PuTTY $($case.Action) vector differs."
+    }
+
+    # An unchanged low-risk package keeps the silent vector exactly as before.
+    $unchanged = @($plan.Packages | Where-Object Id -eq 'Notepad++.Notepad++')[0]
+    Assert-Equal 'Silent' $unchanged.InstallerMode 'An unrelated low-risk package changed installer mode.'
+    foreach ($case in @(
+        [pscustomobject]@{ Action='Install'; Verb='install' }
+        [pscustomobject]@{ Action='Update';  Verb='upgrade' }
+    )) {
+        $actual = @(Get-AVWorkstationToolkitWingetArguments -Action $case.Action -Package $unchanged)
+        $expected = @($case.Verb,'--id','Notepad++.Notepad++','--exact','--source','winget',
+            '--accept-package-agreements','--accept-source-agreements','--silent','--disable-interactivity')
+        Assert-Equal ($expected -join ' ') ($actual -join ' ') "Unchanged low-risk $($case.Action) vector differs."
+    }
+
+    # Only PuTTY is excepted across the whole supported catalog.
+    $exceptions = @($plan.Packages | Where-Object { $_.Provider -eq 'WinGet' -and $_.InstallerMode -ne 'Silent' } | ForEach-Object { $_.Id })
+    Assert-Equal 'PuTTY.PuTTY' ($exceptions -join '|') 'Installer-mode exceptions are broader than the reviewed package.'
+
+    # A misspelt catalog value must fail rather than silently drop --silent.
+    $corrupt = $unchanged.PSObject.Copy(); $corrupt.InstallerMode = 'silent'
+    $threw = $false
+    try { $null = Get-AVWorkstationToolkitWingetArguments -Action Install -Package $corrupt } catch { $threw = $true }
+    Assert-True $threw 'A misspelt installer mode was silently treated as non-silent.'
+
+    # A package with no InstallerMode member at all still defaults to Silent.
+    $absent = [pscustomobject]@{ Id = 'Vendor.NoMode'; Risk = 'None' }
+    $absentVector = @(Get-AVWorkstationToolkitWingetArguments -Action Install -Package $absent)
+    Assert-Equal 'install --id Vendor.NoMode --exact --source winget --accept-package-agreements --accept-source-agreements --silent --disable-interactivity' ($absentVector -join ' ') 'A package without InstallerMode did not default to Silent.'
+}
 Invoke-Check 'Wrong-typed InstallerMode cannot be coerced into an authorized installer mode' {
     # Windows PowerShell converts @('InstallerDefault') to 'InstallerDefault', 1 to '1' and $true to
     # 'True'. Without a type check the array form would authorize omitting --silent.
     Assert-Equal 'InstallerDefault' ([string]@('InstallerDefault')) 'PowerShell no longer coerces a singleton array; this check needs rewriting.'
 
-    # The real catalog-loading path.
+    # 1. The real catalog-loading path.
     $temporaryCatalog = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-mode-{0}.psd1' -f [guid]::NewGuid().ToString('N'))
     try {
         foreach ($case in @(
@@ -1266,6 +1397,25 @@ Invoke-Check 'Wrong-typed InstallerMode cannot be coerced into an authorized ins
         Assert-Equal 'InstallerDefault' $loaded.InstallerMode 'A valid scalar InstallerMode was not preserved by the catalog loader.'
     }
     finally { Remove-Item -LiteralPath $temporaryCatalog -Force -ErrorAction SilentlyContinue }
+
+    # 2. The exported argument builder, reached independently of the catalog loader.
+    foreach ($bad in @(@('InstallerDefault'), @('Silent'), 1, $true, @())) {
+        $package = [pscustomobject]@{ Id = 'Vendor.Direct'; Risk = 'None'; InstallerMode = $bad }
+        Assert-Throws { Get-AVWorkstationToolkitWingetArguments -Action Install -Package $package } 'must be a single string value|Invalid installer mode' 'The argument builder accepted a wrong-typed installer mode.'
+    }
+}
+Invoke-Check 'Risk-bearing install remains interactive' {
+    $package = @($plan.Packages | Where-Object Id -eq 'Insecure.Nmap')[0]
+    $arguments = @(Get-AVWorkstationToolkitWingetArguments -Action Install -Package $package)
+    Assert-NotContains $arguments '--silent' 'Risk-bearing installer was forced silent.'
+    Assert-NotContains $arguments '--disable-interactivity' 'Risk-bearing installer was forced noninteractive.'
+}
+Invoke-Check 'Update arguments use exact single-package upgrade' {
+    $package = @($plan.Packages | Where-Object Id -eq 'Microsoft.VisualStudioCode')[0]
+    $arguments = @(Get-AVWorkstationToolkitWingetArguments -Action Update -Package $package)
+    Assert-Equal 'upgrade' $arguments[0] 'Update verb differs.'
+    Assert-Contains $arguments '--exact' 'Exact flag missing.'
+    Assert-NotContains $arguments '--all' 'Bulk update flag present.'
 }
 Invoke-Check 'ANSI terminal control sequences are removed from logs' {
     $escape = [char]27
@@ -1379,9 +1529,21 @@ Invoke-Check 'Execution source contains no bulk, import, or uninstall operation'
     Assert-True ($source -notmatch '(?i)[''\"]--all[''\"]') 'Bulk --all operation found.'
     Assert-True ($source -notmatch '(?i)winget\s+(import|uninstall)') 'Import or uninstall operation found.'
 }
+Invoke-Check 'Terminal change paths share the isolated worker' {
+    foreach ($name in @('Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1')) {
+        $source = Get-Content -LiteralPath (Join-Path $scriptsRoot $name) -Raw
+        Assert-True ($source -match 'New-AVWorkstationToolkitActionRequest') "$name does not use the shared request builder."
+        Assert-True ($source -match 'Start-AVWorkstationToolkitWorker') "$name does not use the shared worker launcher."
+    }
+    $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
+    Assert-True ($coreSource -match 'SchemaVersion\s*=\s*2' -and $coreSource -match 'RequestId\s*=' -and $coreSource -match 'DryRun\s*=' -and $coreSource -match 'ManagedCatalogRevision\s*=\s*0') 'Shared request builder does not emit the complete versioned schema.'
+    $workerSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1') -Raw
+    Assert-True ($workerSource -match 'SchemaVersion\s*=\s*2' -and $workerSource -match 'ManagedCatalogRevision\s*=\s*0') 'Source-checkout result artifacts do not report managed-catalog revision 0.'
+}
 Invoke-Check 'AST guard limits direct winget process invocation to audited wrappers' {
     $allowed = @{
         'AVWorkstationToolkit.Core.psm1' = @('$commandPath')
+        'Invoke-AVWorkstationToolkitAction.ps1' = @('$wingetPath')
         'Get-WorkstationSnapshot.ps1' = @('$commandPath','$wingetPath')
     }
     foreach ($file in @(Get-ChildItem -LiteralPath $scriptsRoot -File | Where-Object Extension -in @('.ps1','.psm1'))) {
@@ -1403,7 +1565,7 @@ Invoke-Check 'AST guard limits direct winget process invocation to audited wrapp
     Assert-True ($readinessSource -match 'Invoke-AVWorkstationToolkitWingetCapture' -and $readinessSource -notmatch '&\s*\$wingetPath') 'Readiness bypasses the hardened winget capture wrapper.'
 }
 Invoke-Check 'Automatic Profile variable is not shadowed' {
-    $source = (@('Get-WorkstationSnapshot.ps1') | ForEach-Object {
+    $source = (@('Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1','Get-WorkstationSnapshot.ps1') | ForEach-Object {
         Get-Content -LiteralPath (Join-Path $scriptsRoot $_) -Raw
     }) -join "`n"
     Assert-True ($source -notmatch '(?i)\$profile\b') 'A script shadows the PowerShell Profile automatic variable.'
@@ -1421,7 +1583,7 @@ Invoke-Check 'Snapshot and readiness scripts contain no unreachable elevated bra
     Assert-True ($readinessSource -match 'Get-AVWorkstationToolkitRebootState' -and $readinessSource -notmatch 'PendingFileRenameOperations') 'Readiness duplicates reboot detection.'
 }
 Invoke-Check 'Every executable entry point rejects elevation before loading repository modules' {
-    foreach ($name in @('Get-WorkstationSnapshot.ps1','Test-DeploymentReadiness.ps1','Export-AVWorkstationToolkitBaselineManifest.ps1')) {
+    foreach ($name in @('Invoke-AVWorkstationToolkitAction.ps1','Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1','Get-WorkstationSnapshot.ps1','Test-DeploymentReadiness.ps1','Export-AVWorkstationToolkitBaselineManifest.ps1')) {
         $source = Get-Content -LiteralPath (Join-Path $scriptsRoot $name) -Raw
         $guardIndex = $source.IndexOf('BuiltInRole]::Administrator', [StringComparison]::Ordinal)
         $moduleIndex = $source.IndexOf('Import-Module', [StringComparison]::Ordinal)
@@ -1592,8 +1754,10 @@ Invoke-Check 'Child-process policy is explicit, bounded, and complete' {
     foreach ($launch in @($policy.Launches)) {
         Assert-True (-not [string]::IsNullOrWhiteSpace([string]$launch.Executable) -and -not [string]::IsNullOrWhiteSpace([string]$launch.Boundary)) "Process policy entry is incomplete: $($launch.Id)"
     }
+    $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
+    Assert-True ($coreSource -match 'function Start-AVWorkstationToolkitDirectProcess' -and $coreSource -match 'UseShellExecute\s*=\s*\$false' -and $coreSource -match 'CreateNoWindow') 'Direct process wrapper does not disable shell execution or expose explicit console behavior.'
 }
-Invoke-Check 'Handoff process arguments are deterministic and non-HTTPS handoffs are rejected' {
+Invoke-Check 'Worker launch arguments are deterministic and arbitrary request paths are rejected' {
     $module = Get-Module AVWorkstationToolkit.Core
     $quoted = & $module { ConvertTo-AVWorkstationToolkitProcessArgument -Value 'C:\Program Files\AVWorkstationToolkit\worker.ps1' }
     Assert-Equal '"C:\Program Files\AVWorkstationToolkit\worker.ps1"' $quoted 'Windows process argument quoting differs.'
@@ -1603,7 +1767,18 @@ Invoke-Check 'Handoff process arguments are deterministic and non-HTTPS handoffs
     Assert-Equal '"C:\Program Files\AVWorkstationToolkit"' $explorerDirectory 'Explorer directory handoff quoting differs.'
     Assert-Throws { & $module { ConvertTo-AVWorkstationToolkitProcessArgument -Value "bad`r`nargument" } } 'line breaks' 'Line-break process argument was accepted.'
 
-    Assert-Throws { Open-AVWorkstationToolkitHttpsUri -Uri 'file:///C:/Windows/notepad.exe' } 'absolute HTTPS URI' 'Non-HTTPS shell handoff was accepted.'
+    $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-process-policy-{0}' -f [guid]::NewGuid().ToString('N'))
+    $outsideRequest = Join-Path $temporaryRoot 'request-20260823-120000-abcdef12.json'
+    $dataRoot = Join-Path $temporaryRoot 'data'
+    try {
+        New-Item -ItemType Directory -Path $temporaryRoot,$dataRoot -Force | Out-Null
+        '{}' | Set-Content -LiteralPath $outsideRequest -Encoding UTF8
+        Assert-Throws { Start-AVWorkstationToolkitWorker -RequestPath $outsideRequest -DataRoot $dataRoot } 'direct request JSON child' 'Worker accepted an arbitrary request path.'
+        Assert-Throws { Open-AVWorkstationToolkitHttpsUri -Uri 'file:///C:/Windows/notepad.exe' } 'absolute HTTPS URI' 'Non-HTTPS shell handoff was accepted.'
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
+    }
 }
 Invoke-Check 'Endpoint-trust static QA rejects suspicious production patterns' {
     $output = (& (Join-Path $PSScriptRoot 'Test-EndpointTrust.ps1') | Out-String)
@@ -2118,6 +2293,49 @@ if (-not $CoreOnly) {
         $compiledXamlSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
         Assert-True ($compiledXamlSource -match 'x:Name="FollowActivityCheckBox"[^>]+Content="Follow latest activity"[^>]+IsChecked="True"' -and
             $compiledXamlSource -match 'x:Name="ActivityLog"[^>]+TextChanged="ActivityLog_TextChanged"') 'Compiled activity follow/pause UI contract is incomplete.'
+    }
+    Invoke-Check 'Worker rejects a synthetic path outside the resolved data root before file access' {
+        $worker = Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1'
+        $powershellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        # This file intentionally does not exist: containment must fail before
+        # the worker performs any request-file existence or content check.
+        $syntheticOutsideRequestPath = Join-Path $fixtureRoot 'synthetic-outside-request-does-not-exist.json'
+        $oldPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $output = (& $powershellExe -NoProfile -ExecutionPolicy RemoteSigned -File $worker -RequestPath $syntheticOutsideRequestPath 2>&1 | Out-String)
+            $exitCode = $LASTEXITCODE
+        }
+        finally { $ErrorActionPreference = $oldPreference }
+        Assert-True ($exitCode -ne 0) 'Out-of-bound request returned success.'
+        # Windows PowerShell formats native child-process error records to the
+        # current host width and can wrap the trailing logs\requests path. Match
+        # the unique invariant prefix rather than depending on console layout.
+        Assert-True ($output -match 'Request files must be direct children of the resolved AV Workstation Toolkit') 'Expected request-boundary rejection was not reported.'
+    }
+    Invoke-Check 'Worker rejects unknown request properties before live planning' {
+        $worker = Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1'
+        $powershellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $requestRoot = Join-Path $repositoryRoot 'logs\requests'
+        New-Item -ItemType Directory -Path $requestRoot -Force | Out-Null
+        $requestName = 'request-20000101-000000-' + [guid]::NewGuid().ToString('N').Substring(0,8)
+        $requestPath = Join-Path $requestRoot ($requestName + '.json')
+        $request = [ordered]@{ SchemaVersion=1; RequestId=$requestName; Action='Install'; PackageIds=@('7zip.7zip'); RiskAcknowledged=$false; DryRun=$true; Unexpected='reject me' }
+        $request | ConvertTo-Json | Set-Content -LiteralPath $requestPath -Encoding UTF8
+        try {
+            $oldPreference = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                $output = (& $powershellExe -NoProfile -ExecutionPolicy RemoteSigned -File $worker -RequestPath $requestPath 2>&1 | Out-String)
+                $exitCode = $LASTEXITCODE
+            }
+            finally { $ErrorActionPreference = $oldPreference }
+            Assert-True ($exitCode -ne 0) 'Unknown request property returned success.'
+            Assert-True ($output -match 'unsupported properties') 'Strict request-schema rejection was not reported.'
+        }
+        finally {
+            Get-ChildItem -LiteralPath $requestRoot -Filter ($requestName + '.*') -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 

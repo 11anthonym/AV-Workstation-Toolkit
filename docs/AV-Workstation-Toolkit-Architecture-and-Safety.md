@@ -47,14 +47,15 @@ flowchart LR
 | `manifests/process-launch-policy.json` | Embedded regression contract for every process category AV Workstation Toolkit intentionally starts; descriptive only and never an execution-authority input |
 | `ReferenceCatalog` under the per-user data root | Optional signed descriptive hardware/software catalog revision and atomic state; never a package or execution authority input |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Explicit redistribution gate plus payload hash and signer capture for authorized offline bundles |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Shared module for the repository scripts, the offline-bundle build, and source-QA characterization; not packaged |
+| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavioral characterization oracle and repository tooling; not packaged |
+| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization fixture; not packaged |
 | `tests/Run-Tests.ps1` / `Test-EndpointTrust.ps1` | Dependency-free non-installing regression, process-policy, packaging-pattern, and optional Defender release checks |
 
 ## Compiled production runtime
 
 WPF remains the local Windows desktop shell; no web service or generic command surface was introduced. Compiled Domain/Application policy, WPF presentation, Windows providers, vendor services, request/IPC, and the independent compiled worker are production-authoritative. Provider transport supplies facts or a permitted handoff but never grants deployment authority. Vendor source records still compile into one embedded artifact rather than mutable runtime inputs.
 
-The old PowerShell/WPF runtime, PowerShell worker, terminal install and update scripts, and launcher vendor bridge are retired from shipping and removed from the repository. There is no legacy runtime switch or automatic fallback. On startup the launcher may delete only an exact allowlist of stale extracted runtime files left by a prior version; unrecognized data is never removed.
+The old PowerShell/WPF runtime, PowerShell worker, and launcher vendor bridge are retired from shipping. There is no legacy runtime switch or automatic fallback. On startup the launcher may delete only an exact allowlist of stale extracted runtime files left by a prior version; unrecognized data is never removed.
 
 The normal endpoint process tree, file/registry/network behavior, false-positive response, and ranked future compiled-runtime candidates are documented in [Endpoint-Security-Behavior.md](Endpoint-Security-Behavior.md).
 

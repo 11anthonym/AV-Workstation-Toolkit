@@ -130,7 +130,7 @@ silently execute third-party installers.
 | `manifests/process-launch-policy.json`, `manifests/winget-team-baseline.json` | Process-launch QA contract and the team `winget import` deliverable; neither is embedded |
 | `catalog/vendors/` | Per-manufacturer awareness sources compiled into `commercial-av-catalog.json`; never loaded at runtime |
 | `catalog/managed/`, `catalog/reference/` | Embedded signed managed-catalog and device-reference baselines |
-| `scripts/` | Read-only snapshot and readiness tools, catalog authoring, and their shared module; not packaged |
+| `scripts/` | Allowlisted command-line deployment and maintenance workflow with its PowerShell action worker, read-only snapshot and readiness tools, catalog authoring, and their shared module; not packaged |
 | `assets/branding/` | Application artwork |
 | `docs/` | Operator, architecture, security, catalog, and release documentation; `docs/records/` holds dated audit and QA records |
 | `external-packages/` | Local third-party payload depot; always ignored by Git |
