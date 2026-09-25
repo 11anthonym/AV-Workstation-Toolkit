@@ -9,21 +9,23 @@ signing request, or signed release is claimed.
 
 - Project: AV Workstation Toolkit
 - Repository: <https://github.com/11anthonym/AV-Workstation-Toolkit>
-- Repository state during this review: private GitHub repository with canonical
-  `origin` and default branch `main`
+- Repository state: public GitHub repository (public since 2026-09-24) with
+  canonical `origin` and default branch `main`
 - Current executable: `AVWorkstationToolkit.exe`
 - Release EXE pattern: `AV-Workstation-Toolkit-<version>-win-x64.exe`
 - MSI pattern: `AV-Workstation-Toolkit-<version>-x64.msi`
 - ZIP pattern: `AV-Workstation-Toolkit-<version>-win-x64.zip`
 - Build command: `Build-AVWorkstationToolkit.cmd`
-- Current release artifacts: unsigned; no SignPath signing has occurred
+- Current release artifacts: unsigned, including the `1.1.1-beta.1` public
+  beta; no SignPath signing has occurred
 
-The Apache-2.0 license is committed. The repository remains private and has no
-public release. Paid or customer-certificate SignPath service can be configured
-for a private repository. The SignPath Foundation open-source route is blocked
-at present because the project is not publicly reviewable and has not already
-been publicly released in the form to be signed. Foundation acceptance remains
-discretionary and separate from technical integration readiness.
+The Apache-2.0 license is committed. The two blockers previously recorded for
+the SignPath Foundation open-source route, a private repository and no prior
+public release, were cleared on 2026-09-24 when the repository became public
+and the unsigned `1.1.1-beta.1` pre-release was published. The project has not
+yet applied. Paid or customer-certificate SignPath service remains an
+alternative. Foundation acceptance remains discretionary and separate from
+technical integration readiness.
 
 ## Resulting signing architecture
 
@@ -86,11 +88,12 @@ names, signing policies, or certificate identifiers from a tag author.
 - Keep default workflow token permissions read-only. The workflow grants write
   permission only to its final publication job.
 - Install and authorize the official SignPath GitHub App for this repository so
-  SignPath can verify source/build origin. For a private repository, retain the
-  explicit `actions: read` and `contents: read` signing-job permissions.
-- When account capability permits, protect `main` and release tags against force
-  pushes/deletion and require `core-qa`, `package`, and the checked-in
-  `.github/CODEOWNERS` review boundary before merging release-trust changes.
+  SignPath can verify source/build origin. Retain the explicit `actions: read`
+  and `contents: read` signing-job permissions.
+- `main` already blocks force pushes and deletion. Protect release tags the same
+  way, and before accepting outside contributions require pull requests,
+  `core-qa`, `package`, and the checked-in `.github/CODEOWNERS` review boundary
+  for release-trust changes.
 
 ## SignPath settings the owner must configure
 
@@ -113,12 +116,14 @@ names, signing policies, or certificate identifiers from a tag author.
   signer subject. Foundation, paid, and bring-your-own-certificate choices are
   external governance decisions; the repository does not invent one.
 
-## Values to provide back to Codex
+## Values to record
 
-Provide the exact organization ID, project slug, release signing-policy slug,
+Record the exact organization ID, project slug, release signing-policy slug,
 worker artifact-configuration slug, installer artifact-configuration slug, and
-certificate signer subject. Do not send the API token, certificate private key,
-or any password to Codex; set secrets directly in the protected environment.
+certificate signer subject as the `signpath-production` environment variables
+above. Never put the API token, certificate private key, or any password in the
+repository, an issue, or a chat or assistant session; set secrets directly in
+the protected environment.
 
 ## Definition of DONE
 

@@ -1,8 +1,15 @@
 # Contributing
 
-AV Workstation Toolkit is preparing for a future public open-source release.
+AV Workstation Toolkit is a public open-source project in beta.
 Contributions to AV Workstation Toolkit are submitted under the project's
 [Apache-2.0 license](LICENSE) unless separately stated.
+
+Bug reports and catalog corrections are welcome as
+[GitHub issues](https://github.com/11anthonym/AV-Workstation-Toolkit/issues).
+Pull requests from outside contributors are not being merged yet: `main` will
+require pull requests and the `core-qa` and `package` checks before outside
+contributions are accepted. Report vulnerabilities as described in
+[SECURITY.md](SECURITY.md), not in a public issue.
 
 ## Development environment
 

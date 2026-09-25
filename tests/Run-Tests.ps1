@@ -2203,7 +2203,7 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
         'Project: AV Workstation Toolkit','https://github.com/11anthonym/AV-Workstation-Toolkit',
         'Current executable: `AVWorkstationToolkit.exe`','Release EXE pattern: `AV-Workstation-Toolkit-<version>-win-x64.exe`',
         'MSI pattern: `AV-Workstation-Toolkit-<version>-x64.msi`','ZIP pattern: `AV-Workstation-Toolkit-<version>-win-x64.zip`',
-        'Build command: `Build-AVWorkstationToolkit.cmd`','Repository state during this review: private GitHub repository with canonical'
+        'Build command: `Build-AVWorkstationToolkit.cmd`','Repository state: public GitHub repository'
     )) {
         Assert-True ($readiness.Contains($fact)) "SignPath readiness identity differs: $fact"
     }

@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-25 — Public-repository cleanup
+
+- Updated the README, contributing guide, endpoint-security baseline, SignPath readiness record, security audit, and QA report, which still described the repository as private and unreleased. The contributing guide now welcomes issues and states that outside pull requests wait until `main` requires pull requests and the `core-qa` and `package` checks.
+- When no reference-catalog update channel is configured, the status detail now says so without calling the build's source a private repository.
+
 ## 2026-09-24 — 1.1.1 Beta 1
 
 - First public release: the unsigned beta `1.1.1-beta.1`, built on the `ReleaseCandidate` channel and published as a GitHub pre-release under the new [beta publication procedure](Packaging-and-Release.md#beta-publication). Its [release packet](releases/1.1.1-beta.1.md) covers verification, requirements, and known limitations.

@@ -153,7 +153,7 @@ are not treated as golden test data:
 powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-CompiledReadOnlyIntegration.ps1 -NoBuild
 ```
 
-The private repository also runs the host-independent safety subset and targeted PSScriptAnalyzer policy on a clean Windows GitHub Actions runner.
+GitHub Actions also runs the host-independent safety subset and targeted PSScriptAnalyzer policy on a clean Windows runner for every push to `main` and every pull request.
 
 Build and verify all three distributables:
 
@@ -251,7 +251,7 @@ The maintained execution and release boundaries are described in the
 
 ## Code signing
 
-Current development and release-candidate artifacts are unsigned. The build
+Current development, release-candidate, and beta artifacts are unsigned. The build
 retains a fail-closed organizational Authenticode path and prepared SignPath
 workflow, while the project has not submitted to or been accepted by SignPath
 Foundation. See the [code signing policy](docs/Code-Signing-Policy.md) and
@@ -276,8 +276,9 @@ dependencies.
 
 ## Contributing and project status
 
-The project is in private public-release-readiness work. Review
-[CONTRIBUTING.md](CONTRIBUTING.md) for the Windows build/test commands,
+AV Workstation Toolkit is in public beta. Bug reports and catalog corrections
+are welcome as [GitHub issues](https://github.com/11anthonym/AV-Workstation-Toolkit/issues).
+Review [CONTRIBUTING.md](CONTRIBUTING.md) for the Windows build/test commands,
 dependency-lock rules, catalog boundaries, and security-sensitive review
 expectations. Contributions are submitted under the project Apache-2.0 license
 unless separately stated.

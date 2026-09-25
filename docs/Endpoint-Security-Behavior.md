@@ -4,10 +4,10 @@ This document describes the process, file, registry, credential, network, and el
 
 AV Workstation Toolkit is a local-only, standard-user commercial-AV workstation manager. It has no HTTP command listener, service, scheduled task, telemetry endpoint, generic command runner, uninstall path, or mechanism for disabling endpoint protection. Knowledge in the commercial catalog does not grant download or execution authority.
 
-The repository remains private while publication readiness is reviewed. The
-project is licensed under [Apache-2.0](../LICENSE), no public release under the
-current identity has been approved, and current development/release-candidate
-artifacts are not signed by SignPath Foundation. These are release-governance
+The repository is public, and its first public release is the unsigned beta
+`1.1.1-beta.1`. The project is licensed under [Apache-2.0](../LICENSE), and
+current development, release-candidate, and beta artifacts are not signed by
+SignPath Foundation. These are release-governance
 facts, not changes to the runtime safety model. See the project
 [privacy policy](../PRIVACY.md), [security policy](../SECURITY.md),
 [code signing policy](Code-Signing-Policy.md), and
