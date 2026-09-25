@@ -55,14 +55,16 @@ and release artifacts.
 Releases are published on the
 [GitHub releases page](https://github.com/11anthonym/AV-Workstation-Toolkit/releases).
 The current release is the unsigned public beta
-[`1.1.1-beta.1`](docs/releases/1.1.1-beta.1.md). Verify each download against
-the published SHA-256 checksum list before running it.
+[`1.1.1-beta.2`](docs/releases/1.1.1-beta.2.md):
+[download the latest release](https://github.com/11anthonym/AV-Workstation-Toolkit/releases/latest).
+Verify each download against the published SHA-256 checksum list before running it.
 
-The 1.1.1 outputs are:
+Each release offers three delivery formats. A beta's file names carry its
+label ([beta naming](docs/Packaging-and-Release.md#beta-naming)); for Beta 2:
 
-- run `AV-Workstation-Toolkit-1.1.1-win-x64.exe` directly;
-- install `AV-Workstation-Toolkit-1.1.1-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
-- extract `AV-Workstation-Toolkit-1.1.1-win-x64.zip` and run `AVWorkstationToolkit.exe`.
+- run `AV-Workstation-Toolkit-1.1.1-beta.2-win-x64.exe` directly;
+- install `AV-Workstation-Toolkit-1.1.1-beta.2-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
+- extract `AV-Workstation-Toolkit-1.1.1-beta.2-win-x64.zip` and run `AVWorkstationToolkit.exe`.
 
 The tagged workflow's standard release set contains exactly eight assets: the
 three delivery formats above, the Apache-2.0 `LICENSE`, third-party notices, a

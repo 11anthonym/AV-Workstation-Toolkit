@@ -32,7 +32,7 @@ Development and release-candidate builds may remain explicitly unsigned. Public
 unsigned artifacts are published only as clearly labeled betas under the
 [beta publication procedure](Packaging-and-Release.md#beta-publication), each
 with the owner's explicit approval; the owner approved `1.1.1-beta.1` on
-2026-09-24. Production mode must not be weakened or described as unsigned to
+2026-09-24 and `1.1.1-beta.2` on 2026-09-25. Production mode must not be weakened or described as unsigned to
 create that path.
 
 ## Hosted-signing model

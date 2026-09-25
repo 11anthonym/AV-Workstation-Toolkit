@@ -193,7 +193,7 @@ The optional scan uses an existing valid Microsoft-signed `MpCmdRun.exe`, report
 
 ## Beta publication
 
-A beta is an unsigned `ReleaseCandidate` build published as a GitHub pre-release. It exists so the project can have public, verifiable artifacts before hosted signing is operational. It never uses the production channel, the signature-required QA mode, or the `v*.*.*` production tag, and each beta requires the owner's explicit approval.
+A beta is an unsigned `ReleaseCandidate` build published as a GitHub release whose title, notes, and file names identify it as an unsigned beta. It is marked as the latest release so the repository's download link leads to the current build. It exists so the project can have public, verifiable artifacts before hosted signing is operational. It never uses the production channel, the signature-required QA mode, or the `v*.*.*` production tag, and each beta requires the owner's explicit approval.
 
 ### Beta naming
 
@@ -216,7 +216,7 @@ Everything that Windows or the catalogs compare stays numeric: assembly and file
 2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate -PrereleaseLabel beta.N`. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, pre-release label, and unsigned signature state.
 3. Run full source QA and `tests\Test-Package.ps1 -PrereleaseLabel beta.N`. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
 4. Tag the built commit `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
-5. Create a GitHub pre-release from that tag, titled `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\X.Y.Z-beta.N` and the release packet `docs\releases\X.Y.Z-beta.N.md` as its notes, followed by the asset checksums and QA results.
+5. Create a GitHub release from that tag, marked latest and titled `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\X.Y.Z-beta.N` and the release packet `docs\releases\X.Y.Z-beta.N.md` as its notes, followed by the asset checksums and QA results.
 6. Never replace a published asset. A corrected beta gets a new `N` and a new tag.
 
 `1.1.1-beta.1` predates this convention: its files and window title read `1.1.1`.
