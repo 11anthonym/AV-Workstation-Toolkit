@@ -64,7 +64,7 @@ An entry in the commercial AV catalog is knowledge, not permission to download,
 install, update, or execute the corresponding software.
 
 See the [architecture and safety model](docs/AV-Workstation-Toolkit-Architecture-and-Safety.md),
-[security audit](docs/AV-Workstation-Toolkit-Security-Audit.md),
+[security audit](docs/records/AV-Workstation-Toolkit-Security-Audit.md),
 [endpoint-security behavior](docs/Endpoint-Security-Behavior.md),
 [privacy policy](PRIVACY.md), and
 [code signing policy](docs/Code-Signing-Policy.md) for the maintained design and

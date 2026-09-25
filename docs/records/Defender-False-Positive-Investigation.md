@@ -1,5 +1,7 @@
 # Microsoft Defender false-positive investigation
 
+> **Dated record.** This investigation is kept for provenance. Current false-positive guidance is maintained in [endpoint-security behavior](../Endpoint-Security-Behavior.md).
+
 **Record date:** 2026-08-26  
 **Scope:** historical AV Workstation Toolkit 1.1.1 detection and a later rebuilt
 development artifact  
@@ -126,7 +128,7 @@ The exact historical sample and Microsoft submission remain the appropriate
 vendor-remediation evidence. If the classification recurs, retain the exact
 binary without executing it, record its hash and current Defender versions,
 verify build provenance and Authenticode state, compare the observed process
-tree with [Endpoint-Security-Behavior.md](Endpoint-Security-Behavior.md), and use
+tree with [Endpoint-Security-Behavior.md](../Endpoint-Security-Behavior.md), and use
 Microsoft's official sample-submission process. Do not add exclusions, disable
 protection, obfuscate or pack payloads, mutate binaries to evade signatures, or
 weaken the production signing and endpoint-trust gates.

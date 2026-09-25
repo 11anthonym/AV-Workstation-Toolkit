@@ -136,7 +136,7 @@ public sealed class ReferenceCatalogStore : IReferenceCatalogUpdateService
         if (channel is null)
         {
             if (!quietFailure)
-                Status = Status with { State = ReferenceCatalogUpdateState.NotConfigured, Detail = "No public signed reference-catalog channel is configured for this private repository." };
+                Status = Status with { State = ReferenceCatalogUpdateState.NotConfigured, Detail = "No production reference-catalog channel is configured." };
             return Status;
         }
         var priorStatus = Status;

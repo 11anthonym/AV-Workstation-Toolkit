@@ -4,10 +4,10 @@ This document describes the process, file, registry, credential, network, and el
 
 AV Workstation Toolkit is a local-only, standard-user commercial-AV workstation manager. It has no HTTP command listener, service, scheduled task, telemetry endpoint, generic command runner, uninstall path, or mechanism for disabling endpoint protection. Knowledge in the commercial catalog does not grant download or execution authority.
 
-The repository remains private while publication readiness is reviewed. The
-project is licensed under [Apache-2.0](../LICENSE), no public release under the
-current identity has been approved, and current development/release-candidate
-artifacts are not signed by SignPath Foundation. These are release-governance
+The repository is public, and its first public release is the unsigned beta
+`1.1.1-beta.1`. The project is licensed under [Apache-2.0](../LICENSE), and
+current development, release-candidate, and beta artifacts are not signed by
+SignPath Foundation. These are release-governance
 facts, not changes to the runtime safety model. See the project
 [privacy policy](../PRIVACY.md), [security policy](../SECURITY.md),
 [code signing policy](Code-Signing-Policy.md), and
@@ -140,7 +140,7 @@ username, or developer path is written to release metadata.
 
 Authenticode signing does not guarantee zero Microsoft SmartScreen, Defender, CrowdStrike, application-control, or EDR warnings. Reputation and organizational policy are external to AV Workstation Toolkit; a new certificate or binary can initially have limited reputation. Deterministic, timestamped, consistently identified releases help establish a trustworthy publisher history, but a security team can still block a legitimate artifact under local policy.
 
-The maintained [Defender false-positive investigation](Defender-False-Positive-Investigation.md)
+The maintained [Defender false-positive investigation](records/Defender-False-Positive-Investigation.md)
 separates the exact historical detection from later rebuilt artifacts. A clean
 scan of different bytes is useful current evidence, but it neither reproduces
 nor disproves the historical classification.
@@ -158,4 +158,4 @@ For a suspected false positive, a release operator should:
 
 ## Compiled-runtime migration status
 
-The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the complete production runtime. The former PowerShell application runtime is retired from packaging and the process-launch contract. PowerShell remains only for build, QA, maintenance, optional snapshot tooling, and legacy behavior characterization. The isolated one-package action worker remains independently constrained.
+The compiled C# WPF App, Domain/Application core, Windows inventory providers, vendor services, diagnostics, and independently validating worker are the complete production runtime. The former PowerShell application runtime is retired from packaging and the process-launch contract. PowerShell remains only for build, QA, catalog authoring, optional snapshot and readiness tooling, and legacy behavior characterization; no repository script installs or updates software. The isolated one-package action worker remains independently constrained.

@@ -1,5 +1,7 @@
 # AV Workstation Toolkit 1.1.1 Security Audit
 
+> **Dated record.** This is the security audit of the 1.1.1 release candidate, kept for provenance. Its statements about repository visibility and signing status were updated on 2026-09-25; its findings describe the audited build. Current boundaries are maintained in the [architecture and safety model](../AV-Workstation-Toolkit-Architecture-and-Safety.md) and [endpoint-security behavior](../Endpoint-Security-Behavior.md).
+
 **Audit date:** 2026-08-26; compiled-runtime reconciliation: 2026-08-31; release-candidate reconciliation: 2026-09-01
 **Scope:** standalone compiled launcher/WPF App, embedded-runtime extraction and verification, independent compiled worker, MSI/portable/offline-bundle packaging, WinGet, operational external and commercial AV awareness catalogs, normalized metadata and filtering, vendor release awareness, compiled HTTPS/SFTP/Credential Manager services, vendor cache, developer/QA tooling, logging, release artifacts, publication privacy, third-party notices, and release provenance
 **Execution context reviewed:** self-contained .NET 10.0.11 compiled runtime, Desktop App Installer/winget, standard-user token; Windows PowerShell 5.1 only for retained build/QA and historical characterization
@@ -14,8 +16,9 @@ The audit did not install, update, remove, reconfigure, or reboot anything. Live
 
 The publication-readiness pass did not change product functionality, make the
 repository public, publish a release, submit a SignPath Foundation application,
-or imply signing approval. The repository remains private. The project is now
-licensed under [Apache-2.0](../LICENSE).
+or imply signing approval. The repository was private at the time; it became
+public on 2026-09-24 with the unsigned `1.1.1-beta.1` pre-release. The project
+is licensed under [Apache-2.0](../../LICENSE).
 
 ## Threat model
 
@@ -135,7 +138,7 @@ Local administrators are outside the enforceable boundary because they can repla
 - immutable GitHub Action commit pins, non-persistent checkout credentials, and a content-hashed NuGet dependency lock are enforced by regression tests;
 - the tagged-release workflow rejects replacement of existing release assets;
 - the release checksum list covers the distributables, versioned Apache-2.0 license, third-party notice, SBOM, and release manifest while excluding only itself to avoid a circular digest;
-- current runtime dependencies and build/test tools are classified in the [third-party notices](../THIRD-PARTY-NOTICES.md), while commercial AV catalog entries remain outside the software distribution boundary;
+- current runtime dependencies and build/test tools are classified in the [third-party notices](../../THIRD-PARTY-NOTICES.md), while commercial AV catalog entries remain outside the software distribution boundary;
 - documented automatic network behavior is limited to WinGet inventory/update metadata and configured operational vendor/parent release checks; downloads, browser handoffs, authenticated SFTP, and change actions retain their explicit operator gates;
 - deterministic multi-viewport layout metrics and packaged WPF smoke behavior
   are retained while unreliable black-frame captures and stale preview images
@@ -151,23 +154,23 @@ Local administrators are outside the enforceable boundary because they can repla
 4. **No rollback.** A successful installer can still make package-specific changes that AV Workstation Toolkit cannot undo. Failures require review of the preserved result and winget log.
 5. **Metadata sensitivity.** Logs, plan exports, and snapshots can contain device, path, software, and network metadata. Keep them in approved restricted storage.
 6. **Pending reboot.** Generic queued file-renames are intentionally ignored because they are noisy and can persist after their originating updater has completed. Explicit Windows Update or Component Based Servicing reboot states remain prominent; ordinary low-risk applications may continue, but driver-, service-, and listener-bearing changes remain blocked until Windows is restarted and the plan is refreshed.
-7. **Release provenance.** The repository starts from an owner-reviewed, zero-parent root commit with locked dependencies and a publication-audited source tree. It now has a canonical private GitHub remote and successful hosted QA, but no tag or public release. Under the current GitHub account capability, branch protection is unavailable while the repository is private; immediately after public visibility is deliberately enabled, require pull requests plus `core-qa` and `package`, prevent force pushes and deletion, and verify the rules before normal public development continues. Action SHAs and dependency locks must be deliberately reviewed when updated.
+7. **Release provenance.** The repository starts from an owner-reviewed, zero-parent root commit with locked dependencies and a publication-audited source tree. It has a canonical public GitHub remote (public since 2026-09-24), successful hosted QA, and the `1.1.1-beta.1` pre-release tag. `main` blocks force pushes and deletion; pull requests and the `core-qa` and `package` checks are not yet required and must be required before outside contributions are accepted. Action SHAs and dependency locks must be deliberately reviewed when updated.
 8. **Per-user evidence retention.** MSI uninstall deliberately leaves `%LOCALAPPDATA%\AVWorkstationToolkit` logs, reports, and snapshots. Retention or deletion remains an operator/governance decision outside the installer.
 9. **Update metadata.** WinGet does not currently expose JSON for the compiled provider's `list --upgrade-available` query. Installed/missing decisions use structured export data, while update discovery retains guarded console parsing. Any empty, failed, or truncated update inventory makes the entire plan unselectable, so this residual can suppress an update but cannot authorize a duplicate install.
 10. **External vendor-page drift.** A vendor can redesign a release page and break the embedded version pattern. AV Workstation Toolkit then retains the known baseline, reports the failure, and leaves delivery manual; a catalog update is required to restore live awareness.
 11. **Redistribution authority.** Hash and signer validation establish file identity, not legal permission. The person creating an offline bundle must retain evidence that recipients may receive the software. Q-SYS must remain vendor-managed absent written QSC permission.
 12. **Vendor identity rotation.** A legitimate vendor may rotate an SSH key, signing certificate subject, hostname, product ID, or account workflow. AV Workstation Toolkit intentionally blocks until the embedded trust policy is independently reviewed and updated; operators must not weaken it merely to restore availability.
 13. **Credential lifecycle.** Windows Credential Manager protects a saved secret within the current Windows user's security context, but it does not replace organizational account controls, MFA, password rotation, vendor authorization, or endpoint security. The user can explicitly forget an AV Workstation Toolkit SFTP credential from the dialog.
-14. **GitHub-native scanning.** The canonical private GitHub repository exists and its `core-qa` and `package` Actions jobs have passed. GitHub branch protection/rulesets are unavailable for this private repository under the current account capability, and GitHub-hosted dependency, code, and secret-scanning coverage has not been independently established. Local dependency, source-secret, analyzer, compiler, package, and Defender checks therefore remain required.
+14. **GitHub-native scanning.** The canonical public GitHub repository exists and its `core-qa` and `package` Actions jobs have passed. GitHub-hosted dependency, code, and secret-scanning coverage has not been independently established. Local dependency, source-secret, analyzer, compiler, package, and Defender checks therefore remain required.
 15. **Open-source license.** AV Workstation Toolkit is licensed under Apache-2.0. Third-party components retain their independently documented licenses and obligations; the project license does not relicense them.
-16. **Signing status.** Current development and release-candidate artifacts are unsigned and are not SignPath Foundation signed. The project is preparing an application only; acceptance, certificate issuance, workflow integration, and manual approval remain future external gates.
+16. **Signing status.** Current development, release-candidate, and beta artifacts are unsigned and are not SignPath Foundation signed. The project is preparing an application only; acceptance, certificate issuance, workflow integration, and manual approval remain future external gates.
 17. **Project reputation.** SignPath Foundation acceptance is discretionary and executable projects may need independently verifiable reputation. No technical control in this repository can satisfy or guarantee that non-code factor.
 
 Publication policies and current operating boundaries are maintained in the
-[privacy policy](../PRIVACY.md), [security policy](../SECURITY.md),
-[code signing policy](Code-Signing-Policy.md),
-[SignPath readiness record](SignPath-Readiness.md), and
-[third-party notices](../THIRD-PARTY-NOTICES.md).
+[privacy policy](../../PRIVACY.md), [security policy](../../SECURITY.md),
+[code signing policy](../Code-Signing-Policy.md),
+[SignPath readiness record](../SignPath-Readiness.md), and
+[third-party notices](../../THIRD-PARTY-NOTICES.md).
 
 ## Verification evidence
 

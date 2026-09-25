@@ -1,0 +1,41 @@
+name: Catalog correction
+description: Report a wrong, missing, or outdated product, device, version, or link.
+labels: [catalog]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Catalog entries describe software and devices; they never grant permission to install anything. A request to add an application to managed WinGet installs needs its exact WinGet package ID and goes through the same review as any other catalog change.
+  - type: input
+    id: product
+    attributes:
+      label: Product or device
+      placeholder: Vendor and product or model name
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where you saw it
+      options:
+        - Software table
+        - Device Lookup
+        - Both
+        - Not in the catalog
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: What should change
+      description: For example a newer version, a moved official page, a discontinued product, or a missing device relationship.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Official source
+      description: An HTTPS page from the vendor that confirms the correction.
+      placeholder: https://
+    validations:
+      required: true

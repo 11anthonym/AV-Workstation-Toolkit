@@ -39,9 +39,6 @@ flowchart LR
 | `src/AVWorkstationToolkit.Worker` | Independent standard-user worker, per-package reauthorization, exact-ID WinGet execution, progress/results/cancellation, and fresh verification |
 | `installer/` | Per-machine x64 MSI, Program Files deployment, upgrade handling, and Start-menu lifecycle |
 | `Build-AVWorkstationToolkit.cmd` / `build/Build-Release.ps1` | Fresh-clone entry point, version agreement, source QA, locked dependency audit, standalone launcher publish, explicit RFC3161 signing policy, EXE/MSI/ZIP/notices/SBOM/provenance output, optional verified offline bundle/Defender scan, and manifest-covering checksums |
-| `app/AVWorkstationToolkit.xaml` | Legacy presentation characterization fixture; not packaged |
-| `scripts/Start-AVWorkstationToolkit.ps1` | Legacy UI/controller characterization fixture; not packaged |
-| `scripts/AVWorkstationToolkit.Vendor.psm1` | Legacy vendor-boundary characterization fixture; not packaged |
 | `manifests/managed-applications.json` | Production exact-ID WinGet allowlist, profiles, risks, holds, and forbidden-product pattern |
 | `manifests/external-applications.json` | Operational external detection, known versions, bounded vendor release checks, parent relationships, and delivery policy |
 | `catalog/vendors/*.json` | Authoritative per-manufacturer source records for broad awareness metadata |
@@ -50,17 +47,51 @@ flowchart LR
 | `manifests/process-launch-policy.json` | Embedded regression contract for every process category AV Workstation Toolkit intentionally starts; descriptive only and never an execution-authority input |
 | `ReferenceCatalog` under the per-user data root | Optional signed descriptive hardware/software catalog revision and atomic state; never a package or execution authority input |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Explicit redistribution gate plus payload hash and signer capture for authorized offline bundles |
-| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavioral characterization oracle and repository tooling; not packaged |
-| `scripts/Invoke-AVWorkstationToolkitAction.ps1` | Legacy worker characterization fixture; not packaged |
+| `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Shared module for the repository scripts, the offline-bundle build, and source-QA characterization; not packaged |
 | `tests/Run-Tests.ps1` / `Test-EndpointTrust.ps1` | Dependency-free non-installing regression, process-policy, packaging-pattern, and optional Defender release checks |
 
 ## Compiled production runtime
 
 WPF remains the local Windows desktop shell; no web service or generic command surface was introduced. Compiled Domain/Application policy, WPF presentation, Windows providers, vendor services, request/IPC, and the independent compiled worker are production-authoritative. Provider transport supplies facts or a permitted handoff but never grants deployment authority. Vendor source records still compile into one embedded artifact rather than mutable runtime inputs.
 
-The old PowerShell/WPF runtime, PowerShell worker, and launcher vendor bridge are retired from shipping. There is no legacy runtime switch or automatic fallback. On startup the launcher may delete only an exact allowlist of stale extracted runtime files left by a prior version; unrecognized data is never removed.
+The old PowerShell/WPF runtime, PowerShell worker, terminal install and update scripts, and launcher vendor bridge are retired from shipping and removed from the repository. There is no legacy runtime switch or automatic fallback. On startup the launcher may delete only an exact allowlist of stale extracted runtime files left by a prior version; unrecognized data is never removed.
 
 The normal endpoint process tree, file/registry/network behavior, false-positive response, and ranked future compiled-runtime candidates are documented in [Endpoint-Security-Behavior.md](Endpoint-Security-Behavior.md).
+
+### Layering
+
+```text
+WPF App
+   |
+   v
+Application  <---  Infrastructure.Windows
+   |                 |
+   +-------> Domain <-+
+```
+
+- Domain contains deterministic values, validation, comparison, planning, policy, risks, and results.
+- Application coordinates use cases and defines ports required from Windows/provider infrastructure.
+- Infrastructure.Windows implements those ports using Windows APIs and constrained processes.
+- App composes dependencies and maps presentation state; it does not authorize packages.
+
+Domain must not reference WPF, Registry, Process, HTTP, filesystem, Credential Manager, or PowerShell. Infrastructure supplies facts; Application and Domain policy grant or reject authority.
+
+### Executable modes
+
+```text
+AVWorkstationToolkit.exe                 compiled C# WPF application
+runtime\<version>\worker\AVWorkstationToolkit.Worker.exe --production ...
+AVWorkstationToolkit.exe --verify ...    integrity/package verification
+AVWorkstationToolkit.exe --diagnostics   bounded diagnostics
+```
+
+The worker is a separate production process, not an in-process UI service. The shipped `AVWorkstationToolkit.Worker.exe` accepts only `--production` with canonical packaged/data roots and request paths. Fake `--test-mode` and isolated `--live-rehearsal` activation live exclusively in the separately identified non-shipping `tests/AVWorkstationToolkit.Worker.DevHost` project; its fixed launch/root support lives in `tests/AVWorkstationToolkit.Development`. Neither project is referenced by a shipping assembly or release composition.
+
+The shipping WPF application is `net10.0-windows`, `win-x64`, self-contained, single-file, and explicitly untrimmed. A trimming proposal requires WPF/reflection-specific evidence and package QA; it is not a default optimization.
+
+### Release signing
+
+A fail-closed repository SignPath workflow prepares the signed production chain: the tagged GitHub-hosted build signs the worker, embeds those exact bytes in the launcher, signs the MSI and its nested launcher, reuses the signed launcher for the EXE and ZIP, and publishes only signature-verified, package-tested bytes. The [SignPath readiness record](SignPath-Readiness.md) lists the external configuration still required; technical readiness does not imply SignPath Foundation acceptance.
 
 ## Defense in depth
 
@@ -121,7 +152,7 @@ WinGet writes installed-package JSON to a uniquely named file beneath the OS tem
 - Vendor page layouts, account portals, SFTP keys, and Authenticode identities can change. AV Workstation Toolkit fails closed when an embedded pattern or trust rule no longer matches; the catalog must be reviewed rather than weakened at runtime.
 - Catalog metadata is a dated research snapshot, not an entitlement or compatibility guarantee. Project files, device firmware, vendor accounts, licenses, and supported operating systems must be rechecked before onsite use.
 
-The complete finding register and residual-risk statement are in [AV Workstation Toolkit Security Audit](AV-Workstation-Toolkit-Security-Audit.md).
+The complete finding register and residual-risk statement are in [AV Workstation Toolkit Security Audit](records/AV-Workstation-Toolkit-Security-Audit.md).
 
 ## Official implementation references
 
