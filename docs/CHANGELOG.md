@@ -4,6 +4,8 @@
 
 - Updated the README, contributing guide, endpoint-security baseline, SignPath readiness record, security audit, and QA report, which still described the repository as private and unreleased. The contributing guide now welcomes issues and states that outside pull requests wait until `main` requires pull requests and the `core-qa` and `package` checks.
 - When no reference-catalog update channel is configured, the status detail now says so without calling the build's source a private repository.
+- Removed the retired PowerShell/XAML desktop host (`app/AVWorkstationToolkit.xaml`, `scripts/Start-AVWorkstationToolkit.ps1`, `scripts/AVWorkstationToolkit.Vendor.psm1`), the unused `scripts/AppProfiles.psd1` fixture, and the two core-module helpers only that host called. None was packaged or launched. Source QA drops the checks that read the host's source or loaded its XAML; each maps to existing compiled presentation, delivery, protocol, and smoke coverage. The window-title identity check now reads the shipping `MainWindow.xaml`. The packaged launcher still deletes these files from older runtime caches.
+- The release build's reparse-point check now also covers `assets/` and `tools/`.
 
 ## 2026-09-24 — 1.1.1 Beta 1
 

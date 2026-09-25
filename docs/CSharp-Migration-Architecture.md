@@ -213,7 +213,7 @@ Technical readiness and SignPath Foundation acceptance/configuration are separat
 
 - **Current shipping architecture:** the single-file bootstrap hosts the compiled WPF App, which uses typed Domain/Application services and launches the exact independently validating compiled worker for authorized managed actions.
 - **Production provider architecture:** typed WinGet/registry/reboot evidence, compiled vendor transport/Credential Manager/cache verification, diagnostics, browser/Explorer handoffs, request persistence, progress/results, cancellation, and fresh verification are production-composed.
-- **Retired application architecture:** PowerShell/XAML/core/worker/vendor bridge files are not embedded or reachable from the launcher. Repository copies remain only for characterization, development, and operator tooling.
+- **Retired application architecture:** PowerShell/XAML/core/worker/vendor bridge files are not embedded or reachable from the launcher. The PowerShell/XAML desktop host and its vendor bridge were removed from the repository on 2026-09-25; the remaining repository PowerShell serves characterization, development, and operator tooling.
 - **Compatibility retained:** documented pre-rebrand data, credential-target, and MSI upgrade compatibility remains independent of the retired runtime.
 
 ## Cutover and retirement rule

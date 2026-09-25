@@ -4,8 +4,7 @@
 
 .DESCRIPTION
     manifests\managed-applications.json is the canonical managed-package definition and the only
-    input this script reads. The retired scripts\AppProfiles.psd1 fixture cannot influence the
-    generated baseline. This script writes only Standard-profile, low-risk, allowlisted packages to
+    input this script reads. This script writes only Standard-profile, low-risk, allowlisted packages to
     the reusable winget baseline. It does not invoke winget or change workstation state.
 
     Validation is a hand-maintained approximation of the compiled managed-catalog path -

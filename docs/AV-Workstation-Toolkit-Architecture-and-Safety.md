@@ -39,9 +39,6 @@ flowchart LR
 | `src/AVWorkstationToolkit.Worker` | Independent standard-user worker, per-package reauthorization, exact-ID WinGet execution, progress/results/cancellation, and fresh verification |
 | `installer/` | Per-machine x64 MSI, Program Files deployment, upgrade handling, and Start-menu lifecycle |
 | `Build-AVWorkstationToolkit.cmd` / `build/Build-Release.ps1` | Fresh-clone entry point, version agreement, source QA, locked dependency audit, standalone launcher publish, explicit RFC3161 signing policy, EXE/MSI/ZIP/notices/SBOM/provenance output, optional verified offline bundle/Defender scan, and manifest-covering checksums |
-| `app/AVWorkstationToolkit.xaml` | Legacy presentation characterization fixture; not packaged |
-| `scripts/Start-AVWorkstationToolkit.ps1` | Legacy UI/controller characterization fixture; not packaged |
-| `scripts/AVWorkstationToolkit.Vendor.psm1` | Legacy vendor-boundary characterization fixture; not packaged |
 | `manifests/managed-applications.json` | Production exact-ID WinGet allowlist, profiles, risks, holds, and forbidden-product pattern |
 | `manifests/external-applications.json` | Operational external detection, known versions, bounded vendor release checks, parent relationships, and delivery policy |
 | `catalog/vendors/*.json` | Authoritative per-manufacturer source records for broad awareness metadata |

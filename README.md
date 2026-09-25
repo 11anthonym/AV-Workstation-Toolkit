@@ -94,9 +94,7 @@ Build-AVWorkstationToolkit.cmd
 The standalone result is written to
 `artifacts\release\1.1.1\AV-Workstation-Toolkit-1.1.1-win-x64.exe`. Double-click
 `Launch-AVWorkstationToolkit.cmd` after building to run that compiled executable. Before the
-first build, the launcher starts the compiled App project directly. The PowerShell UI
-source is retained only for deterministic compatibility characterization and is not a
-supported application runtime.
+first build, the launcher starts the compiled App project directly.
 
 AV Workstation Toolkit combines 30 exact-ID WinGet applications, 25 operational external records, and 283 non-deployable commercial AV awareness records. The resulting 338-record catalog can describe role, discipline, workflow, lifecycle, licensing, distribution policy, installation form, metadata verification, provenance, access restrictions, account/training requirements, workstation impact, supported platform, version policy, and official source without turning catalog knowledge into installation permission.
 
@@ -170,7 +168,6 @@ The command-line deployment and maintenance scripts remain available for operato
 
 | Path | Purpose |
 |---|---|
-| `app/` | Legacy WPF characterization source; not packaged or launched in production |
 | `src/AVWorkstationToolkit.Launcher/` | Self-contained compiled WPF bootstrap and embedded-runtime integrity |
 | `src/AVWorkstationToolkit.Domain/` | Production typed catalog, version, filtering, planning, and policy implementation |
 | `src/AVWorkstationToolkit.Application/` | Production use-case and infrastructure-abstraction layer |
@@ -184,11 +181,9 @@ The command-line deployment and maintenance scripts remain available for operato
 | `Build-AVWorkstationToolkit.cmd` | One-command release build from a fresh clone |
 | `.github/workflows/release.yml` | Tag-validated GitHub release build and asset publication |
 | `docs/` | Operator guidance, architecture, security audit, QA evidence, onboarding playbook, and change log |
-| `scripts/AppProfiles.psd1` | Retired legacy characterization fixture; source QA validates it against the canonical runtime JSON |
 | `manifests/managed-applications.json` | Canonical approved exact-ID WinGet catalog; the only managed-package source the product loads |
 | `manifests/external-applications.json` | Operational external detection/version/provider policy |
 | `manifests/commercial-av-catalog.json` | Deterministically compiled, embedded, non-deployable commercial AV awareness metadata |
-| `scripts/AVWorkstationToolkit.Vendor.psm1` | Legacy vendor-behavior characterization source; not packaged |
 | `scripts/Add-AVWorkstationToolkitExternalPackage.ps1` | Rights-gated authoring command for hash-pinned offline payloads |
 | `external-packages/` | Local third-party payload depot; always ignored by Git |
 | `scripts/AVWorkstationToolkit.Core.psd1` / `.psm1` | Legacy behavior characterization plus development/operator tooling; not packaged |

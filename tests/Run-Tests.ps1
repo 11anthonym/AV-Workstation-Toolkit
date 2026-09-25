@@ -3,10 +3,9 @@
     Runs the non-installing QA suite for AVWorkstationToolkit.
 
 .DESCRIPTION
-    Uses fixture winget output for behavioral tests, parses all PowerShell and
-    XAML source, loads the WPF window, and verifies that the worker rejects a
-    request outside its logs boundary. No install, update, or uninstall command
-    is executed.
+    Uses fixture winget output for behavioral tests, parses all PowerShell
+    source, and verifies that the worker rejects a request outside its logs
+    boundary. No install, update, or uninstall command is executed.
 #>
 
 [CmdletBinding()]
@@ -21,7 +20,6 @@ $modulePath = Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psd1'
 $moduleImplementationPath = Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psm1'
 $managedManifestPath = Join-Path $repositoryRoot 'manifests\managed-applications.json'
 $catalogPath = $managedManifestPath
-$xamlPath = Join-Path $repositoryRoot 'app\AVWorkstationToolkit.xaml'
 $fixtureRoot = Join-Path $PSScriptRoot 'fixtures'
 $externalManifestPath = Join-Path $repositoryRoot 'manifests\external-applications.json'
 $awarenessManifestPath = Join-Path $repositoryRoot 'manifests\commercial-av-catalog.json'
@@ -634,11 +632,6 @@ Invoke-Check 'External delivery actions stay explicit and bounded across provide
         foreach ($item in @($plan.Packages | Where-Object Provider -eq 'External')) {
             Assert-Contains $allowedActions $item.DeliveryAction "Plan produced an unknown delivery action: $($item.Id)"
         }
-        $uiSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
-        foreach ($action in @('DownloadHttps','AuthenticatedSftp','ShowFile','OpenUri')) {
-            Assert-True ($uiSource -match [regex]::Escape("DeliveryAction -eq '$action'") -or $uiSource -match [regex]::Escape("DeliveryAction -ne '$action'")) "Desktop delivery router omits $action."
-        }
-        Assert-True ($uiSource -match 'Open-AVWorkstationToolkitExplorerPath\s+-Path\s+\$path\s+-SelectFile') 'Exact file handoffs do not request Explorer selection.'
     }
     finally { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force -ErrorAction SilentlyContinue }
 }
@@ -648,8 +641,6 @@ Invoke-Check 'Awareness-only records never become selectable deployment actions'
     Assert-Equal 0 @($awareness | Where-Object CanSelect).Count 'An awareness record became selectable.'
     Assert-Equal 0 @($awareness | Where-Object { $_.Action -in @('Install','Update') }).Count 'An awareness record gained an automated action.'
     foreach ($item in $awareness) { Assert-Contains @('Awareness','NotDetected','Inventory') $item.Status "Awareness state differs: $($item.Id)" }
-    $uiSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
-    Assert-True ($uiSource -notmatch 'Not a Windows app') 'Catalog-only UI still mislabels Windows tools without detection evidence.'
 }
 Invoke-Check 'Inventory-only providers report state without inventing versions or actions' {
     foreach ($id in @('Runtime.Java','Dell.WavesAudio')) {
@@ -976,6 +967,8 @@ Invoke-Check 'Diagnostics are sanitized and report source-specific inventory hea
     Assert-True ($text -notmatch 'supersecret|private-token|topsecret') 'Diagnostics exposed a supplied secret.'
     Assert-True ($text -match '\[REDACTED\]') 'Diagnostics did not mark redacted values.'
     Assert-True ($text -match '^AV Workstation Toolkit diagnostics' -and $diagnostics.Application.Version -eq '1.1.1') 'Diagnostics product identity differs.'
+    $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
+    Assert-True ($coreSource -match '\(''Version: \{0\}'' -f \$Diagnostics\.WinGet\.Version\)' -and $coreSource -match '\(''Launcher runtime: \{0\}''') 'WinGet or launcher runtime information is missing from Diagnostics.'
     Assert-Equal 'OK' @($diagnostics.ExternalInventory.Sources | Where-Object Name -eq 'HKLM64')[0].Status 'HKLM64 diagnostic status differs.'
     Assert-Equal 'Failed' @($diagnostics.ExternalInventory.Sources | Where-Object Name -eq 'HKCU')[0].Status 'HKCU diagnostic status differs.'
     Assert-Equal 'Partial' $diagnostics.ExternalInventory.Quality 'Diagnostic inventory quality differs.'
@@ -1536,8 +1529,8 @@ Invoke-Check 'Execution source contains no bulk, import, or uninstall operation'
     Assert-True ($source -notmatch '(?i)[''\"]--all[''\"]') 'Bulk --all operation found.'
     Assert-True ($source -notmatch '(?i)winget\s+(import|uninstall)') 'Import or uninstall operation found.'
 }
-Invoke-Check 'Desktop and terminal change paths share the isolated worker' {
-    foreach ($name in @('Start-AVWorkstationToolkit.ps1','Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1')) {
+Invoke-Check 'Terminal change paths share the isolated worker' {
+    foreach ($name in @('Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1')) {
         $source = Get-Content -LiteralPath (Join-Path $scriptsRoot $name) -Raw
         Assert-True ($source -match 'New-AVWorkstationToolkitActionRequest') "$name does not use the shared request builder."
         Assert-True ($source -match 'Start-AVWorkstationToolkitWorker') "$name does not use the shared worker launcher."
@@ -1545,9 +1538,7 @@ Invoke-Check 'Desktop and terminal change paths share the isolated worker' {
     $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
     Assert-True ($coreSource -match 'SchemaVersion\s*=\s*2' -and $coreSource -match 'RequestId\s*=' -and $coreSource -match 'DryRun\s*=' -and $coreSource -match 'ManagedCatalogRevision\s*=\s*0') 'Shared request builder does not emit the complete versioned schema.'
     $workerSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1') -Raw
-    $desktopSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
-    Assert-True ($workerSource -match 'SchemaVersion\s*=\s*2' -and $workerSource -match 'ManagedCatalogRevision\s*=\s*0' -and
-        $desktopSource -match 'Result report catalog revision does not match') 'Source-checkout result artifacts do not report and verify managed-catalog revision 0.'
+    Assert-True ($workerSource -match 'SchemaVersion\s*=\s*2' -and $workerSource -match 'ManagedCatalogRevision\s*=\s*0') 'Source-checkout result artifacts do not report managed-catalog revision 0.'
 }
 Invoke-Check 'AST guard limits direct winget process invocation to audited wrappers' {
     $allowed = @{
@@ -1591,24 +1582,13 @@ Invoke-Check 'Snapshot and readiness scripts contain no unreachable elevated bra
     $readinessSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Test-DeploymentReadiness.ps1') -Raw
     Assert-True ($readinessSource -match 'Get-AVWorkstationToolkitRebootState' -and $readinessSource -notmatch 'PendingFileRenameOperations') 'Readiness duplicates reboot detection.'
 }
-Invoke-Check 'UI progress reader is incremental and cancellation is reusable' {
-    $source = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
-    Assert-True ($source -match 'ProgressByteOffset' -and $source -match '\[IO\.File\]::Open') 'UI progress reader is not byte-incremental.'
-    Assert-True ($source -notmatch 'ProgressLineCount') 'UI progress reader still re-reads by line count.'
-    Assert-True ($source -match 'CancelButton\.IsEnabled\s*=\s*\$canCancel') 'Cancel button is not restored from current action state.'
-    Assert-True ($source -match 'PackageGrid\.ScrollIntoView') 'DataGrid refresh does not restore the first visible column.'
-}
-Invoke-Check 'Every executable entry point rejects elevation before loading repository modules or XAML' {
-    foreach ($name in @('Start-AVWorkstationToolkit.ps1','Invoke-AVWorkstationToolkitAction.ps1','Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1','Get-WorkstationSnapshot.ps1','Test-DeploymentReadiness.ps1','Export-AVWorkstationToolkitBaselineManifest.ps1')) {
+Invoke-Check 'Every executable entry point rejects elevation before loading repository modules' {
+    foreach ($name in @('Invoke-AVWorkstationToolkitAction.ps1','Invoke-AVWorkstationToolkitDeployment.ps1','Invoke-AVWorkstationToolkitMaintenance.ps1','Get-WorkstationSnapshot.ps1','Test-DeploymentReadiness.ps1','Export-AVWorkstationToolkitBaselineManifest.ps1')) {
         $source = Get-Content -LiteralPath (Join-Path $scriptsRoot $name) -Raw
         $guardIndex = $source.IndexOf('BuiltInRole]::Administrator', [StringComparison]::Ordinal)
         $moduleIndex = $source.IndexOf('Import-Module', [StringComparison]::Ordinal)
         Assert-True ($guardIndex -ge 0) "$name has no standard-user launch guard."
         Assert-True ($moduleIndex -lt 0 -or $guardIndex -lt $moduleIndex) "$name loads repository code before checking elevation."
-        if ($name -eq 'Start-AVWorkstationToolkit.ps1') {
-            $xamlIndex = $source.IndexOf('XamlReader]::Load', [StringComparison]::Ordinal)
-            Assert-True ($guardIndex -lt $xamlIndex) 'Frontend loads XAML before checking elevation.'
-        }
     }
 }
 Invoke-Check 'Developer launcher prefers packaged output and otherwise starts only the compiled App' {
@@ -1654,11 +1634,8 @@ Invoke-Check 'Canonical application artwork covers WPF, executable, taskbar, sho
         $installerSource -match 'Shortcut[\s\S]+?Icon="AVWorkstationToolkitProductIcon\.ico"') 'MSI Installed Apps or Start-menu icon identity is incomplete.'
 }
 Invoke-Check 'AV Workstation Toolkit v1.1.1 identity is consistent across source and package projects' {
-    $xamlText = Get-Content -LiteralPath $xamlPath -Raw
-    Assert-True ($xamlText -match 'Title="AV Workstation Toolkit 1\.1\.1"') 'Window title is missing the v1.1.1 identity.'
-    Assert-True ($xamlText -notmatch 'v1\.1\.1 \| PACKAGED|ModePill|WingetPill|PrivilegePill') 'Primary header still exposes release or runtime telemetry.'
-    Assert-True ($xamlText -match 'Text="AV Workstation Toolkit"') 'Window branding is missing.'
-    Assert-True ($xamlText -match '(?s)TargetType="DataGridCell".*?Property="IsSelected".*?Value="#1C3150"') 'Selected grid rows do not retain a readable dark-theme cell background.'
+    $mainWindowXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
+    Assert-True ($mainWindowXaml -match 'Title="AV Workstation Toolkit 1\.1\.1"') 'Window title is missing the v1.1.1 identity.'
     Assert-Equal '1.1.1' ((Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()) 'VERSION differs.'
     $launcherProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
     Assert-True ($launcherProject -match '<Version>1\.1\.1</Version>' -and $launcherProject -match '<SelfContained>true</SelfContained>' -and
@@ -1777,10 +1754,7 @@ Invoke-Check 'Child-process policy is explicit, bounded, and complete' {
     foreach ($launch in @($policy.Launches)) {
         Assert-True (-not [string]::IsNullOrWhiteSpace([string]$launch.Executable) -and -not [string]::IsNullOrWhiteSpace([string]$launch.Boundary)) "Process policy entry is incomplete: $($launch.Id)"
     }
-    $uiSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
     $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
-    Assert-True ($uiSource -notmatch '(?i)Start-Process|ProcessStartInfo|Process\.Start') 'Presentation code can directly create a process.'
-    Assert-True ($uiSource -match 'Open-AVWorkstationToolkitExplorerPath' -and $uiSource -match 'Open-AVWorkstationToolkitHttpsUri') 'Presentation handoffs do not use bounded core functions.'
     Assert-True ($coreSource -match 'function Start-AVWorkstationToolkitDirectProcess' -and $coreSource -match 'UseShellExecute\s*=\s*\$false' -and $coreSource -match 'CreateNoWindow') 'Direct process wrapper does not disable shell execution or expose explicit console behavior.'
 }
 Invoke-Check 'Worker launch arguments are deterministic and arbitrary request paths are rejected' {
@@ -2279,7 +2253,6 @@ Invoke-Check 'Reusable product source contains no personal workstation record' {
 Invoke-Check 'Tracked source contains no high-confidence embedded secret' {
     $auditFiles = @(Get-ChildItem -LiteralPath $repositoryRoot -File) +
         @(Get-ChildItem -LiteralPath $scriptsRoot -File) +
-        @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'app') -File) +
         @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'manifests') -File) +
         @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src') -Recurse -File | Where-Object { $_.FullName -notmatch '\\(?:bin|obj)\\' }) +
         @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'installer') -Recurse -File | Where-Object { $_.FullName -notmatch '\\(?:bin|obj)\\' }) +
@@ -2296,115 +2269,6 @@ Invoke-Check 'Stale pre-rebrand preview evidence is not published' {
     }
 }
 if (-not $CoreOnly) {
-    Invoke-Check 'XAML parses and all required named controls load' {
-        Add-Type -AssemblyName PresentationFramework
-        [xml]$xaml = Get-Content -LiteralPath $xamlPath -Raw
-        $reader = New-Object System.Xml.XmlNodeReader $xaml
-        $window = [Windows.Markup.XamlReader]::Load($reader)
-        try {
-            foreach ($name in @('TopMenu','ExportPlanMenuItem','OpenLogsMenuItem','ExitMenuItem','RefreshPlanMenuItem','DiagnosticsMenuItem','CheckSystemMenuItem','SafetySecurityMenuItem','AboutMenuItem','SidebarScroll','QuickViewState','AllAppsButton','SelectMissingButton','SelectUpdatesButton','ClearSelectionButton','PackageGrid','SearchBox','CatalogPresetFilter','ManufacturerFilter','DisciplineFilter','DetailsButton','DiagnosticsButton','RefreshButton','GetPackageButton','InstallButton','UpdateButton','CancelButton','ActivityLog','RebootBanner','RecheckButton')) {
-                Assert-True ($null -ne $window.FindName($name)) "Missing control: $name"
-            }
-            foreach ($name in @('ModePill','WingetPill','PrivilegePill')) {
-                Assert-True ($null -eq $window.FindName($name)) "Primary header still exposes telemetry control: $name"
-            }
-            Assert-True ($window.MinWidth -le 1040 -and $window.MinHeight -le 760) 'Minimum window size exceeds the v1 accessibility target.'
-            $menu = $window.FindName('TopMenu')
-            Assert-Equal 4 $menu.Items.Count 'Conventional File/View/Tools/Help menu structure differs.'
-            Assert-Equal '_File' ([string]$menu.Items[0].Header) 'File menu is missing.'
-            Assert-Equal '_View' ([string]$menu.Items[1].Header) 'View menu is missing.'
-            Assert-Equal '_Tools' ([string]$menu.Items[2].Header) 'Tools menu is missing.'
-            Assert-Equal '_Help' ([string]$menu.Items[3].Header) 'Help menu is missing.'
-            $sidebar = $window.FindName('SidebarScroll')
-            Assert-Equal 'Auto' ([string]$sidebar.VerticalScrollBarVisibility) 'Sidebar overflow is not intentionally scrollable.'
-            $packageGrid = $window.FindName('PackageGrid')
-            Assert-Equal 'Auto' ([string][Windows.Controls.ScrollViewer]::GetHorizontalScrollBarVisibility($packageGrid)) 'Narrow-window horizontal access is disabled.'
-            Assert-True $packageGrid.Columns[1].Width.IsStar 'Application column does not adapt to wide viewports.'
-            Assert-True $packageGrid.Columns[7].Width.IsStar 'Purpose column does not adapt to wide viewports.'
-            Assert-True (-not $packageGrid.Columns[0].CanUserSort -and -not $packageGrid.Columns[7].CanUserSort) 'Selection or purpose/restriction column allows sorting.'
-            Assert-True $packageGrid.Columns[0].IsReadOnly 'Selection column still enters DataGrid edit mode before its checkbox can respond.'
-            Assert-Equal '0,0,0,0' ([string]$packageGrid.Columns[0].CellStyle.Setters[0].Value) 'Selection cell padding reduces the checkbox hit target.'
-            $selectionTemplate = $packageGrid.Columns[0].CellTemplate
-            $selectionCheckbox = [Windows.Controls.CheckBox]$selectionTemplate.LoadContent()
-            $selectableItem = [pscustomobject]@{ Selected=$false; CanSelect=$true; SelectionHint='Select this managed application for installation.' }
-            $selectionCheckbox.DataContext = $selectableItem
-            $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
-            [void]$selectionCheckbox.ApplyTemplate()
-            Assert-True $selectionCheckbox.IsEnabled 'Actionable application checkbox did not become enabled.'
-            Assert-True $selectionCheckbox.GetBindingExpression([Windows.Controls.Primitives.ToggleButton]::IsCheckedProperty).ParentBinding.NotifyOnSourceUpdated 'Selection binding does not distinguish user changes from target refreshes.'
-            $sourceUpdateState = [pscustomobject]@{ Count=0 }
-            $selectionCheckbox.AddHandler([Windows.Data.Binding]::SourceUpdatedEvent,[System.EventHandler[Windows.Data.DataTransferEventArgs]]{
-                param($sourceUpdatedSender,$sourceUpdatedEventArgs)
-                $sourceUpdateState.Count++
-            }.GetNewClosure(),$true)
-            $selectionPeer = [Windows.Automation.Peers.CheckBoxAutomationPeer]::new($selectionCheckbox)
-            $toggleProvider = $selectionPeer.GetPattern([Windows.Automation.Peers.PatternInterface]::Toggle)
-            Assert-True ($null -ne $toggleProvider) 'Selection checkbox does not expose a standard toggle interaction.'
-            Assert-True ($selectionCheckbox.MinWidth -ge 32 -and $selectionCheckbox.MinHeight -ge 40) 'Selection checkbox does not expose a full-cell pointer target.'
-            $toggleProvider.Toggle()
-            $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
-            Assert-True ([bool]$selectionCheckbox.IsChecked) 'Selection checkbox does not accept a standard toggle interaction.'
-            Assert-True ([bool]$selectableItem.Selected -and $sourceUpdateState.Count -eq 1) 'Selection checkbox toggle did not produce one model-source update.'
-            $disabledItem = [pscustomobject]@{ Selected=$false; CanSelect=$false; SelectionHint='Selection is unavailable.' }
-            $selectionCheckbox.DataContext = $disabledItem
-            $window.Dispatcher.Invoke([Action]{},[Windows.Threading.DispatcherPriority]::DataBind)
-            Assert-True (-not $selectionCheckbox.IsEnabled -and -not [bool]$disabledItem.Selected) 'A non-actionable catalog item became selectable.'
-            Assert-Equal 'ApplicationSortKey|VendorSortKey|PrioritySortKey|StatusSortKey|VersionSortKey|RiskSortKey' (($packageGrid.Columns[1..6] | ForEach-Object SortMemberPath) -join '|') 'Sortable grid columns do not use the reviewed display sort keys.'
-            $uiSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'Start-AVWorkstationToolkit.ps1') -Raw
-            Assert-True ($uiSource -match 'Update-AVWorkstationToolkitGridLayout') 'Responsive narrow/wide DataGrid layout handler is missing.'
-            Assert-True ($uiSource -notmatch "'Crestron'\s*\{|'Extron'\s*\{") 'Manufacturer-specific discipline branches remain in the UI filter.'
-            Assert-True ($uiSource -match 'Show-AVWorkstationToolkitCatalogDetail' -and $uiSource -match 'Open-AVWorkstationToolkitOfficialCatalogUri') 'Read-only catalog detail and official-link boundaries are missing.'
-            Assert-True ($uiSource -match 'MetadataVerificationState' -and $uiSource -match 'DistributionPolicy' -and $uiSource -match 'WorkflowCategories') 'Read-only catalog detail omits verification, distribution, or workflow metadata.'
-            Assert-True ($uiSource -match 'Show-AVWorkstationToolkitDiagnostics' -and $uiSource -match 'Copy diagnostics' -and $uiSource -match 'Export diagnostics') 'Read-only diagnostics actions are missing.'
-            Assert-True ($uiSource -match 'GetPackageButton\.ToolTip\s*=\s*\$deliveryHelp' -and $uiSource -match 'AutomationProperties\]::SetName\(\$controls\.GetPackageButton') 'Dynamic package handoff lacks contextual tooltip or accessibility text.'
-            $xamlSource = Get-Content -LiteralPath $xamlPath -Raw
-            Assert-True ($xamlSource -match 'Grid Background="\{TemplateBinding Background\}"' -and $xamlSource -match 'x:Key="GridSelectionCheckBox"' -and $xamlSource -match 'Property="MinWidth" Value="32"' -and $xamlSource -match 'Property="MinHeight" Value="40"' -and $xamlSource -match 'ToolTipService.ShowOnDisabled="True"') 'Checkbox hit target or disabled-state explanation regressed.'
-            Assert-True ($xamlSource -match 'Content="\{TemplateBinding SelectionBoxItem\}"' -and $xamlSource -match '<Style TargetType="ComboBox">[\s\S]+?<Setter Property="Foreground" Value="#E8EEF8"') 'ComboBox template does not render its selected value with the dark-theme foreground.'
-            $compiledXamlSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
-            Assert-True ($compiledXamlSource -match 'x:Name="FollowActivityCheckBox"[^>]+Content="Follow latest activity"[^>]+IsChecked="True"' -and
-                $compiledXamlSource -match 'x:Name="ActivityLog"[^>]+TextChanged="ActivityLog_TextChanged"') 'Compiled activity follow/pause UI contract is incomplete.'
-            Assert-True ($xamlSource -notmatch 'Safety boundary') 'Verbose safety policy remains in the primary sidebar.'
-            Assert-True ($uiSource -match 'function Show-AVWorkstationToolkitSafetySecurity' -and $uiSource -match "Title = 'Safety & Security - AV Workstation Toolkit'") 'Safety and security content is not available from a read-only surface.'
-            Assert-True ($uiSource -match 'function Show-AVWorkstationToolkitAbout' -and $uiSource -match "Title = 'About AV Workstation Toolkit'" -and $uiSource -match 'Version \{0\}  \|  \{1\}' -and $uiSource -match 'Mode=\$executionMode') 'Dark About dialog does not expose product version and package mode.'
-            Assert-True ($xamlSource -notmatch 'ModePill|WingetPill|PrivilegePill|Standard user|winget \.\.\.') 'Primary header still contains normal runtime telemetry.'
-            Assert-True ($uiSource -match 'prioritySortOrder\s*=\s*@\{\s*P1=0;\s*P2=1;\s*UTILITY=2;\s*DEV=3' -and
-                $uiSource -match 'riskSortOrder\s*=\s*@\{\s*None=0;\s*Service=1;\s*Listener=2;\s*Driver=3' -and
-                $uiSource -match 'UpdateAvailable=0;\s*Missing=1;\s*ManualUpdate=2;\s*Held=3;\s*Error=4') 'Domain-aware priority, risk, or attention-status ordering differs.'
-            Assert-True ($uiSource -match 'function Get-AVWorkstationToolkitVersionSortKey' -and
-                $uiSource -match 'UI_BEHAVIOR_OK sorting=6 quickViews=3 persistence=passed selectionToggle=realGrid' -and
-                $uiSource -match 'UI_SELECTION_FLOW_OK sourceUpdates=\{0\} refresh=stable pendingReboot=lowRiskAllowed actions=shared') 'Version-aware sorting or deterministic real-grid UI behavior smoke coverage is missing.'
-            Assert-True ($uiSource -match 'function Set-AVWorkstationToolkitQuickView' -and $uiSource -match 'function Test-AVWorkstationToolkitQuickViewFilter' -and
-                $uiSource -match "AllAppsButton\.Add_Click\(\{ Set-AVWorkstationToolkitQuickView -View All \}\)" -and
-                $uiSource -match 'Clear-AVWorkstationToolkitSelection') 'Composable quick views or independent selection clearing are missing.'
-            Assert-True ($uiSource -match 'function Apply-AVWorkstationToolkitSort' -and $uiSource -match 'PackageGrid\.Add_Sorting' -and $uiSource -match 'SortDirection') 'Persistent sort handling or visible sort direction is missing.'
-            Assert-True ($uiSource -match 'function Sync-AVWorkstationToolkitSelectionFromToggle' -and $uiSource -match 'Binding\]::SourceUpdatedEvent.+?Sync-AVWorkstationToolkitSelectionFromToggle') 'Grid checkbox source updates do not synchronize with the PowerShell-backed selection model.'
-            Assert-True ($uiSource -match '\$ToggleEventArgs\.Property\s+-ne\s+\[Windows\.Controls\.Primitives\.ToggleButton\]::IsCheckedProperty' -and
-                $uiSource -match '\$ToggleEventArgs\.TargetObject\s+-as\s+\[Windows\.Controls\.CheckBox\]' -and
-                $uiSource -notmatch '\$ToggleEventArgs\.OriginalSource') 'Selection synchronization does not use the reviewed IsChecked binding target contract.'
-            Assert-True ($uiSource -match 'DispatcherPriority\]::DataBind' -and $uiSource -match 'ReferenceEquals\(\$checkBox\.DataContext,\$item\)') 'Selection synchronization is not deferred safely across the WPF source-update ordering boundary.'
-            Assert-True (([regex]::Matches($uiSource,'Get-AVWorkstationToolkitSelectedActionItems -Action')).Count -eq 3 -and
-                $uiSource -match 'Action selection: action=\{0\}; count=\{1\}; packageIds=\{2\}') 'Footer/button state and action launch do not share the reviewed selected-action model or action trace.'
-            Assert-True ($uiSource -notmatch 'PackageGrid\.AddHandler\([^\r\n]+?(CheckedEvent|UncheckedEvent)') 'Grid selection still reacts to binding-driven Checked/Unchecked events.'
-            $coreSource = Get-Content -LiteralPath (Join-Path $scriptsRoot 'AVWorkstationToolkit.Core.psm1') -Raw
-            Assert-True ($coreSource -match '\(''Version: \{0\}'' -f \$Diagnostics\.WinGet\.Version\)' -and $coreSource -match '\(''Launcher runtime: \{0\}''') 'WinGet or launcher runtime information is missing from Diagnostics.'
-            Assert-True ($xamlSource -match 'Content="Check again"' -and $uiSource -match [regex]::Escape('Restart recommended. Windows is waiting for a restart to finish an update. You can still install most apps, but some system-level changes are paused until you restart.')) 'Pending-reboot guidance is not plain language.'
-            Assert-True ($xamlSource -notmatch 'Component Based Servicing|listener actions|internal risk') 'Primary XAML exposes implementation-specific reboot terms.'
-            Assert-True ($xamlSource -match '(?s)Header="Purpose / restriction".+?TextWrapping="Wrap".+?MaxHeight="36".+?ToolTip="\{Binding Note\}"') 'Purpose or restriction text is not wrapped with full-text access.'
-            foreach ($wiring in @(
-                'ExportPlanMenuItem\.Add_Click\(\{ Export-AVWorkstationToolkitPlan \}\)',
-                'OpenLogsMenuItem\.Add_Click\(\{ Open-AVWorkstationToolkitLogs \}\)',
-                'RefreshPlanMenuItem\.Add_Click\(\{ Refresh-AVWorkstationToolkitPlan \}\)',
-                'DiagnosticsMenuItem\.Add_Click\(\{ Show-AVWorkstationToolkitDiagnostics \}\)',
-                'CheckSystemMenuItem\.Add_Click\(\{ Refresh-AVWorkstationToolkitPlan \}\)',
-                'SafetySecurityMenuItem\.Add_Click\(\{ Show-AVWorkstationToolkitSafetySecurity \}\)')) {
-                Assert-True ($uiSource -match $wiring) "Menu action is not wired to the shared handler: $wiring"
-            }
-            Assert-True ($uiSource -match 'Add_PreviewKeyDown' -and $uiSource -match '\[Windows\.Input\.Key\]::F5[\s\S]+?Refresh-AVWorkstationToolkitPlan') 'Advertised F5 refresh shortcut is not wired.'
-            $manufacturer = $window.FindName('ManufacturerFilter')
-            Assert-True ($manufacturer.Foreground.Color.ToString() -eq '#FFE8EEF8') 'Closed ComboBox selected-value foreground differs.'
-        }
-        finally { $window.Close() }
-    }
     Invoke-Check 'Compiled production layout contract covers all required viewports' {
         $compiledWindowSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml.cs') -Raw
         foreach ($viewport in @('1040, 760','1280, 860','1440, 900','1920, 1080')) {
@@ -2412,6 +2276,9 @@ if (-not $CoreOnly) {
         }
         Assert-True ($compiledWindowSource -match 'VerifyClosedComboBoxLabels\(\)' -and
             $compiledWindowSource -match 'VerifyActivityFollowContract\(\)') 'Compiled production smoke omits current filter-label or activity-follow rendering behavior.'
+        $compiledXamlSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
+        Assert-True ($compiledXamlSource -match 'x:Name="FollowActivityCheckBox"[^>]+Content="Follow latest activity"[^>]+IsChecked="True"' -and
+            $compiledXamlSource -match 'x:Name="ActivityLog"[^>]+TextChanged="ActivityLog_TextChanged"') 'Compiled activity follow/pause UI contract is incomplete.'
     }
     Invoke-Check 'Worker rejects a synthetic path outside the resolved data root before file access' {
         $worker = Join-Path $scriptsRoot 'Invoke-AVWorkstationToolkitAction.ps1'
