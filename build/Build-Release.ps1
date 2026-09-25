@@ -29,6 +29,7 @@ param(
     [switch]$RequireSignature,
     [ValidateSet('Development','ReleaseCandidate','Production')]
     [string]$BuildChannel = 'Development',
+    [string]$PrereleaseLabel,
     [switch]$BuildOfflineBundle,
     [string]$ExternalPackageRoot,
     [switch]$ScanWithDefender,
@@ -106,6 +107,21 @@ $declaredVersion = (Get-Content -LiteralPath $versionPath -Raw).Trim()
 if ($Version -ne $declaredVersion) {
     throw "Requested version $Version does not match VERSION $declaredVersion."
 }
+# A beta is a SemVer pre-release of VERSION: 1.1.1-beta.2. The label names artifacts and the informational
+# version people see; assembly, file, MSI, and catalog-trust versions stay numeric. Production is never labeled.
+if (-not [string]::IsNullOrEmpty($PrereleaseLabel)) {
+    if ($PrereleaseLabel -cnotmatch '^(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$') {
+        throw "PrereleaseLabel must be alpha.N, beta.N, or rc.N: $PrereleaseLabel"
+    }
+    if ($BuildChannel -ne 'ReleaseCandidate') {
+        throw 'A pre-release label requires the ReleaseCandidate build channel.'
+    }
+    $releaseName = '{0}-{1}' -f $Version,$PrereleaseLabel
+}
+else {
+    $PrereleaseLabel = ''
+    $releaseName = $Version
+}
 $buildTimestamp = (Get-Date).ToUniversalTime().ToString('o')
 
 $gitCommand = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -120,11 +136,11 @@ if ($BuildChannel -eq 'Production' -and $sourceDirty) {
 }
 
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts'))
-$stagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' $Version)))
-$workerStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($Version + '-worker'))))
-$releaseRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'release' $Version)))
-$intermediateRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'obj' $Version)))
-$offlineStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($Version + '-offline-bundle'))))
+$stagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' $releaseName)))
+$workerStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($releaseName + '-worker'))))
+$releaseRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'release' $releaseName)))
+$intermediateRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'obj' $releaseName)))
+$offlineStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($releaseName + '-offline-bundle'))))
 $productIconPath = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'assets\branding\AVWorkstationToolkit.ico'))
 if (-not (Test-Path -LiteralPath $productIconPath -PathType Leaf)) {
     throw "The canonical Windows application icon is unavailable: $productIconPath"
@@ -442,7 +458,7 @@ if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
 $workerPayloadPath = Join-Path $workerStagingRoot 'AVWorkstationToolkit.Worker.exe'
 if ([string]::IsNullOrWhiteSpace($SignedWorkerPath)) {
     & $dotnetPath publish $workerProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
-        -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
+        -p:Version=$releaseName -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
         -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None -o $workerStagingRoot
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit compiled worker publish failed.' }
 }
@@ -488,7 +504,7 @@ $embeddedPayloadFileCount = $embeddedPayloadFiles.Count + $embeddedNoticeCount
 $launcherPath = Join-Path $stagingRoot 'AVWorkstationToolkit.exe'
 if ([string]::IsNullOrWhiteSpace($SignedLauncherPath)) {
     & $dotnetPath publish $launcherProject -c Release -r win-x64 --self-contained true --nologo --no-restore `
-        -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
+        -p:Version=$releaseName -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" `
         -p:ContinuousIntegrationBuild=true -p:DebugSymbols=false -p:DebugType=None `
         "-p:WorkerPayloadPath=$workerPayloadPath" `
         "-p:ReferenceCatalogBaselinePath=$ReferenceCatalogBaselinePath" `
@@ -513,15 +529,16 @@ if ($null -ne $certificate) {
     Invoke-AVWorkstationToolkitArtifactSigning -Path $launcherPath -Thumbprint $normalizedThumbprint -Store $certificateStoreName -ToolPath $resolvedSignToolPath
 }
 
-$standalonePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.exe" -f $Version)
+$standalonePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.exe" -f $releaseName)
 Copy-Item -LiteralPath $launcherPath -Destination $standalonePath
 
-$msiPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-x64.msi" -f $Version)
+$msiPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-x64.msi" -f $releaseName)
 if ([string]::IsNullOrWhiteSpace($SignedMsiPath)) {
     $installerProject = Join-Path $repositoryRoot 'installer\AVWorkstationToolkit.Installer.wixproj'
     $installerArguments = @(
         'build',$installerProject,'-c','Release','--nologo',
         "-p:ProductVersion=$Version",
+        "-p:ReleaseName=$releaseName",
         "-p:PayloadDir=$stagingRoot",
         "-p:IconPath=$productIconPath",
         "-p:OutputPath=$releaseRoot",
@@ -531,7 +548,7 @@ if ([string]::IsNullOrWhiteSpace($SignedMsiPath)) {
     if ($LASTEXITCODE -ne 0) { throw 'AV Workstation Toolkit MSI build failed.' }
 }
 else {
-    $expectedMsiName = "AV-Workstation-Toolkit-$Version-x64.msi"
+    $expectedMsiName = "AV-Workstation-Toolkit-$releaseName-x64.msi"
     $signedMsiInput = Assert-AVWorkstationToolkitExternalSignedArtifact -Path $SignedMsiPath -ExpectedName $expectedMsiName -SignerSubject $ExpectedSignerSubject
     Copy-Item -LiteralPath $signedMsiInput -Destination $msiPath
 }
@@ -546,12 +563,12 @@ if ($null -ne $certificate) {
     Invoke-AVWorkstationToolkitArtifactSigning -Path $msiPath -Thumbprint $normalizedThumbprint -Store $certificateStoreName -ToolPath $resolvedSignToolPath
 }
 
-$portablePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.zip" -f $Version)
+$portablePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.zip" -f $releaseName)
 Compress-Archive -LiteralPath $launcherPath -DestinationPath $portablePath -CompressionLevel Optimal
 
-$thirdPartyNoticesPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-THIRD-PARTY-NOTICES.md" -f $Version)
+$thirdPartyNoticesPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-THIRD-PARTY-NOTICES.md" -f $releaseName)
 Copy-Item -LiteralPath $thirdPartyNoticesSourcePath -Destination $thirdPartyNoticesPath
-$projectLicensePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-LICENSE.txt" -f $Version)
+$projectLicensePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-LICENSE.txt" -f $releaseName)
 Copy-Item -LiteralPath $projectLicenseSourcePath -Destination $projectLicensePath
 
 $artifactFiles = [System.Collections.Generic.List[string]]::new()
@@ -597,20 +614,20 @@ if ($BuildOfflineBundle) {
         Packages = @($bundleRecords)
     }
     $bundleIndex | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $offlineStagingRoot 'AVWorkstationToolkit-offline-bundle.json') -Encoding UTF8
-    $offlineBundlePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-offline-bundle.zip" -f $Version)
+    $offlineBundlePath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-offline-bundle.zip" -f $releaseName)
     Compress-Archive -Path (Join-Path $offlineStagingRoot '*') -DestinationPath $offlineBundlePath -CompressionLevel Optimal
     $artifactFiles.Add($offlineBundlePath)
 }
 
 $launcherSha256 = (Get-FileHash -LiteralPath $standalonePath -Algorithm SHA256).Hash
 $workerPayloadSha256 = (Get-FileHash -LiteralPath $workerPayloadPath -Algorithm SHA256).Hash
-$sbomPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $Version)
-& (Join-Path $repositoryRoot 'build\New-ReleaseSbom.ps1') -Version $Version -CommitSha $commitSha -LauncherSha256 $launcherSha256 -WorkerSha256 $workerPayloadSha256 -OutputPath $sbomPath
+$sbomPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $releaseName)
+& (Join-Path $repositoryRoot 'build\New-ReleaseSbom.ps1') -Version $releaseName -CommitSha $commitSha -LauncherSha256 $launcherSha256 -WorkerSha256 $workerPayloadSha256 -OutputPath $sbomPath
 if (-not (Test-Path -LiteralPath $sbomPath -PathType Leaf)) { throw 'CycloneDX SBOM generation did not produce the expected file.' }
 $artifactFiles.Add($sbomPath)
 
-$releaseManifestPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-release.json" -f $Version)
-$checksumPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-SHA256SUMS.txt" -f $Version)
+$releaseManifestPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-release.json" -f $releaseName)
+$checksumPath = Join-Path $releaseRoot ("AV-Workstation-Toolkit-{0}-SHA256SUMS.txt" -f $releaseName)
 $launcherSignature = Get-AVWorkstationToolkitSignatureMetadata -Path $standalonePath
 $sbomHash = (Get-FileHash -LiteralPath $sbomPath -Algorithm SHA256).Hash
 $lockDocument = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\packages.lock.json') -Raw | ConvertFrom-Json
@@ -637,6 +654,8 @@ $releaseManifest = [ordered]@{
     Product = 'AV Workstation Toolkit'
     ProjectLicense = 'Apache-2.0'
     Version = $Version
+    Prerelease = $PrereleaseLabel
+    ReleaseName = $releaseName
     Platform = 'win-x64'
     Architecture = 'x64'
     TargetFramework = 'net10.0-windows'
@@ -713,4 +732,5 @@ if ($ScanWithDefender) {
     & (Join-Path $repositoryRoot 'tests\Test-EndpointTrust.ps1') -ReleaseRoot $releaseRoot -ScanWithDefender -RequireDefender:$RequireDefender
 }
 
+Write-Output ('Release folder: artifacts\release\{0}' -f $releaseName)
 Get-ChildItem -LiteralPath $releaseRoot -File | Sort-Object Name | Select-Object Name,Length,LastWriteTime

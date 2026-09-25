@@ -20,7 +20,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "SBOM version is invalid: $Version" }
+if ($Version -cnotmatch '^\d+\.\d+\.\d+(?:-(?:alpha|beta|rc)\.[1-9][0-9]{0,2})?$') { throw "SBOM version is invalid: $Version" }
 if ($CommitSha -notmatch '^[a-fA-F0-9]{40}$') { throw 'SBOM commit SHA must contain exactly 40 hexadecimal characters.' }
 if ($LauncherSha256 -notmatch '^[a-fA-F0-9]{64}$') { throw 'SBOM launcher SHA-256 is invalid.' }
 if ($WorkerSha256 -notmatch '^[a-fA-F0-9]{64}$') { throw 'SBOM worker SHA-256 is invalid.' }

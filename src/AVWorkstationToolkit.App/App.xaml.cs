@@ -17,7 +17,8 @@ public sealed record PackagedAppStartupContext(
     string DataRoot,
     string Version,
     string WorkerSha256,
-    bool SmokeTest = false);
+    bool SmokeTest = false,
+    string Prerelease = "");
 
 public partial class App : System.Windows.Application
 {
@@ -68,7 +69,8 @@ public partial class App : System.Windows.Application
                     packagedContext.ApplicationRoot,
                     packagedContext.DataRoot,
                     packagedContext.Version,
-                    packagedContext.WorkerSha256);
+                    packagedContext.WorkerSha256,
+                    packagedContext.Prerelease);
                 coordinator = services.Planning;
                 diagnostics = services.Diagnostics;
                 details = services.Details;
@@ -114,7 +116,9 @@ public partial class App : System.Windows.Application
             var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
                 applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility, referenceCatalogUpdates: referenceCatalogUpdates,
                 managedCatalogUpdates: managedCatalogUpdates);
-            var window = new MainWindow(viewModel, productVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
+            var release = new ProductRelease(productVersion, packagedContext?.Prerelease ?? string.Empty);
+            var window = new MainWindow(viewModel, release.DisplayVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
+            if (release.Prerelease.Length > 0) window.Title = $"AV Workstation Toolkit {release.DisplayVersion}";
             MainWindow = window;
             window.Show();
             if (!smoke && !readOnlyCheck && referenceCatalogUpdates is not null)

@@ -2110,6 +2110,20 @@ Invoke-Check 'MSI installs per-machine and removes its Start menu directory' {
     Assert-True ($source -match 'MajorUpgrade') 'MSI does not define upgrade behavior.'
     Assert-True ($source -notmatch '<Files\s') 'MSI still depends on loose companion payload files.'
 }
+Invoke-Check 'Beta labels name artifacts without reaching numeric, catalog, or production identity' {
+    $build = Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\Build-Release.ps1') -Raw
+    Assert-True ($build.Contains('''^(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$''') -and
+        $build.Contains('A pre-release label requires the ReleaseCandidate build channel.')) 'Pre-release labels are not limited to validated release-candidate builds.'
+    Assert-True ($build.Contains('-p:Version=$releaseName -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0"') -and
+        $build.Contains('"-p:ProductVersion=$Version"')) 'A pre-release label can reach the assembly, file, or MSI version.'
+    $installerProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\AVWorkstationToolkit.Installer.wixproj') -Raw
+    Assert-True ($installerProject.Contains('<OutputName>AV-Workstation-Toolkit-$(ReleaseName)-x64</OutputName>') -and
+        $installerProject.Contains('<SuppressIces>ICE61</SuppressIces>')) 'The MSI file name does not carry the release name.'
+    $installer = Get-Content -LiteralPath (Join-Path $repositoryRoot 'installer\Product.wxs') -Raw
+    Assert-True ($installer -match '<MajorUpgrade AllowSameVersionUpgrades="yes"') 'A same-version beta MSI would install beside the earlier one instead of replacing it.'
+    $launcher = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
+    Assert-True ($launcher -match 'Path\.Combine\(dataRoot, "runtime", ProductVersion\)' -and $launcher -match 'GetName\(\)\.Version') 'The runtime folder no longer uses the numeric product version.'
+}
 Invoke-Check 'Endpoint-security behavior documentation is complete and non-evasive' {
     $path = Join-Path $repositoryRoot 'docs\Endpoint-Security-Behavior.md'
     Assert-True (Test-Path -LiteralPath $path -PathType Leaf) 'Endpoint-security behavior baseline is missing.'

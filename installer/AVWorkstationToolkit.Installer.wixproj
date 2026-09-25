@@ -1,8 +1,12 @@
 <Project Sdk="WixToolset.Sdk/6.0.2">
   <PropertyGroup>
     <InstallerPlatform>x64</InstallerPlatform>
-    <OutputName>AV-Workstation-Toolkit-$(ProductVersion)-x64</OutputName>
+    <!-- ReleaseName carries a beta label (1.1.1-beta.2) into the file name only; ProductVersion stays numeric. -->
+    <ReleaseName Condition="'$(ReleaseName)' == ''">$(ProductVersion)</ReleaseName>
+    <OutputName>AV-Workstation-Toolkit-$(ReleaseName)-x64</OutputName>
     <DefineConstants>ProductVersion=$(ProductVersion);PayloadDir=$(PayloadDir);IconPath=$(IconPath)</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- ICE61 flags AllowSameVersionUpgrades in Product.wxs, which is deliberate: see the comment there. -->
+    <SuppressIces>ICE61</SuppressIces>
   </PropertyGroup>
 </Project>

@@ -49,12 +49,13 @@ public static class CompiledAppComposition
         string applicationRoot,
         string dataRoot,
         string version,
-        string expectedWorkerSha256)
+        string expectedWorkerSha256,
+        string prerelease = "")
     {
         var canonicalRoot = ProductionRuntimePolicy.RequireDataRoot(dataRoot);
         var runtimeRoot = ProductionRuntimePolicy.RequireApplicationRoot(canonicalRoot, applicationRoot);
         return CreateCore(runtimeRoot, canonicalRoot, production: true, version, expectedWorkerSha256,
-            ProductionManagedCatalogConfiguration.Create(version));
+            ProductionManagedCatalogConfiguration.Create(version), prerelease);
     }
 
     public static CompiledAppServices CreateManagedCatalogDevelopment(
@@ -71,7 +72,8 @@ public static class CompiledAppComposition
         bool production = false,
         string? packagedVersion = null,
         string? expectedWorkerSha256 = null,
-        ManagedCatalogRuntimeServices? managedCatalogRuntime = null)
+        ManagedCatalogRuntimeServices? managedCatalogRuntime = null,
+        string prerelease = "")
     {
         var loader = new RepositoryCatalogLoader();
         var managedUpdates = managedCatalogRuntime is null
@@ -113,7 +115,8 @@ public static class CompiledAppComposition
             referenceCatalog.Hardware);
         var diagnostics = new ReadOnlyDiagnosticsService(
             new WindowsRuntimeDiagnosticsProvider(resolver, runner),
-            new ApplicationDiagnosticContext(version, production ? "Packaged compiled runtime" : "Source compiled migration", dataRoot, Path.Combine(dataRoot, "logs")));
+            new ApplicationDiagnosticContext(new ProductRelease(version, prerelease).SemanticVersion,
+                production ? "Packaged compiled runtime" : "Source compiled migration", dataRoot, Path.Combine(dataRoot, "logs")));
         CompiledActionCoordinator? actions = null;
         VendorInteractionCoordinator? vendors = null;
         IPackageDeliveryWorkflow? packageDelivery = null;

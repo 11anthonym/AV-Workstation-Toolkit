@@ -18,7 +18,8 @@ param(
     [switch]$SkipDesktopSmoke,
     [switch]$ProcessHelperSelfTest,
     [ValidateRange(10,600)]
-    [int]$ProcessTimeoutSeconds = 120
+    [int]$ProcessTimeoutSeconds = 120,
+    [string]$PrereleaseLabel
 )
 
 Set-StrictMode -Version Latest
@@ -26,18 +27,22 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()
+# A beta is checked as the exact pre-release it was built as, e.g. 1.1.1-beta.2.
+if ([string]::IsNullOrEmpty($PrereleaseLabel)) { $PrereleaseLabel = ''; $releaseName = $version }
+elseif ($PrereleaseLabel -cmatch '^(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$') { $releaseName = '{0}-{1}' -f $version,$PrereleaseLabel }
+else { throw "PrereleaseLabel must be alpha.N, beta.N, or rc.N: $PrereleaseLabel" }
 if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
-    $ReleaseRoot = Join-Path $repositoryRoot (Join-Path 'artifacts\release' $version)
+    $ReleaseRoot = Join-Path $repositoryRoot (Join-Path 'artifacts\release' $releaseName)
 }
 $ReleaseRoot = [IO.Path]::GetFullPath($ReleaseRoot)
-$standalonePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.exe" -f $version)
-$msiPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-x64.msi" -f $version)
-$portablePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.zip" -f $version)
-$checksumPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-SHA256SUMS.txt" -f $version)
-$releaseManifestPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-release.json" -f $version)
-$sbomPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $version)
-$projectLicensePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-LICENSE.txt" -f $version)
-$thirdPartyNoticesPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-THIRD-PARTY-NOTICES.md" -f $version)
+$standalonePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.exe" -f $releaseName)
+$msiPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-x64.msi" -f $releaseName)
+$portablePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-win-x64.zip" -f $releaseName)
+$checksumPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-SHA256SUMS.txt" -f $releaseName)
+$releaseManifestPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-release.json" -f $releaseName)
+$sbomPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $releaseName)
+$projectLicensePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-LICENSE.txt" -f $releaseName)
+$thirdPartyNoticesPath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-THIRD-PARTY-NOTICES.md" -f $releaseName)
 
 $script:Passed = 0
 $script:Failed = 0
@@ -301,6 +306,9 @@ try {
         Assert-Equal 'AV Workstation Toolkit' $manifest.Product 'Release product differs.'
         Assert-Equal 'Apache-2.0' ([string]$manifest.ProjectLicense) 'Release project license differs.'
         Assert-Equal $version $manifest.Version 'Release version differs.'
+        Assert-Equal $PrereleaseLabel ([string]$manifest.Prerelease) 'Release pre-release label differs.'
+        Assert-Equal $releaseName ([string]$manifest.ReleaseName) 'Release name differs.'
+        if ($PrereleaseLabel.Length -gt 0) { Assert-Equal 'ReleaseCandidate' ([string]$manifest.BuildChannel) 'A pre-release was not built on the ReleaseCandidate channel.' }
         Assert-Equal 'standalone-executable' $manifest.Distribution 'Release distribution differs.'
         Assert-Equal 'x64' ([string]$manifest.Architecture) 'Release architecture differs.'
         Assert-Equal 'net10.0-windows' ([string]$manifest.TargetFramework) 'Release target framework differs.'
@@ -394,7 +402,7 @@ try {
         Assert-Equal '1.6' ([string]$sbom.specVersion) 'SBOM specification version differs.'
         Assert-Equal 'AV Workstation Toolkit' ([string]$sbom.metadata.component.name) 'SBOM root component differs.'
         Assert-Equal 'Apache-2.0' ([string]$sbom.metadata.component.licenses[0].license.id) 'SBOM root project license differs.'
-        Assert-Equal $version ([string]$sbom.metadata.component.version) 'SBOM version differs.'
+        Assert-Equal $releaseName ([string]$sbom.metadata.component.version) 'SBOM version differs.'
         $componentNames = @($sbom.components.name)
         foreach ($expectedComponent in @('SSH.NET','BouncyCastle.Cryptography','Microsoft.Extensions.Logging.Abstractions','Microsoft.NETCore.App.Runtime.win-x64','Microsoft.NETCore.App.Host.win-x64','WixToolset.Sdk')) {
             Assert-True ($expectedComponent -in $componentNames) "SBOM omits reviewed dependency: $expectedComponent"
@@ -553,6 +561,8 @@ try {
         Assert-Equal 'AVWorkstationToolkit' ([IO.Path]::GetFileNameWithoutExtension([string]$versionInfo.OriginalFilename)) 'Launcher original filename base differs.'
         Assert-Equal 'AVWorkstationToolkit' ([IO.Path]::GetFileNameWithoutExtension([string]$versionInfo.InternalName)) 'Launcher internal-name base differs.'
         Assert-True ([string]$versionInfo.ProductVersion -like "$version*") 'EXE product version differs from MSI/release identity.'
+        # The product version people see names the exact pre-release; "1.1.1+commit" must not pass for a beta.
+        Assert-True ([string]$versionInfo.ProductVersion -ceq $releaseName -or ([string]$versionInfo.ProductVersion).StartsWith("$releaseName+",[StringComparison]::Ordinal)) 'EXE product version does not name the exact release.'
         Add-Type -AssemblyName System.Drawing
         # Use a unique probe filename so the Windows Shell icon cache cannot return
         # imagery retained for an earlier build at the stable release path.
@@ -662,7 +672,7 @@ try {
     Invoke-Check 'Optional offline bundle is absent or contains only verified catalogued payloads' {
         $manifest = Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json
         $bundledIds = @($manifest.BundledExternalPackages)
-        $offlineBundlePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-offline-bundle.zip" -f $version)
+        $offlineBundlePath = Join-Path $ReleaseRoot ("AV-Workstation-Toolkit-{0}-offline-bundle.zip" -f $releaseName)
         if ($bundledIds.Count -eq 0) {
             Assert-True (-not (Test-Path -LiteralPath $offlineBundlePath)) 'An undeclared offline bundle is present.'
             return

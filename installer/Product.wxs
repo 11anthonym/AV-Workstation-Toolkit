@@ -9,7 +9,10 @@
       Compressed="yes">
 
     <!-- Preserve the released UpgradeCode explicitly. Existing AVinite packages must remain in this major-upgrade family. -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of AV Workstation Toolkit is already installed." />
+    <!-- Betas share their release's numeric version (1.1.1-beta.2 installs as 1.1.1), and Windows Installer
+         compares only three fields, so a same-version package must replace the installed one rather than
+         register a second product in the same folder. -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of AV Workstation Toolkit is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
     <Property Id="ARPCOMMENTS" Value="Local commercial-AV engineering workstation manager." />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/11anthonym/AV-Workstation-Toolkit" />

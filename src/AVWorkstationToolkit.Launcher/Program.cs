@@ -105,7 +105,8 @@ internal static class Program
                 dataRoot,
                 ProductVersion,
                 GetFileHash(workerPath),
-                SmokeTest: options.ProductionSmoke);
+                SmokeTest: options.ProductionSmoke,
+                Prerelease: ProductPrerelease);
             return RunCompiledApp(new AVWorkstationToolkit.App.App(context));
         }
         catch (Exception exception)
@@ -343,6 +344,12 @@ internal static class Program
             return $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
+
+    // A beta build is stamped "1.1.1-beta.2+commit"; only the label is taken, and only for display.
+    private static string ProductPrerelease =>
+        AVWorkstationToolkit.Application.Diagnostics.ProductRelease.FromInformationalVersion(
+            ProductVersion,
+            Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion).Prerelease;
 
     private sealed record PayloadIntegrity(
         bool Success,

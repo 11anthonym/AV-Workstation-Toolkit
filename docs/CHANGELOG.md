@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-24 — Beta version identity
+
+- A beta now carries its pre-release name wherever people identify a build: `1.1.1-beta.2` in artifact file names, the release folder, diagnostics, the SBOM, the release manifest, and the Windows product version, and "1.1.1 Beta 2" in the window title and About box. Build it with `-BuildChannel ReleaseCandidate -PrereleaseLabel beta.N` and check it with `Test-Package.ps1 -PrereleaseLabel beta.N`.
+- Assembly, file, and MSI versions, the runtime folder, and the version compared with catalog minimums stay numeric, so catalog updates are unaffected. The build refuses a label outside the `ReleaseCandidate` channel.
+- The MSI now allows same-version upgrades, so a later beta or the final release replaces an installed beta instead of registering a second copy.
+
 ## 2026-09-24 — Installed-application detection
 
 - Fixed installed applications showing as not installed. Detection patterns now match the names installers actually register, including vendor prefixes such as "Extron Electronics - Toolbelt", joined names such as "BiampCanvas" and "Crestron SmartGraphics", singular forms such as "Crestron SIMPL Window", versions attached without a space such as "Crestron Device Database200.460.001.00", and vendor-prefixed names such as "ChamSys MagicQ" and "ETC Net3 Concert". 60 existing detectors were corrected.

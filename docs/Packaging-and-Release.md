@@ -64,7 +64,7 @@ From the repository root, the supported fresh-clone build entry point is:
 Build-AVWorkstationToolkit.cmd
 ```
 
-The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.1`.
+The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.1` (for a beta, `artifacts\release\1.1.1-beta.N`; see [beta naming](#beta-naming)).
 
 The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, Apache-2.0 license, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
 
@@ -195,12 +195,31 @@ The optional scan uses an existing valid Microsoft-signed `MpCmdRun.exe`, report
 
 A beta is an unsigned `ReleaseCandidate` build published as a GitHub pre-release. It exists so the project can have public, verifiable artifacts before hosted signing is operational. It never uses the production channel, the signature-required QA mode, or the `v*.*.*` production tag, and each beta requires the owner's explicit approval.
 
+### Beta naming
+
+A beta is a [Semantic Versioning](https://semver.org/) pre-release of the version in `VERSION`: `X.Y.Z-beta.N`, where `N` counts up from 1 and is never reused. The dot matters: `beta.10` sorts after `beta.9`. The label appears wherever people identify a build:
+
+| Where | Example |
+|---|---|
+| Git tag (no leading `v`) | `1.1.1-beta.2` |
+| Release title | AV Workstation Toolkit 1.1.1 Beta 2 (unsigned) |
+| Artifact files and folder | `artifacts\release\1.1.1-beta.2\AV-Workstation-Toolkit-1.1.1-beta.2-win-x64.exe` |
+| Window title and About box | 1.1.1 Beta 2 |
+| Diagnostics, SBOM, and release manifest `ReleaseName` | `1.1.1-beta.2` |
+| Windows product version | `1.1.1-beta.2+<commit>` |
+
+Everything that Windows or the catalogs compare stays numeric: assembly and file versions, the MSI `ProductVersion`, the `runtime\X.Y.Z` folder, and the application version checked against a catalog's `MinimumAppVersion`. Windows Installer compares only the first three version fields, so the MSI allows same-version upgrades: a later beta, and the final release, replace an installed beta instead of registering beside it. The build accepts a label only on the `ReleaseCandidate` channel, so production releases never carry one.
+
+### Publishing a beta
+
 1. Start from a clean checkout of current `main`, with AV Workstation Toolkit closed so the build does not replace an executable in use.
-2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate`. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, and unsigned signature state.
-3. Run full source QA and `tests\Test-Package.ps1`. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
+2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate -PrereleaseLabel beta.N`. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, pre-release label, and unsigned signature state.
+3. Run full source QA and `tests\Test-Package.ps1 -PrereleaseLabel beta.N`. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
 4. Tag the built commit `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
-5. Create a GitHub pre-release from that tag, titled `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\X.Y.Z` and the release packet `docs\releases\X.Y.Z-beta.N.md` as its notes, followed by the asset checksums and QA results.
+5. Create a GitHub pre-release from that tag, titled `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\X.Y.Z-beta.N` and the release packet `docs\releases\X.Y.Z-beta.N.md` as its notes, followed by the asset checksums and QA results.
 6. Never replace a published asset. A corrected beta gets a new `N` and a new tag.
+
+`1.1.1-beta.1` predates this convention: its files and window title read `1.1.1`.
 
 ## Release checklist
 
