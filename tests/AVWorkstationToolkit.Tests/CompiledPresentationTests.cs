@@ -121,9 +121,14 @@ public sealed class CompiledPresentationTests
     [TestMethod]
     public async Task SearchTextSetterIsImmediateAndDebouncesCatalogWork()
     {
+        var debounce = TimeSpan.FromMilliseconds(120);
+        var clock = new SteppedTimeProvider();
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
-            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: debounce, timeProvider: clock);
         await viewModel.RefreshAsync();
+        // Let the search the refresh started finish first. Without a UI dispatcher its result would otherwise
+        // be applied on a pool thread in the middle of the edit below; the app applies both on the UI thread.
+        await viewModel.SearchCompletion;
         var stopwatch = Stopwatch.StartNew();
 
         viewModel.SearchText = "DM-NVX-363";
@@ -133,9 +138,11 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(viewModel.SearchInProgress);
         Assert.AreEqual("Searching…", viewModel.SearchStatusText);
         Assert.IsEmpty(viewModel.CompatibilityMatches);
-        await Task.Delay(40);
+        clock.Advance(debounce - TimeSpan.FromMilliseconds(1));
+        await Task.Delay(40); // Time for a search that skipped the debounce to surface; the stepped clock holds the real one.
         Assert.IsEmpty(viewModel.CompatibilityMatches, "The compatibility search ran before the debounce interval.");
 
+        clock.Advance(TimeSpan.FromMilliseconds(1));
         await viewModel.SearchCompletion;
         Assert.IsFalse(viewModel.SearchInProgress);
         Assert.AreEqual("DM-NVX-363", viewModel.CompatibilityMatches.First().Title);
@@ -144,16 +151,23 @@ public sealed class CompiledPresentationTests
     [TestMethod]
     public async Task FirstCharacterAndClearBothStayOffTheTypingPathUntilDebounceCompletes()
     {
+        var debounce = TimeSpan.FromMilliseconds(120);
+        var clock = new SteppedTimeProvider();
         using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()),
-            compatibilityService: CreateCompatibilityQueries(), searchDebounce: TimeSpan.FromMilliseconds(120));
+            compatibilityService: CreateCompatibilityQueries(), searchDebounce: debounce, timeProvider: clock);
         await viewModel.RefreshAsync();
+        // Let the search the refresh started finish first. Without a UI dispatcher its result would otherwise
+        // be applied on a pool thread in the middle of the edit below; the app applies both on the UI thread.
+        await viewModel.SearchCompletion;
 
         viewModel.SearchText = "Z";
 
         Assert.IsTrue(viewModel.SearchInProgress);
         Assert.HasCount(6, viewModel.VisiblePackages);
-        await Task.Delay(40);
+        clock.Advance(debounce - TimeSpan.FromMilliseconds(1));
+        await Task.Delay(40); // Time for a search that skipped the debounce to surface; the stepped clock holds the real one.
         Assert.HasCount(6, viewModel.VisiblePackages, "A one-character query rebuilt rows before the debounce interval.");
+        clock.Advance(TimeSpan.FromMilliseconds(1));
         await viewModel.SearchCompletion;
         Assert.HasCount(1, viewModel.VisiblePackages);
         Assert.AreEqual("Fixture.Awareness", viewModel.VisiblePackages[0].Id);
@@ -162,8 +176,10 @@ public sealed class CompiledPresentationTests
 
         Assert.IsTrue(viewModel.SearchInProgress);
         Assert.HasCount(1, viewModel.VisiblePackages);
-        await Task.Delay(40);
+        clock.Advance(debounce - TimeSpan.FromMilliseconds(1));
+        await Task.Delay(40); // Time for a search that skipped the debounce to surface; the stepped clock holds the real one.
         Assert.HasCount(1, viewModel.VisiblePackages, "Clearing search rebuilt rows on the typing path.");
+        clock.Advance(TimeSpan.FromMilliseconds(1));
         await viewModel.SearchCompletion;
         Assert.HasCount(6, viewModel.VisiblePackages);
         Assert.AreEqual(string.Empty, viewModel.SearchStatusText);
@@ -1549,6 +1565,53 @@ public sealed class CompiledPresentationTests
             cancellationToken.ThrowIfCancellationRequested();
             var result = results.Dequeue();
             return result is Exception exception ? Task.FromException<WorkstationPlan>(exception) : Task.FromResult((WorkstationPlan)result);
+        }
+    }
+
+    // Search-debounce timers fire only when a test advances this clock, so no assertion races a real timer.
+    private sealed class SteppedTimeProvider : TimeProvider
+    {
+        private readonly List<SteppedTimer> timers = [];
+        private TimeSpan elapsed;
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            var timer = new SteppedTimer(this, callback, state);
+            timer.Change(dueTime, period);
+            return timer;
+        }
+
+        public void Advance(TimeSpan by)
+        {
+            SteppedTimer[] due;
+            lock (timers)
+            {
+                elapsed += by;
+                due = [.. timers.Where(timer => timer.DueAt <= elapsed)];
+                foreach (var timer in due) timers.Remove(timer);
+            }
+            foreach (var timer in due) timer.Fire();
+        }
+
+        private sealed class SteppedTimer(SteppedTimeProvider clock, TimerCallback callback, object? state) : ITimer
+        {
+            public TimeSpan DueAt { get; private set; }
+
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                lock (clock.timers)
+                {
+                    clock.timers.Remove(this);
+                    if (dueTime == Timeout.InfiniteTimeSpan) return true;
+                    DueAt = clock.elapsed + dueTime;
+                    clock.timers.Add(this);
+                }
+                return true;
+            }
+
+            public void Fire() => callback(state);
+            public void Dispose() { lock (clock.timers) clock.timers.Remove(this); }
+            public ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
         }
     }
 

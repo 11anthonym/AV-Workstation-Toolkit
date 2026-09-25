@@ -43,6 +43,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private readonly ReadOnlyObservableCollection<ISoftwareTableRow> softwareRowView;
     private RelatedSoftware relatedSoftware = RelatedSoftware.None;
     private readonly TimeSpan searchDebounce;
+    private readonly TimeProvider timeProvider;
     private readonly Dispatcher? uiDispatcher;
     private IReadOnlyList<PackageSearchEntry> packageSearchSnapshot = [];
     private readonly object activityGate = new();
@@ -113,7 +114,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IReferenceCatalogUpdateService? referenceCatalogUpdates = null,
         IManagedCatalogUpdateService? managedCatalogUpdates = null,
         TimeSpan? searchDebounce = null,
-        Dispatcher? presentationDispatcher = null)
+        Dispatcher? presentationDispatcher = null,
+        TimeProvider? timeProvider = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -128,6 +130,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         this.managedCatalogUpdates = managedCatalogUpdates;
         this.searchDebounce = searchDebounce ?? DefaultSearchDebounce;
         if (this.searchDebounce < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(searchDebounce));
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         uiDispatcher = presentationDispatcher ?? System.Windows.Application.Current?.Dispatcher;
         packageView = new ReadOnlyObservableCollection<PackageRowViewModel>(packages);
         visiblePackageView = new ReadOnlyObservableCollection<PackageRowViewModel>(visiblePackages);
@@ -679,7 +682,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         try
         {
             if (useTextDebounce && searchDebounce > TimeSpan.Zero)
-                await Task.Delay(searchDebounce, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(searchDebounce, timeProvider, cancellationToken).ConfigureAwait(false);
             var result = await Task.Run(() => ComputeSearch(request, cancellationToken), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             await RunOnUiContextAsync(() =>
