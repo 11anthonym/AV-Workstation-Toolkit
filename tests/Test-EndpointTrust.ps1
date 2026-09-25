@@ -394,12 +394,22 @@ if (-not [string]::IsNullOrWhiteSpace($ReleaseRoot)) {
     $releasePath = [IO.Path]::GetFullPath($ReleaseRoot)
     if (-not (Test-Path -LiteralPath $releasePath -PathType Container)) { throw "Release directory was not found: $releasePath" }
     $version = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()
-    $manifestPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-release.json" -f $version)
-    $sbomPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $version)
-    $checksumPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-SHA256SUMS.txt" -f $version)
-    $projectLicensePath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-LICENSE.txt" -f $version)
-    $noticesPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-THIRD-PARTY-NOTICES.md" -f $version)
+    # Artifacts are named for the release, which for a beta extends VERSION (1.1.1-beta.2).
+    $manifestFiles = @(Get-ChildItem -LiteralPath $releasePath -File -Filter 'AV-Workstation-Toolkit-*-release.json')
+    if ($manifestFiles.Count -ne 1) { throw 'The release directory must contain exactly one release manifest.' }
+    $releaseName = $manifestFiles[0].Name -replace '^AV-Workstation-Toolkit-(.+)-release\.json$','$1'
+    if ($releaseName -cne $version -and $releaseName -cnotmatch ('^' + [regex]::Escape($version) + '-(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$')) {
+        throw "Release $releaseName does not belong to VERSION $version."
+    }
+    $manifestPath = $manifestFiles[0].FullName
+    $sbomPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-sbom.cdx.json" -f $releaseName)
+    $checksumPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-SHA256SUMS.txt" -f $releaseName)
+    $projectLicensePath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-LICENSE.txt" -f $releaseName)
+    $noticesPath = Join-Path $releasePath ("AV-Workstation-Toolkit-{0}-THIRD-PARTY-NOTICES.md" -f $releaseName)
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ([string]$manifest.Version -cne $version -or ($releaseName -cne $version -and [string]$manifest.ReleaseName -cne $releaseName)) {
+        throw 'Release manifest version does not match its file name and VERSION.'
+    }
     $sbomText = Get-Content -LiteralPath $sbomPath -Raw
     $sbom = $sbomText | ConvertFrom-Json
     if ([int]$manifest.SchemaVersion -lt 3 -or $sbom.bomFormat -ne 'CycloneDX' -or $sbom.specVersion -ne '1.6') {

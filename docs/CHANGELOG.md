@@ -6,7 +6,7 @@
 - Assembly, file, and MSI versions, the runtime folder, and the version compared with catalog minimums stay numeric, so catalog updates are unaffected. The build refuses a label outside the `ReleaseCandidate` channel.
 - The MSI now allows same-version upgrades, so a later beta or the final release replaces an installed beta instead of registering a second copy.
 - README, SECURITY.md, and the code-signing policy name `1.1.1-beta.2` as the current release. A beta is published as the latest GitHub release, so the repository's download link leads to the current build; its title, notes, and file names identify it as an unsigned beta.
-- `Build-AVWorkstationToolkit.cmd` no longer prints artifact paths guessed from `VERSION`, which named an older build's files after a beta build; the build prints its release folder. `Launch-AVWorkstationToolkit.cmd` starts the most recently built release of `VERSION`, including a beta.
+- `Build-AVWorkstationToolkit.cmd` no longer prints artifact paths guessed from `VERSION`, which named an older build's files after a beta build; the build prints its release folder. `Launch-AVWorkstationToolkit.cmd` starts the most recently built release of `VERSION`, including a beta. `Test-EndpointTrust.ps1 -ReleaseRoot`, which the build also runs for `-ScanWithDefender`, finds a beta's files through its release manifest.
 
 ## 2026-09-24 — Installed-application detection
 
