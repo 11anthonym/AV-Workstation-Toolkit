@@ -29,11 +29,15 @@ manual approval, signer identity, valid RFC3161 timestamps, and
 signature-required package QA are mandatory. Missing configuration fails closed.
 
 Development and release-candidate builds may remain explicitly unsigned. Public
-unsigned artifacts are published only as clearly labeled betas under the
-[beta publication procedure](Packaging-and-Release.md#beta-publication), each
-with the owner's explicit approval; the owner approved `1.1.1-beta.1` on
-2026-09-24 and `1.1.1-beta.2` on 2026-09-25. Production mode must not be weakened or described as unsigned to
-create that path.
+unsigned artifacts are published only under the
+[unsigned publication procedure](Packaging-and-Release.md#unsigned-publication),
+with release titles and notes that state they are unsigned, each with the
+owner's explicit approval. The owner approved the betas `1.1.1-beta.1` on
+2026-09-24 and `1.1.1-beta.2` on 2026-09-25, and the unsigned release `1.1.2`,
+without a beta label, on 2026-09-25. A version published unsigned is never
+reused for signed bytes, so the first signed release will be later than 1.1.2.
+Production mode must not be weakened or described as unsigned to create that
+path.
 
 ## Hosted-signing model
 

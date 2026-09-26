@@ -1,6 +1,6 @@
 # Contributing
 
-AV Workstation Toolkit is a public open-source project in beta.
+AV Workstation Toolkit is a public open-source project.
 Contributions to AV Workstation Toolkit are submitted under the project's
 [Apache-2.0 license](LICENSE) unless separately stated.
 

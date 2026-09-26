@@ -1,6 +1,6 @@
 # AV Workstation Toolkit 1.1.2 Packaging and Release
 
-AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The standard release set contains exactly eight assets: those three delivery formats, the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. The checksum list hashes the other seven assets and intentionally does not hash itself. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Public beta releases are unsigned release-candidate builds published as GitHub pre-releases under the [beta publication procedure](#beta-publication); production releases remain signature-required.
+AV Workstation Toolkit builds a directly downloadable x64 executable, a per-machine MSI, and a one-file portable ZIP. Every standard format contains the same self-contained `AVWorkstationToolkit.exe`; no companion payload directory is required. The standard release set contains exactly eight assets: those three delivery formats, the versioned Apache-2.0 project license, third-party notices, a CycloneDX SBOM, a SHA-256 checksum list, and a release manifest. The checksum list hashes the other seven assets and intentionally does not hash itself. An optional offline bundle can add separately verified third-party installers when redistribution is authorized. Until hosted signing is operational, public releases are unsigned release-candidate builds published under the [unsigned publication procedure](#unsigned-publication); production releases remain signature-required.
 
 ## Runtime layout
 
@@ -191,9 +191,16 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-Endpo
 
 The optional scan uses an existing valid Microsoft-signed `MpCmdRun.exe`, reports unavailable versus passed, and fails on a nonzero scan/detection result. It does not change Defender policy, disable remediation, add exclusions, or upload artifacts to a public service. Pass `-RequireDefender` only on a release machine where Defender availability is an explicit prerequisite.
 
-## Beta publication
+<a id="beta-publication"></a>
 
-A beta is an unsigned `ReleaseCandidate` build published as a GitHub release whose title, notes, and file names identify it as an unsigned beta. It is marked as the latest release so the repository's download link leads to the current build. It exists so the project can have public, verifiable artifacts before hosted signing is operational. It never uses the production channel, the signature-required QA mode, or the `v*.*.*` production tag, and each beta requires the owner's explicit approval.
+## Unsigned publication
+
+Until hosted signing is operational, public releases are unsigned `ReleaseCandidate` builds published as GitHub releases, each with the owner's explicit approval. They never use the production channel, the signature-required QA mode, or the `v*.*.*` production tag, so the fail-closed signing workflow does not run. The release title and notes state that the build is unsigned, and the newest release is marked as the latest so the repository's download link leads to it. An unsigned build is either:
+
+- a **release**, `X.Y.Z`, built without a label, whose files and window title read `X.Y.Z` (1.1.2 is the first); or
+- a **beta**, `X.Y.Z-beta.N`, a pre-release of that version, named as described below.
+
+A version number is never reused for different bytes: once `X.Y.Z` is published unsigned, the first signed release is a later version.
 
 ### Beta naming
 
@@ -210,16 +217,16 @@ A beta is a [Semantic Versioning](https://semver.org/) pre-release of the versio
 
 Everything that Windows or the catalogs compare stays numeric: assembly and file versions, the MSI `ProductVersion`, the `runtime\X.Y.Z` folder, and the application version checked against a catalog's `MinimumAppVersion`. Windows Installer compares only the first three version fields, so the MSI allows same-version upgrades: a later beta, and the final release, replace an installed beta instead of registering beside it. The build accepts a label only on the `ReleaseCandidate` channel, so production releases never carry one.
 
-### Publishing a beta
+### Publishing an unsigned release or beta
 
 1. Start from a clean checkout of current `main`, with AV Workstation Toolkit closed so the build does not replace an executable in use.
-2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate -PrereleaseLabel beta.N`. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, pre-release label, and unsigned signature state.
-3. Run full source QA and `tests\Test-Package.ps1 -PrereleaseLabel beta.N`. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
-4. Tag the built commit `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
-5. Create a GitHub release from that tag, marked latest and titled `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\X.Y.Z-beta.N` and the release packet `docs\releases\X.Y.Z-beta.N.md` as its notes, followed by the asset checksums and QA results.
-6. Never replace a published asset. A corrected beta gets a new `N` and a new tag.
+2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate`, adding `-PrereleaseLabel beta.N` for a beta. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, any pre-release label, and unsigned signature state.
+3. Run full source QA and `tests\Test-Package.ps1`, adding `-PrereleaseLabel beta.N` for a beta. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
+4. Tag the built commit `X.Y.Z` or `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
+5. Create a GitHub release from that tag, marked latest and titled `AV Workstation Toolkit X.Y.Z (unsigned)` or `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\<tag>` and the release packet `docs\releases\<tag>.md` as its notes, followed by the asset checksums and QA results.
+6. Never replace a published asset. A corrected build gets a new version or beta number and a new tag.
 
-`1.1.1-beta.1` predates this convention: its files and window title read `1.1.1`.
+`1.1.1-beta.1` predates the beta naming convention: its files and window title read `1.1.1`.
 
 ## Release checklist
 

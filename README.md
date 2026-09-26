@@ -5,8 +5,8 @@ and maintaining a controlled AV/IT workstation software baseline. It knows the
 engineering tools AV and IT teams use, shows what is installed and out of date,
 and installs or updates only applications your team has explicitly approved.
 
-The project is in **public beta**. The current release is the unsigned
-[`1.1.1-beta.2`](docs/releases/1.1.1-beta.2.md); use it on test or pilot
+The current release is the unsigned
+[`1.1.2`](docs/releases/1.1.2.md); use it on test or pilot
 workstations until you have reviewed it against your organization's software
 policy.
 
@@ -30,12 +30,11 @@ Releases are published on the
 Verify each download against the published SHA-256 checksum list before running
 it.
 
-Each release offers three delivery formats. A beta's file names carry its
-label ([beta naming](docs/Packaging-and-Release.md#beta-naming)); for Beta 2:
+Each release offers three delivery formats; for 1.1.2:
 
-- run `AV-Workstation-Toolkit-1.1.1-beta.2-win-x64.exe` directly;
-- install `AV-Workstation-Toolkit-1.1.1-beta.2-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
-- extract `AV-Workstation-Toolkit-1.1.1-beta.2-win-x64.zip` and run `AVWorkstationToolkit.exe`.
+- run `AV-Workstation-Toolkit-1.1.2-win-x64.exe` directly;
+- install `AV-Workstation-Toolkit-1.1.2-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
+- extract `AV-Workstation-Toolkit-1.1.2-win-x64.zip` and run `AVWorkstationToolkit.exe`.
 
 The tagged workflow's standard release set contains exactly eight assets: the
 three delivery formats above, the Apache-2.0 `LICENSE`, third-party notices, a
@@ -43,7 +42,7 @@ CycloneDX SBOM, a release manifest, and a SHA-256 checksum list. The checksum
 list covers the other seven assets and does not hash itself.
 
 AV Workstation Toolkit has prepared a fail-closed SignPath release workflow.
-Current artifacts remain unsigned, including the public beta, until external
+Current artifacts remain unsigned, including 1.1.2, until external
 configuration and approval are completed. Authenticode signing does not
 guarantee that SmartScreen or an organization's endpoint policy will accept a
 new binary.
@@ -107,7 +106,7 @@ separately signed reference catalog that updates in the app.
 - [Operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md)
 - [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
 - [Repository scripts: command-line deployment and maintenance, snapshot, readiness, and catalog authoring](scripts/README.md)
-- Release notes for [1.1.1 Beta 2](docs/releases/1.1.1-beta.2.md) and [Beta 1](docs/releases/1.1.1-beta.1.md), and the [change log](docs/CHANGELOG.md)
+- Release notes for [1.1.2](docs/releases/1.1.2.md) and earlier releases ([1.1.1 Beta 2](docs/releases/1.1.1-beta.2.md), [Beta 1](docs/releases/1.1.1-beta.1.md)), and the [change log](docs/CHANGELOG.md)
 
 **Security, privacy, and trust**
 
@@ -181,7 +180,7 @@ analytics, or crash-reporting service.
 
 ## Code signing
 
-Current development, release-candidate, and beta artifacts are unsigned. The build
+Current development, release-candidate, and release artifacts, including 1.1.2, are unsigned. The build
 retains a fail-closed organizational Authenticode path and prepared SignPath
 workflow, while the project has not submitted to or been accepted by SignPath
 Foundation. See the [code signing policy](docs/Code-Signing-Policy.md) and
@@ -201,7 +200,7 @@ not redistributed project dependencies.
 
 ## Contributing and project status
 
-AV Workstation Toolkit is in public beta. Bug reports and catalog corrections
+Bug reports and catalog corrections
 are welcome as [GitHub issues](https://github.com/11anthonym/AV-Workstation-Toolkit/issues).
 Review [CONTRIBUTING.md](CONTRIBUTING.md) for the Windows build/test commands,
 dependency-lock rules, catalog boundaries, and security-sensitive review

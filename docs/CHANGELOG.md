@@ -4,6 +4,7 @@
 
 - The source version is now 1.1.2: `VERSION`, the launcher, worker, and development-host assembly and file versions, the launcher manifest, the window title, and the repository script module. Builds extract to `runtime\1.1.2` and write to `artifacts\release\1.1.2`, and the 1.1.2 MSI upgrades an installed 1.1.1 build or beta.
 - Catalog minimum application versions stay `1.1.1`, so earlier builds and betas keep receiving signed catalog updates.
+- 1.1.2 is published as an unsigned release without a beta label, by owner decision. The beta publication procedure became the [unsigned publication procedure](Packaging-and-Release.md#unsigned-publication), which covers both plain `X.Y.Z` releases and `X.Y.Z-beta.N` betas; the code-signing policy records the approval and that a version published unsigned is never reused for signed bytes, so the first signed release will be later than 1.1.2. README, SECURITY.md, CONTRIBUTING.md, the endpoint-security baseline, the SignPath readiness record, and the bug-report form name 1.1.2 as the current release.
 - The search-debounce tests no longer depend on wall-clock timing. `MainWindowViewModel` takes an optional `TimeProvider` for the debounce (production uses the system clock); the tests advance a stepped clock and wait for the refresh's own search before typing, with every assertion kept.
 
 ## 2026-09-25 — Public-repository cleanup

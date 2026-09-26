@@ -13,7 +13,7 @@ body:
     attributes:
       label: Version
       description: Shown in Help > About AV Workstation Toolkit, or in the release file name.
-      placeholder: 1.1.1-beta.1
+      placeholder: 1.1.2
     validations:
       required: true
   - type: dropdown
