@@ -51,9 +51,9 @@
                         <TextBlock Text="The checklist compares the imported list with this PC immediately. Nothing installs until you choose it." Foreground="#70849D" FontSize="10.5" TextWrapping="Wrap" Margin="0,6,0,0"/>
 
                         <TextBlock Text="DEPLOYMENT PROFILES" Style="{StaticResource SectionLabel}" Margin="0,22,0,0"/>
-                        <Button x:Name="NewProfileButton" Content="New profile…" Command="{Binding NewProfileCommand}" Style="{StaticResource SidebarButton}"/>
-                        <Button x:Name="EditProfileButton" Content="Revise a profile…" Command="{Binding EditProfileCommand}" Style="{StaticResource SidebarButton}"/>
-                        <Button x:Name="SaveAsProfileButton" Content="Save checklist as profile…" Command="{Binding SaveAsProfileCommand}" Style="{StaticResource SidebarButton}"
+                        <Button x:Name="NewProfileButton" Content="New deployment profile…" Command="{Binding NewProfileCommand}" Style="{StaticResource SidebarButton}"/>
+                        <Button x:Name="EditProfileButton" Content="Revise a deployment profile…" Command="{Binding EditProfileCommand}" Style="{StaticResource SidebarButton}"/>
+                        <Button x:Name="SaveAsProfileButton" Content="Save checklist as deployment profile…" Command="{Binding SaveAsProfileCommand}" Style="{StaticResource SidebarButton}"
                                 AutomationProperties.HelpText="Creates a reusable deployment profile from the applications selected in this checklist."/>
 
                         <Border Margin="0,18,0,0" Background="#321719" BorderBrush="#A43F48" BorderThickness="1" CornerRadius="8" Padding="10"
@@ -78,7 +78,10 @@
                     <StackPanel>
                         <TextBlock x:Name="SourceTitle" Text="{Binding SourceTitle}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Text="{Binding SourceDetail}" Foreground="{StaticResource MutedBrush}" FontSize="11.5" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                        <Grid Margin="0,9,0,0" Visibility="{Binding HasSession, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock x:Name="RemainingHeadline" Text="{Binding RemainingHeadline}" FontSize="24" FontWeight="SemiBold" Foreground="#F8D27A" Margin="0,8,0,0"
+                                   Visibility="{Binding HasSession, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                   AutomationProperties.Name="Applications remaining" AutomationProperties.LiveSetting="Polite"/>
+                        <Grid Margin="0,6,0,0" Visibility="{Binding HasSession, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <ProgressBar x:Name="MigrationProgress" Value="{Binding ProgressPercent, Mode=OneWay}" Maximum="100" VerticalAlignment="Center" AutomationProperties.Name="Migration progress"/>
                             <TextBlock x:Name="ProgressText" Grid.Column="1" Text="{Binding ProgressText}" FontWeight="SemiBold" Margin="12,0,0,0" VerticalAlignment="Center"/>
@@ -108,8 +111,9 @@
                                 <Button Content="{Binding ReadyLabel}" CommandParameter="ReadyToInstall" AutomationProperties.Name="Show applications available for automatic installation"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="ReadyToInstall"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
                                 <Button Content="{Binding ManualLabel}" CommandParameter="Manual" AutomationProperties.Name="Show applications that need manual installation"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="Manual"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
                                 <Button Content="{Binding AttentionLabel}" CommandParameter="NeedsAttention" AutomationProperties.Name="Show applications to review, failed installs, and checks that couldn't finish"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="NeedsAttention"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
-                                <Button Content="{Binding DoneLabel}" CommandParameter="Done" AutomationProperties.Name="Show applications that are done"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="Done"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
+                                <Button Content="{Binding CompletedLabel}" CommandParameter="Completed" AutomationProperties.Name="Show applications detected as installed"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="Completed"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
                                 <Button Content="{Binding ExcludedLabel}" CommandParameter="Excluded" AutomationProperties.Name="Show excluded applications"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="Excluded"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
+                                <Button Content="{Binding SupportingLabel}" CommandParameter="Supporting" AutomationProperties.Name="Show supporting components left out of the migration"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="Supporting"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
                                 <Button Content="{Binding AllLabel}" CommandParameter="All" AutomationProperties.Name="Show every checklist application"><Button.Style><Style TargetType="Button" BasedOn="{StaticResource ChipButton}"><Style.Triggers><DataTrigger Binding="{Binding Filter}" Value="All"><Setter Property="Background" Value="#1D4D83"/><Setter Property="BorderBrush" Value="#69A6FF"/><Setter Property="FontWeight" Value="SemiBold"/></DataTrigger></Style.Triggers></Style></Button.Style></Button>
                             </WrapPanel>
                         </DockPanel>
@@ -169,18 +173,59 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
-                    <Border x:Name="EmptyState" Background="#0D1524" BorderBrush="#26364F" BorderThickness="1" CornerRadius="9" Padding="28"
-                            Visibility="{Binding NoSessionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <StackPanel VerticalAlignment="Center" MaxWidth="620">
-                            <TextBlock Text="No migration in progress" FontSize="18" FontWeight="SemiBold"/>
-                            <TextBlock TextWrapping="Wrap" Foreground="#AAB8CA" Margin="0,8,0,0" LineHeight="20"
-                                       Text="Moving to a new PC? On the old PC, open this window, scan, and export the inventory. On this PC, import that file: the Toolkit compares it with this PC right away and lists what's installed, what it can install for you, and what you'll install yourself."/>
-                            <TextBlock TextWrapping="Wrap" Foreground="#AAB8CA" Margin="0,10,0,0" LineHeight="20"
-                                       Text="Setting up a standard workstation? Apply a deployment profile, such as a jump PC or commissioning laptop, to get the same checklist from an intentional baseline."/>
-                            <TextBlock TextWrapping="Wrap" Foreground="#8395AC" FontSize="11.5" Margin="0,12,0,0"
-                                       Text="An inventory or profile only describes what's wanted. The Toolkit installs only apps its approved managed catalog allows, through the same checks as the main window."/>
-                        </StackPanel>
-                    </Border>
+                    <Grid x:Name="EmptyState" Visibility="{Binding NoSessionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <Border Background="#0D1524" BorderBrush="#26364F" BorderThickness="1" CornerRadius="9" Padding="16,12">
+                            <StackPanel>
+                                <TextBlock Text="No migration in progress" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#AAB8CA" Margin="0,6,0,0"
+                                           Text="On the old PC: review the applications below, clear any you don't want to carry over, and export the inventory. On the replacement PC: import that file. The Toolkit compares it with the replacement right away and lists only what's still needed."/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#8395AC" FontSize="11.5" Margin="0,6,0,0"
+                                           Text="Setting up a standard workstation instead? Apply a deployment profile. An inventory or deployment profile only describes what's wanted; the Toolkit installs only apps its approved managed catalog allows, with the same checks as the main window."/>
+                            </StackPanel>
+                        </Border>
+                        <DockPanel Grid.Row="1" Margin="0,12,0,6" Visibility="{Binding ReviewVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBox x:Name="ReviewSearch" DockPanel.Dock="Right" Width="220" Margin="8,0,0,0" Text="{Binding ReviewSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Filter by name, publisher, or identity" AutomationProperties.Name="Search this PC's applications"/>
+                            <CheckBox DockPanel.Dock="Right" Content="Show supporting and system components" IsChecked="{Binding ShowSupportingComponents}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Applications on this PC" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="ReviewSummary" Text="{Binding ReviewSummary}" Foreground="#8FB9EC" FontSize="11.5"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DataGrid x:Name="ReviewGrid" Grid.Row="2" ItemsSource="{Binding ReviewItems}" IsReadOnly="False" MinRowHeight="40"
+                                  EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                  ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  Visibility="{Binding ReviewVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                  AutomationProperties.Name="Applications on this PC to include in the exported migration">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Migrate" Width="72" MinWidth="72" IsReadOnly="True" CanUserSort="False">
+                                    <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                        <CheckBox Style="{StaticResource GridCheckBox}" IsChecked="{Binding Migrate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  ToolTip="Carry this application to the replacement PC. Cleared items are still recorded in the file but start excluded."
+                                                  AutomationProperties.Name="{Binding Name, StringFormat='Migrate {0}'}"/>
+                                    </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Application" Width="1.6*" MinWidth="200" IsReadOnly="True" CanUserSort="False">
+                                    <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                                            <TextBlock Text="{Binding Publisher}" Foreground="#8395AC" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="110" MinWidth="90" IsReadOnly="True" CanUserSort="False"/>
+                                <DataGridTemplateColumn Header="Identified as" Width="1.2*" MinWidth="160" IsReadOnly="True" CanUserSort="False">
+                                    <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding IdentityLabel}" Foreground="#C5D4E8" TextTrimming="CharacterEllipsis" ToolTip="{Binding IdentityLabel}"/>
+                                            <TextBlock Text="{Binding RelevanceLabel}" Foreground="#7E9FC7" FontSize="10.5" ToolTip="{Binding RelevanceReason}"/>
+                                        </StackPanel>
+                                    </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
                 </Grid>
 
                 <Border x:Name="DetailPanel" Grid.Row="3" Margin="0,10,0,0" Background="#101C2D" BorderBrush="#34506F" BorderThickness="1" CornerRadius="8" Padding="12"
@@ -195,9 +240,11 @@
                         </StackPanel>
                         <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" MaxWidth="330" Margin="12,0,0,0">
                             <Button x:Name="InstallSelectedButton" Content="Install" Style="{StaticResource SuccessButton}" Command="{Binding InstallSelectedCommand}" Margin="0,0,6,6"/>
-                            <Button x:Name="ConfirmButton" Content="Mark done" Command="{Binding ConfirmCommand}" Margin="0,0,6,6"
-                                    ToolTip="Record that you installed this yourself. Use it when this PC can't detect the app."/>
-                            <Button Content="Undo mark done" Command="{Binding UndoConfirmCommand}" Margin="0,0,6,6"/>
+                            <Button x:Name="ConfirmButton" Content="Confirm installed" Command="{Binding ConfirmCommand}" Margin="0,0,6,6"
+                                    Visibility="{Binding SelectedItem.CanConfirm, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                                    ToolTip="Only for an app AV Workstation Toolkit has no way to detect. Every other app leaves the list when a scan detects it."/>
+                            <Button x:Name="ClearConfirmationButton" Content="Clear confirmation" Command="{Binding UndoConfirmCommand}" Margin="0,0,6,6"
+                                    Visibility="{Binding SelectedItem.IsConfirmed, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                             <Button x:Name="ExcludeButton" Content="Exclude" Command="{Binding ExcludeCommand}" Margin="0,0,6,6" ToolTip="Leave this app off the migration; you can include it again."/>
                             <Button x:Name="IncludeButton" Content="Include" Command="{Binding IncludeCommand}" Margin="0,0,6,6"/>
                             <Button x:Name="RemoveButton" Content="Remove…" Command="{Binding RemoveCommand}" Margin="0,0,6,6" ToolTip="Remove this app from the migration permanently."/>

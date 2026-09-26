@@ -71,10 +71,20 @@ public sealed record ReconciledApplication(
         Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.InstallFailed &&
         CatalogState is { Action: PackageAction.Install } state && state.Package.HasManagedExecutionAuthority;
 
-    public bool CanConfirmManually => Desired.Included && !Satisfied && Status != ChecklistStatus.Installing;
+    /// <summary>
+    /// A technician can confirm an application only when this workstation can never observe it (see
+    /// <see cref="ApplicationReconciliationService.IsUndetectable"/>). Every other application is done only when detected.
+    /// </summary>
+    public bool CanConfirmManually => Desired.Included && !Satisfied && Status != ChecklistStatus.Installing &&
+        ApplicationReconciliationService.IsUndetectable(Desired);
+
+    /// <summary>Whether the item is a migration-relevant application rather than a supporting component.</summary>
+    public bool IsApplication => Desired.Spec.Relevance == MigrationRelevance.Application;
 }
 
+/// <summary>Checklist counts. <see cref="Remaining"/> is the number that matters while rebuilding a workstation.</summary>
 public sealed record ChecklistSummary(
+    int Imported,
     int Included,
     int Satisfied,
     int Ready,
@@ -84,15 +94,24 @@ public sealed record ChecklistSummary(
     int CheckUnavailable,
     int Failed,
     int Installing,
-    int Excluded)
+    int Excluded,
+    int Supporting)
 {
+    public static ChecklistSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    /// <summary>Selected items not currently detected (or, for an undetectable app, confirmed).</summary>
     public int Remaining => Included - Satisfied;
+
+    /// <summary>Items whose identity needs a decision or whose state couldn't be checked.</summary>
+    public int NeedsReview => Review + CheckUnavailable;
 
     public static ChecklistSummary From(IEnumerable<ReconciledApplication> items)
     {
         var list = items.ToArray();
         int Count(ChecklistStatus status) => list.Count(item => item.Status == status);
         return new ChecklistSummary(
+            // Supporting components that start outside the migration are neither imported applications nor user exclusions.
+            list.Count(item => item.IsApplication || item.Desired.Included),
             list.Count(item => item.Desired.Included),
             list.Count(item => item.Desired.Included && item.Satisfied),
             Count(ChecklistStatus.ReadyToInstall),
@@ -102,7 +121,8 @@ public sealed record ChecklistSummary(
             Count(ChecklistStatus.CheckUnavailable),
             Count(ChecklistStatus.InstallFailed),
             Count(ChecklistStatus.Installing),
-            Count(ChecklistStatus.Excluded));
+            list.Count(item => !item.Desired.Included && item.IsApplication),
+            list.Count(item => !item.Desired.Included && !item.IsApplication));
     }
 }
 
@@ -126,11 +146,27 @@ public sealed class ApplicationReconciliationService
         return desired.Select(item => Reconcile(item, index, target, installingItemIds)).ToArray();
     }
 
+    /// <summary>
+    /// True for the one case a scan can never settle: a catalog application whose record has no Windows detector and
+    /// whose checklist item carries no WinGet, Windows Installer, or uninstall-registration identity to match. Only
+    /// such an application may be confirmed by a technician; every other application is done only when detected.
+    /// </summary>
+    public static bool IsUndetectable(DesiredApplication desired)
+    {
+        ArgumentNullException.ThrowIfNull(desired);
+        return desired.Identity.IsConfident && !desired.Identity.Application!.Detectable &&
+            desired.Spec.WinGetId.Length == 0 && desired.Spec.MsiUpgradeCode.Length == 0 && desired.Spec.UninstallKeys.Count == 0;
+    }
+
     private ReconciledApplication Reconcile(DesiredApplication desired, TargetIndex index, ReconciliationTarget target, IReadOnlySet<string>? installing)
     {
         var known = desired.Identity.IsConfident ? desired.Identity.Application : null;
         var state = known is null ? null : index.State(known.Id);
-        var detection = known is null ? index.DetectUncatalogued(desired.Spec) : index.DetectCatalogued(known, state);
+        // A catalog application is found by its catalog state first; its own installer and name evidence from the
+        // source is the same conservative fallback an uncatalogued application uses.
+        var detection = known is null
+            ? index.DetectUncatalogued(desired.Spec)
+            : index.DetectCatalogued(known, state) is { Found: true } catalogued ? catalogued : index.DetectUncatalogued(desired.Spec);
         var registryComplete = target.Inventory.Sources.Registry == EvidenceQuality.Complete;
 
         ReconciledApplication Result(ChecklistStatus status, string detail, PackageState? catalogState = null, bool allowed = false) => new(
@@ -145,11 +181,12 @@ public sealed class ApplicationReconciliationService
             return Result(ChecklistStatus.Installing, "Installation is running.");
         if (detection.Found)
             return Result(ChecklistStatus.Installed, InstalledDetail(desired, detection));
-        if (desired.ConfirmedAtUtc is { } confirmed)
+        // A confirmation counts only for an application no scan can ever observe; a stale one never hides a detectable app.
+        if (desired.ConfirmedAtUtc is { } confirmed && IsUndetectable(desired))
             return Result(ChecklistStatus.ConfirmedManually,
-                $"Marked done by a technician on {confirmed.ToLocalTime():yyyy-MM-dd HH:mm}. This PC can't confirm it.");
+                $"Confirmed installed by a technician on {confirmed.ToLocalTime():yyyy-MM-dd HH:mm}. AV Workstation Toolkit can't detect this app.");
 
-        var outcome = known is null ? Uncatalogued(desired, registryComplete) : Catalogued(known, state, target, registryComplete);
+        var outcome = known is null ? Uncatalogued(desired, registryComplete) : Catalogued(desired, known, state, target, registryComplete);
         if (desired.LastAttempt is { } attempt && outcome.Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.ManualInstall or ChecklistStatus.CheckUnavailable)
         {
             var message = attempt.Succeeded
@@ -161,7 +198,7 @@ public sealed class ApplicationReconciliationService
     }
 
     private (ChecklistStatus Status, string Detail, PackageState? State, bool Allowed) Catalogued(
-        KnownApplication known, PackageState? state, ReconciliationTarget target, bool registryComplete)
+        DesiredApplication desired, KnownApplication known, PackageState? state, ReconciliationTarget target, bool registryComplete)
     {
         if (known.Management == ApplicationManagement.ManagedWinGet)
         {
@@ -184,12 +221,12 @@ public sealed class ApplicationReconciliationService
                 : $"Couldn't confirm whether this app is installed. {state.StatusDetail}", state, false);
         }
 
-        if (!known.Detectable)
+        if (IsUndetectable(desired))
             return (ChecklistStatus.ManualInstall,
-                "Install this manually. AV Workstation Toolkit can't detect it, so mark it done when it's installed.", state, false);
+                "Install this manually. AV Workstation Toolkit has no way to detect this app, so confirm it once it's installed.", state, false);
         if (!registryComplete)
             return (ChecklistStatus.CheckUnavailable, "Some installed-app registrations on this PC couldn't be read, so this app's state is unknown.", state, false);
-        return (ChecklistStatus.ManualInstall, ManualDetail(known.Package), state, false);
+        return (ChecklistStatus.ManualInstall, $"{ManualDetail(known.Package)} Then choose Rescan; it leaves the list once it's detected.", state, false);
     }
 
     private static (ChecklistStatus Status, string Detail, PackageState? State, bool Allowed) Uncatalogued(DesiredApplication desired, bool registryComplete)
@@ -204,7 +241,7 @@ public sealed class ApplicationReconciliationService
                 $"WinGet knows this app as {desired.Spec.WinGetId}, but it isn't in the approved managed catalog, so AV Workstation Toolkit won't install it. Install it manually.", null, false);
         var publisher = desired.Spec.Publisher.Length > 0 ? $" from {desired.Spec.Publisher}" : string.Empty;
         return (ChecklistStatus.UnknownApplication,
-            $"Not in the AV Workstation Toolkit catalog. Install it manually{publisher}; a rescan recognizes it once it's installed.", null, false);
+            $"Not in the AV Workstation Toolkit catalog. Install it manually{publisher}, then choose Rescan; it leaves the list once it's detected.", null, false);
     }
 
     private static string ManualDetail(PackageDefinition package) => package.DeliveryMode switch
@@ -291,25 +328,23 @@ public sealed class ApplicationReconciliationService
 
         public Detection DetectUncatalogued(DesiredApplicationSpec spec)
         {
+            // An exact WinGet package ID is a package identity. An upgrade code or an uninstall key is installer identity
+            // a vendor could reuse, so it counts only when the publishers don't disagree, exactly like a name match.
             if (spec.WinGetId.Length > 0 && byWinGetId[spec.WinGetId].FirstOrDefault() is { } byPackage)
                 return new(true, byPackage.DisplayVersion, $"Same WinGet package ID ({spec.WinGetId})");
-            if (spec.MsiUpgradeCode.Length > 0 && byUpgradeCode[spec.MsiUpgradeCode].FirstOrDefault() is { } byUpgrade)
+            if (spec.MsiUpgradeCode.Length > 0 && byUpgradeCode[spec.MsiUpgradeCode].FirstOrDefault(item => PublisherCompatible(item, spec)) is { } byUpgrade)
                 return new(true, byUpgrade.DisplayVersion, "Same Windows Installer upgrade code");
             foreach (var key in spec.UninstallKeys)
-                if (byUninstallKey[key].FirstOrDefault() is { } byKey)
+                if (byUninstallKey[key].FirstOrDefault(item => PublisherCompatible(item, spec)) is { } byKey)
                     return new(true, byKey.DisplayVersion, "Same Windows uninstall registration");
             var name = ApplicationNames.CompactKey(spec.DisplayName);
-            if (name.Length >= 3)
-            {
-                var candidates = byName[name].ToArray();
-                var match = spec.Publisher.Length == 0
-                    ? candidates.FirstOrDefault()
-                    : candidates.FirstOrDefault(item => item.Publisher.Length == 0 || ApplicationNames.PublishersAgree(item.Publisher, spec.Publisher));
-                if (match is not null)
-                    return new(true, match.DisplayVersion, $"Matched {match.DisplayName} by name and publisher");
-            }
+            if (name.Length >= 3 && byName[name].FirstOrDefault(item => PublisherCompatible(item, spec)) is { } match)
+                return new(true, match.DisplayVersion, $"Matched {match.DisplayName} by name and publisher");
             return Detection.None;
         }
+
+        private static bool PublisherCompatible(ObservedApplication observed, DesiredApplicationSpec spec) =>
+            spec.Publisher.Length == 0 || observed.Publisher.Length == 0 || ApplicationNames.PublishersAgree(observed.Publisher, spec.Publisher);
 
         private static string FirstNonEmpty(string? first, string? second) =>
             !string.IsNullOrWhiteSpace(first) ? first : second ?? string.Empty;

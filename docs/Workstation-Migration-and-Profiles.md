@@ -16,80 +16,112 @@ Open it from **Workstation migration** in the main window's header, or
 
 1. Open **Workstation migration**. It uses the main window's latest status check, or
    scans if none has finished; **Scan this PC** scans again.
-2. Choose **Export inventory…** and save the file somewhere you can reach from
-   the new workstation, such as a USB drive or a share.
+2. Review **Applications on this PC**. Every user-facing application starts
+   selected; clear any you don't want to carry over. **Show supporting and
+   system components** lists runtimes, drivers, and hidden entries too.
+3. Choose **Export inventory…** and save the file somewhere you can reach from
+   the new workstation, such as a USB drive or a share. Every observation is
+   written as evidence; a cleared item is only marked as not selected.
 
 **On the replacement workstation**
 
 1. Open **Workstation migration** and choose **Import inventory…**.
 2. The Toolkit scans the new workstation immediately and compares it with the
-   old one. There is no separate plan-building step: the imported inventory is
-   the migration list.
-3. Work through the checklist. It opens on **To do**, the selected
-   applications that aren't done yet.
+   old one. There is no plan to build, approve, or activate: the imported
+   inventory is the working migration.
+3. Work through the checklist. It opens on **Remaining**: the selected
+   applications this workstation doesn't have yet. The header leads with how
+   many remain, followed by how many were imported, are installed, are
+   excluded, and need review.
 
-Every user-facing application from the old workstation starts selected.
-Runtimes, driver packages, and Windows-supplied components such as Microsoft
-Edge start excluded, because the applications that need them install them;
-include any you want. Hidden system components and updates stay in the
-inventory file as evidence but aren't added to the checklist.
+Every user-facing application the old workstation selected starts selected
+here. Runtimes, driver packages, updaters, and Windows-supplied components such
+as Microsoft Edge are listed under **Supporting** and start outside the
+migration, because the applications that need them install them; include any
+you want. They don't count as exclusions. Hidden system components and updates
+stay in the inventory file as evidence but aren't added to the checklist.
 
 ## The checklist
+
+An application's state always comes from the workstation's current evidence.
+It leaves **Remaining** when a scan detects it, whether AV Workstation Toolkit
+installed it, you installed it yourself, or it was already there, and it
+returns to **Remaining** if a later scan no longer finds it. The checklist keeps
+every item; a detected item is shown under **Completed**, not deleted.
 
 | Status | Meaning | What to do |
 |---|---|---|
 | Installed | Detected on this workstation. A version that differs from the old one is noted. | Nothing. |
-| Done (confirmed) | You marked it done, and this workstation can't confirm it. | Nothing. |
 | Install available | The approved managed catalog allows an automatic installation here. | **Install** or **Install all available**. |
 | Restart first | Allowed, but it installs a driver, service, or listener and Windows is waiting for a restart. | Restart Windows, then install. |
 | Installing… | The worker is installing it. | Wait. |
 | Install failed | The last attempt failed, or reported success without the app being detected. | Read the detail, then retry or install it yourself. |
-| Manual | A catalog application the Toolkit can't install automatically, such as Crestron Toolbox or Q-SYS Designer. | Install it yourself (**Get package** in the main window opens its approved vendor page or download), then **Rescan**. |
+| Manual · not yet detected | A catalog application the Toolkit can't install automatically, such as Crestron Toolbox or Q-SYS Designer. | Install it yourself (**Get package** in the main window opens its approved vendor page or download), then **Rescan**. |
 | Manual · not in catalog | An application the Toolkit doesn't catalog, or that WinGet knows but the managed catalog doesn't approve. | Install it yourself, then **Rescan**. |
 | Review | Its identity is ambiguous or only suggested by a similar name. | Decide whether it's needed; install it yourself or exclude it. |
 | Can't check | This workstation's inventory was incomplete. | **Rescan**; see Diagnostics if it persists. |
-| Excluded | Left out of this migration. | Include it again if you change your mind. |
+| Manual · can't be detected | A catalog application with no Windows detector, and no installer identity from the source to match. | Install it, then **Confirm installed**. |
+| Confirmed installed | You confirmed an application of the kind above. | Nothing; **Clear confirmation** undoes it. |
+| Excluded | A user-facing application you left out of this migration. | Include it again if you change your mind. |
+| Supporting component | A runtime, driver package, updater, or Windows component left out by default. | Include it only if you need it. |
 
 Manual installation is a normal state, not a failure: much AV software comes
 from vendor portals, dealer accounts, or licensed installers. After you install
-an app yourself, **Rescan** checks the workstation again; a recognized app moves
-to **Installed** on its own.
+an app yourself, **Rescan** checks the workstation again, and a recognized app
+leaves **Remaining** on its own. After an automatic installation the Toolkit
+scans the workstation itself; an app is completed only when that scan detects
+it, never because an installer reported success.
+
+There is no general "mark done" for applications. **Confirm installed** exists
+only for the one case a scan can never settle: a catalog application the
+catalog can't detect on Windows, with no WinGet, Windows Installer, or
+uninstall-registration identity from the source. Every other application,
+including one the catalog doesn't know, is completed only by detection; if it
+can't be found it stays **Manual · not yet detected**, **Manual · not in
+catalog**, or **Review**. Profile manual checks are different: they are
+human tasks, and you tick them off yourself.
 
 Checklist actions:
 
-- **Include** check box, **Exclude**, and **Include** leave an app out of the
-  migration or bring it back.
+- The **Include** check box, **Exclude**, and **Include** leave an app out of
+  the migration or bring it back.
 - **Remove…** takes an app out of this migration permanently. Excluding is the
   reversible choice.
-- **Mark done** records that you installed an app this workstation can't
-  detect. It is shown separately from a detected installation and can be undone.
 - **Rescan** (F5) scans the workstation again.
-- **Finish migration** ends the migration and deletes its saved checklist.
+- **Finish migration** ends the migration and deletes its saved checklist, for
+  example when nothing remains or you've intentionally excluded the rest.
 
-The search box filters by name, publisher, catalog ID, or WinGet ID. Select a
-row to see how the app was identified and what was found on this workstation.
+The views are **Remaining**, **Install available**, **Manual**, **Needs
+attention** (review, can't check, and failed installs), **Completed**,
+**Excluded**, **Supporting**, and **All**. The search box filters by name,
+publisher, catalog ID, or WinGet ID. Select a row to see how the app was
+identified and what was found on this workstation.
 
 ## Deployment profiles
 
 A deployment profile describes what a type of workstation should have, such as
 a jump PC, a service technician laptop, a programming workstation, or a
-commissioning workstation. It lists catalog applications, applications the
+commissioning workstation. It is separate from the Standard, Field, Developer,
+and Optional catalog profiles that filter the main window. It lists catalog applications, applications the
 catalog doesn't know (by name and optional publisher), whether each is
 required, and manual checks such as "Verify remote connectivity".
 
-- **New profile…** opens the editor. Select catalog applications, add any that
-  aren't in the catalog, mark optional ones, and type manual checks one per
+- **New deployment profile…** opens the editor. Select catalog applications, add any that
+  aren't in the catalog, mark the ones that aren't required, and type manual checks one per
   line. Save the profile to a file; profiles are kept in the `profiles` folder
   by default and can be shared like any file.
-- **Save checklist as profile…** starts a profile from the current checklist's
+- **Save checklist as deployment profile…** starts a profile from the current checklist's
   selected applications, so a well-set-up workstation can become a baseline.
 - **Apply deployment profile…** builds the checklist from a profile and scans
-  the workstation. Optional applications start excluded.
-- **Revise a profile…** opens a saved profile with the next version number.
+  the workstation. Applications that aren't required start excluded.
+- **Revise a deployment profile…** opens a saved profile with the next version number.
   Applying a newer version of the profile a checklist came from shows what the
   revision adds and removes, and keeps the progress on applications that stay.
 
-Manual checks are reminders for the technician. The Toolkit never runs them.
+Manual checks are reminders for the technician, ticked off by hand. The Toolkit
+never runs them. Applications in a profile, including ones outside the catalog,
+are tracked like any migration item and complete only when detected; a WinGet ID
+in a profile is identity evidence and never makes an application installable.
 
 ## How the inventory is built
 
@@ -116,12 +148,21 @@ over.
    exact version), so one application is one entry. A package WinGet reports
    with no registration, such as an MSIX-only app, becomes its own entry.
 4. **Windows Installer upgrade codes are read from the registry** to recognize
-   an MSI product family across versions. They are never read through Windows
-   Installer APIs or WMI, which can start repair or reconfiguration.
+   an MSI product family across versions. The index is read read-only from the
+   machine and per-user registry, and only for a registration Windows Installer
+   owns whose key is its product code; malformed values are skipped. Upgrade codes
+   are never read through Windows Installer APIs or WMI, which can start repair
+   or reconfiguration. Registrations that share an upgrade code and a publisher
+   become one application with every installed version listed.
 5. **Unknown applications survive.** A registration that neither the catalog
    nor WinGet recognizes stays in the inventory with its own evidence.
 6. **Duplicates merge; versions don't.** One product registered in two views
-   or scopes becomes one entry; side-by-side versions stay separate.
+   or scopes becomes one entry; side-by-side versions of an unidentified app stay
+   separate.
+7. **Classification never discards evidence.** Each entry is marked as an
+   application, a supporting component (runtime, driver package, updater, or
+   Windows component), a hidden system component, or an update, with a reason.
+   Only applications are selected by default; everything is exported.
 
 If WinGet is unavailable, registry applications are still inventoried and the
 file records WinGet as unavailable. If a registry view can't be read, the file
@@ -146,10 +187,13 @@ Identity is resolved on the workstation, from the strongest evidence first:
 | Nothing in the catalog matches | Unidentified | No. Shown as **Manual · not in catalog**. |
 
 To decide whether an app is installed here, the checklist uses the catalog's
-own state for catalog apps. For other apps it uses the same WinGet ID, the same
-Windows Installer upgrade code, the same uninstall registration, or the same
-normalized name with an agreeing publisher, in that order. A version difference
-doesn't make an installed app count as missing; it is noted.
+own state for catalog apps. For any app the catalog state doesn't settle, it uses
+the same WinGet ID, then the same Windows Installer upgrade code, the same
+uninstall registration, or the same normalized name. An upgrade code, an
+uninstall key, or a name counts only when the publishers don't disagree, so
+installer identity never overrides name and publisher checks. Identity evidence
+never grants installation authority. A version difference doesn't make an
+installed app count as missing; it is noted.
 
 ## Security boundary
 
@@ -225,7 +269,11 @@ domain or Entra join, VPN, EDR, and security-policy configuration.
 ```
 
 - `relevance` is `application`, `supportComponent`, `systemComponent`, or
-  `update`. It decides only whether the checklist includes an item by default.
+  `update`, and `relevanceReason` says why an item isn't an application. They
+  decide only whether the checklist includes an item by default.
+- `migrate` appears only when the source technician changed the default: `false`
+  for an application they cleared, `true` for a component they selected. The
+  item is still exported either way.
 - `catalogId` is present when the source workstation identified the app with
   confidence; `winget` when WinGet reported it. Registrations are the raw
   evidence and are always kept.
@@ -267,7 +315,8 @@ evidence. Limits: 1 MiB, 1,000 applications, 200 checks.
 The active checklist is saved as `migration\session.json` beneath the per-user
 data root (`%LOCALAPPDATA%\AVWorkstationToolkit` for the packaged app). It
 records the source (computer name or profile name and version), each item's
-descriptive details, whether it's included, any technician confirmation, the
+descriptive details, whether it's included, any confirmation of an
+undetectable application, the
 last installation attempt, removed and skipped counts, and manual-check
 progress. It holds no secrets and is validated as strictly as an imported
 file. If it can't be read, the window says so and offers to discard it.
@@ -279,8 +328,10 @@ file. If it can't be read, the window says so and offers to discard it.
   documented package API needs a Windows SDK projection that would change the
   shipping package, and the undocumented registry repository is mostly system
   and framework packages.
-- An application with no registered name that the catalog recognizes, and no
-  WinGet identity, can only be marked done by a technician.
+- A catalog application with no Windows detector and no installer identity from
+  the source (typically one listed in a deployment profile) can't be detected, so
+  it is completed by **Confirm installed**. Every other application completes
+  only by detection.
 - Matching an uncatalogued app by name treats any version as installed and
   notes the difference.
 - The source workstation's architecture and scope are recorded but aren't used

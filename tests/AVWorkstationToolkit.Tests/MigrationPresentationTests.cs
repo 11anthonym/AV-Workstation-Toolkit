@@ -39,9 +39,10 @@ public sealed class MigrationPresentationTests
         Assert.IsFalse(viewModel.VisibleItems.Any(item => item.Satisfied), "The default view lists only what is still to do.");
         Assert.IsTrue(viewModel.VisibleItems.Any(item => item.Name == "Crestron Toolbox"));
         Assert.IsTrue(viewModel.VisibleItems.Any(item => item.Name == "Vendor Widget Configuration Tool"));
-        viewModel.Filter = MigrationFilter.Done;
+        viewModel.Filter = MigrationFilter.Completed;
         Assert.AreEqual("Wireshark", viewModel.VisibleItems.Single().Name);
-        StringAssert.Contains(viewModel.ProgressText, $"1 of {service.Checklist!.Summary.Included}");
+        Assert.AreEqual($"{service.Checklist!.Summary.Included - 1} remaining", viewModel.RemainingHeadline);
+        StringAssert.Contains(viewModel.ProgressText, "1 installed");
         viewModel.Filter = MigrationFilter.All;
         viewModel.SearchText = "crestron";
         Assert.AreEqual("Crestron Toolbox", viewModel.VisibleItems.Single().Name);
@@ -85,14 +86,13 @@ public sealed class MigrationPresentationTests
         Assert.IsTrue(store.Saved.Items.Single(item => item.ItemId == widget.ItemId).Included);
 
         viewModel.Filter = MigrationFilter.Remaining;
-        viewModel.SelectedItem = viewModel.VisibleItems.Single(item => item.ItemId == widget.ItemId);
-        Assert.IsTrue(viewModel.ConfirmCommand.CanExecute(null));
-        viewModel.ConfirmCommand.Execute(null);
-        viewModel.Filter = MigrationFilter.Done;
-        var confirmed = viewModel.VisibleItems.Single(item => item.ItemId == widget.ItemId);
-        Assert.AreEqual("Done (confirmed)", confirmed.StatusLabel);
+        var remaining = viewModel.VisibleItems.Single(item => item.ItemId == widget.ItemId);
+        viewModel.SelectedItem = remaining;
+        // A detectable application is never marked done by a click: only a scan that finds it completes it.
+        Assert.IsFalse(remaining.CanConfirm);
+        Assert.IsFalse(viewModel.ConfirmCommand.CanExecute(null));
+        Assert.AreEqual("Manual · not in catalog", remaining.StatusLabel);
 
-        viewModel.SelectedItem = confirmed;
         files.ConfirmAnswer = false;
         viewModel.RemoveCommand.Execute(null);
         Assert.IsTrue(store.Saved.Items.Any(item => item.ItemId == widget.ItemId), "Declining the confirmation keeps the item.");
@@ -177,7 +177,7 @@ public sealed class MigrationPresentationTests
         await viewModel.InitializeAsync(target.Plan);
 
         await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(3));
-        Assert.AreEqual("Profile: Remote Support Jump PC · version 3", viewModel.SourceTitle);
+        Assert.AreEqual("Deployment profile: Remote Support Jump PC · version 3", viewModel.SourceTitle);
         Assert.IsTrue(viewModel.TasksVisible);
         viewModel.Tasks.Single(task => task.Id == "verify-sleep").Done = true;
         Assert.IsNotNull(service.Session!.Tasks.Single(task => task.Id == "verify-sleep").DoneAtUtc);

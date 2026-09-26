@@ -192,7 +192,7 @@ public sealed class WorkstationMigrationTests
     }
 
     [TestMethod]
-    public async Task InstallerIdentitiesAndConfirmationsSatisfyUncataloguedItems()
+    public async Task InstallerIdentitiesMatchConservativelyAndOnlyUndetectableAppsAcceptConfirmation()
     {
         var service = new ApplicationReconciliationService();
         var target = await Target(
@@ -207,19 +207,40 @@ public sealed class WorkstationMigrationTests
         var results = service.Reconcile(
         [
             Desired(Spec("Old Suite 2024", upgradeCode: "{BBBBBBBB-0000-0000-0000-000000000002}")),
+            Desired(Spec("Unrelated Suite", publisher: "Different Vendor", upgradeCode: "{BBBBBBBB-0000-0000-0000-000000000002}")),
             Desired(Spec("Inno Tool", uninstallKeys: ["InnoTool_is1"])),
+            Desired(Spec("Other Inno Tool", publisher: "Someone Else", uninstallKeys: ["InnoTool_is1"])),
             Desired(Spec("Proton VPN", winGetId: "Proton.ProtonVPN")),
             Desired(Spec("Symetrix Composer", catalogId: "Symetrix.Composer")),
-            Desired(Spec("Dealer Portal Tool"), MigrationFixtures.Now)
+            Desired(Spec("Dealer Portal Tool"), MigrationFixtures.Now),
+            Desired(Spec("Allen & Heath AHM System Manager", catalogId: "AllenHeath.AHMSystemManager"), MigrationFixtures.Now),
+            Desired(Spec("AHM System Manager (unconfirmed)", catalogId: "AllenHeath.AHMSystemManager")),
+            Desired(Spec("AHM System Manager (registered)", catalogId: "AllenHeath.AHMSystemManager", uninstallKeys: ["AHMSystemManager_is1"]), MigrationFixtures.Now)
         ], target.Reconciliation).ToDictionary(item => item.Desired.Spec.DisplayName);
 
         StringAssert.Contains(results["Old Suite 2024"].MatchEvidence, "upgrade code");
         StringAssert.Contains(results["Inno Tool"].MatchEvidence, "uninstall registration");
         StringAssert.Contains(results["Proton VPN"].MatchEvidence, "WinGet package ID");
         Assert.IsTrue(new[] { "Old Suite 2024", "Inno Tool", "Proton VPN" }.All(name => results[name].Status == ChecklistStatus.Installed));
+        // Installer identity never overrides disagreeing publishers.
+        Assert.AreEqual(ChecklistStatus.UnknownApplication, results["Unrelated Suite"].Status);
+        Assert.AreEqual(ChecklistStatus.UnknownApplication, results["Other Inno Tool"].Status);
         Assert.AreEqual(ChecklistStatus.ManualInstall, results["Symetrix Composer"].Status);
-        Assert.AreEqual(ChecklistStatus.ConfirmedManually, results["Dealer Portal Tool"].Status);
-        Assert.IsTrue(results["Dealer Portal Tool"].Satisfied);
+        Assert.IsFalse(results["Symetrix Composer"].CanConfirmManually, "A catalog app with a detector is completed only by detection.");
+
+        // A stored confirmation never hides an app the workstation could detect.
+        Assert.AreEqual(ChecklistStatus.UnknownApplication, results["Dealer Portal Tool"].Status);
+        Assert.IsFalse(results["Dealer Portal Tool"].Satisfied);
+        Assert.IsFalse(results["Dealer Portal Tool"].CanConfirmManually);
+        Assert.AreEqual(ChecklistStatus.ManualInstall, results["AHM System Manager (registered)"].Status,
+            "Registration evidence from the source makes the app detectable, so its confirmation is ignored.");
+
+        // Only a catalog app with no Windows detector and no installer identity can be confirmed.
+        Assert.AreEqual(ChecklistStatus.ConfirmedManually, results["Allen & Heath AHM System Manager"].Status);
+        Assert.IsTrue(results["Allen & Heath AHM System Manager"].Satisfied);
+        Assert.AreEqual(ChecklistStatus.ManualInstall, results["AHM System Manager (unconfirmed)"].Status);
+        Assert.IsTrue(results["AHM System Manager (unconfirmed)"].CanConfirmManually);
+        StringAssert.Contains(results["AHM System Manager (unconfirmed)"].Detail, "no way to detect");
     }
 
     [TestMethod]

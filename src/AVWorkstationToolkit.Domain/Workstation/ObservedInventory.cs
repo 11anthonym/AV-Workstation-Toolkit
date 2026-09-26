@@ -101,7 +101,8 @@ public sealed record ObservedApplication(
     WinGetCorrelation WinGetCorrelation,
     IdentityResolution CatalogIdentity,
     string MsiUpgradeCode,
-    MigrationRelevance Relevance)
+    MigrationRelevance Relevance,
+    string RelevanceReason = "")
 {
     public string CatalogId => CatalogIdentity.IsConfident ? CatalogIdentity.Application!.Id : string.Empty;
     public string WinGetId => WinGet?.Id ?? string.Empty;
@@ -146,17 +147,43 @@ public static partial class ApplicationComponentRules
         "Microsoft.Edge", "Microsoft.EdgeWebView2Runtime", "Microsoft.AppInstaller"
     };
 
-    [GeneratedRegex(@"^(?:Microsoft Visual C\+\+ .*(?:Redistributable|Runtime)|Microsoft (?:ASP\.NET Core|\.NET|Windows Desktop)\b.*\b(?:Runtime|Shared Framework|Host|Host FX Resolver|Targeting Pack|AppHost Pack|Templates)\b|Microsoft Edge(?: Update| WebView2 Runtime)?$|Microsoft Update Health Tools$|Windows Driver Package - |Microsoft Windows Application Compatibility Fix Database$)",
-        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, 1000)]
-    private static partial Regex SupportNamePattern();
+    public const string RuntimeReason = "Runtime or framework that applications install for themselves";
+    public const string WindowsReason = "Included with Windows";
+    public const string DriverPackageReason = "Driver package installed by the application that needs it";
+    public const string HelperReason = "Updater or maintenance helper installed with another application";
 
-    public static bool IsSupportComponent(string displayName, string winGetId)
+    [GeneratedRegex(@"^(?:Microsoft Visual C\+\+ .*(?:Redistributable|Runtime)|Microsoft (?:ASP\.NET Core|\.NET|Windows Desktop)\b.*\b(?:Runtime|Shared Framework|Host|Host FX Resolver|Targeting Pack|AppHost Pack|Templates)\b|Microsoft Edge WebView2 Runtime$|Microsoft Windows Application Compatibility Fix Database$)",
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, 1000)]
+    private static partial Regex RuntimeNamePattern();
+
+    [GeneratedRegex(@"^(?:Microsoft Edge|Microsoft Edge Update|Microsoft Update Health Tools)$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, 1000)]
+    private static partial Regex WindowsNamePattern();
+
+    [GeneratedRegex(@"^Windows Driver Package - ", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, 1000)]
+    private static partial Regex DriverPackagePattern();
+
+    // Named helpers, plus the conservative "<product> Update Service/Helper" and "Maintenance Service" forms.
+    [GeneratedRegex(@"^(?:Mozilla Maintenance Service|Adobe Refresh Manager|Java Auto Updater|Google Update Helper)$|\b(?:Update|Maintenance) (?:Service|Helper)$",
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, 1000)]
+    private static partial Regex HelperNamePattern();
+
+    /// <summary>Why an item is a supporting component, or an empty string for a user-facing application.</summary>
+    public static string SupportReason(string displayName, string winGetId)
     {
-        if (winGetId.Length > 0 &&
-            (SupportWinGetIds.Contains(winGetId) || SupportWinGetPrefixes.Any(prefix => winGetId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))))
-            return true;
-        return displayName.Length > 0 && SupportNamePattern().IsMatch(displayName);
+        if (winGetId.Length > 0)
+        {
+            if (SupportWinGetIds.Contains(winGetId))
+                return winGetId.Equals("Microsoft.EdgeWebView2Runtime", StringComparison.OrdinalIgnoreCase) ? RuntimeReason : WindowsReason;
+            if (SupportWinGetPrefixes.Any(prefix => winGetId.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))) return RuntimeReason;
+        }
+        if (displayName.Length == 0) return string.Empty;
+        if (RuntimeNamePattern().IsMatch(displayName)) return RuntimeReason;
+        if (WindowsNamePattern().IsMatch(displayName)) return WindowsReason;
+        if (DriverPackagePattern().IsMatch(displayName)) return DriverPackageReason;
+        return HelperNamePattern().IsMatch(displayName) ? HelperReason : string.Empty;
     }
+
+    public static bool IsSupportComponent(string displayName, string winGetId) => SupportReason(displayName, winGetId).Length > 0;
 }
 
 /// <summary>
@@ -266,7 +293,10 @@ public sealed class WorkstationInventoryBuilder
     private static string GroupKey(UninstallRegistration registration, IdentityResolution identity)
     {
         if (identity.IsConfident) return CatalogKey(identity.Application!.Id);
-        if (registration.MsiUpgradeCode.Length > 0) return "msi:" + registration.MsiUpgradeCode.ToUpperInvariant();
+        // One upgrade code is one MSI product family, so its installed versions become one application. The publisher is
+        // part of the key so a reused upgrade code can't merge products from different vendors.
+        if (registration.MsiUpgradeCode.Length > 0)
+            return $"msi:{registration.MsiUpgradeCode.ToUpperInvariant()}|{ApplicationNames.PublisherKey(registration.Publisher)}";
         var name = ApplicationNames.CompactKey(registration.DisplayName);
         // Only exact duplicates merge: one product registered in two views or scopes. Side-by-side versions stay apart.
         return name.Length == 0
@@ -369,6 +399,7 @@ public sealed class WorkstationInventoryBuilder
             .Select(item => ApplicationNames.Architecture(item.DisplayName, item.Hive))
             .Where(value => value.Length > 0).Distinct(StringComparer.Ordinal));
         var displayName = primary?.DisplayName ?? catalogApplication?.Name ?? group.WinGet?.Id ?? string.Empty;
+        var (relevance, reason) = Classify(group, registrations, displayName);
         return new ObservedApplication(
             group.Key,
             displayName,
@@ -382,22 +413,23 @@ public sealed class WorkstationInventoryBuilder
             group.Correlation,
             group.Identity,
             registrations.Select(item => item.MsiUpgradeCode).FirstOrDefault(value => value.Length > 0) ?? string.Empty,
-            Classify(group, registrations, displayName));
+            relevance,
+            reason);
     }
 
-    private static MigrationRelevance Classify(Group group, IReadOnlyList<UninstallRegistration> registrations, string displayName)
+    // Classification only decides the default checklist; every observation, whatever its relevance, stays in the inventory.
+    private static (MigrationRelevance Relevance, string Reason) Classify(Group group, IReadOnlyList<UninstallRegistration> registrations, string displayName)
     {
         // A recognized catalog application is migration-relevant even when its installer hides the registration.
-        if (group.Identity.IsConfident) return MigrationRelevance.Application;
+        if (group.Identity.IsConfident) return (MigrationRelevance.Application, string.Empty);
         if (registrations.Count > 0)
         {
             var visible = registrations.Where(item => !item.SystemComponent).ToArray();
-            if (visible.Length == 0) return MigrationRelevance.SystemComponent;
-            if (visible.All(item => item.IsUpdate)) return MigrationRelevance.Update;
+            if (visible.Length == 0) return (MigrationRelevance.SystemComponent, "Hidden by Windows as a system component");
+            if (visible.All(item => item.IsUpdate)) return (MigrationRelevance.Update, "Registered under another product as an update, patch, or suite component");
         }
-        return ApplicationComponentRules.IsSupportComponent(displayName, group.WinGet?.Id ?? string.Empty)
-            ? MigrationRelevance.SupportComponent
-            : MigrationRelevance.Application;
+        var reason = ApplicationComponentRules.SupportReason(displayName, group.WinGet?.Id ?? string.Empty);
+        return reason.Length > 0 ? (MigrationRelevance.SupportComponent, reason) : (MigrationRelevance.Application, string.Empty);
     }
 
     private sealed class Group(string key, IdentityResolution identity)

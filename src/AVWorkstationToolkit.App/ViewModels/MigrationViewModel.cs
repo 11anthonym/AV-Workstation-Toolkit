@@ -26,6 +26,12 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     private readonly Dictionary<string, MigrationItemViewModel> rows = new(StringComparer.Ordinal);
     private readonly BatchObservableCollection<MigrationItemViewModel> visible = [];
     private readonly BatchObservableCollection<MigrationTaskViewModel> tasks = [];
+    private readonly BatchObservableCollection<InventoryReviewRowViewModel> reviewRows = [];
+    private readonly Dictionary<string, bool> exportChoices = new(StringComparer.Ordinal);
+    private List<InventoryReviewRowViewModel> allReviewRows = [];
+    private WorkstationInventory? reviewedInventory;
+    private bool showSupportingComponents;
+    private string reviewSearchText = string.Empty;
     private MigrationFilter filter = MigrationFilter.Remaining;
     private string searchText = string.Empty;
     private MigrationItemViewModel? selectedItem;
@@ -44,6 +50,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         this.dispatcher = dispatcher ?? System.Windows.Application.Current?.Dispatcher;
         VisibleItems = new ReadOnlyObservableCollection<MigrationItemViewModel>(visible);
         Tasks = new ReadOnlyObservableCollection<MigrationTaskViewModel>(tasks);
+        ReviewItems = new ReadOnlyObservableCollection<InventoryReviewRowViewModel>(reviewRows);
         ScanCommand = new AsyncRelayCommand(ScanAsync, () => !IsBusy);
         ExportInventoryCommand = new AsyncRelayCommand(ExportInventoryAsync, () => !IsBusy);
         ImportInventoryCommand = new AsyncRelayCommand(ImportInventoryAsync, () => !IsBusy);
@@ -66,11 +73,12 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         service.ChecklistChanged += Service_ChecklistChanged;
     }
 
-    /// <summary>Raised to show the profile editor as a dialog; the window returns when the editor closes.</summary>
+    /// <summary>Raised to show the deployment profile editor as a dialog; the window returns when the editor closes.</summary>
     public event Action<ProfileEditorViewModel>? ProfileEditorRequested;
 
     public IReadOnlyList<MigrationItemViewModel> VisibleItems { get; }
     public IReadOnlyList<MigrationTaskViewModel> Tasks { get; }
+    public IReadOnlyList<InventoryReviewRowViewModel> ReviewItems { get; }
     public AsyncRelayCommand ScanCommand { get; }
     public AsyncRelayCommand ExportInventoryCommand { get; }
     public AsyncRelayCommand ImportInventoryCommand { get; }
@@ -128,9 +136,34 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
 
     public bool HasSession => service.Session is not null;
     public bool NoSessionVisible => !HasSession;
+
+    /// <summary>Before a checklist exists, this PC's applications are listed for review before export.</summary>
+    public bool ReviewVisible => !HasSession && HasInventory;
+    public bool ShowSupportingComponents
+    {
+        get => showSupportingComponents;
+        set { if (SetProperty(ref showSupportingComponents, value)) RebuildReview(); }
+    }
+    public string ReviewSearchText
+    {
+        get => reviewSearchText;
+        set { if (SetProperty(ref reviewSearchText, value ?? string.Empty)) RebuildReview(); }
+    }
+    public string ReviewSummary
+    {
+        get
+        {
+            var applications = allReviewRows.Where(row => row.IsApplication).ToArray();
+            var leftOut = applications.Count(row => !row.Migrate);
+            var selected = allReviewRows.Count(row => row.Migrate);
+            return leftOut == 0
+                ? $"{selected} of {applications.Length} applications will be migrated"
+                : $"{selected} of {applications.Length} applications will be migrated · {leftOut} left out";
+        }
+    }
     public string SourceTitle => service.Session?.Source is not { } source ? "No checklist yet"
         : source.Kind == MigrationSourceKind.Profile
-            ? $"Profile: {source.Label} · version {source.ProfileVersion}"
+            ? $"Deployment profile: {source.Label} · version {source.ProfileVersion}"
             : $"Migrating from {source.Label}";
     public string SourceDetail
     {
@@ -141,25 +174,34 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             if (session.Source.CapturedAtUtc is { } captured) parts.Add($"Inventory captured {captured.ToLocalTime():yyyy-MM-dd HH:mm}");
             parts.Add($"Started {session.CreatedAtUtc.ToLocalTime():yyyy-MM-dd HH:mm}");
             if (session.RemovedCount > 0) parts.Add($"{session.RemovedCount} removed");
+            if (Summary.Supporting > 0) parts.Add($"{Summary.Supporting} supporting components left out");
             if (session.SkippedComponentCount > 0) parts.Add($"{session.SkippedComponentCount} system components and updates kept only in the inventory file");
             return string.Join(" · ", parts);
         }
     }
 
-    public ChecklistSummary Summary => service.Checklist?.Summary ?? new ChecklistSummary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    public string ProgressText => HasSession
-        ? service.Checklist is null ? "Scan this PC to compare it with the checklist." : $"{Summary.Satisfied} of {Summary.Included} selected applications done"
-        : string.Empty;
+    public ChecklistSummary Summary => service.Checklist?.Summary ?? ChecklistSummary.Empty;
+
+    /// <summary>The number that matters while rebuilding a workstation: selected applications not yet on this PC.</summary>
+    public string RemainingHeadline => !HasSession ? string.Empty
+        : service.Checklist is null ? "Scan this PC to compare"
+        : Summary.Remaining == 0 ? "Nothing remaining"
+        : Summary.Remaining == 1 ? "1 remaining" : $"{Summary.Remaining} remaining";
+    public string ProgressText => service.Checklist is null ? string.Empty : string.Join(" · ", new[]
+    {
+        $"{Summary.Imported} imported",
+        $"{Summary.Satisfied} installed",
+        Count(Summary.Excluded, "excluded"),
+        Count(Summary.NeedsReview, "needs review")
+    }.Where(value => value.Length > 0));
     public double ProgressPercent => Summary.Included == 0 ? 0 : 100.0 * Summary.Satisfied / Summary.Included;
     public string SummaryText => service.Checklist is null ? string.Empty : string.Join(" · ", new[]
     {
         Count(Summary.Ready, "ready to install"),
-        Count(Summary.Manual, "manual"),
-        Count(Summary.Unknown, "not in catalog"),
-        Count(Summary.Review, "to review"),
-        Count(Summary.CheckUnavailable, "can't check"),
+        Count(Summary.Manual, "to install manually"),
+        Count(Summary.Unknown, "not in the catalog"),
         Count(Summary.Failed, "failed"),
-        Count(Summary.Excluded, "excluded")
+        Count(Summary.Installing, "installing")
     }.Where(value => value.Length > 0));
     public bool CompleteVisible => HasSession && Summary.Included > 0 && Summary.Remaining == 0 && service.Checklist is not null;
 
@@ -183,12 +225,13 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
     }
 
-    public string RemainingLabel => $"To do ({CountRows(MigrationFilter.Remaining)})";
+    public string RemainingLabel => $"Remaining ({CountRows(MigrationFilter.Remaining)})";
     public string ReadyLabel => $"Install available ({CountRows(MigrationFilter.ReadyToInstall)})";
     public string ManualLabel => $"Manual ({CountRows(MigrationFilter.Manual)})";
     public string AttentionLabel => $"Needs attention ({CountRows(MigrationFilter.NeedsAttention)})";
-    public string DoneLabel => $"Done ({CountRows(MigrationFilter.Done)})";
+    public string CompletedLabel => $"Completed ({CountRows(MigrationFilter.Completed)})";
     public string ExcludedLabel => $"Excluded ({CountRows(MigrationFilter.Excluded)})";
+    public string SupportingLabel => $"Supporting ({CountRows(MigrationFilter.Supporting)})";
     public string AllLabel => $"All ({rows.Count})";
 
     public MigrationItemViewModel? SelectedItem
@@ -302,8 +345,9 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
                 Status = "Export cancelled.";
                 return;
             }
-            files.Write(path, WorkstationInventoryDocumentCodec.Serialize(inventory, generator));
-            Status = $"Exported {inventory.Applications.Count} applications ({inventory.ApplicationCount} user-facing) to {path}. Import this file on the replacement PC.";
+            files.Write(path, WorkstationInventoryDocumentCodec.Serialize(inventory, generator, ExportChoice));
+            var selected = inventory.Applications.Count(ExportChoice);
+            Status = $"Exported {inventory.Applications.Count} observed applications to {path}: {selected} selected for migration. Import this file on the replacement PC.";
         }
         catch (Exception exception)
         {
@@ -346,7 +390,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't apply the profile. {Sanitize(exception.Message)}";
+            Status = $"Couldn't apply the deployment profile. {Sanitize(exception.Message)}";
         }
     }
 
@@ -357,16 +401,16 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         {
             var diff = current.CompareToProfile(profile);
             if (!files.Confirm("Update deployment profile",
-                    $"This PC's checklist uses {profile.Name} version {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to version {profile.ProfileVersion}? Progress on applications that remain is kept."))
+                    $"This PC's checklist uses the {profile.Name} deployment profile, version {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to version {profile.ProfileVersion}? Progress on applications that remain is kept."))
                 return;
             service.AdoptProfileRevision(profile);
-            Status = $"Updated the checklist to {profile.Name} version {profile.ProfileVersion}.";
+            Status = $"Updated the checklist to the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
         }
         else
         {
-            if (!ConfirmReplace($"Apply the {profile.Name} profile (version {profile.ProfileVersion})?")) return;
+            if (!ConfirmReplace($"Apply the {profile.Name} deployment profile (version {profile.ProfileVersion})?")) return;
             service.StartFromProfile(profile);
-            Status = $"Applied {profile.Name} version {profile.ProfileVersion}.";
+            Status = $"Applied the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
         }
         SavedSessionProblem = string.Empty;
         Filter = MigrationFilter.Remaining;
@@ -387,7 +431,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't open the profile. {Sanitize(exception.Message)}";
+            Status = $"Couldn't open the deployment profile. {Sanitize(exception.Message)}";
         }
     }
 
@@ -396,7 +440,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         var editor = new ProfileEditorViewModel(service.Identities, files, existing, seed);
         ProfileEditorRequested?.Invoke(editor);
         if (editor.SavedProfile is not { } saved) return;
-        Status = $"Saved {saved.Name} version {saved.ProfileVersion} with {saved.Applications.Count} applications and {saved.Checks.Count} manual checks.";
+        Status = $"Saved the {saved.Name} deployment profile, version {saved.ProfileVersion}, with {saved.Applications.Count} applications and {saved.Checks.Count} manual checks.";
         if (editor.ApplyAfterSave) await ApplyProfileAsync(saved).ConfigureAwait(true);
     }
 
@@ -461,7 +505,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         var item = SelectedItem;
         if (item is null) return;
         Mutate(() => service.Confirm(item.ItemId, confirmed), confirmed
-            ? $"Marked {item.Name} done. This PC can't confirm it, so it's recorded as a technician confirmation."
+            ? $"Recorded that {item.Name} is installed. AV Workstation Toolkit can't detect this app, so the checklist keeps your confirmation."
             : $"Cleared the confirmation for {item.Name}.");
     }
 
@@ -545,8 +589,34 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }).ToArray());
         if (SelectedItem is not null && !rows.ContainsKey(SelectedItem.ItemId)) SelectedItem = null;
         RebuildVisible();
+        RebuildReview();
         OnPropertyChanged(string.Empty);
         RaiseCommandStates();
+    }
+
+    // User-facing applications default to migrating; supporting and system components default to staying out.
+    private bool ExportChoice(ObservedApplication application) =>
+        exportChoices.TryGetValue(application.ObservationKey, out var migrate) ? migrate : application.Relevance == MigrationRelevance.Application;
+
+    private void RebuildReview()
+    {
+        if (!ReferenceEquals(reviewedInventory, service.TargetInventory))
+        {
+            reviewedInventory = service.TargetInventory;
+            allReviewRows = (reviewedInventory?.Applications ?? [])
+                .Select(application => new InventoryReviewRowViewModel(application, ExportChoice(application), (row, migrate) =>
+                {
+                    exportChoices[row.Key] = migrate;
+                    OnPropertyChanged(nameof(ReviewSummary));
+                }))
+                .ToList();
+        }
+        var query = ReviewSearchText.Trim();
+        reviewRows.ReplaceAll(allReviewRows
+            .Where(row => ShowSupportingComponents || row.IsApplication)
+            .Where(row => query.Length == 0 || $"{row.Name} {row.Publisher} {row.IdentityLabel}".Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToArray());
+        OnPropertyChanged(nameof(ReviewSummary));
     }
 
     private void RebuildVisible()

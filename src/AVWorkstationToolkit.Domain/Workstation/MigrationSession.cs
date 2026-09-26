@@ -39,17 +39,19 @@ public sealed record MigrationSession(
     public const int MaximumItems = 5000;
 
     /// <summary>
-    /// Starts a checklist from an imported inventory. Every application is included except support components, which
-    /// start excluded; hidden system components and updates remain in the inventory file as evidence only.
+    /// Starts a checklist from an imported inventory; the imported list is the migration. User-facing applications start
+    /// selected unless the source technician deselected them before export. Supporting components are listed but start
+    /// outside the migration, and hidden system components and updates remain in the inventory file as evidence only,
+    /// unless the source technician selected one.
     /// </summary>
     public static MigrationSession FromInventory(InventoryDocument inventory, string sessionId, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(inventory);
         var candidates = inventory.Applications
-            .Where(item => item.Relevance is MigrationRelevance.Application or MigrationRelevance.SupportComponent)
+            .Where(item => item.Relevance is MigrationRelevance.Application or MigrationRelevance.SupportComponent || item.SelectedForMigration)
             .ToArray();
         var items = candidates.Select((item, index) => new MigrationSessionItem(
-            ItemId(index), item.ToDesired(), item.Relevance == MigrationRelevance.Application)).ToArray();
+            ItemId(index), item.ToDesired(), item.SelectedForMigration)).ToArray();
         var label = inventory.Machine.ComputerName.Length > 0 ? inventory.Machine.ComputerName : "Imported workstation";
         return new MigrationSession(sessionId, new MigrationSource(MigrationSourceKind.Inventory, label, inventory.CapturedAtUtc),
             now, now, items, [], 0, inventory.Applications.Count - candidates.Length);

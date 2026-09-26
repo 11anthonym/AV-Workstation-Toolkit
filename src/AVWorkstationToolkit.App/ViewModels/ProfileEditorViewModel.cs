@@ -106,7 +106,7 @@ public sealed class ProfileEditorViewModel : ObservableObject
     public string Description { get => description; set => SetProperty(ref description, value ?? string.Empty); }
     public string VersionText { get => versionText; set => SetProperty(ref versionText, value ?? string.Empty); }
     public string ChecksText { get => checksText; set => SetProperty(ref checksText, value ?? string.Empty); }
-    public string ProfileIdText => $"Profile ID: {ProfileId}";
+    public string ProfileIdText => $"Deployment profile ID: {ProfileId}";
     public string Status { get => status; private set => SetProperty(ref status, value); }
     public string SelectionSummary => $"{applications.Count(item => item.Selected)} applications selected";
 

@@ -3,7 +3,7 @@ using AVWorkstationToolkit.Domain.Workstation;
 
 namespace AVWorkstationToolkit.App.ViewModels;
 
-public enum MigrationFilter { Remaining, ReadyToInstall, Manual, NeedsAttention, Done, Excluded, All }
+public enum MigrationFilter { Remaining, ReadyToInstall, Manual, NeedsAttention, Completed, Excluded, Supporting, All }
 
 /// <summary>One checklist row. Presentation only: every change goes back through the migration service.</summary>
 public sealed class MigrationItemViewModel : ObservableObject
@@ -39,8 +39,10 @@ public sealed class MigrationItemViewModel : ObservableObject
     public bool CanConfirm => item.CanConfirmManually;
     public bool IsConfirmed => item.Status == ChecklistStatus.ConfirmedManually;
     public bool IsExcluded => !item.Desired.Included;
+    public bool IsApplication => item.IsApplication;
+    public bool Undetectable => ApplicationReconciliationService.IsUndetectable(item.Desired);
     public PackageRisk Risk => item.CatalogState?.Package.Risk ?? PackageRisk.None;
-    public string OptionalLabel => item.Desired.Spec.Required ? string.Empty : "Optional";
+    public string OptionalLabel => item.Desired.Spec.Required ? string.Empty : "Not required";
 
     public bool Included
     {
@@ -55,15 +57,15 @@ public sealed class MigrationItemViewModel : ObservableObject
     public string StatusLabel => item.Status switch
     {
         ChecklistStatus.Installed => "Installed",
-        ChecklistStatus.ConfirmedManually => "Done (confirmed)",
+        ChecklistStatus.ConfirmedManually => "Confirmed installed",
         ChecklistStatus.ReadyToInstall => item.CanInstallAutomatically ? "Install available" : "Restart first",
         ChecklistStatus.Installing => "Installing…",
         ChecklistStatus.InstallFailed => "Install failed",
-        ChecklistStatus.ManualInstall => "Manual",
+        ChecklistStatus.ManualInstall => Undetectable ? "Manual · can't be detected" : "Manual · not yet detected",
         ChecklistStatus.UnknownApplication => "Manual · not in catalog",
         ChecklistStatus.NeedsReview => "Review",
         ChecklistStatus.CheckUnavailable => "Can't check",
-        _ => "Excluded"
+        _ => item.IsApplication ? "Excluded" : "Supporting component"
     };
 
     public int StatusOrder => item.Status switch
@@ -119,8 +121,9 @@ public sealed class MigrationItemViewModel : ObservableObject
         MigrationFilter.ReadyToInstall => item.Desired.Included && item.Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.InstallFailed && item.CanInstallAutomatically,
         MigrationFilter.Manual => item.Desired.Included && item.Status is ChecklistStatus.ManualInstall or ChecklistStatus.UnknownApplication,
         MigrationFilter.NeedsAttention => item.Desired.Included && item.Status is ChecklistStatus.NeedsReview or ChecklistStatus.CheckUnavailable or ChecklistStatus.InstallFailed,
-        MigrationFilter.Done => item.Desired.Included && item.Satisfied,
-        MigrationFilter.Excluded => !item.Desired.Included,
+        MigrationFilter.Completed => item.Desired.Included && item.Satisfied,
+        MigrationFilter.Excluded => !item.Desired.Included && item.IsApplication,
+        MigrationFilter.Supporting => !item.Desired.Included && !item.IsApplication,
         _ => true
     };
 
@@ -163,5 +166,49 @@ public sealed class MigrationTaskViewModel(ChecklistTask task, Action<MigrationT
     {
         task = value;
         OnPropertyChanged(string.Empty);
+    }
+}
+
+/// <summary>
+/// One application observed on this PC, listed before export so the technician can leave it out of the migration.
+/// Leaving it out only records that choice in the file; the observation itself is always exported as evidence.
+/// </summary>
+public sealed class InventoryReviewRowViewModel : ObservableObject
+{
+    private readonly Action<InventoryReviewRowViewModel, bool> changed;
+    private bool migrate;
+
+    public InventoryReviewRowViewModel(ObservedApplication application, bool migrate, Action<InventoryReviewRowViewModel, bool> changed)
+    {
+        Application = application ?? throw new ArgumentNullException(nameof(application));
+        this.migrate = migrate;
+        this.changed = changed ?? throw new ArgumentNullException(nameof(changed));
+    }
+
+    public ObservedApplication Application { get; }
+    public string Key => Application.ObservationKey;
+    public string Name => Application.DisplayName;
+    public string Publisher => Application.Publisher;
+    public string Version => Application.DisplayVersion.Length > 0 ? Application.DisplayVersion : "—";
+    public string IdentityLabel => Application.CatalogId.Length > 0
+        ? $"AVWT catalog: {Application.CatalogIdentity.Application!.Name}"
+        : Application.WinGetId.Length > 0 ? $"WinGet: {Application.WinGetId}" : "Not in the catalog";
+    public string RelevanceLabel => Application.Relevance switch
+    {
+        MigrationRelevance.Application => "Application",
+        MigrationRelevance.SupportComponent => "Supporting component",
+        MigrationRelevance.SystemComponent => "System component",
+        _ => "Update"
+    };
+    public string RelevanceReason => Application.RelevanceReason;
+    public bool IsApplication => Application.Relevance == MigrationRelevance.Application;
+
+    public bool Migrate
+    {
+        get => migrate;
+        set
+        {
+            if (SetProperty(ref migrate, value)) changed(this, value);
+        }
     }
 }

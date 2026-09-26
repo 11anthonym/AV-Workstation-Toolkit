@@ -120,26 +120,31 @@ Open **Workstation migration** from the header or the **Tools** menu to move a
 workstation's applications to a replacement or to set a workstation up from a
 deployment profile.
 
-1. On the old workstation, choose **Scan this PC**, then **Export inventory…**.
-   The inventory lists every installed application Windows registers, including
-   AV software that WinGet doesn't know, plus the identities the catalog and
-   WinGet add.
+1. On the old workstation, choose **Scan this PC**, review **Applications on
+   this PC** and clear anything you don't want to carry over, then **Export
+   inventory…**. The inventory lists every installed application Windows
+   registers, including AV software that WinGet doesn't know, plus the
+   identities the catalog and WinGet add.
 2. On the replacement, choose **Import inventory…**. The Toolkit scans the
-   replacement immediately and shows one checklist: installed, available for
-   automatic installation, manual, not in the catalog, and to review.
+   replacement immediately and opens on **Remaining**: only what this PC still
+   needs, split into available for automatic installation, manual, not in the
+   catalog, and to review.
 3. Use **Install** or **Install all available** for approved managed apps. The
    same confirmation, risk acknowledgement, restart rule, holds, and worker
-   checks apply as in the main window. Install everything else yourself; for a
-   catalog app, **Get package** in the main window opens its approved vendor page
-   or download. Then choose **Rescan**.
-4. Exclude, remove, or mark done items as needed, and **Finish migration** when
-   the checklist is complete. The checklist is saved and survives restarts.
+   checks apply as in the main window, and the Toolkit rescans afterward.
+   Install everything else yourself; for a catalog app, **Get package** in the
+   main window opens its approved vendor page or download. Then choose
+   **Rescan**. An app leaves **Remaining** only when a scan detects it.
+4. Exclude or remove items you no longer need, and **Finish migration** when
+   nothing remains. The checklist is saved and survives restarts.
 
 **Apply deployment profile…** builds the same checklist from a reusable
-baseline such as a jump PC, and **New profile…**, **Revise a profile…**, and
-**Save checklist as profile…** create and revise profiles. An imported inventory
-or a profile never lets the Toolkit install an application the approved managed
-catalog doesn't allow. See
+baseline such as a jump PC, and **New deployment profile…**, **Revise a
+deployment profile…**, and **Save checklist as deployment profile…** create and
+revise them. Deployment profiles are separate from the Standard, Field,
+Developer, and Optional catalog profiles in the main window. An imported
+inventory or a deployment profile never lets the Toolkit install an application
+the approved managed catalog doesn't allow. See
 [Workstation migration and deployment profiles](Workstation-Migration-and-Profiles.md)
 for statuses, file formats, and the security boundary.
 

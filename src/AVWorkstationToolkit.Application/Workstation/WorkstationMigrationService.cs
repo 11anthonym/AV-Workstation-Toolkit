@@ -229,8 +229,10 @@ public sealed class WorkstationMigrationService
             Session = session;
             store.Save(session);
         }
-        Accept(run.RefreshedPlan);
-        PlanRefreshed?.Invoke(this, run.RefreshedPlan);
+        // Completion comes only from a fresh scan: the coordinator's post-install refresh, or a scan of our own if that
+        // refresh carried no inventory evidence. A worker's success report never marks an item done by itself.
+        if (Accept(run.RefreshedPlan)) PlanRefreshed?.Invoke(this, run.RefreshedPlan);
+        else await ScanAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         var detected = Checklist?.Items.Count(item => selected.Any(entry => entry.ItemId == item.ItemId) && item.Status == ChecklistStatus.Installed) ?? 0;
         return new MigrationInstallOutcome(run.Result.Status, DiagnosticsRedactor.Sanitize(run.Result.Message), selected.Length, detected);
     }

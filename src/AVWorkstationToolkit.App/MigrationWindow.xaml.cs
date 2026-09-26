@@ -31,15 +31,15 @@ public partial class MigrationWindow : Window
         {
             "ThisPcTitle", "ThisPcSummary", "ScanButton", "ExportInventoryButton", "ImportInventoryButton", "ApplyProfileButton",
             "NewProfileButton", "EditProfileButton", "SaveAsProfileButton", "MigrationStatus", "SourceTitle", "MigrationProgress",
-            "ProgressText", "SummaryText", "RescanButton", "FinishButton", "ChecklistSearch", "ChecklistFilters", "ChecklistGrid",
-            "EmptyState", "DetailPanel", "InstallSelectedButton", "ConfirmButton", "ExcludeButton", "IncludeButton", "RemoveButton",
+            "RemainingHeadline", "ProgressText", "SummaryText", "RescanButton", "FinishButton", "ChecklistSearch", "ChecklistFilters", "ChecklistGrid",
+            "EmptyState", "ReviewSearch", "ReviewSummary", "ReviewGrid", "DetailPanel", "InstallSelectedButton", "ConfirmButton", "ClearConfirmationButton", "ExcludeButton", "IncludeButton", "RemoveButton",
             "TasksPanel", "TaskList", "MigrationRiskAcknowledgement", "InstallAllButton"
         };
         foreach (var name in required)
             if (FindName(name) is null) throw new InvalidOperationException($"The migration window is missing control '{name}'.");
         if (Icon is null || DataContext is not MigrationViewModel viewModel)
             throw new InvalidOperationException("The migration window did not load its icon or view model.");
-        if (ChecklistGrid.ItemsSource != viewModel.VisibleItems || TaskList.ItemsSource != viewModel.Tasks)
+        if (ChecklistGrid.ItemsSource != viewModel.VisibleItems || TaskList.ItemsSource != viewModel.Tasks || ReviewGrid.ItemsSource != viewModel.ReviewItems)
             throw new InvalidOperationException("The migration window did not bind its checklist.");
     }
 }

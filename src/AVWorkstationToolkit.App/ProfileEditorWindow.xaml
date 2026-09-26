@@ -16,22 +16,22 @@
         <StackPanel>
             <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="SemiBold"/>
             <TextBlock Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,14"
-                       Text="A profile describes what a type of workstation should have. Applying it builds the same checklist as a migration. It never lets the Toolkit install anything the approved managed catalog doesn't allow."/>
+                       Text="A deployment profile describes what a type of workstation should have, such as a jump PC or a commissioning laptop. It is separate from the Standard, Field, Developer, and Optional catalog profiles. Applying it builds the same checklist as a migration. It never lets the Toolkit install anything the approved managed catalog doesn't allow."/>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="3*"/></Grid.ColumnDefinitions>
             <StackPanel Margin="0,0,10,0">
-                <TextBlock Text="Profile name" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
-                <TextBox x:Name="ProfileName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Profile name"/>
+                <TextBlock Text="Deployment profile name" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
+                <TextBox x:Name="ProfileName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Deployment profile name"/>
                 <TextBlock Text="{Binding ProfileIdText}" Foreground="#70849D" FontSize="10.5" Margin="0,3,0,0"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="0,0,10,0">
                 <TextBlock Text="Version" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
-                <TextBox x:Name="ProfileVersion" Text="{Binding VersionText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Profile version"/>
+                <TextBox x:Name="ProfileVersion" Text="{Binding VersionText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Deployment profile version"/>
             </StackPanel>
             <StackPanel Grid.Column="2">
                 <TextBlock Text="Description" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
-                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Profile description"/>
+                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Deployment profile description"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="2">
@@ -46,12 +46,12 @@
                 </DockPanel>
                 <DataGrid x:Name="ProfileApplications" Grid.Row="1" ItemsSource="{Binding VisibleApplications}" IsReadOnly="False" MinRowHeight="38"
                           EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                          AutomationProperties.Name="Applications in this profile">
+                          AutomationProperties.Name="Applications in this deployment profile">
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="Include" Width="64" IsReadOnly="True" CanUserSort="False">
                             <DataGridTemplateColumn.CellTemplate><DataTemplate>
                                 <CheckBox Style="{StaticResource GridCheckBox}" IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          AutomationProperties.Name="{Binding Name, StringFormat='Include {0} in the profile'}"/>
+                                          AutomationProperties.Name="{Binding Name, StringFormat='Include {0} in the deployment profile'}"/>
                             </DataTemplate></DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Application" Width="2*" IsReadOnly="True" CanUserSort="False">

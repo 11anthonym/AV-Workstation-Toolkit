@@ -31,8 +31,13 @@ public sealed record InventoryDocumentApplication(
     string MsiUpgradeCode,
     IReadOnlyList<UninstallRegistration> Registrations,
     WinGetPackageEvidence? WinGet,
-    WinGetCorrelation WinGetCorrelation)
+    WinGetCorrelation WinGetCorrelation,
+    string RelevanceReason = "",
+    bool? Migrate = null)
 {
+    /// <summary>Whether the migration starts with this item selected: the source technician's choice, or else user-facing applications only.</summary>
+    public bool SelectedForMigration => Migrate ?? Relevance == MigrationRelevance.Application;
+
     public DesiredApplicationSpec ToDesired() => new(
         DisplayName,
         DisplayVersion,
@@ -86,7 +91,11 @@ public static class WorkstationInventoryDocumentCodec
         ["complete"] = EvidenceQuality.Complete, ["partial"] = EvidenceQuality.Partial, ["unavailable"] = EvidenceQuality.Unavailable
     };
 
-    public static byte[] Serialize(WorkstationInventory inventory, string generator)
+    /// <summary>
+    /// Writes every observation. <paramref name="migrate"/> records the source technician's choice for an item; it is
+    /// written only where it differs from the default, which includes user-facing applications and leaves out the rest.
+    /// </summary>
+    public static byte[] Serialize(WorkstationInventory inventory, string generator, Func<ObservedApplication, bool>? migrate = null)
     {
         ArgumentNullException.ThrowIfNull(inventory);
         if (inventory.Applications.Count > MaximumApplications)
@@ -120,6 +129,9 @@ public static class WorkstationInventoryDocumentCodec
                 writer.WriteString("scope", Token(Scopes, application.Scope));
                 WriteOptional(writer, "architecture", application.Architecture);
                 writer.WriteString("relevance", Token(Relevances, application.Relevance));
+                WriteOptional(writer, "relevanceReason", application.RelevanceReason);
+                if (migrate?.Invoke(application) is { } selected && selected != (application.Relevance == MigrationRelevance.Application))
+                    writer.WriteBoolean("migrate", selected);
                 WriteOptional(writer, "catalogId", application.CatalogId);
                 WriteOptional(writer, "msiUpgradeCode", application.MsiUpgradeCode);
                 writer.WriteStartArray("registrations");
@@ -196,7 +208,7 @@ public static class WorkstationInventoryDocumentCodec
     private static InventoryDocumentApplication ReadApplication(JsonElement element, string context)
     {
         WorkstationDocumentReader.RequireOnly(element, context, "displayName", "displayVersion", "publisher", "scope", "architecture",
-            "relevance", "catalogId", "msiUpgradeCode", "registrations", "winget");
+            "relevance", "relevanceReason", "migrate", "catalogId", "msiUpgradeCode", "registrations", "winget");
         var registrations = WorkstationDocumentReader.Array(element, "registrations", context, MaximumRegistrationsPerApplication)
             .Select((item, index) => ReadRegistration(item, $"{context} registration {index + 1}"))
             .ToArray();
@@ -222,7 +234,11 @@ public static class WorkstationInventoryDocumentCodec
             WorkstationDocumentReader.Guid(element, "msiUpgradeCode", context),
             registrations,
             winGet,
-            correlation);
+            correlation,
+            WorkstationDocumentReader.Text(element, "relevanceReason", context, maximumLength: 200),
+            element.TryGetProperty("migrate", out var migrateElement) && migrateElement.ValueKind != JsonValueKind.Null
+                ? WorkstationDocumentReader.Boolean(element, "migrate", context)
+                : null);
     }
 
     private static UninstallRegistration ReadRegistration(JsonElement element, string context)
