@@ -121,6 +121,7 @@
                                     <DataGridTemplateColumn.CellStyle><Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}"><Setter Property="Padding" Value="0"/></Style></DataGridTemplateColumn.CellStyle>
                                     <DataGridTemplateColumn.CellTemplate><DataTemplate>
                                         <CheckBox Style="{StaticResource GridCheckBox}" IsChecked="{Binding Included, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  IsEnabled="{Binding DataContext.IsNotBusy, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                   ToolTip="Included in this migration. Clear to exclude it; you can include it again later."
                                                   AutomationProperties.Name="{Binding Name, StringFormat='Include {0} in this migration'}"/>
                                     </DataTemplate></DataGridTemplateColumn.CellTemplate>
@@ -212,7 +213,7 @@
                             <ItemsControl x:Name="TaskList" ItemsSource="{Binding Tasks}">
                                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate><DataTemplate>
-                                    <CheckBox Content="{Binding Text}" IsChecked="{Binding Done, Mode=TwoWay}" Width="300" Margin="0,2,12,2" AutomationProperties.Name="{Binding Text}"/>
+                                    <CheckBox Content="{Binding Text}" IsChecked="{Binding Done, Mode=TwoWay}" IsEnabled="{Binding DataContext.IsNotBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Width="300" Margin="0,2,12,2" AutomationProperties.Name="{Binding Text}"/>
                                 </DataTemplate></ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>

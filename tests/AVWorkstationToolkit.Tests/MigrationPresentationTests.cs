@@ -48,6 +48,24 @@ public sealed class MigrationPresentationTests
     }
 
     [TestMethod]
+    public async Task ImportKeepsTheChecklistAndSaysSoWhenTheScanFails()
+    {
+        var files = new FakeFiles { OpenPath = @"C:\fixture\old-pc.json" };
+        files.Files[files.OpenPath] = WorkstationInventoryDocumentCodec.Serialize(WorkstationMigrationTests.SourceInventory(), "fixture");
+        var (viewModel, service, store) = Create(new FailingPlanning(), files);
+
+        await viewModel.ImportInventoryAsync();
+
+        Assert.IsNotNull(store.Saved, "The imported checklist is saved even when this PC can't be scanned yet.");
+        Assert.IsNull(service.Checklist);
+        StringAssert.Contains(viewModel.Status, "Imported");
+        StringAssert.Contains(viewModel.Status, "Couldn't scan this PC");
+        StringAssert.Contains(viewModel.Status, "Scan this PC again");
+        Assert.IsFalse(viewModel.Status.Contains("already installed", StringComparison.Ordinal));
+        Assert.IsTrue(viewModel.IsNotBusy);
+    }
+
+    [TestMethod]
     public async Task ChecklistEditsPersistAndExcludedItemsCanBeRestored()
     {
         var target = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
@@ -159,7 +177,7 @@ public sealed class MigrationPresentationTests
         await viewModel.InitializeAsync(target.Plan);
 
         await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(3));
-        Assert.AreEqual("Profile: Cenero Jump PC · version 3", viewModel.SourceTitle);
+        Assert.AreEqual("Profile: Remote Support Jump PC · version 3", viewModel.SourceTitle);
         Assert.IsTrue(viewModel.TasksVisible);
         viewModel.Tasks.Single(task => task.Id == "verify-sleep").Done = true;
         Assert.IsNotNull(service.Session!.Tasks.Single(task => task.Id == "verify-sleep").DoneAtUtc);
@@ -306,6 +324,12 @@ public sealed class MigrationPresentationTests
         thread.Start();
         thread.Join();
         failure?.Throw();
+    }
+
+    private sealed class FailingPlanning : IWorkstationPlanningCoordinator
+    {
+        public Task<WorkstationPlan> RefreshAsync(IProgress<PlanningRefreshStage>? progress = null, CancellationToken cancellationToken = default) =>
+            Task.FromException<WorkstationPlan>(new InvalidOperationException("WinGet could not be started."));
     }
 
     private sealed class QueuePlanning(params WorkstationPlan[] plans) : IWorkstationPlanningCoordinator

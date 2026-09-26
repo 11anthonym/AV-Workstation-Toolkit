@@ -44,6 +44,9 @@ public sealed class WorkstationMigrationService
     private readonly CompiledActionCoordinator? actions;
     private readonly TimeProvider timeProvider;
     private readonly ApplicationReconciliationService reconciler = new();
+    // Scans and installations finish on worker threads while checklist edits arrive from the UI thread, so every
+    // change to the session, plan, inventory, and checklist is made under one lock.
+    private readonly object gate = new();
     private HashSet<string> installing = new(StringComparer.Ordinal);
 
     public WorkstationMigrationService(
@@ -75,9 +78,12 @@ public sealed class WorkstationMigrationService
 
     public MigrationSession? LoadSaved()
     {
-        Session = store.Load();
-        Reconcile();
-        return Session;
+        lock (gate)
+        {
+            Session = store.Load();
+            Reconcile();
+            return Session;
+        }
     }
 
     /// <summary>Scans this workstation: the catalog plan and the full observed inventory from one set of provider reads.</summary>
@@ -94,25 +100,31 @@ public sealed class WorkstationMigrationService
     {
         ArgumentNullException.ThrowIfNull(plan);
         if (plan.Evidence is null) return false;
-        Plan = plan;
-        TargetInventory = inventory.Build(plan.Evidence);
-        Reconcile();
+        var observed = inventory.Build(plan.Evidence);
+        lock (gate)
+        {
+            Plan = plan;
+            TargetInventory = observed;
+            Reconcile();
+        }
         return true;
     }
 
     public MigrationChecklist? Reconcile()
     {
-        if (Session is null || Plan is null || TargetInventory is null)
+        MigrationChecklist? checklist = null;
+        lock (gate)
         {
-            Checklist = null;
-            ChecklistChanged?.Invoke(this, EventArgs.Empty);
-            return null;
+            if (Session is not null && Plan is not null && TargetInventory is not null)
+            {
+                var items = reconciler.Reconcile(Session.Resolve(Identities),
+                    new ReconciliationTarget(Plan.Packages, Plan.Reboot, TargetInventory), installing);
+                checklist = new MigrationChecklist(Session, items, ChecklistSummary.From(items), TargetInventory, Plan);
+            }
+            Checklist = checklist;
         }
-        var items = reconciler.Reconcile(Session.Resolve(Identities),
-            new ReconciliationTarget(Plan.Packages, Plan.Reboot, TargetInventory), installing);
-        Checklist = new MigrationChecklist(Session, items, ChecklistSummary.From(items), TargetInventory, Plan);
         ChecklistChanged?.Invoke(this, EventArgs.Empty);
-        return Checklist;
+        return checklist;
     }
 
     public MigrationSession StartFromInventory(InventoryDocument document)
@@ -144,9 +156,12 @@ public sealed class WorkstationMigrationService
     /// <summary>Ends the migration and deletes its saved checklist.</summary>
     public void Finish()
     {
-        store.Delete();
-        Session = null;
-        Checklist = null;
+        lock (gate)
+        {
+            store.Delete();
+            Session = null;
+            Checklist = null;
+        }
         ChecklistChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -172,7 +187,7 @@ public sealed class WorkstationMigrationService
             .Select(group => group.First())
             .ToArray();
 
-        installing = selected.Select(item => item.ItemId).ToHashSet(StringComparer.Ordinal);
+        lock (gate) installing = selected.Select(item => item.ItemId).ToHashSet(StringComparer.Ordinal);
         Reconcile();
         CompiledActionRunResult run;
         try
@@ -183,34 +198,37 @@ public sealed class WorkstationMigrationService
         catch
         {
             // A refused or interrupted request records no attempt; the next scan shows what actually happened.
-            installing = new HashSet<string>(StringComparer.Ordinal);
+            lock (gate) installing = new HashSet<string>(StringComparer.Ordinal);
             Reconcile();
             throw;
         }
-        installing = new HashSet<string>(StringComparer.Ordinal);
-
         var now = timeProvider.GetUtcNow();
-        var session = Session!;
-        foreach (var item in selected)
+        lock (gate)
         {
-            var packageId = item.CatalogState!.Package.Id;
-            var outcome = run.Result.Packages.FirstOrDefault(package => package.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase));
-            var succeeded = outcome?.Status == PackageOutcomeStatus.Succeeded;
-            var message = outcome is null
-                ? DiagnosticsRedactor.Sanitize(run.Result.Message)
-                : outcome.Status switch
-                {
-                    PackageOutcomeStatus.Succeeded => "Installed and verified by the worker.",
-                    PackageOutcomeStatus.Blocked => "Blocked by policy when the worker rechecked it.",
-                    PackageOutcomeStatus.Unverified => "The installer finished, but the worker couldn't verify the result.",
-                    PackageOutcomeStatus.Planned => "The worker didn't reach this app.",
-                    _ => $"The installer failed with exit code {outcome.ExitCode}."
-                };
-            if (session.Items.Any(entry => entry.ItemId == item.ItemId))
-                session = session.RecordAttempt(item.ItemId, new InstallAttempt(now, succeeded, message), now);
+            installing = new HashSet<string>(StringComparer.Ordinal);
+            // Attempts are recorded on the checklist as it is now, which may have changed while the installer ran.
+            var session = Session ?? throw new InvalidOperationException("The migration checklist was closed while installing.");
+            foreach (var item in selected)
+            {
+                var packageId = item.CatalogState!.Package.Id;
+                var outcome = run.Result.Packages.FirstOrDefault(package => package.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase));
+                var succeeded = outcome?.Status == PackageOutcomeStatus.Succeeded;
+                var message = outcome is null
+                    ? DiagnosticsRedactor.Sanitize(run.Result.Message)
+                    : outcome.Status switch
+                    {
+                        PackageOutcomeStatus.Succeeded => "Installed and verified by the worker.",
+                        PackageOutcomeStatus.Blocked => "Blocked by policy when the worker rechecked it.",
+                        PackageOutcomeStatus.Unverified => "The installer finished, but the worker couldn't verify the result.",
+                        PackageOutcomeStatus.Planned => "The worker didn't reach this app.",
+                        _ => $"The installer failed with exit code {outcome.ExitCode}."
+                    };
+                if (session.Items.Any(entry => entry.ItemId == item.ItemId))
+                    session = session.RecordAttempt(item.ItemId, new InstallAttempt(now, succeeded, message), now);
+            }
+            Session = session;
+            store.Save(session);
         }
-        Session = session;
-        store.Save(session);
         Accept(run.RefreshedPlan);
         PlanRefreshed?.Invoke(this, run.RefreshedPlan);
         var detected = Checklist?.Items.Count(item => selected.Any(entry => entry.ItemId == item.ItemId) && item.Status == ChecklistStatus.Installed) ?? 0;
@@ -219,16 +237,22 @@ public sealed class WorkstationMigrationService
 
     private MigrationSession Replace(MigrationSession session)
     {
-        store.Save(session);
-        Session = session;
+        lock (gate)
+        {
+            store.Save(session);
+            Session = session;
+        }
         Reconcile();
         return session;
     }
 
     private void Mutate(Func<MigrationSession, MigrationSession> change)
     {
-        var session = Session ?? throw new InvalidOperationException("No migration checklist is active.");
-        Replace(change(session));
+        lock (gate)
+        {
+            var session = Session ?? throw new InvalidOperationException("No migration checklist is active.");
+            Replace(change(session));
+        }
     }
 
     private string NewSessionId() =>

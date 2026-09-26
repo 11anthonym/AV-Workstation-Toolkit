@@ -96,9 +96,12 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         private set
         {
             if (!SetProperty(ref isBusy, value)) return;
+            OnPropertyChanged(nameof(IsNotBusy));
             RaiseCommandStates();
         }
     }
+
+    public bool IsNotBusy => !IsBusy;
 
     public string Status { get => status; private set => SetProperty(ref status, value); }
     public string SavedSessionProblem { get => savedSessionProblem; private set { if (SetProperty(ref savedSessionProblem, value)) OnPropertyChanged(nameof(SavedSessionProblemVisible)); } }
@@ -322,8 +325,10 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             Filter = MigrationFilter.Remaining;
             await ScanAsync().ConfigureAwait(true);
             var included = session.Items.Count(item => item.Included);
-            Status = $"Imported {session.Items.Count} applications from {source}: {included} selected, {session.Items.Count - included} support components excluded. " +
-                $"This PC was scanned and compared: {Summary.Satisfied} already installed, {Summary.Remaining} to do.";
+            var imported = $"Imported {session.Items.Count} applications from {source}: {included} selected, {session.Items.Count - included} support components excluded.";
+            Status = service.Checklist is null
+                ? $"{imported} {Status} Scan this PC again to compare it with the checklist."
+                : $"{imported} This PC was scanned and compared: {Summary.Satisfied} already installed, {Summary.Remaining} to do.";
         }
         catch (Exception exception)
         {
@@ -367,7 +372,9 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         Filter = MigrationFilter.Remaining;
         var applied = Status;
         await ScanAsync().ConfigureAwait(true);
-        Status = $"{applied} {Summary.Satisfied} of {Summary.Included} selected applications are already installed.";
+        Status = service.Checklist is null
+            ? $"{applied} {Status} Scan this PC again to compare it with the checklist."
+            : $"{applied} {Summary.Satisfied} of {Summary.Included} selected applications are already installed.";
     }
 
     internal async Task EditProfileFromFileAsync()

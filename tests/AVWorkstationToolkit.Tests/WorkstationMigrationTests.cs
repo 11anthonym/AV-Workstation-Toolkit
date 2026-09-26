@@ -360,7 +360,7 @@ public sealed class WorkstationMigrationTests
         Assert.AreEqual(profile.Name, parsed.Name);
         CollectionAssert.AreEqual(profile.Applications.ToArray(), parsed.Applications.ToArray());
         CollectionAssert.AreEqual(profile.Checks.ToArray(), parsed.Checks.ToArray());
-        Assert.AreEqual("cenero-jump-pc", ProfileKeys.Slug("Cenero Jump PC!"));
+        Assert.AreEqual("remote-support-jump-pc", ProfileKeys.Slug("Remote Support Jump PC!"));
 
         Assert.Throws<WorkstationDocumentException>(() => DeploymentProfileCodec.Serialize(profile with { Applications = [.. profile.Applications, profile.Applications[0]] }));
         Assert.Throws<WorkstationDocumentException>(() => DeploymentProfileCodec.Serialize(profile with { ProfileId = "Not A Slug" }));
@@ -413,8 +413,8 @@ public sealed class WorkstationMigrationTests
     }
 
     internal static DeploymentProfile JumpPc(int version) => new(
-        "cenero-jump-pc",
-        "Cenero Jump PC",
+        "remote-support-jump-pc",
+        "Remote Support Jump PC",
         version,
         "Remote support jump workstation",
         MigrationFixtures.Now,

@@ -542,9 +542,10 @@ public partial class MainWindow : Window
     private void ForwardPlanToMigration(AVWorkstationToolkit.Application.Planning.WorkstationPlan plan) =>
         migrationWindow?.ViewModel.AdoptPlan(plan);
 
-    private void AdoptMigrationPlan(object? sender, AVWorkstationToolkit.Application.Planning.WorkstationPlan plan)
-    {
-        if (DataContext is not MainWindowViewModel viewModel) return;
-        _ = Dispatcher.InvokeAsync(() => viewModel.AdoptPlanAsync(plan));
-    }
+    // The migration service raises this from its own thread; DataContext may be read only on the UI thread.
+    private void AdoptMigrationPlan(object? sender, AVWorkstationToolkit.Application.Planning.WorkstationPlan plan) =>
+        _ = Dispatcher.InvokeAsync(() =>
+        {
+            if (DataContext is MainWindowViewModel viewModel) _ = viewModel.AdoptPlanAsync(plan);
+        });
 }

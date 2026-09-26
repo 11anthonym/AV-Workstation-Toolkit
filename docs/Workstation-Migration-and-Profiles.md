@@ -241,8 +241,8 @@ versions, and publishers. Treat it as internal operational information.
 {
   "schemaVersion": 1,
   "documentType": "workstation-profile",
-  "profileId": "cenero-jump-pc",
-  "name": "Cenero Jump PC",
+  "profileId": "remote-support-jump-pc",
+  "name": "Remote Support Jump PC",
   "profileVersion": 3,
   "description": "Remote support jump workstation",
   "updatedAtUtc": "2026-09-26T05:00:00Z",

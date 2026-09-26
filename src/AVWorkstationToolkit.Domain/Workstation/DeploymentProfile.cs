@@ -45,7 +45,7 @@ public static partial class ProfileKeys
         ? "catalog:" + catalogId.ToLowerInvariant()
         : "name:" + ApplicationNames.CompactKey(displayName);
 
-    /// <summary>A stable lowercase slug: "Cenero Jump PC" becomes "cenero-jump-pc".</summary>
+    /// <summary>A stable lowercase slug: "Remote Support Jump PC" becomes "remote-support-jump-pc".</summary>
     public static string Slug(string value, string fallback = "profile")
     {
         var builder = new StringBuilder();
