@@ -249,6 +249,20 @@ public sealed class WorkstationInventoryTests
     }
 
     [TestMethod]
+    public void WindowsInstallerPackedGuidsConvertBothWays()
+    {
+        // 7-Zip 26.03's x64 MSI product code and its upgrade code as the UpgradeCodes key stores them.
+        const string productCode = "{23170F69-40C1-2702-2603-000001000000}";
+        Assert.AreEqual("96F071321C0420726230000010000000", AVWorkstationToolkit.Infrastructure.Windows.Registry.MsiPackedGuid.Pack(productCode));
+        Assert.IsTrue(AVWorkstationToolkit.Infrastructure.Windows.Registry.MsiPackedGuid.TryUnpack("96F071321C0420720000000040000000", out var upgradeCode));
+        Assert.AreEqual("{23170F69-40C1-2702-0000-000004000000}", upgradeCode);
+        Assert.IsTrue(AVWorkstationToolkit.Infrastructure.Windows.Registry.MsiPackedGuid.TryUnpack(
+            AVWorkstationToolkit.Infrastructure.Windows.Registry.MsiPackedGuid.Pack(productCode), out var roundTrip));
+        Assert.AreEqual(productCode, roundTrip);
+        Assert.IsFalse(AVWorkstationToolkit.Infrastructure.Windows.Registry.MsiPackedGuid.TryUnpack("not-a-packed-guid", out _));
+    }
+
+    [TestMethod]
     public async Task InventoryServiceReadsTheSameProvidersAsTheCatalogPlan()
     {
         var registry = MigrationFixtures.RegistryResult([new RegistryUninstallRecord(RegistryInventorySource.Hkcu, "Crestron Toolbox 3.1390.0008.3", "3.1390.0008.3", "Crestron Electronics Inc.", "{1B52}_is1")]);

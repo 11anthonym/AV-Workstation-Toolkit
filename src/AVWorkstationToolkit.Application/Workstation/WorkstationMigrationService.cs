@@ -180,10 +180,14 @@ public sealed class WorkstationMigrationService
             run = await actions.StartAsync(ManagedRequestAction.Install, states, checklist.Plan, riskAcknowledged, dryRun: false,
                 cancellationToken).ConfigureAwait(false);
         }
-        finally
+        catch
         {
+            // A refused or interrupted request records no attempt; the next scan shows what actually happened.
             installing = new HashSet<string>(StringComparer.Ordinal);
+            Reconcile();
+            throw;
         }
+        installing = new HashSet<string>(StringComparer.Ordinal);
 
         var now = timeProvider.GetUtcNow();
         var session = Session!;

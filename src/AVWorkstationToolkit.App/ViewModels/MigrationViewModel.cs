@@ -34,6 +34,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     private string status = string.Empty;
     private string savedSessionProblem = string.Empty;
     private bool disposed;
+    private bool refreshScheduled;
 
     public MigrationViewModel(WorkstationMigrationService service, IMigrationFileService files, string productVersion, Dispatcher? dispatcher = null)
     {
@@ -484,7 +485,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         {
             Status = $"Couldn't update the checklist. {Sanitize(exception.Message)}";
         }
-        Refresh();
+        RequestRefresh();
     }
 
     private bool ConfirmReplace(string question) => service.Session is null ||
@@ -497,8 +498,21 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     private void Service_ChecklistChanged(object? sender, EventArgs e)
     {
         if (disposed) return;
-        if (dispatcher is null || dispatcher.CheckAccess()) Refresh();
-        else _ = dispatcher.BeginInvoke(DispatcherPriority.Background, Refresh);
+        RequestRefresh();
+    }
+
+    // Checklist edits usually arrive from a check box inside the grid, so the grid is rebuilt after that binding
+    // update finishes rather than during it. Without a dispatcher (tests) the refresh runs at once.
+    private void RequestRefresh()
+    {
+        if (dispatcher is null) { Refresh(); return; }
+        if (refreshScheduled) return;
+        refreshScheduled = true;
+        _ = dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+        {
+            refreshScheduled = false;
+            Refresh();
+        });
     }
 
     internal void Refresh()

@@ -264,6 +264,26 @@ public sealed class WorkstationMigrationTests
     }
 
     [TestMethod]
+    public async Task RefusedInstallRecordsNoAttemptAndLeavesNothingInstalling()
+    {
+        var before = await Target([], MigrationFixtures.WinGetResult());
+        var actions = new RecordingActionStore();
+        var store = new MemorySessionStore();
+        var service = Service(before.Plan, actions, store);
+        service.StartFromInventory(Exported(SourceInventory()));
+        service.Accept(before.Plan);
+        var wireshark = service.Checklist!.Items.Single(item => item.Desired.Identity.Application?.Id == "WiresharkFoundation.Wireshark");
+
+        // A driver-bearing package without acknowledgement is refused by the coordinator's authorization, as in the main window.
+        var refusal = await Assert.ThrowsAsync<ActionRequestValidationException>(() => service.InstallAsync([wireshark.ItemId], riskAcknowledged: false));
+
+        Assert.AreEqual(ActionRequestFailure.PackageNotEligible, refusal.Failure);
+        Assert.IsNull(actions.Request);
+        Assert.AreEqual(ChecklistStatus.ReadyToInstall, service.Checklist!.Items.Single(item => item.ItemId == wireshark.ItemId).Status);
+        Assert.IsNull(store.Saved!.Items.Single(item => item.ItemId == wireshark.ItemId).LastAttempt);
+    }
+
+    [TestMethod]
     public void SessionImportSelectsApplicationsAndKeepsComponentsOutOfTheDefaultList()
     {
         var document = Exported(SourceInventory());
