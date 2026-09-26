@@ -24,10 +24,21 @@ public sealed record AvailableUpdateInventoryResult(
     string Detail,
     string DiagnosticOutput);
 
+/// <summary>
+/// One uninstall registration. Catalog detection reads only the name and version; the remaining evidence lets the
+/// workstation inventory keep publisher, registration identity, and visibility without a second registry scan.
+/// </summary>
 public sealed record RegistryUninstallRecord(
     RegistryInventorySource Source,
     string DisplayName,
-    string DisplayVersion);
+    string DisplayVersion,
+    string Publisher = "",
+    string KeyName = "",
+    bool SystemComponent = false,
+    bool WindowsInstaller = false,
+    string ParentKeyName = "",
+    string ReleaseType = "",
+    string MsiUpgradeCode = "");
 
 public sealed record RegistrySourceStatus(
     RegistryInventorySource Source,

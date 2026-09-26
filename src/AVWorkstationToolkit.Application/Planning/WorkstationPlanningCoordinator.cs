@@ -53,12 +53,18 @@ public sealed record ProviderRefreshSummary(
     string RebootDetail = "",
     IReadOnlyList<RegistrySourceStatus>? ExternalSources = null);
 
+/// <summary>The raw provider results a refresh read, kept so the workstation inventory can reuse them without rescanning.</summary>
+public sealed record WorkstationPlanEvidence(
+    InstalledPackageInventoryResult WinGetInventory,
+    RegistryInventoryResult RegistryInventory);
+
 public sealed record WorkstationPlan(
     IReadOnlyList<PackageState> Packages,
     WorkstationPlanSummary Summary,
     RebootState Reboot,
     ProviderRefreshSummary Providers,
-    IReadOnlyDictionary<string, ExternalReleaseEvidence>? ExternalReleases = null);
+    IReadOnlyDictionary<string, ExternalReleaseEvidence>? ExternalReleases = null,
+    WorkstationPlanEvidence? Evidence = null);
 
 public interface IWorkstationPlanningCoordinator
 {
@@ -140,7 +146,8 @@ public sealed class WorkstationPlanningCoordinator : IWorkstationPlanningCoordin
             reboot.Detail,
             external.Sources);
         var releaseMap = releases.Releases.ToDictionary(item => item.Id, StringComparer.OrdinalIgnoreCase);
-        var result = new WorkstationPlan(states, Summarize(states), rebootState, providerSummary, releaseMap);
+        var result = new WorkstationPlan(states, Summarize(states), rebootState, providerSummary, releaseMap,
+            new WorkstationPlanEvidence(installed, external));
         progress?.Report(PlanningRefreshStage.Ready);
         return result;
     }
