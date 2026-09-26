@@ -61,6 +61,7 @@ public partial class App : System.Windows.Application
             CompatibilityCatalogQueryService? compatibility = null;
             IReferenceCatalogUpdateService? referenceCatalogUpdates = null;
             IManagedCatalogUpdateService? managedCatalogUpdates = null;
+            MigrationComposition? migration = null;
             var productVersion = packagedContext?.Version ?? "Unknown";
             var executionMode = packagedContext is null ? "Source compiled runtime" : "Packaged compiled runtime";
             if (packagedContext is not null)
@@ -82,6 +83,7 @@ public partial class App : System.Windows.Application
                 compatibility = services.Compatibility;
                 referenceCatalogUpdates = services.ReferenceCatalogUpdates;
                 managedCatalogUpdates = services.ManagedCatalogUpdates;
+                migration = services.Migration;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
@@ -110,12 +112,13 @@ public partial class App : System.Windows.Application
                 compatibility = services.Compatibility;
                 referenceCatalogUpdates = services.ReferenceCatalogUpdates;
                 managedCatalogUpdates = services.ManagedCatalogUpdates;
+                migration = services.Migration;
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
             var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
                 applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility, referenceCatalogUpdates: referenceCatalogUpdates,
-                managedCatalogUpdates: managedCatalogUpdates);
+                managedCatalogUpdates: managedCatalogUpdates, migration: migration);
             var release = new ProductRelease(productVersion, packagedContext?.Prerelease ?? string.Empty);
             var window = new MainWindow(viewModel, release.DisplayVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
             if (release.Prerelease.Length > 0) window.Title = $"AV Workstation Toolkit {release.DisplayVersion}";

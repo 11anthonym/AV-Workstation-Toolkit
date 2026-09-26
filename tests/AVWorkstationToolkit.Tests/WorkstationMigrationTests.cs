@@ -392,7 +392,7 @@ public sealed class WorkstationMigrationTests
         Assert.AreEqual(adopted.Items.Count, adopted.Items.Select(item => item.ItemId).Distinct().Count());
     }
 
-    private static DeploymentProfile JumpPc(int version) => new(
+    internal static DeploymentProfile JumpPc(int version) => new(
         "cenero-jump-pc",
         "Cenero Jump PC",
         version,
@@ -410,7 +410,7 @@ public sealed class WorkstationMigrationTests
                new("verify-connectivity", "Verify remote connectivity"), new("verify-sleep", "Verify sleep is disabled"),
                new("verify-vpn", "Verify customer VPN if applicable")]);
 
-    private static WorkstationInventory SourceInventory() => MigrationFixtures.Inventory(
+    internal static WorkstationInventory SourceInventory() => MigrationFixtures.Inventory(
     [
         MigrationFixtures.Registration("Crestron Toolbox 3.1390.0008.3", "3.1390.0008.3", "Crestron Electronics Inc.", UninstallHive.Machine32, "{1B52BC01-2F6E-4FAE-BB09-1F28D2BF1D63}_is1"),
         MigrationFixtures.Registration("Extron Electronics - Toolbelt", "2.35.0.14", "Extron", key: "{6910E638-B48D-4090-B491-9742B5CDEAD9}", windowsInstaller: true, upgradeCode: "{9A1B2C3D-0000-4000-8000-000000000001}"),
@@ -428,7 +428,7 @@ public sealed class WorkstationMigrationTests
         new("Microsoft.VCRedist.2015+.x86", "14.44.35211.0")
     ]);
 
-    private static InventoryDocument Exported(WorkstationInventory inventory) =>
+    internal static InventoryDocument Exported(WorkstationInventory inventory) =>
         WorkstationInventoryDocumentCodec.Parse(WorkstationInventoryDocumentCodec.Serialize(inventory, Generator));
 
     private static DesiredApplicationSpec Spec(
@@ -443,7 +443,7 @@ public sealed class WorkstationMigrationTests
     private static IReadOnlyList<ReconciledApplication> Reconcile(MigrationSession session, TargetState target) =>
         new ApplicationReconciliationService().Reconcile(session.Resolve(MigrationFixtures.Identities), target.Reconciliation);
 
-    private static async Task<TargetState> Target(
+    internal static async Task<TargetState> Target(
         IReadOnlyList<RegistryUninstallRecord> registry,
         InstalledPackageInventoryResult winGet,
         bool rebootPending = false,
@@ -454,7 +454,7 @@ public sealed class WorkstationMigrationTests
         return new TargetState(plan, new ReconciliationTarget(plan.Packages, plan.Reboot, inventory));
     }
 
-    private static WorkstationMigrationService Service(WorkstationPlan refreshed, RecordingActionStore actions, MemorySessionStore? store = null)
+    internal static WorkstationMigrationService Service(WorkstationPlan refreshed, RecordingActionStore actions, MemorySessionStore? store = null)
     {
         var planning = new FixedPlanning(refreshed);
         var coordinator = new CompiledActionCoordinator(actions, new ImmediateLauncher(), planning,
@@ -463,14 +463,14 @@ public sealed class WorkstationMigrationTests
             new FixedTime(MigrationFixtures.Now));
     }
 
-    private sealed record TargetState(WorkstationPlan Plan, ReconciliationTarget Reconciliation);
+    internal sealed record TargetState(WorkstationPlan Plan, ReconciliationTarget Reconciliation);
 
-    private sealed class FixedPlanning(WorkstationPlan plan) : IWorkstationPlanningCoordinator
+    internal sealed class FixedPlanning(WorkstationPlan plan) : IWorkstationPlanningCoordinator
     {
         public Task<WorkstationPlan> RefreshAsync(IProgress<PlanningRefreshStage>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(plan);
     }
 
-    private sealed class MemorySessionStore : IMigrationSessionStore
+    internal sealed class MemorySessionStore : IMigrationSessionStore
     {
         public MigrationSession? Saved { get; private set; }
         public MigrationSession? Load() => Saved;
@@ -478,13 +478,13 @@ public sealed class WorkstationMigrationTests
         public void Delete() => Saved = null;
     }
 
-    private sealed class FixedTime(DateTimeOffset now) : TimeProvider
+    internal sealed class FixedTime(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
     }
 
     /// <summary>Records the persisted request and answers with a verified success for every requested package.</summary>
-    private sealed class RecordingActionStore : IActionProtocolStore
+    internal sealed class RecordingActionStore : IActionProtocolStore
     {
         private readonly ActionResultCodec codec = new();
         private byte[]? result;
@@ -511,7 +511,7 @@ public sealed class WorkstationMigrationTests
             Task.FromResult(kind == ActionArtifactKind.Result ? result : null);
     }
 
-    private sealed class ImmediateLauncher : ICompiledWorkerLauncher
+    internal sealed class ImmediateLauncher : ICompiledWorkerLauncher
     {
         public ValueTask<ICompiledWorkerSession> LaunchAsync(ActionArtifactPaths paths, CancellationToken cancellationToken = default) =>
             ValueTask.FromResult<ICompiledWorkerSession>(new Session());

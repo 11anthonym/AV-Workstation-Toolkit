@@ -41,6 +41,9 @@ public partial class MainWindow : Window
         viewModel.CatalogUpdatesRequested += ShowCatalogUpdates;
         viewModel.ManagedCatalogUpdatesRequested += ShowManagedCatalogUpdates;
         viewModel.AboutRequested += ShowAbout;
+        viewModel.MigrationRequested += ShowMigration;
+        viewModel.PlanApplied += ForwardPlanToMigration;
+        if (viewModel.Migration is { } migration) migration.Service.PlanRefreshed += AdoptMigrationPlan;
         SourceInitialized += (_, _) => WindowWorkAreaPlacement.TryFitToCurrentMonitor(this);
         Loaded += MainWindow_Loaded;
         Closed += (_, _) =>
@@ -52,6 +55,9 @@ public partial class MainWindow : Window
             viewModel.CatalogUpdatesRequested -= ShowCatalogUpdates;
             viewModel.ManagedCatalogUpdatesRequested -= ShowManagedCatalogUpdates;
             viewModel.AboutRequested -= ShowAbout;
+            viewModel.MigrationRequested -= ShowMigration;
+            viewModel.PlanApplied -= ForwardPlanToMigration;
+            if (viewModel.Migration is { } composition) composition.Service.PlanRefreshed -= AdoptMigrationPlan;
             viewModel.Dispose();
         };
     }
@@ -509,5 +515,36 @@ public partial class MainWindow : Window
     {
         if (!allowDialogs) return;
         new AboutWindow(productVersion, executionMode) { Owner = this }.ShowDialog();
+    }
+
+    private MigrationWindow? migrationWindow;
+
+    // The migration window is modeless so a technician can keep the checklist open beside the main window while
+    // installing vendor software by hand.
+    private void ShowMigration(MigrationComposition composition)
+    {
+        if (!allowDialogs || DataContext is not MainWindowViewModel viewModel) return;
+        if (migrationWindow is not null)
+        {
+            if (migrationWindow.WindowState == WindowState.Minimized) migrationWindow.WindowState = WindowState.Normal;
+            migrationWindow.Activate();
+            return;
+        }
+        var files = new WpfMigrationFileService(composition.DataRoot);
+        var migrationViewModel = new MigrationViewModel(composition.Service, files, composition.ProductVersion);
+        migrationWindow = new MigrationWindow(migrationViewModel) { Owner = this };
+        files.Owner = migrationWindow;
+        migrationWindow.Closed += (_, _) => migrationWindow = null;
+        migrationWindow.Show();
+        _ = migrationViewModel.InitializeAsync(viewModel.LatestPlan);
+    }
+
+    private void ForwardPlanToMigration(AVWorkstationToolkit.Application.Planning.WorkstationPlan plan) =>
+        migrationWindow?.ViewModel.AdoptPlan(plan);
+
+    private void AdoptMigrationPlan(object? sender, AVWorkstationToolkit.Application.Planning.WorkstationPlan plan)
+    {
+        if (DataContext is not MainWindowViewModel viewModel) return;
+        _ = Dispatcher.InvokeAsync(() => viewModel.AdoptPlanAsync(plan));
     }
 }

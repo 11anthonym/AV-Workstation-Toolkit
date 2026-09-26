@@ -115,7 +115,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IManagedCatalogUpdateService? managedCatalogUpdates = null,
         TimeSpan? searchDebounce = null,
         Dispatcher? presentationDispatcher = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        MigrationComposition? migration = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
@@ -179,6 +180,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CatalogUpdatesCommand = new RelayCommand(_ => CatalogUpdatesRequested?.Invoke(referenceCatalogUpdates!), _ => referenceCatalogUpdates is not null);
         ManagedCatalogUpdatesCommand = new RelayCommand(_ => ManagedCatalogUpdatesRequested?.Invoke(managedCatalogUpdates!), _ => managedCatalogUpdates is not null);
         AboutCommand = new RelayCommand(_ => AboutRequested?.Invoke());
+        Migration = migration;
+        MigrationCommand = new RelayCommand(_ => MigrationRequested?.Invoke(Migration!), _ => Migration is not null);
     }
 
     public ReadOnlyObservableCollection<PackageRowViewModel> Packages => packageView;
@@ -208,7 +211,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public RelayCommand CatalogUpdatesCommand { get; }
     public RelayCommand ManagedCatalogUpdatesCommand { get; }
     public RelayCommand AboutCommand { get; }
+    public RelayCommand MigrationCommand { get; }
+    public MigrationComposition? Migration { get; }
     public ICommand ExitCommand { get; } = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
+    public event Action<MigrationComposition>? MigrationRequested;
+
+    /// <summary>Raised after this window applied a plan it refreshed or received from an installation, so the migration view can follow it.</summary>
+    public event Action<WorkstationPlan>? PlanApplied;
     public event Action<CatalogDetailViewModel>? DetailRequested;
     public event Action<CompatibilityDetailViewModel>? CompatibilityDetailRequested;
     public event Action<DiagnosticsViewModel>? DiagnosticsRequested;
@@ -455,6 +464,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             if (generation != Volatile.Read(ref refreshGeneration)) return;
             ApplyPlan(result, selectedIds, selectedRowId);
             Diagnostics = new DiagnosticsViewModel(refreshedDiagnostics, ActionDiagnosticText(), diagnosticsExportService);
+            PlanApplied?.Invoke(result);
             AppendActivity(WarningVisible
                 ? $"{WarningSeverityText} {WarningTitle}. {WarningDetailText}"
                 : "App status ready.");
@@ -478,6 +488,27 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 ActivityState = "Ready";
             }
         }
+    }
+
+    /// <summary>
+    /// Shows a plan another view refreshed, such as a migration scan or installation, keeping the current selection
+    /// where it is still eligible. It never starts a refresh of its own.
+    /// </summary>
+    internal async Task AdoptPlanAsync(WorkstationPlan result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        if (disposed || IsBusy || actionActive) return;
+        var selectedIds = packages.Where(item => item.Selected).Select(item => item.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        ApplyPlan(result, selectedIds, SelectedRow?.Id);
+        try
+        {
+            Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(result).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
+        }
+        catch (Exception exception)
+        {
+            AppendActivity($"Couldn't update diagnostics. {Sanitize(exception.Message)}");
+        }
+        AppendActivity("App status updated from the workstation migration scan.");
     }
 
     public void SetSort(string memberPath, ListSortDirection? requestedDirection = null)
@@ -1025,6 +1056,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledgedForThisRun, dryRun: false).ConfigureAwait(true);
             ApplyPlan(completed.RefreshedPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), SelectedRow?.Id);
             Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(completed.RefreshedPlan).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
+            PlanApplied?.Invoke(completed.RefreshedPlan);
             AppendActivity($"{ActionStateLabel(ActionSnapshot.State)}: {completed.Result.Message}");
         }
         catch (Exception exception)

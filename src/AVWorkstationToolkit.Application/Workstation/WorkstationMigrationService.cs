@@ -63,6 +63,9 @@ public sealed class WorkstationMigrationService
     /// <summary>Raised when this service refreshed the workstation plan, so other views can adopt it.</summary>
     public event EventHandler<WorkstationPlan>? PlanRefreshed;
 
+    /// <summary>Raised whenever the checklist is reconciled again or cleared; it may be raised off the UI thread.</summary>
+    public event EventHandler? ChecklistChanged;
+
     public MigrationSession? Session { get; private set; }
     public WorkstationPlan? Plan { get; private set; }
     public WorkstationInventory? TargetInventory { get; private set; }
@@ -99,10 +102,17 @@ public sealed class WorkstationMigrationService
 
     public MigrationChecklist? Reconcile()
     {
-        if (Session is null || Plan is null || TargetInventory is null) return Checklist = null;
+        if (Session is null || Plan is null || TargetInventory is null)
+        {
+            Checklist = null;
+            ChecklistChanged?.Invoke(this, EventArgs.Empty);
+            return null;
+        }
         var items = reconciler.Reconcile(Session.Resolve(Identities),
             new ReconciliationTarget(Plan.Packages, Plan.Reboot, TargetInventory), installing);
-        return Checklist = new MigrationChecklist(Session, items, ChecklistSummary.From(items), TargetInventory, Plan);
+        Checklist = new MigrationChecklist(Session, items, ChecklistSummary.From(items), TargetInventory, Plan);
+        ChecklistChanged?.Invoke(this, EventArgs.Empty);
+        return Checklist;
     }
 
     public MigrationSession StartFromInventory(InventoryDocument document)
@@ -137,6 +147,7 @@ public sealed class WorkstationMigrationService
         store.Delete();
         Session = null;
         Checklist = null;
+        ChecklistChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

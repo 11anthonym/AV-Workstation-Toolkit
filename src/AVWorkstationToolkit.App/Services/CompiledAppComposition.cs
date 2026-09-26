@@ -17,6 +17,8 @@ using AVWorkstationToolkit.Infrastructure.Windows.Authenticode;
 using AVWorkstationToolkit.Infrastructure.Windows.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Vendors;
 using AVWorkstationToolkit.Application.Catalog;
+using AVWorkstationToolkit.Application.Workstation;
+using AVWorkstationToolkit.Infrastructure.Windows.Migration;
 
 namespace AVWorkstationToolkit.App.Services;
 
@@ -37,7 +39,11 @@ public sealed record CompiledAppServices(
     IApplicationMenuWorkflow ApplicationMenu,
     string Version,
     string ExecutionMode,
-    bool IsProduction);
+    bool IsProduction,
+    MigrationComposition Migration);
+
+/// <summary>The workstation migration service and the per-user data root that holds its checklist and profiles.</summary>
+public sealed record MigrationComposition(WorkstationMigrationService Service, string DataRoot, string ProductVersion);
 
 public static class CompiledAppComposition
 {
@@ -86,11 +92,13 @@ public static class CompiledAppComposition
         var resolver = new WindowsWinGetResolver();
         var runner = new WinGetReadOnlyProcessRunner(resolver);
         var managed = catalog.Items.Where(item => item.HasManagedExecutionAuthority).Select(item => (item.Id, item.Name));
+        var installedInventory = new WinGetInstalledPackageInventory(runner, managed);
+        var registryInventory = new WindowsUninstallRegistryInventory();
         var planning = new WorkstationPlanningCoordinator(
             catalog,
-            new WinGetInstalledPackageInventory(runner, managed),
+            installedInventory,
             new WinGetAvailableUpdateInventory(runner),
-            new WindowsUninstallRegistryInventory(),
+            registryInventory,
             new WindowsRebootStateProvider(),
             new ExternalInventoryMatcher(),
             externalReleases: new VendorExternalReleaseInventory(catalog));
@@ -144,8 +152,16 @@ public static class CompiledAppComposition
                 verifier);
             packageDelivery = new PackageDeliveryWorkflow(catalog, vendors, handoffs, cachePaths, dataRoot);
         }
+        // Migration reads the same providers as the plan, and installs only through the action coordinator above,
+        // which exists only in the packaged composition.
+        var migration = new WorkstationMigrationService(
+            planning,
+            new WorkstationInventoryService(catalog, installedInventory, registryInventory, new WindowsWorkstationMachineInfoProvider()),
+            new MigrationSessionFileStore(dataRoot),
+            actions);
         var executionMode = production ? "Packaged compiled runtime" : "Source compiled runtime";
         return new(catalog, compatibility, catalogUpdates, managedUpdates, managedCatalog.Source.Revision, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
-            handoffs, packageDelivery, applicationMenu, version, executionMode, production);
+            handoffs, packageDelivery, applicationMenu, version, executionMode, production,
+            new MigrationComposition(migration, dataRoot, new ProductRelease(version, prerelease).DisplayVersion));
     }
 }
