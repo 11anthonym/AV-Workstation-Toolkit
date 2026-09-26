@@ -36,6 +36,8 @@ External application inventory reads these uninstall locations independently:
 - `HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall`
 - `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall`
 
+From each registration it reads the display name, version, publisher, key name, and the `SystemComponent`, `WindowsInstaller`, `ParentKeyName`, and `ReleaseType` values. To recognize an MSI product family across versions it also reads the Windows Installer upgrade-code index at `HKLM\SOFTWARE\Classes\Installer\UpgradeCodes` and `HKCU\Software\Microsoft\Installer\UpgradeCodes`, as registry data only; it never calls Windows Installer APIs or WMI `Win32_Product`, which can trigger repair or reconfiguration. The workstation migration inventory also reads the computer name and the Windows product name, display version, and build from `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion`. All of these reads are read-only. The migration view adds no process launches: its scan is the ordinary read-only refresh, and its installations are ordinary exact-ID worker requests.
+
 Pending-reboot diagnostics read the Windows Update `RebootRequired` and Component Based Servicing `RebootPending` keys. AV Workstation Toolkit does not write those keys. The optional workstation snapshot command can directly run `%SystemRoot%\System32\dsregcmd.exe /status`; this is not part of ordinary desktop startup.
 
 ## User-requested install or update
@@ -73,9 +75,13 @@ Normal packaged operation can create or update only bounded application-owned co
 ├── vendor-cache            bounded downloads, `.download` staging, hashes, and verified files
 ├── ReferenceCatalog        signed descriptive catalog revision, atomic state, and staging
 ├── trusted-sftp-hosts.json pinned host identities
+├── migration\session.json  the active migration or provisioning checklist
+├── profiles                default folder for saved deployment profiles
 ├── snapshots               optional read-only workstation evidence bundles
 └── launcher-error.log      launcher failures when startup cannot continue
 ```
+
+A workstation inventory is written only to a file the operator chooses when exporting, and inventory and profile files are read only when the operator opens them. Those writes, and saves of the migration checklist, go through a same-directory temporary file that replaces the target only after the bytes are flushed, and they refuse link or reparse-point targets.
 
 Unchanged runtime files are not rewritten on every launch. Runtime repair uses same-directory atomic replacement and removes its transient `.tmp` file. Vendor downloads stage as non-final `.download` files under `vendor-cache`, never under arbitrary paths, and are not renamed to their final name until policy, size, path, hash, and Authenticode checks succeed.
 

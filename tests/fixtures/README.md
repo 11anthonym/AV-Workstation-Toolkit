@@ -4,6 +4,8 @@ These files are reusable, non-installing inputs for the compiled runtime's tests
 
 `winget-installed.txt`, `winget-upgrades.txt`, `winget-export.json` and `winget-current/` are the raw WinGet output vectors used by source QA. `software-compatibility/schema-v1-representative.json` is a representative reference-catalog document.
 
+`inventory/installed-program-names.json` and `inventory/managed-program-names.json` are executed contracts: real Windows installed-program DisplayNames, with look-alikes, and the one catalog record each must resolve to (or none). `ProductionInventoryDetectionTests` checks the external and awareness catalog detectors against the first; `WorkstationInventoryTests` checks the managed-application detectors of the workstation inventory against the second, and that inventory identity detects exactly what the catalog plan detects.
+
 The scenario files below are staged contracts that describe intended coverage shape. They are not presented as executed coverage; the authoritative behavior tests live in `tests/AVWorkstationToolkit.Tests`.
 
 | Area | Fixture | Where the behavior is actually tested |

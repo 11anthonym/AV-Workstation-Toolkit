@@ -22,12 +22,22 @@ Packaged execution keeps application-owned mutable state beneath
   operator explicitly requests an allowed download;
 - the active signed descriptive reference-catalog revision and bounded staging state;
 - at most one verified downloaded managed-catalog revision and bounded staging state.
+- the active workstation migration or provisioning checklist, and saved
+  deployment profiles when the operator keeps them in the default `profiles` folder.
 
 The installer deliberately leaves this per-user evidence after uninstall so
 an operator can review retention requirements. A packaged launch can read a
 bounded set of recognized files from legacy `%LOCALAPPDATA%\AVinite` state and
 copy only validated items into the new root. It does not move or delete the
 legacy directory.
+
+Exporting a workstation inventory writes a file only where the operator
+chooses. The file names the computer and its Windows edition, version, and
+build, and lists the installed applications with their names, versions,
+publishers, uninstall-registration keys, and WinGet and catalog identities. It
+contains no user name, install paths, uninstall commands, license keys, or
+credentials, and it leaves the workstation only if the operator copies it.
+Importing it on another workstation reads it locally; nothing is uploaded.
 
 Source-checkout execution uses repository-local `logs`, `reports`, and
 `snapshots` locations unless an explicit data root is supplied. These folders
@@ -38,8 +48,8 @@ installed software, devices, services, drivers, listeners, and network state.
 
 | Operation | Trigger | Destination and protocol | Data sent | Data received |
 |---|---|---|---|---|
-| WinGet inventory and update check | Automatic during startup refresh and any manual refresh | Microsoft Desktop App Installer/WinGet and its configured `winget` source over the network behavior implemented by WinGet | Exact inventory command options, normal source request metadata, and information WinGet itself requires | Installed-package export and current package-source metadata |
-| Official vendor release check | Automatic during startup refresh and any manual refresh for configured records | Catalogued HTTPS vendor page; redirects remain HTTPS and on the original host | Normal TLS/HTTP request metadata and the `AVWorkstationToolkit/1.1` user agent | Bounded vendor HTML or XML used only for release awareness |
+| WinGet inventory and update check | Automatic during startup refresh, and any manual refresh or workstation-migration scan | Microsoft Desktop App Installer/WinGet and its configured `winget` source over the network behavior implemented by WinGet | Exact inventory command options, normal source request metadata, and information WinGet itself requires | Installed-package export and current package-source metadata |
+| Official vendor release check | Automatic during startup refresh, and any manual refresh or workstation-migration scan, for configured records | Catalogued HTTPS vendor page; redirects remain HTTPS and on the original host | Normal TLS/HTTP request metadata and the `AVWorkstationToolkit/1.1` user agent | Bounded vendor HTML or XML used only for release awareness |
 | Vendor page handoff | Explicit **Open vendor download** action | Catalogued official HTTPS URI opened in the user's default browser | Browser-controlled request data | Vendor web page |
 | Controlled HTTPS package download | Explicit confirmation for an eligible manual external package | Catalogued HTTPS source and allowlisted redirect hosts | Normal TLS/HTTP request metadata and product user agent | One size-bounded installer written first as a scoped temporary cache file, then accepted only after publisher validation |
 | SFTP catalog metadata | Startup/manual refresh for the configured parent-provider catalog | Catalogued HTTPS catalog endpoint | Normal TLS/HTTP request metadata | Size-bounded product metadata |

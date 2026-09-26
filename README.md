@@ -20,6 +20,10 @@ policy.
   a time, with live revalidation and risk-sensitive reboot policy;
 - preserves version, lifecycle, access, licensing, and system-impact knowledge
   without turning that knowledge into uncontrolled software execution;
+- carries a workstation's applications to its replacement, or sets a
+  workstation up from a reusable deployment profile, as one checklist of what's
+  installed, what it can install automatically, and what you install yourself.
+  AV software that no package manager knows is included;
 - keeps diagnostics, logs, credentials, and vendor-cache evidence local.
 
 ## Download
@@ -104,6 +108,7 @@ separately signed reference catalog that updates in the app.
 **Using the app**
 
 - [Operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md)
+- [Workstation migration and deployment profiles](docs/Workstation-Migration-and-Profiles.md)
 - [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
 - [Repository scripts: command-line deployment and maintenance, snapshot, readiness, and catalog authoring](scripts/README.md)
 - Release notes for [1.1.2](docs/releases/1.1.2.md) and earlier releases ([1.1.1 Beta 2](docs/releases/1.1.1-beta.2.md), [Beta 1](docs/releases/1.1.1-beta.1.md)), and the [change log](docs/CHANGELOG.md)

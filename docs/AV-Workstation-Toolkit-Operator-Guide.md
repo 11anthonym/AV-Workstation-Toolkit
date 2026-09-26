@@ -114,6 +114,35 @@ No automatic rollback or uninstall is attempted. If an action fails or cannot be
 4. Resolve the package-specific issue before submitting another change wave.
 5. Do not substitute a similar package ID.
 
+## Workstation migration and deployment profiles
+
+Open **Workstation migration** from the header or the **Tools** menu to move a
+workstation's applications to a replacement or to set a workstation up from a
+deployment profile.
+
+1. On the old workstation, choose **Scan this PC**, then **Export inventory…**.
+   The inventory lists every installed application Windows registers, including
+   AV software that WinGet doesn't know, plus the identities the catalog and
+   WinGet add.
+2. On the replacement, choose **Import inventory…**. The Toolkit scans the
+   replacement immediately and shows one checklist: installed, available for
+   automatic installation, manual, not in the catalog, and to review.
+3. Use **Install** or **Install all available** for approved managed apps. The
+   same confirmation, risk acknowledgement, restart rule, holds, and worker
+   checks apply as in the main window. Install everything else yourself; for a
+   catalog app, **Get package** in the main window opens its approved vendor page
+   or download. Then choose **Rescan**.
+4. Exclude, remove, or mark done items as needed, and **Finish migration** when
+   the checklist is complete. The checklist is saved and survives restarts.
+
+**Apply deployment profile…** builds the same checklist from a reusable
+baseline such as a jump PC, and **New profile…**, **Revise a profile…**, and
+**Save checklist as profile…** create and revise profiles. An imported inventory
+or a profile never lets the Toolkit install an application the approved managed
+catalog doesn't allow. See
+[Workstation migration and deployment profiles](Workstation-Migration-and-Profiles.md)
+for statuses, file formats, and the security boundary.
+
 ## Current holds
 
 - RealVNC is viewer-only and remains on both deployment and maintenance hold because WinGet still advertises a download that returns 404. AV Workstation Toolkit must not offer that update; never substitute a VNC server or combined viewer/server package.
@@ -137,8 +166,9 @@ downloaded executable or extracted directory. The portable application does
 not register a service or separate uninstaller.
 
 Uninstall does not delete `%LOCALAPPDATA%\AVWorkstationToolkit`. That directory
-can contain logs, plan/diagnostic exports, trusted SFTP host records, and
-verified cache evidence. Removing it is optional and destructive; review
+can contain logs, plan/diagnostic exports, trusted SFTP host records,
+verified cache evidence, the saved migration checklist (`migration`), and
+deployment profiles saved to the default `profiles` folder. Removing it is optional and destructive; review
 operational retention requirements first. Historical
 `%LOCALAPPDATA%\AVinite` material may remain intentionally after the bounded
 migration and should not be deleted automatically merely to complete the
