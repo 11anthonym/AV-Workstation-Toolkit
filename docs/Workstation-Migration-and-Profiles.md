@@ -184,12 +184,21 @@ Identity is resolved on the workstation, from the strongest evidence first:
 | A curated catalog detector matched the registered name | Catalog | Only if this workstation's managed catalog approves it. |
 | Only a similar name resembles a catalog record | Probable | No. Shown as **Review**. |
 | More than one catalog record matches | Ambiguous | No. Shown as **Review**. |
+| The catalog ID and the WinGet ID name different applications | Ambiguous | No. Shown as **Review**, and nothing on this PC completes it. |
 | Nothing in the catalog matches | Unidentified | No. Shown as **Manual · not in catalog**. |
 
+A catalog ID and a WinGet ID on the same record describe one application, so
+they must agree. A record that says `7zip.7zip` and `Git.Git` is neither app: it
+stays in **Remaining** as **Review** even when Git (or 7-Zip) is installed, and
+neither ID can make it installable. The file still imports; only the
+contradiction is reported.
+
 To decide whether an app is installed here, the checklist uses the catalog's
-own state for catalog apps. For any app the catalog state doesn't settle, it uses
-the same WinGet ID, then the same Windows Installer upgrade code, the same
-uninstall registration, or the same normalized name. An upgrade code, an
+own state for catalog apps, then that app's own Windows Installer upgrade code,
+uninstall registration, or normalized name from the source; an imported WinGet
+ID doesn't stand in for the catalog's detection. For an app outside the catalog,
+it uses the same WinGet ID, then the same upgrade code, the same uninstall
+registration, or the same normalized name. An upgrade code, an
 uninstall key, or a name counts only when the publishers don't disagree, so
 installer identity never overrides name and publisher checks. Identity evidence
 never grants installation authority. A version difference doesn't make an

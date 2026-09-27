@@ -162,11 +162,14 @@ public sealed class ApplicationReconciliationService
     {
         var known = desired.Identity.IsConfident ? desired.Identity.Application : null;
         var state = known is null ? null : index.State(known.Id);
-        // A catalog application is found by its catalog state first; its own installer and name evidence from the
-        // source is the same conservative fallback an uncatalogued application uses.
-        var detection = known is null
-            ? index.DetectUncatalogued(desired.Spec)
-            : index.DetectCatalogued(known, state) is { Found: true } catalogued ? catalogued : index.DetectUncatalogued(desired.Spec);
+        // Identities that contradict each other describe no one application, so nothing on this PC can satisfy the item.
+        var conflicting = desired.Identity.Evidence == IdentityEvidence.ConflictingIds;
+        // A catalog application is found by its catalog state first; its own installer and name evidence from the source
+        // is the same conservative fallback an uncatalogued application uses. An imported WinGet ID is not part of that
+        // fallback: the catalog already knows the application's package identity, and the import can't vouch for another.
+        var detection = conflicting ? Detection.None
+            : known is null ? index.DetectUncatalogued(desired.Spec, useWinGetId: true)
+            : index.DetectCatalogued(known, state) is { Found: true } catalogued ? catalogued : index.DetectUncatalogued(desired.Spec, useWinGetId: false);
         var registryComplete = target.Inventory.Sources.Registry == EvidenceQuality.Complete;
 
         ReconciledApplication Result(ChecklistStatus status, string detail, PackageState? catalogState = null, bool allowed = false) => new(
@@ -179,6 +182,13 @@ public sealed class ApplicationReconciliationService
                 : "Excluded from this migration.");
         if (installing?.Contains(desired.ItemId) == true)
             return Result(ChecklistStatus.Installing, "Installation is running.");
+        if (conflicting)
+        {
+            var candidates = desired.Identity.Candidates;
+            var named = candidates.Count > 1 ? $"{candidates[0].Name} and {candidates[1].Name}" : $"{candidates[0].Name} and another package";
+            return Result(ChecklistStatus.NeedsReview,
+                $"The source recorded catalog ID {desired.Spec.CatalogId} and WinGet ID {desired.Spec.WinGetId}, which name different applications ({named}), so this item can't be checked. Install the application you need yourself, then exclude or remove this item.");
+        }
         if (detection.Found)
             return Result(ChecklistStatus.Installed, InstalledDetail(desired, detection));
         // A confirmation counts only for an application no scan can ever observe; a stale one never hides a detectable app.
@@ -326,11 +336,11 @@ public sealed class ApplicationReconciliationService
             return Detection.None;
         }
 
-        public Detection DetectUncatalogued(DesiredApplicationSpec spec)
+        public Detection DetectUncatalogued(DesiredApplicationSpec spec, bool useWinGetId)
         {
             // An exact WinGet package ID is a package identity. An upgrade code or an uninstall key is installer identity
             // a vendor could reuse, so it counts only when the publishers don't disagree, exactly like a name match.
-            if (spec.WinGetId.Length > 0 && byWinGetId[spec.WinGetId].FirstOrDefault() is { } byPackage)
+            if (useWinGetId && spec.WinGetId.Length > 0 && byWinGetId[spec.WinGetId].FirstOrDefault() is { } byPackage)
                 return new(true, byPackage.DisplayVersion, $"Same WinGet package ID ({spec.WinGetId})");
             if (spec.MsiUpgradeCode.Length > 0 && byUpgradeCode[spec.MsiUpgradeCode].FirstOrDefault(item => PublisherCompatible(item, spec)) is { } byUpgrade)
                 return new(true, byUpgrade.DisplayVersion, "Same Windows Installer upgrade code");

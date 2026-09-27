@@ -20,7 +20,7 @@ public enum IdentityConfidence
     Unidentified
 }
 
-public enum IdentityEvidence { None, CatalogId, WinGetId, CatalogDetector, NameSimilarity }
+public enum IdentityEvidence { None, CatalogId, WinGetId, CatalogDetector, NameSimilarity, ConflictingIds }
 
 /// <summary>One catalog record viewed as an application identity: the single application database every feature shares.</summary>
 public sealed class KnownApplication
@@ -77,6 +77,7 @@ public sealed record IdentityResolution(
         IdentityEvidence.CatalogDetector => $"Registered name matches {Candidates.Count} catalog applications",
         IdentityEvidence.NameSimilarity when Confidence == IdentityConfidence.Probable => $"Name resembles {Candidates[0].Name}",
         IdentityEvidence.NameSimilarity => $"Name resembles {Candidates.Count} catalog applications",
+        IdentityEvidence.ConflictingIds => "Its catalog ID and WinGet package ID name different applications",
         _ => "Not in the catalog"
     };
 }
@@ -128,10 +129,26 @@ public sealed class ApplicationIdentityCatalog
     public KnownApplication? FindManaged(string? winGetId) =>
         Find(winGetId) is { Management: ApplicationManagement.ManagedWinGet } application ? application : null;
 
-    /// <summary>Resolves the strongest available evidence: a catalog ID, then an exact managed WinGet ID, then the display name.</summary>
+    /// <summary>
+    /// Resolves the strongest available evidence: a catalog ID, then an exact managed WinGet ID, then the display name.
+    /// A catalog ID and a WinGet ID on one record describe one application, so when they name different applications the
+    /// record resolves to neither: it is ambiguous, needs review, and neither identity can complete or authorize anything.
+    /// </summary>
     public IdentityResolution Resolve(string? catalogId, string? winGetId, string? displayName)
     {
-        if (Find(catalogId) is { } known) return new(known, IdentityConfidence.Exact, IdentityEvidence.CatalogId, [known]);
+        if (Find(catalogId) is { } known)
+        {
+            if (!string.IsNullOrWhiteSpace(winGetId))
+            {
+                var packageId = winGetId.Trim();
+                var named = FindManaged(packageId);
+                // A managed record's WinGet ID is its catalog ID; any other application's ID contradicts the catalog ID.
+                if ((named is not null && !ReferenceEquals(named, known)) ||
+                    (known.WinGetId.Length > 0 && !known.WinGetId.Equals(packageId, StringComparison.OrdinalIgnoreCase)))
+                    return new(null, IdentityConfidence.Ambiguous, IdentityEvidence.ConflictingIds, named is null ? [known] : [known, named]);
+            }
+            return new(known, IdentityConfidence.Exact, IdentityEvidence.CatalogId, [known]);
+        }
         if (FindManaged(winGetId) is { } managed) return new(managed, IdentityConfidence.Exact, IdentityEvidence.WinGetId, [managed]);
         return ResolveDisplayName(displayName);
     }
