@@ -26,7 +26,12 @@ public enum ChecklistStatus
     NeedsReview,
     /// <summary>This workstation's inventory was incomplete, so the state can't be decided.</summary>
     CheckUnavailable,
-    Excluded
+    Excluded,
+    /// <summary>
+    /// The saved checklist hasn't been compared with a scan of this PC yet, as while a reopened migration is checked or
+    /// after that check failed. Nothing about installation is known, so the item is neither complete nor installable.
+    /// </summary>
+    NotChecked
 }
 
 public enum VersionDifference { Unknown, Same, Newer, Older, Different }
@@ -148,6 +153,25 @@ public sealed class ApplicationReconciliationService
         ArgumentNullException.ThrowIfNull(target);
         var index = new TargetIndex(target);
         return desired.Select(item => Reconcile(item, index, target, installingItemIds)).ToArray();
+    }
+
+    /// <summary>
+    /// The saved checklist before any scan of this PC. What was selected, excluded, or confirmed is known; whether an
+    /// application is installed here isn't, so only a technician's confirmation of an undetectable app counts as done,
+    /// and nothing can be installed until a scan finishes.
+    /// </summary>
+    public IReadOnlyList<ReconciledApplication> Unchecked(IEnumerable<DesiredApplication> desired)
+    {
+        ArgumentNullException.ThrowIfNull(desired);
+        return desired.Select(item =>
+        {
+            var (status, detail) = !item.Included ? (ChecklistStatus.Excluded, "Excluded from this migration.")
+                : item.ConfirmedAtUtc is { } confirmed && IsUndetectable(item)
+                    ? (ChecklistStatus.ConfirmedManually,
+                        $"Confirmed installed by a technician on {confirmed.ToLocalTime():yyyy-MM-dd HH:mm}. AV Workstation Toolkit can't detect this app.")
+                    : (ChecklistStatus.NotChecked, "Not checked on this PC yet. It is compared with this PC's installed apps when a scan finishes.");
+            return new ReconciledApplication(item, status, detail, string.Empty, VersionDifference.Unknown, string.Empty, null, false);
+        }).ToArray();
     }
 
     /// <summary>

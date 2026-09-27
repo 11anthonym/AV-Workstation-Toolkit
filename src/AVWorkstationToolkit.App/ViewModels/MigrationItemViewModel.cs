@@ -66,6 +66,7 @@ public sealed class MigrationItemViewModel : ObservableObject
         ChecklistStatus.UnknownApplication => "Manual · not in catalog",
         ChecklistStatus.NeedsReview => "Review",
         ChecklistStatus.CheckUnavailable => "Can't check",
+        ChecklistStatus.NotChecked => "Not checked yet",
         _ => item.IsApplication ? "Excluded" : "Supporting component"
     };
 
@@ -77,7 +78,7 @@ public sealed class MigrationItemViewModel : ObservableObject
         ChecklistStatus.ManualInstall => 3,
         ChecklistStatus.UnknownApplication => 4,
         ChecklistStatus.NeedsReview => 5,
-        ChecklistStatus.CheckUnavailable => 6,
+        ChecklistStatus.CheckUnavailable or ChecklistStatus.NotChecked => 6,
         ChecklistStatus.ConfirmedManually => 7,
         ChecklistStatus.Installed => 8,
         _ => 9

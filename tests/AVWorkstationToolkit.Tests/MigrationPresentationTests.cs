@@ -61,7 +61,7 @@ public sealed class MigrationPresentationTests
         Assert.IsNull(service.Checklist);
         StringAssert.Contains(viewModel.Status, "Imported");
         StringAssert.Contains(viewModel.Status, "Couldn't scan this PC");
-        StringAssert.Contains(viewModel.Status, "Scan this PC again");
+        StringAssert.Contains(viewModel.Status, "choose Rescan to try again");
         Assert.IsFalse(viewModel.Status.Contains("already installed", StringComparison.Ordinal));
         Assert.IsTrue(viewModel.IsNotBusy);
     }
@@ -353,6 +353,17 @@ public sealed class MigrationPresentationTests
         public string? PickProfileToOpen() => OpenPath;
         public string? PickProfileToSave(string suggestedName) { SuggestedName = suggestedName; return SavePath; }
         public bool Confirm(string title, string message) { LastConfirmMessage = message; return ConfirmAnswer; }
+
+        /// <summary>What the technician chooses when an active checklist would be replaced; continuing it is the default.</summary>
+        public bool ReplaceAnswer { get; set; }
+        public string? LastChoiceMessage { get; private set; }
+        public (string Keep, string Replace)? LastChoiceLabels { get; private set; }
+        public bool ChooseToReplace(string title, string message, string keepLabel, string replaceLabel)
+        {
+            LastChoiceMessage = message;
+            LastChoiceLabels = (keepLabel, replaceLabel);
+            return ReplaceAnswer;
+        }
         public byte[] Read(string path, int maximumBytes) => Files[path];
         public void Write(string path, byte[] content) => Files[path] = content;
     }

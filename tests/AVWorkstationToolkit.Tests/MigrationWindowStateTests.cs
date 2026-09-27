@@ -49,7 +49,8 @@ public sealed class MigrationWindowStateTests
                 pollInterval: TimeSpan.FromMilliseconds(5), resultTimeout: TimeSpan.FromSeconds(30));
             var service = new WorkstationMigrationService(planning, MigrationFixtures.InventoryService(), new WorkstationMigrationTests.MemorySessionStore(),
                 coordinator, new WorkstationMigrationTests.FixedTime(MigrationFixtures.Now));
-            var files = new MigrationPresentationTests.FakeFiles { OpenPath = @"C:\fixture\old-pc.json" };
+            // Applying the template later replaces the imported checklist, which the technician chooses explicitly.
+            var files = new MigrationPresentationTests.FakeFiles { OpenPath = @"C:\fixture\old-pc.json", ReplaceAnswer = true };
             files.Files[files.OpenPath] = WorkstationInventoryDocumentCodec.Serialize(WorkstationMigrationTests.SourceInventory(), "fixture");
             var viewModel = new MigrationViewModel(service, files, "1.1.3", dispatcher);
             var window = new MigrationWindow(viewModel);
@@ -193,7 +194,7 @@ public sealed class MigrationWindowStateTests
         });
     }
 
-    private static async Task Settle(Window window)
+    internal static async Task Settle(Window window)
     {
         var content = (FrameworkElement)window.Content;
         var size = new Size(1240, 790);
@@ -216,7 +217,7 @@ public sealed class MigrationWindowStateTests
     }
 
     // Visible on screen when shown: every element up to the window is Visible, so bound visibility converters ran.
-    private static bool IsShown(FrameworkElement element)
+    internal static bool IsShown(FrameworkElement element)
     {
         for (DependencyObject? current = element; current is not null and not Window;
              current = VisualTreeHelper.GetParent(current) ?? LogicalTreeHelper.GetParent(current))
@@ -245,7 +246,7 @@ public sealed class MigrationWindowStateTests
         }
     }
 
-    private static void RunOnDispatcher(Func<Dispatcher, Task> scenario)
+    internal static void RunOnDispatcher(Func<Dispatcher, Task> scenario)
     {
         ExceptionDispatchInfo? failure = null;
         var thread = new Thread(() =>

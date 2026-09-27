@@ -54,6 +54,7 @@ public sealed class WorkstationMigrationService
     // change to the session, plan, inventory, and checklist is made under one lock.
     private readonly object gate = new();
     private HashSet<string> installing = new(StringComparer.Ordinal);
+    private bool unsavedChanges;
 
     public WorkstationMigrationService(
         IWorkstationPlanningCoordinator planning,
@@ -82,13 +83,56 @@ public sealed class WorkstationMigrationService
     public bool AutomaticInstallAvailable => actions is not null;
     public ApplicationIdentityCatalog Identities => inventory.Identities;
 
+    /// <summary>
+    /// Returns the active checklist: the one this app run already holds, or else the one saved beneath the data root.
+    /// Reopening the window never re-reads a checklist this run already holds, so a change not saved yet isn't lost.
+    /// Closing the window ends nothing; only <see cref="Finish"/> clears the saved checklist.
+    /// </summary>
     public MigrationSession? LoadSaved()
     {
         lock (gate)
         {
-            Session = store.Load();
+            Session ??= store.Load();
             Reconcile();
             return Session;
+        }
+    }
+
+    /// <summary>
+    /// The checklist to show: reconciled with this PC's latest scan, or, before any scan of this PC finishes, the saved
+    /// checklist with every item not checked yet. Nothing in the unchecked list is complete or installable.
+    /// </summary>
+    public IReadOnlyList<ReconciledApplication> CurrentItems()
+    {
+        lock (gate)
+        {
+            if (Checklist is { } checklist) return checklist.Items;
+            return Session is null ? [] : reconciler.Unchecked(Session.Resolve(Identities));
+        }
+    }
+
+    /// <summary>Whether the active checklist holds changes the last save couldn't write.</summary>
+    public bool HasUnsavedChanges { get { lock (gate) return unsavedChanges; } }
+
+    /// <summary>
+    /// Writes the active checklist if a previous save failed, through the same atomic store. Returns an empty string when
+    /// nothing was pending or the save succeeded, and otherwise the reason it still couldn't be saved.
+    /// </summary>
+    public string SavePendingChanges()
+    {
+        lock (gate)
+        {
+            if (!unsavedChanges || Session is null) return string.Empty;
+            try
+            {
+                store.Save(Session);
+                unsavedChanges = false;
+                return string.Empty;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or WorkstationDocumentException)
+            {
+                return DiagnosticsRedactor.Sanitize(exception.Message);
+            }
         }
     }
 
@@ -167,6 +211,7 @@ public sealed class WorkstationMigrationService
             store.Delete();
             Session = null;
             Checklist = null;
+            unsavedChanges = false;
         }
         ChecklistChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -245,10 +290,15 @@ public sealed class WorkstationMigrationService
             // The installers have already run, so a failed save must not hide that or skip the scan below. The saved file
             // keeps its previous valid contents, and the next successful save records these attempts.
             Session = session;
-            try { store.Save(session); }
+            try
+            {
+                store.Save(session);
+                unsavedChanges = false;
+            }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or WorkstationDocumentException)
             {
                 saveProblem = DiagnosticsRedactor.Sanitize(exception.Message);
+                unsavedChanges = true;
             }
         }
         // Completion comes only from a fresh scan: the coordinator's post-install refresh, or a scan of our own if that
@@ -283,6 +333,8 @@ public sealed class WorkstationMigrationService
         {
             store.Save(session);
             Session = session;
+            // The whole checklist was written, including anything an earlier failed save left pending.
+            unsavedChanges = false;
         }
         Reconcile();
         return session;

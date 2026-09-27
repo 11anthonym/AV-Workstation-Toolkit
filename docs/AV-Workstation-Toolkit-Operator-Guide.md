@@ -136,7 +136,10 @@ workstation template.
    main window opens its approved vendor page or download. Then choose
    **Rescan**. An app leaves **Remaining** only when a scan detects it.
 4. Exclude or remove items you no longer need, and **Finish migration** when
-   nothing remains. The checklist is saved and survives restarts.
+   nothing remains. Until then the migration stays active: close the window or
+   the app whenever you like, and the same checklist reopens and is checked
+   against this PC again. Only **Finish migration** clears it, and it never
+   uninstalls anything.
 
 **Apply workstation template…** builds the same checklist from a reusable
 baseline such as a jump PC, and **New workstation template…**, **Revise a

@@ -25,9 +25,13 @@ public sealed class MigrationFailureStateTests
         await viewModel.InitializeAsync(null);
 
         AssertUsable(viewModel, service, "Couldn't scan this PC");
+        StringAssert.Contains(viewModel.Status, "The migration is kept; choose Rescan");
         Assert.IsTrue(viewModel.HasSession, "The saved checklist is kept.");
         Assert.IsNull(service.Checklist);
-        Assert.AreEqual("Scan this PC to compare", viewModel.RemainingHeadline);
+        Assert.AreEqual("Not checked on this PC yet", viewModel.RemainingHeadline);
+        // The saved checklist stays on screen, unchecked rather than complete.
+        Assert.IsNotEmpty(viewModel.VisibleItems);
+        Assert.IsTrue(viewModel.VisibleItems.All(row => row.Item.Status == ChecklistStatus.NotChecked && !row.Satisfied && !row.CanInstall));
         viewModel.Filter = MigrationFilter.Completed;
         Assert.IsEmpty(viewModel.VisibleItems);
     }
@@ -134,7 +138,9 @@ public sealed class MigrationFailureStateTests
         var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
         var after = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult(("7zip.7zip", "26.03")));
         var store = new FailingStore();
-        var (viewModel, service, _) = Create(new WorkstationMigrationTests.FixedPlanning(after.Plan), new WorkstationMigrationTests.RecordingActionStore(), store);
+        // The technician chooses to replace the checklist, so the template's save is what fails.
+        var (viewModel, service, _) = Create(new WorkstationMigrationTests.FixedPlanning(after.Plan), new WorkstationMigrationTests.RecordingActionStore(), store,
+            new MigrationPresentationTests.FakeFiles { ReplaceAnswer = true });
         var started = service.StartFromInventory(WorkstationMigrationTests.Exported(WorkstationMigrationTests.SourceInventory()));
         await viewModel.InitializeAsync(before.Plan);
         store.FailSaves = true;
@@ -263,7 +269,7 @@ public sealed class MigrationFailureStateTests
     }
 
     /// <summary>Saves normally until told to fail, then refuses every save as a locked or read-only folder would.</summary>
-    private sealed class FailingStore : IMigrationSessionStore
+    internal sealed class FailingStore : IMigrationSessionStore
     {
         public bool FailSaves { get; set; }
         public MigrationSession? Saved { get; private set; }

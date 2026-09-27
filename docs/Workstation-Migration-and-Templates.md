@@ -61,6 +61,7 @@ every item; a detected item is shown under **Completed**, not deleted.
 | Manual · not in catalog | An application the Toolkit doesn't catalog, or that WinGet knows but the managed catalog doesn't approve. | Install it yourself, then **Rescan**. |
 | Review | Its identity is ambiguous or only suggested by a similar name. | Decide whether it's needed; install it yourself or exclude it. |
 | Can't check | This workstation's inventory was incomplete. | **Rescan**; see Diagnostics if it persists. |
+| Not checked yet | The saved checklist is shown while this PC is being checked, or the check failed. Nothing is complete or installable until a scan finishes. | Wait, or **Rescan** if the check failed. |
 | Manual · can't be detected | A catalog application with no Windows detector, and no installer identity from the source to match. | Install it, then **Confirm installed**. |
 | Confirmed installed | You confirmed an application of the kind above. | Nothing; **Clear confirmation** undoes it. |
 | Excluded | A user-facing application you left out of this migration. | Include it again if you change your mind. |
@@ -89,8 +90,20 @@ Checklist actions:
 - **Remove…** takes an app out of this migration permanently. Excluding is the
   reversible choice.
 - **Rescan** (F5) scans the workstation again.
-- **Finish migration** ends the migration and deletes its saved checklist, for
-  example when nothing remains or you've intentionally excluded the rest.
+- **Finish migration** is the one action that ends the migration. It asks
+  first, says whose checklist will be cleared, and then clears it; it never
+  uninstalls or removes software. Use it when nothing remains or you've
+  intentionally excluded the rest.
+
+The migration stays active until you finish it. Closing the window, or closing
+AV Workstation Toolkit, only closes the view: the next time you open
+**Workstation migration**, the same checklist is shown at once, marked **Not
+checked yet** while this PC is checked, and then updated from what the check
+finds. If this PC can't be checked, the checklist stays open, the window says
+installation status isn't current, and **Rescan** tries again. Importing an
+inventory or applying a template while a migration is active never replaces it
+silently: you choose **Continue current migration** (the default) or
+**Replace with new migration** (**Replace with template** for a template).
 
 The views are **Remaining**, **Install available**, **Manual**, **Needs
 attention** (review, can't check, and failed installs), **Completed**,
@@ -335,8 +348,12 @@ records the source (computer name or template name and revision), each item's
 descriptive details, whether it's included, any confirmation of an
 undetectable application, the
 last installation attempt, removed and skipped counts, and manual-check
-progress. It holds no secrets and is validated as strictly as an imported
-file. If it can't be read, the window says so and offers to discard it.
+progress. It records what the migration is trying to accomplish, never whether
+an app is installed: that always comes from the latest scan of this PC. It
+holds no secrets and is validated as strictly as an imported file. If it can't
+be read, the window says so and offers to discard it. Every change is saved
+as it's made; if a save fails, the window says so, keeps the change, and tries
+again at the next change or when the window closes.
 **Finish migration** deletes it. Each save writes a temporary file beside it and
 then replaces it, so a failed save leaves the last valid checklist in place and
 the window reports the failure; a leftover temporary file is never read as a

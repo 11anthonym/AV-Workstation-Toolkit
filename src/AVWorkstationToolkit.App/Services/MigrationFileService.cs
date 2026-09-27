@@ -13,6 +13,13 @@ public interface IMigrationFileService
     string? PickProfileToOpen();
     string? PickProfileToSave(string suggestedName);
     bool Confirm(string title, string message);
+
+    /// <summary>
+    /// Asks whether to keep the active checklist or replace it, with those two choices named. Returns true only when the
+    /// technician chooses to replace it; keeping it is the default and the answer when the question is closed.
+    /// </summary>
+    bool ChooseToReplace(string title, string message, string keepLabel, string replaceLabel);
+
     byte[] Read(string path, int maximumBytes);
     void Write(string path, byte[] content);
 }
@@ -39,6 +46,35 @@ public sealed class WpfMigrationFileService(string dataRoot, Window? owner = nul
     public bool Confirm(string title, string message) =>
         (Owner is null ? MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question)
             : MessageBox.Show(Owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question)) == MessageBoxResult.Yes;
+
+    // A message box can only say Yes or No, so this small dialog names both choices. Keeping the checklist is the default
+    // button, the Escape key, and the answer when the dialog is closed.
+    public bool ChooseToReplace(string title, string message, string keepLabel, string replaceLabel)
+    {
+        var replace = false;
+        var dialog = new Window
+        {
+            Title = title,
+            Owner = Owner,
+            WindowStartupLocation = Owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            ResizeMode = ResizeMode.NoResize,
+            ShowInTaskbar = false
+        };
+        var keepButton = new System.Windows.Controls.Button { Content = keepLabel, IsDefault = true, IsCancel = true, MinWidth = 180, Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(8, 0, 0, 0) };
+        var replaceButton = new System.Windows.Controls.Button { Content = replaceLabel, MinWidth = 180, Padding = new Thickness(12, 6, 12, 6) };
+        keepButton.Click += (_, _) => dialog.Close();
+        replaceButton.Click += (_, _) => { replace = true; dialog.Close(); };
+        var buttons = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        buttons.Children.Add(replaceButton);
+        buttons.Children.Add(keepButton);
+        var content = new System.Windows.Controls.StackPanel { Margin = new Thickness(20), MaxWidth = 520 };
+        content.Children.Add(new System.Windows.Controls.TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 18) });
+        content.Children.Add(buttons);
+        dialog.Content = content;
+        dialog.ShowDialog();
+        return replace;
+    }
 
     public byte[] Read(string path, int maximumBytes) => WorkstationDocumentFiles.ReadBounded(path, maximumBytes);
 

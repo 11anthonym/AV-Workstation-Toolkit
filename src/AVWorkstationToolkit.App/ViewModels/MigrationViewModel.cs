@@ -105,6 +105,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         {
             if (!SetProperty(ref isBusy, value)) return;
             OnPropertyChanged(nameof(IsNotBusy));
+            OnPropertyChanged(nameof(RemainingHeadline));
             RaiseCommandStates();
         }
     }
@@ -184,10 +185,12 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
 
     /// <summary>The number that matters while rebuilding a workstation: selected applications not yet on this PC.</summary>
     public string RemainingHeadline => !HasSession ? string.Empty
-        : service.Checklist is null ? "Scan this PC to compare"
+        : service.Checklist is null ? (IsBusy ? "Checking this PC…" : "Not checked on this PC yet")
         : Summary.Remaining == 0 ? "Nothing remaining"
         : Summary.Remaining == 1 ? "1 remaining" : $"{Summary.Remaining} remaining";
-    public string ProgressText => service.Checklist is null ? string.Empty : string.Join(" · ", new[]
+    public string ProgressText => service.Checklist is null
+        ? service.Session is { } saved ? $"{saved.Items.Count(item => item.Included)} selected · this PC hasn't been checked yet" : string.Empty
+        : string.Join(" · ", new[]
     {
         $"{Summary.Imported} imported",
         $"{Summary.Satisfied} installed",
@@ -282,21 +285,38 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     public bool CanInstallAll => !IsBusy && AutomaticInstallAvailable && InstallCandidates().Count > 0 && RiskSatisfied(InstallCandidates());
     public bool CanInstallSelected => !IsBusy && AutomaticInstallAvailable && SelectedItem is { CanInstall: true } item && RiskSatisfied([item]);
 
-    /// <summary>Loads any saved checklist and compares it with this PC, reusing the main window's plan when it has one.</summary>
+    /// <summary>
+    /// Opens the active migration, if any, and compares it with this PC. A saved checklist is shown at once, as not checked
+    /// yet, while this PC is scanned; the main window's current plan is reused when it has one. A failed scan keeps it.
+    /// </summary>
     public async Task InitializeAsync(WorkstationPlan? currentPlan)
     {
         try
         {
             service.LoadSaved();
-            if (HasSession) Status = "Loaded the saved migration checklist.";
         }
         catch (Exception exception) when (exception is WorkstationDocumentException or IOException or UnauthorizedAccessException)
         {
             SavedSessionProblem = $"The saved migration checklist couldn't be opened: {Sanitize(exception.Message)} You can discard it and start again.";
         }
-        if (currentPlan is not null && service.Accept(currentPlan)) Refresh();
-        else await ScanAsync().ConfigureAwait(true);
+        if (currentPlan is not null && service.Accept(currentPlan))
+        {
+            Refresh();
+            if (HasSession) Status = $"Continuing {ActiveChecklistName}, compared with this PC's latest scan.";
+            return;
+        }
+        if (HasSession)
+        {
+            Status = $"Continuing {ActiveChecklistName}. Checking this PC…";
+            Refresh();
+        }
+        await ScanAsync().ConfigureAwait(true);
+        if (HasSession && service.Checklist is not null) Status = $"Continuing {ActiveChecklistName}. {Status}";
     }
+
+    /// <summary>What the active checklist is, for messages: "the migration from WINSERVER01" or a template's checklist.</summary>
+    private string ActiveChecklistName => service.Session?.Source is not { } source ? "the checklist"
+        : source.Kind == MigrationSourceKind.Profile ? $"the checklist from the {source.Label} workstation template" : $"the migration from {source.Label}";
 
     /// <summary>Adopts a plan the main window refreshed so the checklist stays current without another scan.</summary>
     public void AdoptPlan(WorkstationPlan plan)
@@ -305,10 +325,16 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         if (service.Accept(plan)) Refresh();
     }
 
+    /// <summary>
+    /// Closing the window ends nothing: the active migration stays saved for the next time the window opens, and only
+    /// Finish migration clears it. A change an earlier save couldn't write gets one more try through the same store.
+    /// </summary>
     public void Dispose()
     {
+        if (disposed) return;
         disposed = true;
         service.ChecklistChanged -= Service_ChecklistChanged;
+        _ = service.SavePendingChanges();
     }
 
     internal async Task ScanAsync()
@@ -324,7 +350,10 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't scan this PC. {Sanitize(exception.Message)}";
+            // A failed scan never ends or clears the active migration; it only means installation status isn't current.
+            Status = HasSession
+                ? $"Couldn't scan this PC, so installation status {(service.Checklist is null ? "isn't known yet" : "may be out of date")}: {Sanitize(exception.Message)} The migration is kept; choose Rescan to try again."
+                : $"Couldn't scan this PC. {Sanitize(exception.Message)}";
         }
         finally
         {
@@ -364,7 +393,11 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             if (path is null) return;
             var document = WorkstationInventoryDocumentCodec.Parse(files.Read(path, WorkstationInventoryDocumentCodec.MaximumBytes));
             var source = document.Machine.ComputerName.Length > 0 ? document.Machine.ComputerName : "the selected file";
-            if (!ConfirmReplace($"Start a new checklist from {source}?")) return;
+            if (!ReplaceActiveChecklist("Import inventory", $"a new migration from {source}", "Replace with new migration"))
+            {
+                Status = $"Continuing {ActiveChecklistName}. Nothing was imported.";
+                return;
+            }
             var session = service.StartFromInventory(document);
             SavedSessionProblem = string.Empty;
             Filter = MigrationFilter.Remaining;
@@ -372,7 +405,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             var included = session.Items.Count(item => item.Included);
             var imported = $"Imported {session.Items.Count} applications from {source}: {included} selected, {session.Items.Count - included} support components excluded.";
             Status = service.Checklist is null
-                ? $"{imported} {Status} Scan this PC again to compare it with the checklist."
+                ? $"{imported} {Status}"
                 : $"{imported} This PC was scanned and compared: {Summary.Satisfied} already installed, {Summary.Remaining} to do.";
         }
         catch (Exception exception)
@@ -413,7 +446,12 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             }
             else
             {
-                if (!ConfirmReplace($"Apply the {profile.Name} workstation template (revision {profile.ProfileVersion})?")) return;
+                if (!ReplaceActiveChecklist("Apply workstation template",
+                        $"a checklist from the {profile.Name} workstation template (revision {profile.ProfileVersion})", "Replace with template"))
+                {
+                    Status = $"Continuing {ActiveChecklistName}. The template wasn't applied.";
+                    return;
+                }
                 service.StartFromProfile(profile);
                 Status = $"Applied the {profile.Name} workstation template, revision {profile.ProfileVersion}.";
             }
@@ -429,7 +467,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         var applied = Status;
         await ScanAsync().ConfigureAwait(true);
         Status = service.Checklist is null
-            ? $"{applied} {Status} Scan this PC again to compare it with the checklist."
+            ? $"{applied} {Status}"
             : $"{applied} {Summary.Satisfied} of {Summary.Included} selected applications are already installed.";
     }
 
@@ -529,13 +567,16 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             : $"Cleared the confirmation for {item.Name}.");
     }
 
+    // Finishing is the one action that ends the active migration; closing the window never does.
     private void Finish()
     {
-        var message = Summary.Remaining > 0
-            ? $"{Summary.Remaining} selected applications aren't done yet. Finish this migration anyway and delete its checklist?"
-            : "Finish this migration and delete its saved checklist?";
+        var subject = service.Session?.Source is { Kind: MigrationSourceKind.Profile } template
+            ? $"from the {template.Label} workstation template" : $"for {service.Session?.Source.Label}";
+        var message = $"Finish this migration?{Environment.NewLine}{Environment.NewLine}The active checklist {subject} will be cleared. This does not uninstall or remove any software.";
+        if (service.Checklist is not null && Summary.Remaining > 0)
+            message += $"{Environment.NewLine}{Environment.NewLine}{Summary.Remaining} selected applications aren't installed on this PC yet.";
         if (!files.Confirm("Finish migration", message)) return;
-        Mutate(service.Finish, "Migration finished. Its checklist was deleted from this PC.");
+        Mutate(service.Finish, "Migration finished. Its checklist was cleared; no software was changed.");
     }
 
     private void DiscardSaved()
@@ -559,8 +600,18 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         RequestRefresh();
     }
 
-    private bool ConfirmReplace(string question) => service.Session is null ||
-        files.Confirm("Replace checklist", $"{question}{Environment.NewLine}{Environment.NewLine}This replaces the current checklist ({SourceTitle}) and its progress.");
+    // An active checklist is never replaced silently: the technician chooses to continue it or replace it. Continuing is
+    // the default and the answer if the choice is closed.
+    private bool ReplaceActiveChecklist(string title, string replacement, string replaceLabel)
+    {
+        if (service.Session?.Source is not { } source) return true;
+        var active = source.Kind == MigrationSourceKind.Profile
+            ? $"A checklist from the {source.Label} workstation template" : $"A migration from {source.Label}";
+        return files.ChooseToReplace(title,
+            $"{active} is already in progress.{Environment.NewLine}{Environment.NewLine}Replace it with {replacement}? The current checklist and its progress would be cleared. Installed software isn't affected.",
+            source.Kind == MigrationSourceKind.Profile ? "Continue current checklist" : "Continue current migration",
+            replaceLabel);
+    }
 
     private IReadOnlyList<MigrationItemViewModel> InstallCandidates() => rows.Values.Where(item => item.CanInstall).ToArray();
 
@@ -589,8 +640,8 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     internal void Refresh()
     {
         if (disposed) return;
-        var checklist = service.Checklist;
-        var current = checklist?.Items ?? [];
+        // Before this PC has been scanned, the saved checklist is shown with every item not checked yet.
+        var current = service.CurrentItems();
         var ids = current.Select(item => item.ItemId).ToHashSet(StringComparer.Ordinal);
         foreach (var stale in rows.Keys.Where(id => !ids.Contains(id)).ToArray()) rows.Remove(stale);
         foreach (var item in current)
