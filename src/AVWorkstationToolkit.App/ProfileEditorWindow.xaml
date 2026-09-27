@@ -5,7 +5,7 @@
         Icon="/AVWorkstationToolkit.App;component/Assets/AVWorkstationToolkit.ico"
         Width="980" Height="760" MinWidth="820" MinHeight="600"
         WindowStartupLocation="CenterOwner" Background="#0A0F1C" Foreground="#E8EEF8"
-        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Deployment profile editor">
+        FontFamily="Segoe UI" FontSize="13" AutomationProperties.Name="Workstation template editor">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/AVWorkstationToolkit.App;component/WorkstationStyles.xaml"/></ResourceDictionary.MergedDictionaries>
@@ -16,22 +16,22 @@
         <StackPanel>
             <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="SemiBold"/>
             <TextBlock Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,14"
-                       Text="A deployment profile describes what a type of workstation should have, such as a jump PC or a commissioning laptop. It is separate from the Standard, Field, Developer, and Optional catalog profiles. Applying it builds the same checklist as a migration. It never lets the Toolkit install anything the approved managed catalog doesn't allow."/>
+                       Text="A workstation template describes what a type of workstation should have, such as a jump PC or a commissioning laptop. It is separate from the Standard, Field, Developer, and Optional catalog profiles. Applying it builds the same checklist as a migration. It never lets the Toolkit install anything the approved managed catalog doesn't allow."/>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="110"/><ColumnDefinition Width="3*"/></Grid.ColumnDefinitions>
             <StackPanel Margin="0,0,10,0">
-                <TextBlock Text="Deployment profile name" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
-                <TextBox x:Name="ProfileName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Deployment profile name"/>
+                <TextBlock Text="Workstation template name" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
+                <TextBox x:Name="ProfileName" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Workstation template name"/>
                 <TextBlock Text="{Binding ProfileIdText}" Foreground="#70849D" FontSize="10.5" Margin="0,3,0,0"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="0,0,10,0">
-                <TextBlock Text="Version" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
-                <TextBox x:Name="ProfileVersion" Text="{Binding VersionText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Deployment profile version"/>
+                <TextBlock Text="Revision" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
+                <TextBox x:Name="ProfileVersion" Text="{Binding VersionText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Workstation template revision"/>
             </StackPanel>
             <StackPanel Grid.Column="2">
                 <TextBlock Text="Description" Foreground="#B9C8DB" FontSize="11" Margin="0,0,0,3"/>
-                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Deployment profile description"/>
+                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Workstation template description"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="2">
@@ -42,16 +42,16 @@
                     <CheckBox DockPanel.Dock="Right" Content="Selected only" IsChecked="{Binding ShowSelectedOnly}" Margin="10,0,0,0"/>
                     <TextBlock DockPanel.Dock="Right" Text="{Binding SelectionSummary}" Foreground="#8FB9EC" VerticalAlignment="Center" Margin="10,0,0,0"/>
                     <TextBox x:Name="ProfileSearch" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" ToolTip="Search catalog applications"
-                             AutomationProperties.Name="Search catalog applications for the profile"/>
+                             AutomationProperties.Name="Search catalog applications for the template"/>
                 </DockPanel>
                 <DataGrid x:Name="ProfileApplications" Grid.Row="1" ItemsSource="{Binding VisibleApplications}" IsReadOnly="False" MinRowHeight="38"
                           EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                          AutomationProperties.Name="Applications in this deployment profile">
+                          AutomationProperties.Name="Applications in this workstation template">
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="Include" Width="64" IsReadOnly="True" CanUserSort="False">
                             <DataGridTemplateColumn.CellTemplate><DataTemplate>
                                 <CheckBox Style="{StaticResource GridCheckBox}" IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          AutomationProperties.Name="{Binding Name, StringFormat='Include {0} in the deployment profile'}"/>
+                                          AutomationProperties.Name="{Binding Name, StringFormat='Include {0} in the workstation template'}"/>
                             </DataTemplate></DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Application" Width="2*" IsReadOnly="True" CanUserSort="False">
@@ -63,7 +63,7 @@
                         <DataGridTemplateColumn Header="Required" Width="80" IsReadOnly="True" CanUserSort="False">
                             <DataGridTemplateColumn.CellTemplate><DataTemplate>
                                 <CheckBox Style="{StaticResource GridCheckBox}" IsChecked="{Binding Required, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Selected}"
-                                          ToolTip="Optional applications start excluded when the profile is applied."
+                                          ToolTip="Optional applications start excluded when the template is applied."
                                           AutomationProperties.Name="{Binding Name, StringFormat='{}{0} is required'}"/>
                             </DataTemplate></DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

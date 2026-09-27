@@ -149,7 +149,7 @@ public sealed class MigrationFailureStateTests
 
         // Applying a profile straight from the editor, outside any other error handling, keeps the current checklist.
         await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(3));
-        AssertUsable(viewModel, service, "Couldn't apply the deployment profile");
+        AssertUsable(viewModel, service, "Couldn't apply the workstation template");
         Assert.AreEqual(started.SessionId, service.Session!.SessionId);
 
         // An install whose attempts can't be saved still rescans, and reports the save problem.
@@ -174,9 +174,9 @@ public sealed class MigrationFailureStateTests
         {
             files.Files[files.OpenPath] = Encoding.UTF8.GetBytes(damaged);
             await viewModel.ApplyProfileFromFileAsync();
-            AssertUsable(viewModel, service, "Couldn't apply the deployment profile");
+            AssertUsable(viewModel, service, "Couldn't apply the workstation template");
             await viewModel.EditProfileFromFileAsync();
-            AssertUsable(viewModel, service, "Couldn't open the deployment profile");
+            AssertUsable(viewModel, service, "Couldn't open the workstation template");
             Assert.AreEqual(started.SessionId, service.Session!.SessionId);
         }
     }

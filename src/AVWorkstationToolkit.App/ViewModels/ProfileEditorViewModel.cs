@@ -30,7 +30,7 @@ public sealed class ProfileApplicationRowViewModel(
 }
 
 /// <summary>
-/// Creates or revises a deployment profile: catalog applications, any uncatalogued applications described by name, and
+/// Creates or revises a workstation template: catalog applications, any uncatalogued applications described by name, and
 /// descriptive manual checks. A profile describes desired state only; it can't add installation authority.
 /// </summary>
 public sealed class ProfileEditorViewModel : ObservableObject
@@ -100,13 +100,13 @@ public sealed class ProfileEditorViewModel : ObservableObject
     public RelayCommand CancelCommand { get; }
     public DeploymentProfile? SavedProfile { get; private set; }
     public bool ApplyAfterSave { get; private set; }
-    public string Title => existingProfileId is null ? "New deployment profile" : "Revise deployment profile";
+    public string Title => existingProfileId is null ? "New workstation template" : "Revise workstation template";
 
     public string Name { get => name; set { if (SetProperty(ref name, value ?? string.Empty)) OnPropertyChanged(nameof(ProfileIdText)); } }
     public string Description { get => description; set => SetProperty(ref description, value ?? string.Empty); }
     public string VersionText { get => versionText; set => SetProperty(ref versionText, value ?? string.Empty); }
     public string ChecksText { get => checksText; set => SetProperty(ref checksText, value ?? string.Empty); }
-    public string ProfileIdText => $"Deployment profile ID: {ProfileId}";
+    public string ProfileIdText => $"Workstation template ID: {ProfileId}";
     public string Status { get => status; private set => SetProperty(ref status, value); }
     public string SelectionSummary => $"{applications.Count(item => item.Selected)} applications selected";
 
@@ -127,7 +127,7 @@ public sealed class ProfileEditorViewModel : ObservableObject
     public DeploymentProfile BuildProfile()
     {
         if (!int.TryParse(VersionText.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var version))
-            throw new WorkstationDocumentException("The profile version must be a whole number.");
+            throw new WorkstationDocumentException("The template revision must be a whole number.");
         var checks = new List<ProfileCheck>();
         foreach (var line in ChecksText.Split('\n').Select(value => ApplicationNames.Clean(value)).Where(value => value.Length > 0))
         {
@@ -163,7 +163,7 @@ public sealed class ProfileEditorViewModel : ObservableObject
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't save the profile. {DiagnosticsRedactor.Sanitize(exception.Message)}";
+            Status = $"Couldn't save the template. {DiagnosticsRedactor.Sanitize(exception.Message)}";
         }
     }
 

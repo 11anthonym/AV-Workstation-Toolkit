@@ -52,7 +52,7 @@ public sealed class WorkstationMigrationTests
         AssertRejected(valid.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal), "newer than this version");
         AssertRejected(valid.Replace("\"schemaVersion\": 1,", string.Empty, StringComparison.Ordinal), "no valid schemaVersion");
         AssertRejected(valid.Replace("\"documentType\": \"workstation-inventory\"", "\"documentType\": \"workstation-profile\"", StringComparison.Ordinal),
-            "is a deployment profile, not a workstation inventory");
+            "is a workstation template, not a workstation inventory");
         AssertRejected(valid.Replace("\"documentType\": \"workstation-inventory\"", "\"documentType\": \"shopping-list\"", StringComparison.Ordinal),
             "isn't a workstation inventory");
         AssertRejected(valid.Replace("\"generator\"", "\"installCommand\": \"cmd /c calc\", \"generator\"", StringComparison.Ordinal), "unsupported field 'installCommand'");

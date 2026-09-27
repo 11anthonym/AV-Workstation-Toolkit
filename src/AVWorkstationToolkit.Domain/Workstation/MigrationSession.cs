@@ -4,7 +4,7 @@ namespace AVWorkstationToolkit.Domain.Workstation;
 
 public enum MigrationSourceKind { Inventory, Profile }
 
-/// <summary>Where a checklist came from: an imported workstation inventory or an applied deployment profile.</summary>
+/// <summary>Where a checklist came from: an imported workstation inventory or an applied workstation template.</summary>
 public sealed record MigrationSource(
     MigrationSourceKind Kind,
     string Label,
@@ -19,7 +19,7 @@ public sealed record MigrationSessionItem(
     DateTimeOffset? ConfirmedAtUtc = null,
     InstallAttempt? LastAttempt = null);
 
-/// <summary>A manual checklist task carried from a deployment profile. It is descriptive text and never executes.</summary>
+/// <summary>A manual checklist task carried from a workstation template. It is descriptive text and never executes.</summary>
 public sealed record ChecklistTask(string Id, string Text, DateTimeOffset? DoneAtUtc = null);
 
 /// <summary>
@@ -57,7 +57,7 @@ public sealed record MigrationSession(
             now, now, items, [], 0, inventory.Applications.Count - candidates.Length);
     }
 
-    /// <summary>Starts a checklist from a deployment profile. Required applications start included; optional ones start excluded.</summary>
+    /// <summary>Starts a checklist from a workstation template. Required applications start included; optional ones start excluded.</summary>
     public static MigrationSession FromProfile(DeploymentProfile profile, ApplicationIdentityCatalog identities, string sessionId, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(profile);
@@ -112,7 +112,7 @@ public sealed record MigrationSession(
     {
         ArgumentNullException.ThrowIfNull(profile);
         if (Source.Kind != MigrationSourceKind.Profile || !string.Equals(Source.ProfileId, profile.ProfileId, StringComparison.Ordinal))
-            throw new InvalidOperationException("This checklist didn't come from that profile.");
+            throw new InvalidOperationException("This checklist didn't come from that workstation template.");
         return DeploymentProfileRevision.Compare(profile.ProfileId, Source.ProfileVersion, profile,
             Items.Select(item => (ProfileKeys.For(item.Application.CatalogId, item.Application.DisplayName), item.Application.DisplayName)).ToArray(),
             Tasks.Select(task => (task.Id, task.Text)).ToArray());

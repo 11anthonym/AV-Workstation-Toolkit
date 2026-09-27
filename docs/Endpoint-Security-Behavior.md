@@ -78,7 +78,7 @@ Normal packaged operation can create or update only bounded application-owned co
 ├── ReferenceCatalog        signed descriptive catalog revision, atomic state, and staging
 ├── trusted-sftp-hosts.json pinned host identities
 ├── migration\session.json  the active migration or provisioning checklist
-├── profiles                default folder for saved deployment profiles
+├── templates               default folder for saved workstation templates
 ├── snapshots               optional read-only workstation evidence bundles
 └── launcher-error.log      launcher failures when startup cannot continue
 ```

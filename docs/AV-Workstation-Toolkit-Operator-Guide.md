@@ -114,11 +114,11 @@ No automatic rollback or uninstall is attempted. If an action fails or cannot be
 4. Resolve the package-specific issue before submitting another change wave.
 5. Do not substitute a similar package ID.
 
-## Workstation migration and deployment profiles
+## Workstation migration and templates
 
 Open **Workstation migration** from the header or the **Tools** menu to move a
 workstation's applications to a replacement or to set a workstation up from a
-deployment profile.
+workstation template.
 
 1. On the old workstation, choose **Scan this PC**, review **Applications on
    this PC** and clear anything you don't want to carry over, then **Export
@@ -138,14 +138,14 @@ deployment profile.
 4. Exclude or remove items you no longer need, and **Finish migration** when
    nothing remains. The checklist is saved and survives restarts.
 
-**Apply deployment profile…** builds the same checklist from a reusable
-baseline such as a jump PC, and **New deployment profile…**, **Revise a
-deployment profile…**, and **Save checklist as deployment profile…** create and
-revise them. Deployment profiles are separate from the Standard, Field,
+**Apply workstation template…** builds the same checklist from a reusable
+baseline such as a jump PC, and **New workstation template…**, **Revise a
+workstation template…**, and **Save checklist as workstation template…** create and
+revise them. Workstation templates are separate from the Standard, Field,
 Developer, and Optional catalog profiles in the main window. An imported
-inventory or a deployment profile never lets the Toolkit install an application
+inventory or a workstation template never lets the Toolkit install an application
 the approved managed catalog doesn't allow. See
-[Workstation migration and deployment profiles](Workstation-Migration-and-Profiles.md)
+[Workstation migration and templates](Workstation-Migration-and-Templates.md)
 for statuses, file formats, and the security boundary.
 
 ## Current holds
@@ -173,7 +173,7 @@ not register a service or separate uninstaller.
 Uninstall does not delete `%LOCALAPPDATA%\AVWorkstationToolkit`. That directory
 can contain logs, plan/diagnostic exports, trusted SFTP host records,
 verified cache evidence, the saved migration checklist (`migration`), and
-deployment profiles saved to the default `profiles` folder. Removing it is optional and destructive; review
+workstation templates saved to the default `templates` folder. Removing it is optional and destructive; review
 operational retention requirements first. Historical
 `%LOCALAPPDATA%\AVinite` material may remain intentionally after the bounded
 migration and should not be deleted automatically merely to complete the

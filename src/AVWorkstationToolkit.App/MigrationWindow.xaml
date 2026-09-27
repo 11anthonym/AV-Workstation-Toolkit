@@ -23,7 +23,7 @@
         <Border Grid.Row="0" Background="#0E1728" BorderBrush="#26364F" BorderThickness="0,0,0,1" Padding="24,14">
             <StackPanel>
                 <TextBlock Text="Workstation migration" FontSize="22" FontWeight="SemiBold"/>
-                <TextBlock Text="Carry applications from an old workstation to a replacement, or set up this PC from a deployment profile." Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                <TextBlock Text="Carry applications from an old workstation to a replacement, or set up this PC from a workstation template." Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
         <Grid Grid.Row="1">
@@ -46,15 +46,15 @@
                         <TextBlock Text="SET UP THIS PC" Style="{StaticResource SectionLabel}" Margin="0,22,0,0"/>
                         <Button x:Name="ImportInventoryButton" Content="Import inventory…" Command="{Binding ImportInventoryCommand}" Style="{StaticResource PrimaryButton}" HorizontalContentAlignment="Left" Margin="0,7,0,0"
                                 AutomationProperties.HelpText="Opens an inventory exported on the old PC and compares it with this PC right away."/>
-                        <Button x:Name="ApplyProfileButton" Content="Apply deployment profile…" Command="{Binding ApplyProfileCommand}" Style="{StaticResource SidebarButton}"
-                                AutomationProperties.HelpText="Opens a deployment profile and compares it with this PC."/>
+                        <Button x:Name="ApplyProfileButton" Content="Apply workstation template…" Command="{Binding ApplyProfileCommand}" Style="{StaticResource SidebarButton}"
+                                AutomationProperties.HelpText="Opens a workstation template and compares it with this PC."/>
                         <TextBlock Text="The checklist compares the imported list with this PC immediately. Nothing installs until you choose it." Foreground="#70849D" FontSize="10.5" TextWrapping="Wrap" Margin="0,6,0,0"/>
 
-                        <TextBlock Text="DEPLOYMENT PROFILES" Style="{StaticResource SectionLabel}" Margin="0,22,0,0"/>
-                        <Button x:Name="NewProfileButton" Content="New deployment profile…" Command="{Binding NewProfileCommand}" Style="{StaticResource SidebarButton}"/>
-                        <Button x:Name="EditProfileButton" Content="Revise a deployment profile…" Command="{Binding EditProfileCommand}" Style="{StaticResource SidebarButton}"/>
-                        <Button x:Name="SaveAsProfileButton" Content="Save checklist as deployment profile…" Command="{Binding SaveAsProfileCommand}" Style="{StaticResource SidebarButton}"
-                                AutomationProperties.HelpText="Creates a reusable deployment profile from the applications selected in this checklist."/>
+                        <TextBlock Text="WORKSTATION TEMPLATES" Style="{StaticResource SectionLabel}" Margin="0,22,0,0"/>
+                        <Button x:Name="NewProfileButton" Content="New workstation template…" Command="{Binding NewProfileCommand}" Style="{StaticResource SidebarButton}"/>
+                        <Button x:Name="EditProfileButton" Content="Revise a workstation template…" Command="{Binding EditProfileCommand}" Style="{StaticResource SidebarButton}"/>
+                        <Button x:Name="SaveAsProfileButton" Content="Save checklist as workstation template…" Command="{Binding SaveAsProfileCommand}" Style="{StaticResource SidebarButton}"
+                                AutomationProperties.HelpText="Creates a reusable workstation template from the applications selected in this checklist."/>
 
                         <Border Margin="0,18,0,0" Background="#321719" BorderBrush="#A43F48" BorderThickness="1" CornerRadius="8" Padding="10"
                                 Visibility="{Binding SavedSessionProblemVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -181,7 +181,7 @@
                                 <TextBlock TextWrapping="Wrap" Foreground="#AAB8CA" Margin="0,6,0,0"
                                            Text="On the old PC: review the applications below, clear any you don't want to carry over, and export the inventory. On the replacement PC: import that file. The Toolkit compares it with the replacement right away and lists only what's still needed."/>
                                 <TextBlock TextWrapping="Wrap" Foreground="#8395AC" FontSize="11.5" Margin="0,6,0,0"
-                                           Text="Setting up a standard workstation instead? Apply a deployment profile. An inventory or deployment profile only describes what's wanted; the Toolkit installs only apps its approved managed catalog allows, with the same checks as the main window."/>
+                                           Text="Setting up a standard workstation instead? Apply a workstation template. An inventory or workstation template only describes what's wanted; the Toolkit installs only apps its approved managed catalog allows, with the same checks as the main window."/>
                             </StackPanel>
                         </Border>
                         <DockPanel Grid.Row="1" Margin="0,12,0,6" Visibility="{Binding ReviewVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -253,7 +253,7 @@
                 </Border>
 
                 <Border x:Name="TasksPanel" Grid.Row="4" Margin="0,10,0,0" Background="#0D1524" BorderBrush="#26364F" BorderThickness="1" CornerRadius="8" Padding="12,8"
-                        Visibility="{Binding TasksVisible, Converter={StaticResource BooleanToVisibilityConverter}}" AutomationProperties.Name="Manual checks from the deployment profile">
+                        Visibility="{Binding TasksVisible, Converter={StaticResource BooleanToVisibilityConverter}}" AutomationProperties.Name="Manual checks from the workstation template">
                     <StackPanel>
                         <TextBlock Text="{Binding TasksSummary}" FontWeight="SemiBold"/>
                         <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

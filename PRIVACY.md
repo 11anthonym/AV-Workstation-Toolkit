@@ -23,7 +23,7 @@ Packaged execution keeps application-owned mutable state beneath
 - the active signed descriptive reference-catalog revision and bounded staging state;
 - at most one verified downloaded managed-catalog revision and bounded staging state.
 - the active workstation migration or provisioning checklist, and saved
-  deployment profiles when the operator keeps them in the default `profiles` folder.
+  workstation templates when the operator keeps them in the default `templates` folder.
 
 The installer deliberately leaves this per-user evidence after uninstall so
 an operator can review retention requirements. A packaged launch can read a

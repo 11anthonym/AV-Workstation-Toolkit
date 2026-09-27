@@ -73,7 +73,7 @@ public sealed record ProfileRevisionDiff(
 
     public string Describe()
     {
-        var lines = new List<string> { $"Profile version {FromVersion} → {ToVersion}" };
+        var lines = new List<string> { $"Template revision {FromVersion} → {ToVersion}" };
         lines.AddRange(AddedApplications.Select(name => $"+ {name}"));
         lines.AddRange(RemovedApplications.Select(name => $"- {name}"));
         lines.AddRange(AddedChecks.Select(text => $"+ Check: {text}"));
@@ -131,16 +131,16 @@ public static class DeploymentProfileCodec
     {
         ArgumentNullException.ThrowIfNull(profile);
         var name = ApplicationNames.Clean(profile.Name);
-        if (name.Length is 0 or > 120) throw new WorkstationDocumentException("A profile needs a name of 1 to 120 characters.");
-        if (!ProfileKeys.IsSlug(profile.ProfileId)) throw new WorkstationDocumentException("The profile ID must be a lowercase slug such as 'jump-pc'.");
-        if (profile.ProfileVersion is < 1 or > MaximumVersion) throw new WorkstationDocumentException($"The profile version must be from 1 to {MaximumVersion}.");
-        if (profile.Applications.Count > MaximumApplications) throw new WorkstationDocumentException($"A profile can list at most {MaximumApplications} applications.");
-        if (profile.Checks.Count > MaximumChecks) throw new WorkstationDocumentException($"A profile can list at most {MaximumChecks} manual checks.");
+        if (name.Length is 0 or > 120) throw new WorkstationDocumentException("A workstation template needs a name of 1 to 120 characters.");
+        if (!ProfileKeys.IsSlug(profile.ProfileId)) throw new WorkstationDocumentException("The template ID must be a lowercase slug such as 'jump-pc'.");
+        if (profile.ProfileVersion is < 1 or > MaximumVersion) throw new WorkstationDocumentException($"The template revision must be from 1 to {MaximumVersion}.");
+        if (profile.Applications.Count > MaximumApplications) throw new WorkstationDocumentException($"A template can list at most {MaximumApplications} applications.");
+        if (profile.Checks.Count > MaximumChecks) throw new WorkstationDocumentException($"A template can list at most {MaximumChecks} manual checks.");
         foreach (var application in profile.Applications)
             if (application.CatalogId.Length == 0 && ApplicationNames.CompactKey(application.DisplayName).Length == 0)
-                throw new WorkstationDocumentException("Each profile application needs a catalog ID or a display name.");
+                throw new WorkstationDocumentException("Each template application needs a catalog ID or a display name.");
         var duplicate = profile.Applications.GroupBy(item => item.Key, StringComparer.Ordinal).FirstOrDefault(group => group.Count() > 1);
-        if (duplicate is not null) throw new WorkstationDocumentException($"The profile lists '{duplicate.First().DisplayName}{duplicate.First().CatalogId}' more than once.");
+        if (duplicate is not null) throw new WorkstationDocumentException($"The template lists '{duplicate.First().DisplayName}{duplicate.First().CatalogId}' more than once.");
         foreach (var check in profile.Checks)
         {
             if (!ProfileKeys.IsSlug(check.Id)) throw new WorkstationDocumentException("Each manual check needs a lowercase slug ID.");
@@ -148,7 +148,7 @@ public static class DeploymentProfileCodec
             if (text.Length is 0 or > 300) throw new WorkstationDocumentException("Each manual check needs text of 1 to 300 characters.");
         }
         if (profile.Checks.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != profile.Checks.Count)
-            throw new WorkstationDocumentException("The profile repeats a manual check ID.");
+            throw new WorkstationDocumentException("The template repeats a manual check ID.");
         return profile with { Name = name, Description = ApplicationNames.Clean(profile.Description) };
     }
 
@@ -197,13 +197,13 @@ public static class DeploymentProfileCodec
     {
         using var document = WorkstationDocumentReader.Open(payload, MaximumBytes, WorkstationDocumentTypes.Profile, SchemaVersion);
         var root = document.RootElement;
-        const string context = "The profile";
+        const string context = "The template";
         WorkstationDocumentReader.RequireOnly(root, context, "schemaVersion", "documentType", "profileId", "name", "profileVersion",
             "description", "updatedAtUtc", "applications", "checks");
         var applications = WorkstationDocumentReader.Array(root, "applications", context, MaximumApplications, required: true)
             .Select((element, index) =>
             {
-                var itemContext = $"Profile application {index + 1}";
+                var itemContext = $"Template application {index + 1}";
                 WorkstationDocumentReader.RequireOnly(element, itemContext, "catalogId", "displayName", "publisher", "wingetId", "required", "notes");
                 return new ProfileApplication(
                     WorkstationDocumentReader.PackageId(element, "catalogId", itemContext),
@@ -216,7 +216,7 @@ public static class DeploymentProfileCodec
         var checks = WorkstationDocumentReader.Array(root, "checks", context, MaximumChecks)
             .Select((element, index) =>
             {
-                var itemContext = $"Profile check {index + 1}";
+                var itemContext = $"Template check {index + 1}";
                 WorkstationDocumentReader.RequireOnly(element, itemContext, "id", "text");
                 return new ProfileCheck(
                     WorkstationDocumentReader.Text(element, "id", itemContext, required: true, maximumLength: 64),

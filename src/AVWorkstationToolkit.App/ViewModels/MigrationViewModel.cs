@@ -14,7 +14,7 @@ namespace AVWorkstationToolkit.App.ViewModels;
 
 /// <summary>
 /// The workstation migration and provisioning window. It presents one checklist whether it came from an imported
-/// inventory or a deployment profile; the migration service owns every change, and automatic installation goes through
+/// inventory or a workstation template; the migration service owns every change, and automatic installation goes through
 /// the same managed action coordinator and worker as the main window.
 /// </summary>
 public sealed class MigrationViewModel : ObservableObject, IDisposable
@@ -73,7 +73,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         service.ChecklistChanged += Service_ChecklistChanged;
     }
 
-    /// <summary>Raised to show the deployment profile editor as a dialog; the window returns when the editor closes.</summary>
+    /// <summary>Raised to show the workstation template editor as a dialog; the window returns when the editor closes.</summary>
     public event Action<ProfileEditorViewModel>? ProfileEditorRequested;
 
     public IReadOnlyList<MigrationItemViewModel> VisibleItems { get; }
@@ -163,7 +163,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     }
     public string SourceTitle => service.Session?.Source is not { } source ? "No checklist yet"
         : source.Kind == MigrationSourceKind.Profile
-            ? $"Deployment profile: {source.Label} · version {source.ProfileVersion}"
+            ? $"Workstation template: {source.Label} · revision {source.ProfileVersion}"
             : $"Migrating from {source.Label}";
     public string SourceDetail
     {
@@ -391,7 +391,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't apply the deployment profile. {Sanitize(exception.Message)}";
+            Status = $"Couldn't apply the workstation template. {Sanitize(exception.Message)}";
         }
     }
 
@@ -405,22 +405,22 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             if (current?.Source is { Kind: MigrationSourceKind.Profile } source && source.ProfileId == profile.ProfileId && source.ProfileVersion != profile.ProfileVersion)
             {
                 var diff = current.CompareToProfile(profile);
-                if (!files.Confirm("Update deployment profile",
-                        $"This PC's checklist uses the {profile.Name} deployment profile, version {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to version {profile.ProfileVersion}? Progress on applications that remain is kept."))
+                if (!files.Confirm("Update workstation template",
+                        $"This PC's checklist uses the {profile.Name} workstation template, revision {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to revision {profile.ProfileVersion}? Progress on applications that remain is kept."))
                     return;
                 service.AdoptProfileRevision(profile);
-                Status = $"Updated the checklist to the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
+                Status = $"Updated the checklist to the {profile.Name} workstation template, revision {profile.ProfileVersion}.";
             }
             else
             {
-                if (!ConfirmReplace($"Apply the {profile.Name} deployment profile (version {profile.ProfileVersion})?")) return;
+                if (!ConfirmReplace($"Apply the {profile.Name} workstation template (revision {profile.ProfileVersion})?")) return;
                 service.StartFromProfile(profile);
-                Status = $"Applied the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
+                Status = $"Applied the {profile.Name} workstation template, revision {profile.ProfileVersion}.";
             }
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't apply the deployment profile. {Sanitize(exception.Message)}";
+            Status = $"Couldn't apply the workstation template. {Sanitize(exception.Message)}";
             RequestRefresh();
             return;
         }
@@ -443,7 +443,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            Status = $"Couldn't open the deployment profile. {Sanitize(exception.Message)}";
+            Status = $"Couldn't open the workstation template. {Sanitize(exception.Message)}";
         }
     }
 
@@ -452,7 +452,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         var editor = new ProfileEditorViewModel(service.Identities, files, existing, seed);
         ProfileEditorRequested?.Invoke(editor);
         if (editor.SavedProfile is not { } saved) return;
-        Status = $"Saved the {saved.Name} deployment profile, version {saved.ProfileVersion}, with {saved.Applications.Count} applications and {saved.Checks.Count} manual checks.";
+        Status = $"Saved the {saved.Name} workstation template, revision {saved.ProfileVersion}, with {saved.Applications.Count} applications and {saved.Checks.Count} manual checks.";
         if (editor.ApplyAfterSave) await ApplyProfileAsync(saved).ConfigureAwait(true);
     }
 

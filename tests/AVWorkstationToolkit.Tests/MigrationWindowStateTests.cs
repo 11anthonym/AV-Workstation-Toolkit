@@ -137,7 +137,7 @@ public sealed class MigrationWindowStateTests
             StringAssert.Contains(window.MigrationStatus.Text, "Couldn't scan this PC");
             AssertEnabled(window, true, "ScanButton", "ImportInventoryButton");
 
-            // A deployment profile with an application this PC can never detect: only it can be confirmed by hand.
+            // A workstation template with an application this PC can never detect: only it can be confirmed by hand.
             planning.Next = () => Task.FromResult(thisPc.Plan);
             await viewModel.ApplyProfileAsync(new DeploymentProfile("fixture-lab", "Fixture lab", 1, "Fixture", MigrationFixtures.Now,
                 [new("AllenHeath.AHMSystemManager", "AHM System Manager"), new("7zip.7zip", "7-Zip")], [new("verify-audio", "Verify audio routing")]));

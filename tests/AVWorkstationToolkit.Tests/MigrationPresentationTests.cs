@@ -177,7 +177,7 @@ public sealed class MigrationPresentationTests
         await viewModel.InitializeAsync(target.Plan);
 
         await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(3));
-        Assert.AreEqual("Deployment profile: Remote Support Jump PC · version 3", viewModel.SourceTitle);
+        Assert.AreEqual("Workstation template: Remote Support Jump PC · revision 3", viewModel.SourceTitle);
         Assert.IsTrue(viewModel.TasksVisible);
         viewModel.Tasks.Single(task => task.Id == "verify-sleep").Done = true;
         Assert.IsNotNull(service.Session!.Tasks.Single(task => task.Id == "verify-sleep").DoneAtUtc);

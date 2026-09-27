@@ -1,14 +1,14 @@
-# Workstation migration and deployment profiles
+# Workstation migration and templates
 
 AV Workstation Toolkit can carry the applications of an old workstation to its
 replacement, and can set up a workstation from an intentional baseline called a
-deployment profile. Both produce the same checklist: what is already installed,
+workstation template. Both produce the same checklist: what is already installed,
 what the Toolkit can install for you, and what you install yourself. The
 checklist stays on the workstation until you finish it, so a migration can span
 vendor-portal downloads, licensing, reboots, and several days.
 
 Open it from **Workstation migration** in the main window's header, or
-**Tools > Workstation migration and profiles**.
+**Tools > Workstation migration and templates**.
 
 ## Moving to a replacement workstation
 
@@ -79,7 +79,7 @@ catalog can't detect on Windows, with no WinGet, Windows Installer, or
 uninstall-registration identity from the source. Every other application,
 including one the catalog doesn't know, is completed only by detection; if it
 can't be found it stays **Manual · not yet detected**, **Manual · not in
-catalog**, or **Review**. Profile manual checks are different: they are
+catalog**, or **Review**. Template manual checks are different: they are
 human tasks, and you tick them off yourself.
 
 Checklist actions:
@@ -98,31 +98,31 @@ attention** (review, can't check, and failed installs), **Completed**,
 publisher, catalog ID, or WinGet ID. Select a row to see how the app was
 identified and what was found on this workstation.
 
-## Deployment profiles
+## Workstation templates
 
-A deployment profile describes what a type of workstation should have, such as
+A workstation template describes what a type of workstation should have, such as
 a jump PC, a service technician laptop, a programming workstation, or a
 commissioning workstation. It is separate from the Standard, Field, Developer,
 and Optional catalog profiles that filter the main window. It lists catalog applications, applications the
 catalog doesn't know (by name and optional publisher), whether each is
 required, and manual checks such as "Verify remote connectivity".
 
-- **New deployment profile…** opens the editor. Select catalog applications, add any that
+- **New workstation template…** opens the editor. Select catalog applications, add any that
   aren't in the catalog, mark the ones that aren't required, and type manual checks one per
-  line. Save the profile to a file; profiles are kept in the `profiles` folder
+  line. Save the template to a file; templates are kept in the `templates` folder
   by default and can be shared like any file.
-- **Save checklist as deployment profile…** starts a profile from the current checklist's
+- **Save checklist as workstation template…** starts a template from the current checklist's
   selected applications, so a well-set-up workstation can become a baseline.
-- **Apply deployment profile…** builds the checklist from a profile and scans
+- **Apply workstation template…** builds the checklist from a template and scans
   the workstation. Applications that aren't required start excluded.
-- **Revise a deployment profile…** opens a saved profile with the next version number.
-  Applying a newer version of the profile a checklist came from shows what the
+- **Revise a workstation template…** opens a saved template with the next revision number.
+  Applying a newer revision of the template a checklist came from shows what the
   revision adds and removes, and keeps the progress on applications that stay.
 
 Manual checks are reminders for the technician, ticked off by hand. The Toolkit
-never runs them. Applications in a profile, including ones outside the catalog,
+never runs them. Applications in a template, including ones outside the catalog,
 are tracked like any migration item and complete only when detected; a WinGet ID
-in a profile is identity evidence and never makes an application installable.
+in a template is identity evidence and never makes an application installable.
 
 ## How the inventory is built
 
@@ -207,7 +207,7 @@ installed app count as missing; it is noted.
 
 ## Security boundary
 
-An inventory or a profile only describes what is wanted. It never grants
+An inventory or a template only describes what is wanted. It never grants
 installation authority.
 
 - **Identity is re-resolved locally.** A file's `catalogId` or WinGet ID is
@@ -233,7 +233,7 @@ installation authority.
   Unknown and repeated fields are rejected. A file from a newer version of the
   Toolkit is refused with a message to update, not guessed at. Opening one kind
   of document in place of another reports which kind it is.
-- **Manual checks are text.** A profile has no field for commands, scripts,
+- **Manual checks are text.** A template has no field for commands, scripts,
   URLs, or installer paths, and a document containing one is rejected.
 - The feature adds no new process launches, network destinations, or
   elevation. Its scan is the main window's existing read-only refresh, and its
@@ -297,7 +297,7 @@ domain or Entra join, VPN, EDR, and security-policy configuration.
 The file identifies the source computer by name and lists its software,
 versions, and publishers. Treat it as internal operational information.
 
-### Deployment profile (`workstation-profile`, schema 1)
+### Workstation template (`workstation-profile`, schema 1)
 
 ```json
 {
@@ -319,7 +319,10 @@ versions, and publishers. Treat it as internal operational information.
 }
 ```
 
-`profileId` is a stable slug that identifies the profile across revisions;
+The file format keeps the identifiers it was introduced with: a workstation
+template file has `documentType` `workstation-profile`, and its `profileId` and
+`profileVersion` fields hold the template ID and revision.
+`profileId` is a stable slug that identifies the template across revisions;
 `profileVersion` increases with each revision. Each application needs a
 `catalogId` or a `displayName`, and may carry a `wingetId` as identity
 evidence. Limits: 1 MiB, 1,000 applications, 200 checks.
@@ -328,7 +331,7 @@ evidence. Limits: 1 MiB, 1,000 applications, 200 checks.
 
 The active checklist is saved as `migration\session.json` beneath the per-user
 data root (`%LOCALAPPDATA%\AVWorkstationToolkit` for the packaged app). It
-records the source (computer name or profile name and version), each item's
+records the source (computer name or template name and revision), each item's
 descriptive details, whether it's included, any confirmation of an
 undetectable application, the
 last installation attempt, removed and skipped counts, and manual-check
@@ -346,15 +349,15 @@ checklist.
   shipping package, and the undocumented registry repository is mostly system
   and framework packages.
 - A catalog application with no Windows detector and no installer identity from
-  the source (typically one listed in a deployment profile) can't be detected, so
+  the source (typically one listed in a workstation template) can't be detected, so
   it is completed by **Confirm installed**. Every other application completes
   only by detection.
 - Matching an uncatalogued app by name treats any version as installed and
   notes the difference.
 - The source workstation's architecture and scope are recorded but aren't used
   to choose an installer.
-- The workstation doesn't yet keep a history of profiles applied after a
-  checklist is finished. The stable profile ID and version, and the revision
+- The workstation doesn't yet keep a history of templates applied after a
+  checklist is finished. The stable template ID and revision number, and the revision
   comparison, are in place for that.
 - The Toolkit doesn't install anything that isn't an approved managed WinGet
   application, and adds no new install paths for migration.

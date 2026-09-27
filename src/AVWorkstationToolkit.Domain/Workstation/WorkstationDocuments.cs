@@ -6,7 +6,7 @@ using System.Text.Unicode;
 
 namespace AVWorkstationToolkit.Domain.Workstation;
 
-/// <summary>A workstation inventory, deployment profile, or migration session file failed validation.</summary>
+/// <summary>A workstation inventory, workstation template, or migration session file failed validation.</summary>
 public sealed class WorkstationDocumentException(string message, Exception? innerException = null) : Exception(message, innerException);
 
 public static class WorkstationDocumentTypes
@@ -86,7 +86,7 @@ public static partial class WorkstationDocumentReader
     public static string Describe(string? type) => type switch
     {
         WorkstationDocumentTypes.Inventory => "workstation inventory",
-        WorkstationDocumentTypes.Profile => "deployment profile",
+        WorkstationDocumentTypes.Profile => "workstation template",
         WorkstationDocumentTypes.Session => "migration session",
         _ => "workstation document"
     };

@@ -20,7 +20,7 @@ public interface IMigrationFileService
 public sealed class WpfMigrationFileService(string dataRoot, Window? owner = null) : IMigrationFileService
 {
     private const string InventoryFilter = "Workstation inventory (*.json)|*.json";
-    private const string ProfileFilter = "Deployment profile (*.json)|*.json";
+    private const string ProfileFilter = "Workstation template (*.json)|*.json";
     private readonly string dataRoot = WorkstationDocumentFiles.RequireDataRoot(dataRoot);
 
     public Window? Owner { get; set; } = owner;
@@ -31,10 +31,10 @@ public sealed class WpfMigrationFileService(string dataRoot, Window? owner = nul
     public string? PickInventoryToOpen() => Open("Import a workstation inventory", InventoryFilter,
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 
-    public string? PickProfileToOpen() => Open("Open a deployment profile", ProfileFilter, WorkstationDocumentFiles.DataFolder(dataRoot, "profiles"));
+    public string? PickProfileToOpen() => Open("Open a workstation template", ProfileFilter, WorkstationDocumentFiles.DataFolder(dataRoot, "templates"));
 
-    public string? PickProfileToSave(string suggestedName) => Save("Save deployment profile", ProfileFilter,
-        WorkstationDocumentFiles.DataFolder(dataRoot, "profiles"), suggestedName);
+    public string? PickProfileToSave(string suggestedName) => Save("Save workstation template", ProfileFilter,
+        WorkstationDocumentFiles.DataFolder(dataRoot, "templates"), suggestedName);
 
     public bool Confirm(string title, string message) =>
         (Owner is null ? MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question)

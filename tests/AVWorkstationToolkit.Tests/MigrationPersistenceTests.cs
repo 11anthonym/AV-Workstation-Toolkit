@@ -12,7 +12,7 @@ using AVWorkstationToolkit.Infrastructure.Windows.Migration;
 namespace AVWorkstationToolkit.Tests;
 
 /// <summary>
-/// The migration checklist and deployment profiles are the feature's only persistent state. These tests keep every write
+/// The migration checklist and workstation templates are the feature's only persistent state. These tests keep every write
 /// under a temporary root and pin what a failed or damaged file does: the last valid file survives, damage is reported
 /// rather than read as "nothing saved", and temporary files never pass for saved state.
 /// </summary>
