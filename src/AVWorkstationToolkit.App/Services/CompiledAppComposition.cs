@@ -51,17 +51,22 @@ public static class CompiledAppComposition
     public static CompiledAppServices Create(string repositoryRoot, string? dataRoot = null)
         => CreateCore(repositoryRoot, dataRoot is null ? null : Path.GetFullPath(dataRoot), production: false);
 
+    // The packaged production smoke that package QA runs uses the same composition against a disposable root that
+    // ProductionRuntimePolicy bounds to the temporary folder, and its worker launcher never starts the worker.
     public static CompiledAppServices CreateProduction(
         string applicationRoot,
         string dataRoot,
         string version,
         string expectedWorkerSha256,
-        string prerelease = "")
+        string prerelease = "",
+        bool packageQaSmoke = false)
     {
-        var canonicalRoot = ProductionRuntimePolicy.RequireDataRoot(dataRoot);
-        var runtimeRoot = ProductionRuntimePolicy.RequireApplicationRoot(canonicalRoot, applicationRoot);
-        return CreateCore(runtimeRoot, canonicalRoot, production: true, version, expectedWorkerSha256,
-            ProductionManagedCatalogConfiguration.Create(version), prerelease);
+        var root = packageQaSmoke ? ProductionRuntimePolicy.RequirePackageQaDataRoot(dataRoot) : ProductionRuntimePolicy.RequireDataRoot(dataRoot);
+        var runtimeRoot = packageQaSmoke
+            ? ProductionRuntimePolicy.RequirePackageQaApplicationRoot(root, applicationRoot)
+            : ProductionRuntimePolicy.RequireApplicationRoot(root, applicationRoot);
+        return CreateCore(runtimeRoot, root, production: true, version, expectedWorkerSha256,
+            ProductionManagedCatalogConfiguration.Create(version), prerelease, packageQaSmoke);
     }
 
     public static CompiledAppServices CreateManagedCatalogDevelopment(
@@ -79,7 +84,8 @@ public static class CompiledAppComposition
         string? packagedVersion = null,
         string? expectedWorkerSha256 = null,
         ManagedCatalogRuntimeServices? managedCatalogRuntime = null,
-        string prerelease = "")
+        string prerelease = "",
+        bool packageQaSmoke = false)
     {
         var loader = new RepositoryCatalogLoader();
         var managedUpdates = managedCatalogRuntime is null
@@ -103,7 +109,8 @@ public static class CompiledAppComposition
             new ExternalInventoryMatcher(),
             externalReleases: new VendorExternalReleaseInventory(catalog));
         var canonicalDataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AVWorkstationToolkit");
-        var dataRoot = production ? ProductionRuntimePolicy.RequireDataRoot(actionRoot!) : actionRoot ?? canonicalDataRoot;
+        var dataRoot = !production ? actionRoot ?? canonicalDataRoot
+            : packageQaSmoke ? ProductionRuntimePolicy.RequirePackageQaDataRoot(actionRoot!) : ProductionRuntimePolicy.RequireDataRoot(actionRoot!);
         var versionPath = Path.Combine(repositoryRoot, "VERSION");
         var version = packagedVersion ?? (File.Exists(versionPath) ? File.ReadAllText(versionPath).Trim() : "Unknown");
         var productionCatalog = production
@@ -134,7 +141,9 @@ public static class CompiledAppComposition
         IApplicationMenuWorkflow applicationMenu = new ApplicationMenuWorkflow(dataRoot, handoffs);
         if (production)
         {
-            ICompiledWorkerLauncher workerLauncher = new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!);
+            ICompiledWorkerLauncher workerLauncher = packageQaSmoke
+                ? ProductionCompiledWorkerLauncher.ForPackageQaSmoke(dataRoot, repositoryRoot, expectedWorkerSha256!)
+                : new ProductionCompiledWorkerLauncher(dataRoot, repositoryRoot, expectedWorkerSha256!);
             actions = new CompiledActionCoordinator(
                 new ActionProtocolStore(dataRoot),
                 workerLauncher,

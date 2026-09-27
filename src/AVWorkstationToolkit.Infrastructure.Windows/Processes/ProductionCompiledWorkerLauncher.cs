@@ -13,6 +13,7 @@ public sealed class ProductionCompiledWorkerLauncher : ICompiledWorkerLauncher
     private readonly string applicationRoot;
     private readonly string workerPath;
     private readonly string expectedSha256;
+    private readonly bool packageQa;
     private readonly ActionRequestFilePolicy requestPolicy = new();
 
     public ProductionCompiledWorkerLauncher(string dataRoot, string applicationRoot, string expectedWorkerSha256)
@@ -24,8 +25,27 @@ public sealed class ProductionCompiledWorkerLauncher : ICompiledWorkerLauncher
         ValidateWorker();
     }
 
+    private ProductionCompiledWorkerLauncher(string packageQaDataRoot, string applicationRoot, string expectedWorkerSha256, bool packageQa)
+    {
+        dataRoot = ProductionRuntimePolicy.RequirePackageQaDataRoot(packageQaDataRoot);
+        this.applicationRoot = ProductionRuntimePolicy.RequirePackageQaApplicationRoot(dataRoot, applicationRoot);
+        expectedSha256 = RequireSha256(expectedWorkerSha256);
+        workerPath = Path.Combine(this.applicationRoot, "worker", WorkerFileName);
+        this.packageQa = packageQa;
+        ValidateWorker();
+    }
+
+    /// <summary>
+    /// For the packaged production smoke that package QA runs against a disposable root: the extracted worker is
+    /// checked exactly as in production, but it is never started. The worker itself also refuses any non-canonical root.
+    /// </summary>
+    public static ProductionCompiledWorkerLauncher ForPackageQaSmoke(string dataRoot, string applicationRoot, string expectedWorkerSha256) =>
+        new(dataRoot, applicationRoot, expectedWorkerSha256, packageQa: true);
+
     public ValueTask<ICompiledWorkerSession> LaunchAsync(ActionArtifactPaths paths, CancellationToken cancellationToken = default)
     {
+        if (packageQa)
+            throw new InvalidOperationException("The package QA smoke never starts the compiled worker.");
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(paths);
         var requestPath = requestPolicy.ValidateExistingRequestPath(dataRoot, paths.RequestPath);

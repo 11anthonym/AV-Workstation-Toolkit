@@ -8,6 +8,15 @@
     smoke behavior, verifies cache repair, and administratively extracts the
     MSI. It does not register or install the MSI and never invokes a WinGet
     change action.
+
+    Every packaged launch uses a disposable AVWorkstationToolkit-package-qa-<id>
+    data root beneath the temporary folder, including the production smoke, so
+    no packaged launch uses the user's %LOCALAPPDATA%\AVWorkstationToolkit
+    profile. The run proves this: it only reads the real profile and the
+    installed-product registration, before and after, to show they are
+    unchanged, and the isolated root must hold the runtime, folders, and
+    migration checklist the packaged app wrote there. The MSI is only
+    administratively extracted, so nothing is installed or upgraded.
 #>
 
 [CmdletBinding()]
@@ -75,45 +84,109 @@ function Invoke-Check {
     }
 }
 
-function Save-UserCatalogFolders {
-    # The production composition accepts only the canonical per-user data root, so the production smoke is the one
-    # packaged check that runs against the user's profile. Keep a verified copy of the catalog folders it could touch.
-    param([Parameter(Mandatory)][string]$BackupRoot)
-    $profileRoot = Join-Path $localApplicationData 'AVWorkstationToolkit'
-    New-Item -ItemType Directory -Path $BackupRoot -Force | Out-Null
-    $hashes = @{}
-    foreach ($folder in 'ReferenceCatalog','ManagedCatalog') {
-        $source = Join-Path $profileRoot $folder
-        if (-not (Test-Path -LiteralPath $source -PathType Container)) { continue }
-        Copy-Item -LiteralPath $source -Destination (Join-Path $BackupRoot $folder) -Recurse
-        foreach ($file in @(Get-ChildItem -LiteralPath $source -Recurse -File -Force)) {
-            $hashes[$file.FullName] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+function Get-TreeSnapshot {
+    # Read-only: one line per directory and per file (size, write time, SHA-256) beneath the root, or nothing if it is absent.
+    param([Parameter(Mandatory)][string]$Root)
+    $lines = [System.Collections.Generic.List[string]]::new()
+    if (-not (Test-Path -LiteralPath $Root -PathType Container)) { return ,$lines.ToArray() }
+    foreach ($item in @(Get-ChildItem -LiteralPath $Root -Recurse -Force -ErrorAction Stop)) {
+        $relative = $item.FullName.Substring($Root.Length).TrimStart('\')
+        if ($item.PSIsContainer) { $lines.Add("dir|$relative") | Out-Null; continue }
+        # Shared read access, so a log a running copy of the app holds open is still compared rather than failing the run.
+        $hash = try {
+            $stream = [IO.File]::Open($item.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+            try {
+                $sha256 = [Security.Cryptography.SHA256]::Create()
+                try { [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace('-','') } finally { $sha256.Dispose() }
+            }
+            finally { $stream.Dispose() }
         }
+        catch { 'unreadable' }
+        $lines.Add(('file|{0}|{1}|{2}|{3}' -f $relative,$item.Length,$item.LastWriteTimeUtc.Ticks,$hash)) | Out-Null
     }
-    return $hashes
+    return ,@($lines | Sort-Object)
 }
 
-function Restore-UserCatalogFolders {
-    # Restores every saved file the check modified or deleted and reports every difference, including new files,
-    # which are left in place for review rather than deleted from the user's profile.
-    param([Parameter(Mandatory)][hashtable]$Before,[Parameter(Mandatory)][string]$BackupRoot)
-    $profileRoot = Join-Path $localApplicationData 'AVWorkstationToolkit'
-    $differences = [System.Collections.Generic.List[string]]::new()
-    foreach ($path in @($Before.Keys)) {
-        $current = if (Test-Path -LiteralPath $path -PathType Leaf) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash } else { '' }
-        if ($current -eq $Before[$path]) { continue }
-        $differences.Add("restored $path") | Out-Null
-        New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
-        Copy-Item -LiteralPath (Join-Path $BackupRoot $path.Substring($profileRoot.Length + 1)) -Destination $path -Force
-    }
-    foreach ($folder in 'ReferenceCatalog','ManagedCatalog') {
-        $source = Join-Path $profileRoot $folder
-        if (-not (Test-Path -LiteralPath $source -PathType Container)) { continue }
-        foreach ($file in @(Get-ChildItem -LiteralPath $source -Recurse -File -Force)) {
-            if (-not $Before.ContainsKey($file.FullName)) { $differences.Add("added $($file.FullName)") | Out-Null }
+function Compare-TreeSnapshot {
+    param([string[]]$Before,[string[]]$After)
+    $differences = @(Compare-Object -ReferenceObject @($Before) -DifferenceObject @($After) |
+        ForEach-Object { '{0} {1}' -f $(if ($_.SideIndicator -eq '=>') { 'now' } else { 'was' }),$_.InputObject })
+    return ,$differences
+}
+
+function ConvertTo-PackedGuid {
+    # Windows Installer's registry index stores a GUID with each group's characters reversed.
+    param([Parameter(Mandatory)][string]$Guid)
+    $hex = $Guid.Trim('{}').Replace('-','').ToUpperInvariant()
+    if ($hex -notmatch '^[0-9A-F]{32}$') { throw "Not a GUID: $Guid" }
+    $packed = -join $hex.Substring(0,8).ToCharArray()[7..0]
+    $packed += -join $hex.Substring(8,4).ToCharArray()[3..0]
+    $packed += -join $hex.Substring(12,4).ToCharArray()[3..0]
+    for ($index = 16; $index -lt 32; $index += 2) { $packed += [string]$hex[$index + 1] + [string]$hex[$index] }
+    return $packed
+}
+
+function Get-InstalledProductState {
+    # Read-only view of everything an MSI install or upgrade of this product would change: its Windows Installer
+    # upgrade-family registration, its Installed Apps entries, the Start menu folder, and the installed launcher.
+    $packedUpgradeCode = ConvertTo-PackedGuid -Guid $productUpgradeCode
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($hive in @(
+        @{ Name = 'HKLM64'; Hive = [Microsoft.Win32.RegistryHive]::LocalMachine; View = [Microsoft.Win32.RegistryView]::Registry64; UpgradeCodes = 'SOFTWARE\Classes\Installer\UpgradeCodes' },
+        @{ Name = 'HKLM32'; Hive = [Microsoft.Win32.RegistryHive]::LocalMachine; View = [Microsoft.Win32.RegistryView]::Registry32; UpgradeCodes = $null },
+        @{ Name = 'HKCU'; Hive = [Microsoft.Win32.RegistryHive]::CurrentUser; View = [Microsoft.Win32.RegistryView]::Default; UpgradeCodes = 'Software\Microsoft\Installer\UpgradeCodes' })) {
+        $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey($hive.Hive,$hive.View)
+        try {
+            if ($null -ne $hive.UpgradeCodes) {
+                $family = $base.OpenSubKey((Join-Path $hive.UpgradeCodes $packedUpgradeCode),$false)
+                if ($null -ne $family) {
+                    try { foreach ($product in @($family.GetValueNames())) { $lines.Add("upgrade-family|$($hive.Name)|$product") | Out-Null } }
+                    finally { $family.Dispose() }
+                }
+            }
+            $uninstall = $base.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',$false)
+            if ($null -eq $uninstall) { continue }
+            try {
+                foreach ($name in @($uninstall.GetSubKeyNames())) {
+                    $entry = $uninstall.OpenSubKey($name,$false)
+                    if ($null -eq $entry) { continue }
+                    try {
+                        $displayName = [string]$entry.GetValue('DisplayName')
+                        if ($displayName -like 'AV Workstation Toolkit*' -or $displayName -like 'AVinite*') {
+                            $lines.Add(('installed-app|{0}|{1}|{2}|{3}' -f $hive.Name,$name,$displayName,[string]$entry.GetValue('DisplayVersion'))) | Out-Null
+                        }
+                    }
+                    finally { $entry.Dispose() }
+                }
+            }
+            finally { $uninstall.Dispose() }
         }
+        finally { $base.Dispose() }
     }
-    return ,$differences.ToArray()
+    foreach ($path in @(
+        (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\AV Workstation Toolkit'),
+        (Join-Path $env:ProgramFiles 'AVWorkstationToolkit'))) {
+        $snapshot = Get-TreeSnapshot -Root $path
+        foreach ($line in $snapshot) { $lines.Add("$path|$line") | Out-Null }
+    }
+    return ,@($lines | Sort-Object)
+}
+
+function Remove-IsolatedRoot {
+    # Deletes only a folder this run created directly beneath the temporary folder with one of its own name prefixes.
+    param([Parameter(Mandatory)][string]$Path)
+    $resolved = [IO.Path]::GetFullPath($Path).TrimEnd('\')
+    $systemTemporary = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
+    $name = Split-Path -Leaf $resolved
+    if ((Split-Path -Parent $resolved) -ne $systemTemporary -or $name -notmatch '^AVWorkstationToolkit-package-(?:qa|work)-[0-9a-f]{32}$') {
+        throw "Refusing to delete a folder this run did not create: $resolved"
+    }
+    if (-not (Test-Path -LiteralPath $resolved)) { return }
+    # A process that was just stopped can hold files briefly, so removal is retried before it is reported.
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try { Remove-Item -LiteralPath $resolved -Recurse -Force -ErrorAction Stop; return }
+        catch { if ($attempt -eq 5) { Write-Warning "Package QA could not remove its isolated folder $resolved. $($_.Exception.Message)"; return }; Start-Sleep -Seconds 2 }
+    }
 }
 
 function Get-BoundedProcessDiagnostic {
@@ -285,19 +358,41 @@ if ($SignaturePolicyOnly) {
     exit 0
 }
 
-$temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-package-qa-' + [guid]::NewGuid().ToString('N'))
+$productUpgradeCode = '{7A3A4978-78F0-5824-B93F-A2C741BF853E}'
 $localApplicationData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
 if ([string]::IsNullOrWhiteSpace($localApplicationData)) { throw 'Local application data directory is unavailable.' }
-$runtimeTestRoot = Join-Path $localApplicationData (Join-Path 'AVWorkstationToolkit\package-qa' ([guid]::NewGuid().ToString('N')))
+$userProfileRoot = [IO.Path]::GetFullPath((Join-Path $localApplicationData 'AVWorkstationToolkit')).TrimEnd('\')
+$systemTemporary = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
+$runIdentity = [guid]::NewGuid().ToString('N')
+$temporaryRoot = Join-Path $systemTemporary ('AVWorkstationToolkit-package-work-' + $runIdentity)
+# The packaged launcher accepts exactly this shape for the production smoke: a package-qa folder directly beneath the temporary folder.
+$dataRoot = Join-Path $systemTemporary ('AVWorkstationToolkit-package-qa-' + $runIdentity)
+foreach ($isolatedRoot in @($temporaryRoot,$dataRoot)) {
+    if ($isolatedRoot.Equals($userProfileRoot,[StringComparison]::OrdinalIgnoreCase) -or
+        $isolatedRoot.StartsWith($userProfileRoot + '\',[StringComparison]::OrdinalIgnoreCase)) {
+        throw "Package QA isolation could not be established: $isolatedRoot is inside the user's AV Workstation Toolkit profile."
+    }
+    if (Test-Path -LiteralPath $isolatedRoot) { throw "Package QA isolation could not be established: $isolatedRoot already exists." }
+}
 $portableExtract = Join-Path $temporaryRoot 'portable'
 $offlineExtract = Join-Path $temporaryRoot 'offline'
+$offlineDataRoot = Join-Path $temporaryRoot 'offline-data'
 $msiExtract = Join-Path $temporaryRoot 'msi'
 $downloadedRoot = Join-Path $temporaryRoot 'downloaded'
-$dataRoot = Join-Path $runtimeTestRoot 'data'
 $downloadedExecutable = Join-Path $downloadedRoot 'AVWorkstationToolkit.exe'
+# Taken before anything is launched; a copy of AV Workstation Toolkit the user already has open is noted, not stopped.
+$userToolkitProcesses = @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like 'AVWorkstationToolkit*' } | ForEach-Object { $_.Id })
+$profileBefore = Get-TreeSnapshot -Root $userProfileRoot
+$installedBefore = Get-InstalledProductState
 New-Item -ItemType Directory -Path $portableExtract,$offlineExtract,$msiExtract,$downloadedRoot,$dataRoot -Force | Out-Null
+if (((Get-Item -LiteralPath $dataRoot -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw "Package QA isolation could not be established: $dataRoot is a reparse point."
+}
+Write-Host "Package QA data root: $dataRoot"
+Write-Host "User profile compared before and after, never written: $userProfileRoot"
 Copy-Item -LiteralPath $standalonePath -Destination $downloadedExecutable
 $script:runtimeApplicationRoot = ''
+$script:migrationEvidence = ''
 
 try {
     Invoke-Check 'Release manifest identity and artifact hashes are valid' {
@@ -607,25 +702,38 @@ try {
         Assert-Equal 0 @(Get-ChildItem -LiteralPath $portableExtract -Recurse -File -Filter '*DevHost*').Count 'Portable ZIP contains a worker development host.'
     }
 
+    Invoke-Check 'Packaged production smoke refuses to run without its isolated package QA data root' {
+        # Every refused root is disposable and outside the user's profile, so even a regression here could not write there.
+        $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke')
+        Assert-Equal 1 $exitCode 'The production smoke ran without a data root, which would be the user profile.'
+        Assert-True ($script:LastLauncherStdErr -match 'package QA') "The refusal did not explain the package QA data root: $script:LastLauncherStdErr"
+        foreach ($rejectedRoot in @(
+            (Join-Path $temporaryRoot ('AVWorkstationToolkit-package-qa-' + $runIdentity)),
+            (Join-Path $systemTemporary ('AVWorkstationToolkit-package-qa-' + [guid]::NewGuid().ToString('N').ToUpperInvariant())))) {
+            $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke','--data-root',$rejectedRoot)
+            Assert-Equal 1 $exitCode "The production smoke accepted a data root outside its bounds: $rejectedRoot"
+            Assert-True ($script:LastLauncherStdErr -match 'package QA data root') "The refusal did not explain the package QA data root: $script:LastLauncherStdErr"
+            Assert-True (-not (Test-Path -LiteralPath $rejectedRoot)) "The refused production smoke still created $rejectedRoot."
+        }
+    }
+
     if ($SkipDesktopSmoke) {
         $script:Skipped++
         Write-Host 'SKIP  Packaged WPF control and workflow smoke test requires an interactive Windows desktop.' -ForegroundColor Yellow
     }
     else {
-        Invoke-Check 'Packaged production compiled WPF smoke opens and reopens cleanly' {
-            $catalogBackup = Join-Path $temporaryRoot 'user-catalog-backup'
-            $catalogHashes = Save-UserCatalogFolders -BackupRoot $catalogBackup
-            $smokeFailure = $null
-            try {
-                foreach ($attempt in 1..2) {
-                    $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke')
-                    Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke attempt $attempt failed. $script:LastLauncherStdErr"
-                }
-            }
-            catch { $smokeFailure = $_ }
-            $catalogDifferences = Restore-UserCatalogFolders -Before $catalogHashes -BackupRoot $catalogBackup
-            Assert-Equal 0 $catalogDifferences.Count "Packaged production smoke changed the user's catalog folders: $($catalogDifferences -join '; ')"
-            if ($null -ne $smokeFailure) { throw $smokeFailure }
+        Invoke-Check 'Packaged production compiled WPF smoke opens and reopens cleanly in the isolated data root' {
+            $sessionPath = Join-Path $dataRoot 'migration\session.json'
+            Assert-True (-not (Test-Path -LiteralPath $sessionPath)) 'The isolated data root already held a migration checklist.'
+            $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke','--data-root',$dataRoot)
+            Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke attempt 1 failed. $script:LastLauncherStdErr"
+            Assert-True (Test-Path -LiteralPath $sessionPath -PathType Leaf) 'The first production smoke did not save its migration checklist in the isolated data root.'
+            $session = Get-Content -LiteralPath $sessionPath -Raw | ConvertFrom-Json
+            Assert-True ([string]$session.documentType -eq 'migration-session' -and [string]$session.source.profileId -eq 'package-qa-smoke') 'The isolated migration checklist is not the one the production smoke saved.'
+            $exitCode = Invoke-PackagedLauncher -Launcher $downloadedExecutable -Arguments @('--production-smoke','--data-root',$dataRoot)
+            Assert-Equal 0 $exitCode "Packaged production compiled WPF smoke attempt 2 failed. $script:LastLauncherStdErr"
+            Assert-True (-not (Test-Path -LiteralPath $sessionPath)) 'The reopened production smoke did not reload and finish its saved migration checklist.'
+            $script:migrationEvidence = 'saved-reloaded-finished'
         }
     }
 
@@ -696,23 +804,36 @@ try {
             Assert-Equal ([string]$package.Sha256) (Get-FileHash -LiteralPath $payloadPath -Algorithm SHA256).Hash "Offline payload hash differs: $($package.Id)"
         }
         if (-not $SkipDesktopSmoke) {
-            $offlineDataRoot = Join-Path $runtimeTestRoot 'offline-data'
             $exitCode = Invoke-PackagedLauncher -Launcher $offlineLauncher -Arguments @('--smoke-test','--data-root',$offlineDataRoot)
             Assert-Equal 0 $exitCode 'Offline bundle WPF smoke process failed.'
         }
     }
+
+    Invoke-Check 'Packaged launches wrote their runtime and state inside the isolated data root' {
+        $extractedWorker = Join-Path $dataRoot (Join-Path (Join-Path 'runtime' $version) 'worker\AVWorkstationToolkit.Worker.exe')
+        Assert-True (Test-Path -LiteralPath $extractedWorker -PathType Leaf) 'The packaged runtime was not extracted into the isolated data root.'
+        if (-not $SkipDesktopSmoke) {
+            foreach ($folder in @('logs\requests','reports')) {
+                Assert-True (Test-Path -LiteralPath (Join-Path $dataRoot $folder) -PathType Container) "The packaged app did not create $folder in the isolated data root."
+            }
+            Assert-Equal 'saved-reloaded-finished' $script:migrationEvidence 'The production smoke did not prove that its migration checklist persisted in the isolated data root.'
+        }
+    }
 }
 finally {
-    $resolvedTemporary = [IO.Path]::GetFullPath($temporaryRoot)
-    $systemTemporary = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
-    if ($resolvedTemporary.StartsWith($systemTemporary,[StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $resolvedTemporary)) {
-        Remove-Item -LiteralPath $resolvedTemporary -Recurse -Force -ErrorAction SilentlyContinue
+    Invoke-Check "The user's AV Workstation Toolkit profile is unchanged" {
+        $differences = Compare-TreeSnapshot -Before $profileBefore -After (Get-TreeSnapshot -Root $userProfileRoot)
+        if ($differences.Count -gt 0) {
+            $note = if ($userToolkitProcesses.Count -gt 0) { " AV Workstation Toolkit was already open (process $($userToolkitProcesses -join ', ')) and may have written these itself." } else { '' }
+            throw ('Package QA found {0} change(s) in {1}: {2}.{3}' -f $differences.Count,$userProfileRoot,(($differences | Select-Object -First 8) -join '; '),$note)
+        }
     }
-    $resolvedRuntimeTestRoot = [IO.Path]::GetFullPath($runtimeTestRoot)
-    $runtimeTestPrefix = [IO.Path]::GetFullPath((Join-Path $localApplicationData 'AVWorkstationToolkit\package-qa')).TrimEnd('\') + '\'
-    if ($resolvedRuntimeTestRoot.StartsWith($runtimeTestPrefix,[StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $resolvedRuntimeTestRoot)) {
-        Remove-Item -LiteralPath $resolvedRuntimeTestRoot -Recurse -Force -ErrorAction SilentlyContinue
+    Invoke-Check 'Package QA installed, upgraded, or registered nothing' {
+        $differences = Compare-TreeSnapshot -Before $installedBefore -After (Get-InstalledProductState)
+        Assert-Equal 0 $differences.Count "Installed AV Workstation Toolkit state changed: $(($differences | Select-Object -First 8) -join '; ')"
     }
+    Remove-IsolatedRoot -Path $temporaryRoot
+    Remove-IsolatedRoot -Path $dataRoot
 }
 
 Write-Host ''

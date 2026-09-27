@@ -130,6 +130,17 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File .\tests\Test-
 
 The suite copies the release EXE into an otherwise empty directory and runs it there, verifies deterministic runtime placement and the hash-identified compiled worker, proves a second launch does not rewrite unchanged files, repairs tampered recovery/worker cache files, checks EXE/MSI identity and SBOM/manifest/checksum agreement, confirms the ZIP contains the same single executable, runs the compiled production WPF smoke plus deliberate legacy-recovery smoke, and administratively extracts the MSI without registering it. The MSI-extracted launcher must be byte-identical to the standalone launcher and satisfy the same signature policy. QA does not contact an authenticated vendor, download or execute third-party software, install the MSI, or invoke a WinGet change action.
 
+Package QA never uses the operator's profile, so it is safe to run on a workstation that also runs AV Workstation Toolkit, without closing it or backing anything up:
+
+- Every packaged launch, including the production smoke, uses a `%TEMP%\AVWorkstationToolkit-package-qa-<32 hex>` data root that the run creates fresh, prints, and deletes afterward even when a check fails. The launcher accepts `--production-smoke` only with such a root: `ProductionRuntimePolicy.RequirePackageQaDataRoot` requires a non-reparse folder with that exact name directly beneath the temporary folder and outside `%LOCALAPPDATA%\AVWorkstationToolkit`. The smoke composes the production services against it, validates the extracted worker by hash as production does, and never starts the worker, which itself still accepts only the canonical root.
+- The run reads the real `%LOCALAPPDATA%\AVWorkstationToolkit` before and after and fails if anything in it changed. If a copy of the app was already open, the failure says so, because that copy may have written the change itself.
+- The isolated root must show what the packaged app wrote: the extracted `runtime\<version>`, its `logs\requests` and `reports` folders, and a migration checklist that the first smoke saves and the second reloads from disk and finishes. That proves the smoke exercised persistence rather than skipping it.
+- The MSI is only extracted with `msiexec /a`. Installing it would not be isolated: the package is per-machine, shares one upgrade code with every release, and allows same-version major upgrades, so installing a QA build would replace an installed release in `Program Files\AVWorkstationToolkit`, along with its Start menu shortcut and Installed Apps entry. The run reads the product's Windows Installer upgrade-family registration, Installed Apps entries, Start menu folder, and install folder before and after, and fails if any changed. An installation test belongs on a disposable virtual machine.
+
+Package QA stays a separate, explicit step rather than part of every `ReleaseCandidate` build. Its desktop smoke refreshes live WinGet and vendor release state, which is bounded but not deterministic, and it adds several minutes. Run it before publishing any release or beta.
+
+A build replaces only its own release folder. It refuses to rebuild a pre-release label that already has a completed build (use the next label), or a published release (one with release notes in `docs\releases`) from a different commit. It records every other folder in `artifacts\release` before it starts and fails if any of them changed by the end.
+
 ## Signing
 
 The repository contains no private key. To sign with an organization-approved code-signing certificate in either the CurrentUser or LocalMachine certificate store:
@@ -221,10 +232,13 @@ Everything that Windows or the catalogs compare stays numeric: assembly and file
 
 1. Start from a clean checkout of current `main`, with AV Workstation Toolkit closed so the build does not replace an executable in use.
 2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate`, adding `-PrereleaseLabel beta.N` for a beta. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, any pre-release label, and unsigned signature state.
-3. Run full source QA and `tests\Test-Package.ps1`, adding `-PrereleaseLabel beta.N` for a beta. The package desktop smoke uses the operator's real profile, so run it only with the owner's approval and the app closed; otherwise run `-SkipDesktopSmoke` and have the owner inspect the UI interactively.
-4. Tag the built commit `X.Y.Z` or `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
-5. Create a GitHub release from that tag, marked latest and titled `AV Workstation Toolkit X.Y.Z (unsigned)` or `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\<tag>` and the release packet `docs\releases\<tag>.md` as its notes, followed by the asset checksums and QA results.
-6. Never replace a published asset. A corrected build gets a new version or beta number and a new tag.
+3. Run full source QA and `tests\Test-Package.ps1`, adding `-PrereleaseLabel beta.N` for a beta. Package QA runs in isolated data roots and proves the operator's profile and installed copy unchanged (see [Package QA](#package-qa)); the owner still inspects the UI interactively.
+4. For a release (not a beta), make the release commit that moves the current-release statements from the previous release to `X.Y.Z` together with its notes `docs\releases\X.Y.Z.md`: the README download section and its three file names, SECURITY.md, the endpoint-security baseline, the SignPath readiness record, and the bug-report form's version placeholder, and remove `(unreleased)` from the change log's `Version X.Y.Z` entry. Source QA fails if these disagree with the newest release notes, so a version bump alone can never move them ahead of publication. Build the release from that commit.
+5. Tag the built commit `X.Y.Z` or `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
+6. Create a GitHub release from that tag, marked latest and titled `AV Workstation Toolkit X.Y.Z (unsigned)` or `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\<tag>` and the release packet `docs\releases\<tag>.md` as its notes, followed by the asset checksums and QA results.
+7. Never replace a published asset. A corrected build gets a new version or beta number and a new tag.
+
+`X.Y.Z-alpha.N` builds are internal QA artifacts of an unreleased version. They are built like betas, never published, and never tagged.
 
 `1.1.1-beta.1` predates the beta naming convention: its files and window title read `1.1.1`.
 

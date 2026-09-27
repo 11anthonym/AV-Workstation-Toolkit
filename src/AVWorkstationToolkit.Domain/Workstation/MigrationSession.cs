@@ -182,7 +182,8 @@ public static class MigrationSessionCodec
     public const int MaximumBytes = 8 * 1024 * 1024;
     private static readonly IReadOnlyDictionary<string, MigrationSourceKind> Kinds = new Dictionary<string, MigrationSourceKind>(StringComparer.Ordinal)
     {
-        ["inventory"] = MigrationSourceKind.Inventory, ["profile"] = MigrationSourceKind.Profile
+        ["inventory"] = MigrationSourceKind.Inventory,
+        ["profile"] = MigrationSourceKind.Profile
     };
 
     public static byte[] Serialize(MigrationSession session)

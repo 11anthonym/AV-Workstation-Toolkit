@@ -1663,6 +1663,59 @@ Invoke-Check 'AV Workstation Toolkit v1.1.3 identity is consistent across source
         Assert-True (Test-Path -LiteralPath (Join-Path $repositoryRoot $path) -PathType Leaf) "Renamed documentation is missing: $path"
     }
 }
+Invoke-Check 'Current-release statements follow published release notes, not the source version' {
+    # VERSION is what this source builds. The current release is the newest version with release notes in docs\releases.
+    # A version bump leaves the current-release statements alone; publishing a release (adding its notes) moves them.
+    $sourceVersion = [version](Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()
+    $publishedVersions = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'docs\releases') -File -Filter '*.md' |
+        Where-Object { $_.BaseName -match '^\d+\.\d+\.\d+$' } | ForEach-Object { [version]$_.BaseName } | Sort-Object)
+    Assert-True ($publishedVersions.Count -gt 0) 'No published release notes were found in docs\releases.'
+    $published = $publishedVersions[-1].ToString(3)
+    Assert-True ($sourceVersion -ge $publishedVersions[-1]) "VERSION $sourceVersion is older than the published release $published."
+    $statements = @(
+        @{ Path = 'README.md'; Pattern = 'The current release is the unsigned\s+\[`(?<version>[^`]+)`\]\(docs/releases/(?<notes>[^)]+)\.md\)' },
+        @{ Path = 'README.md'; Pattern = 'Each release offers three delivery formats; for (?<version>[^:\s]+):' },
+        @{ Path = 'SECURITY.md'; Pattern = 'The current release is the unsigned `(?<version>[^`]+)`' },
+        @{ Path = 'docs\Endpoint-Security-Behavior.md'; Pattern = 'its current release is the unsigned `(?<version>[^`]+)`' },
+        @{ Path = 'docs\SignPath-Readiness.md'; Pattern = 'Current release artifacts: unsigned, including the `(?<version>[^`]+)` release' },
+        @{ Path = '.github\ISSUE_TEMPLATE\bug_report.yml'; Pattern = 'placeholder: (?<version>\S+)' }
+    )
+    foreach ($statement in $statements) {
+        $text = Get-Content -LiteralPath (Join-Path $repositoryRoot $statement.Path) -Raw -Encoding UTF8
+        $match = [regex]::Match($text,$statement.Pattern)
+        Assert-True $match.Success "The current-release statement in $($statement.Path) was not found."
+        Assert-Equal $published $match.Groups['version'].Value "$($statement.Path) must name the published release, not the source version."
+        if ($match.Groups['notes'].Success) { Assert-Equal $published $match.Groups['notes'].Value "$($statement.Path) links the wrong release notes." }
+    }
+    $readme = Get-Content -LiteralPath (Join-Path $repositoryRoot 'README.md') -Raw -Encoding UTF8
+    $downloads = @([regex]::Matches($readme,'AV-Workstation-Toolkit-(?<version>\d+\.\d+\.\d+\S*?)-(?:win-x64\.exe|x64\.msi|win-x64\.zip)'))
+    Assert-Equal 3 $downloads.Count 'README no longer lists the three delivery formats of the current release.'
+    foreach ($download in $downloads) { Assert-Equal $published $download.Groups['version'].Value 'README download names differ from the published release.' }
+    # The change log's entry for the source version says it is unreleased exactly until its release notes exist.
+    $changeLog = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\CHANGELOG.md') -Raw -Encoding UTF8
+    $entry = [regex]::Match($changeLog,'(?m)^## \S+ \S+ Version ' + [regex]::Escape($sourceVersion.ToString(3)) + '(?<unreleased> \(unreleased\))?\s*$')
+    Assert-True $entry.Success "The change log has no entry for version $sourceVersion."
+    Assert-Equal ($sourceVersion -gt $publishedVersions[-1]) $entry.Groups['unreleased'].Success "The change log's version $sourceVersion entry must say (unreleased) exactly until docs\releases\$sourceVersion.md exists."
+}
+Invoke-Check 'Package QA launches only in isolated data roots and never installs the MSI' {
+    $packageTest = Get-Content -LiteralPath (Join-Path $repositoryRoot 'tests\Test-Package.ps1') -Raw
+    $launcherSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
+    $runtimePolicySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Files\ProductionRuntimePolicy.cs') -Raw
+    $workerLauncherSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\ProductionCompiledWorkerLauncher.cs') -Raw
+    Assert-True ($packageTest -match '''AVWorkstationToolkit-package-qa-''' -and
+        $packageTest -match '@\(''--production-smoke'',''--data-root'',\$dataRoot\)' -and
+        $packageTest -match 'Get-TreeSnapshot -Root \$userProfileRoot' -and
+        $packageTest -match 'Get-InstalledProductState') 'Package QA no longer runs the production smoke in its isolated root or proves the profile and installation unchanged.'
+    Assert-True ($packageTest -notmatch 'Join-Path \$localApplicationData ''AVWorkstationToolkit\\' -and $packageTest -notmatch 'Copy-Item[^\r\n]+\$userProfileRoot') 'Package QA writes beneath the user profile.'
+    # Installing the MSI would major-upgrade any installed copy in the same family, so package QA only extracts it.
+    Assert-True ([regex]::Matches($packageTest,'(?i)msiexec').Count -eq 1 -and $packageTest -match '''/a "\{0\}" /qn TARGETDIR=' -and
+        $packageTest -notmatch '(?i)InstallProduct|ConfigureProduct|ApplyPatch|Win32_Product') 'Package QA can install, repair, or uninstall the MSI instead of only extracting it administratively.'
+    Assert-True ($launcherSource -match 'options\.ProductionSmoke\s*&&\s*\(options\.DataRoot is null' -and
+        $launcherSource -match 'ProductionRuntimePolicy\.RequirePackageQaDataRoot') 'The packaged production smoke can run without its bounded package QA data root.'
+    Assert-True ($runtimePolicySource -match 'PackageQaDataRootPrefix = "AVWorkstationToolkit-package-qa-"' -and
+        $runtimePolicySource -match 'Path\.GetTempPath\(\)' -and $runtimePolicySource -match 'inside the user''s AV Workstation Toolkit data root') 'The package QA data root is no longer bounded to a disposable temporary folder.'
+    Assert-True ($workerLauncherSource -match 'if \(packageQa\)\s*throw new InvalidOperationException') 'The package QA worker launcher can start the compiled worker.'
+}
 Invoke-Check 'Old product branding is restricted to explicit legacy compatibility' {
     # Tests are deliberately excluded because this file contains the legacy fixtures
     # that exercise each production compatibility path. Every production or

@@ -397,20 +397,31 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     internal async Task ApplyProfileAsync(DeploymentProfile profile)
     {
         var current = service.Session;
-        if (current?.Source is { Kind: MigrationSourceKind.Profile } source && source.ProfileId == profile.ProfileId && source.ProfileVersion != profile.ProfileVersion)
+        // This also runs straight from the profile editor, outside any caller's error handling, so a checklist that
+        // can't be saved is reported here and the current checklist stays as it was.
+        try
         {
-            var diff = current.CompareToProfile(profile);
-            if (!files.Confirm("Update deployment profile",
-                    $"This PC's checklist uses the {profile.Name} deployment profile, version {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to version {profile.ProfileVersion}? Progress on applications that remain is kept."))
-                return;
-            service.AdoptProfileRevision(profile);
-            Status = $"Updated the checklist to the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
+            if (current?.Source is { Kind: MigrationSourceKind.Profile } source && source.ProfileId == profile.ProfileId && source.ProfileVersion != profile.ProfileVersion)
+            {
+                var diff = current.CompareToProfile(profile);
+                if (!files.Confirm("Update deployment profile",
+                        $"This PC's checklist uses the {profile.Name} deployment profile, version {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to version {profile.ProfileVersion}? Progress on applications that remain is kept."))
+                    return;
+                service.AdoptProfileRevision(profile);
+                Status = $"Updated the checklist to the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
+            }
+            else
+            {
+                if (!ConfirmReplace($"Apply the {profile.Name} deployment profile (version {profile.ProfileVersion})?")) return;
+                service.StartFromProfile(profile);
+                Status = $"Applied the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
+            }
         }
-        else
+        catch (Exception exception)
         {
-            if (!ConfirmReplace($"Apply the {profile.Name} deployment profile (version {profile.ProfileVersion})?")) return;
-            service.StartFromProfile(profile);
-            Status = $"Applied the {profile.Name} deployment profile, version {profile.ProfileVersion}.";
+            Status = $"Couldn't apply the deployment profile. {Sanitize(exception.Message)}";
+            RequestRefresh();
+            return;
         }
         SavedSessionProblem = string.Empty;
         Filter = MigrationFilter.Remaining;
@@ -471,7 +482,14 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         try
         {
             var outcome = await service.InstallAsync(eligible.Select(item => item.ItemId).ToArray(), acknowledged).ConfigureAwait(true);
-            Status = $"{outcome.Message} This PC was scanned again: {outcome.DetectedAfterward} of {outcome.Requested} now detected as installed.";
+            // An install is reported complete only from what a scan found, so a missing or partial scan says so.
+            var scanned = outcome.ScanProblem.Length > 0
+                ? $"This PC couldn't be scanned again ({outcome.ScanProblem}), so nothing was marked complete. Scan this PC again to see what's installed."
+                : service.TargetInventory is { Sources.Complete: false } inventory
+                    ? $"The scan afterward was incomplete ({inventory.Sources.Detail}): {outcome.DetectedAfterward} of {outcome.Requested} confirmed installed. Scan this PC again to check the rest."
+                    : $"This PC was scanned again: {outcome.DetectedAfterward} of {outcome.Requested} now detected as installed.";
+            var saved = outcome.SaveProblem.Length > 0 ? $" The checklist couldn't be saved: {outcome.SaveProblem}" : string.Empty;
+            Status = $"{outcome.Message} {scanned}{saved}";
         }
         catch (Exception exception)
         {

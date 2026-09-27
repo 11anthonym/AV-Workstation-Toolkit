@@ -56,15 +56,22 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            return Fail(exception.Message, headless: false, dataRoot: null);
+            var unattended = args.Any(argument => argument.ToLowerInvariant() is "--smoke-test" or "--production-smoke" or "--verify" or "--diagnostics");
+            return Fail(exception.Message, unattended, dataRoot: null);
         }
 
         var dataRoot = options.DataRoot ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DataDirectoryName);
+        // Failures are logged beneath the data root only once that root has been accepted, so a rejected path is never written.
+        string? acceptedDataRoot = null;
 
         try
         {
-            dataRoot = SafePath.RequireAbsoluteNonRoot(dataRoot, "data root");
+            // The production smoke is package QA: it runs only against a disposable package QA root, never the user's profile.
+            dataRoot = options.ProductionSmoke
+                ? AVWorkstationToolkit.Infrastructure.Windows.Files.ProductionRuntimePolicy.RequirePackageQaDataRoot(dataRoot)
+                : SafePath.RequireAbsoluteNonRoot(dataRoot, "data root");
+            acceptedDataRoot = dataRoot;
             var integrity = PrepareEmbeddedRuntime(dataRoot);
             var applicationRoot = integrity.ApplicationRoot;
             var workerPath = Path.Combine(applicationRoot, "worker", "AVWorkstationToolkit.Worker.exe");
@@ -84,19 +91,19 @@ internal static class Program
 
             if (!integrity.Success)
             {
-                return Fail(integrity.Message, headless: false, dataRoot);
+                return Fail(integrity.Message, options.IsUnattended, dataRoot);
             }
             if (IsElevated())
             {
                 return Fail(
                     "For safety, AV Workstation Toolkit must be launched as a standard user. Close this copy and start it normally; individual installers can request elevation through Windows.",
-                    headless: false,
+                    options.IsUnattended,
                     dataRoot);
             }
             Directory.CreateDirectory(Path.Combine(dataRoot, "logs", "requests"));
             Directory.CreateDirectory(Path.Combine(dataRoot, "reports"));
             if (!File.Exists(workerPath))
-                return Fail("The packaged compiled worker is missing.", headless: false, dataRoot);
+                return Fail("The packaged compiled worker is missing.", options.IsUnattended, dataRoot);
             if (options.SmokeTest)
                 return RunCompiledApp(new AVWorkstationToolkit.App.App());
 
@@ -111,7 +118,7 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            return Fail(exception.Message, options.IsHeadless, dataRoot);
+            return Fail(exception.Message, options.IsUnattended, acceptedDataRoot);
         }
     }
 
@@ -313,7 +320,7 @@ internal static class Program
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
     }
 
-    private static int Fail(string message, bool headless, string? dataRoot)
+    private static int Fail(string message, bool unattended, string? dataRoot)
     {
         try
         {
@@ -329,7 +336,13 @@ internal static class Program
         {
             // Failure reporting must never hide the original launch error.
         }
-        if (!headless)
+        if (unattended)
+        {
+            // An automated caller reads standard error; a dialog would hold it open until its timeout.
+            try { Console.Error.WriteLine(message); }
+            catch { }
+        }
+        else
         {
             _ = MessageBoxW(0, message, $"{ProductName} could not start", ErrorIcon);
         }
@@ -366,6 +379,7 @@ internal static class Program
         public string? VerificationOutput { get; private set; }
         public string? DiagnosticsOutput { get; private set; }
         public bool IsHeadless => VerificationOutput is not null || DiagnosticsOutput is not null;
+        public bool IsUnattended => IsHeadless || SmokeTest || ProductionSmoke;
 
         public static LaunchOptions Parse(string[] args)
         {
@@ -400,10 +414,12 @@ internal static class Program
             }
             if (options.SmokeTest && options.ProductionSmoke)
                 throw new ArgumentException("Choose either --smoke-test or --production-smoke, not both.");
-            if (options.DataRoot is not null && !options.SmokeTest && !options.IsHeadless)
+            if (options.DataRoot is not null && !options.SmokeTest && !options.ProductionSmoke && !options.IsHeadless)
             {
                 throw new ArgumentException("A custom data root is available only for smoke tests and diagnostics.");
             }
+            if (options.ProductionSmoke && (options.DataRoot is null || options.IsHeadless))
+                throw new ArgumentException("The production smoke runs only with a disposable package QA --data-root beneath the temporary folder.");
             return options;
         }
 

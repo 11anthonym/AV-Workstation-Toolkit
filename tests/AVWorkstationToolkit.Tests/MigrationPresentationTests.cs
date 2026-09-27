@@ -266,11 +266,11 @@ public sealed class MigrationPresentationTests
         });
     }
 
-    private static (MigrationViewModel ViewModel, WorkstationMigrationService Service, WorkstationMigrationTests.MemorySessionStore Store) Create(
+    internal static (MigrationViewModel ViewModel, WorkstationMigrationService Service, WorkstationMigrationTests.MemorySessionStore Store) Create(
         WorkstationPlan plan, FakeFiles files, WorkstationMigrationTests.RecordingActionStore? actions = null) =>
         Create(new WorkstationMigrationTests.FixedPlanning(plan), files, actions);
 
-    private static (MigrationViewModel ViewModel, WorkstationMigrationService Service, WorkstationMigrationTests.MemorySessionStore Store) Create(
+    internal static (MigrationViewModel ViewModel, WorkstationMigrationService Service, WorkstationMigrationTests.MemorySessionStore Store) Create(
         IWorkstationPlanningCoordinator planning, FakeFiles files, WorkstationMigrationTests.RecordingActionStore? actions = null)
     {
         var store = new WorkstationMigrationTests.MemorySessionStore();
@@ -282,7 +282,7 @@ public sealed class MigrationPresentationTests
     }
 
     // Offscreen rendering: layout and binding must succeed; when AVWT_RENDER_DIR is set, the image is saved for review.
-    private static void Render(Window window, string fileName)
+    internal static void Render(Window window, string fileName)
     {
         window.Width = 1240;
         window.Height = 820;
@@ -311,7 +311,7 @@ public sealed class MigrationPresentationTests
         encoder.Save(stream);
     }
 
-    private static void RunOnSta(Action action)
+    internal static void RunOnSta(Action action)
     {
         ExceptionDispatchInfo? failure = null;
         var thread = new Thread(() =>
@@ -326,20 +326,20 @@ public sealed class MigrationPresentationTests
         failure?.Throw();
     }
 
-    private sealed class FailingPlanning : IWorkstationPlanningCoordinator
+    internal sealed class FailingPlanning : IWorkstationPlanningCoordinator
     {
         public Task<WorkstationPlan> RefreshAsync(IProgress<PlanningRefreshStage>? progress = null, CancellationToken cancellationToken = default) =>
             Task.FromException<WorkstationPlan>(new InvalidOperationException("WinGet could not be started."));
     }
 
-    private sealed class QueuePlanning(params WorkstationPlan[] plans) : IWorkstationPlanningCoordinator
+    internal sealed class QueuePlanning(params WorkstationPlan[] plans) : IWorkstationPlanningCoordinator
     {
         private int index;
         public Task<WorkstationPlan> RefreshAsync(IProgress<PlanningRefreshStage>? progress = null, CancellationToken cancellationToken = default) =>
             Task.FromResult(plans[Math.Min(index++, plans.Length - 1)]);
     }
 
-    private sealed class FakeFiles : IMigrationFileService
+    internal sealed class FakeFiles : IMigrationFileService
     {
         public Dictionary<string, byte[]> Files { get; } = new(StringComparer.OrdinalIgnoreCase);
         public string? OpenPath { get; set; }

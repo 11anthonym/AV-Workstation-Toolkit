@@ -524,12 +524,18 @@ public sealed class WorkstationMigrationTests
         public override DateTimeOffset GetUtcNow() => now;
     }
 
-    /// <summary>Records the persisted request and answers with a verified success for every requested package.</summary>
-    internal sealed class RecordingActionStore : IActionProtocolStore
+    /// <summary>
+    /// Records the persisted request and answers as the worker would: by default a verified success for every requested
+    /// package, or the worker's own refusal (Blocked) or an installer failure (Failed).
+    /// </summary>
+    internal sealed class RecordingActionStore(ActionResultStatus outcome = ActionResultStatus.Succeeded) : IActionProtocolStore
     {
         private readonly ActionResultCodec codec = new();
         private byte[]? result;
         public ActionRequest? Request { get; private set; }
+
+        /// <summary>While set and not yet completed, the worker has written no result, as while installers are running.</summary>
+        public TaskCompletionSource? Running { get; set; }
 
         public Task<ActionArtifactPaths> PersistRequestAsync(AuthorizedActionRequest request, CancellationToken cancellationToken = default)
         {
@@ -537,11 +543,23 @@ public sealed class WorkstationMigrationTests
             var id = request.Request.RequestId;
             var paths = new ActionArtifactPaths(id, $"C:\\fixture\\{id}.json", $"C:\\fixture\\{id}.progress.jsonl",
                 $"C:\\fixture\\{id}.result.json", $"C:\\fixture\\{id}.cancel", $"C:\\fixture\\{id}.winget.log");
-            var packages = request.Request.PackageIds.Select(package => new ActionPackageOutcome(package, package, ManagedRequestAction.Install,
-                PackageOutcomeStatus.Succeeded, 0, true, MigrationFixtures.Now, MigrationFixtures.Now,
-                ["install", "--id", package, "--exact", "--source", "winget", "--accept-package-agreements", "--accept-source-agreements"])).ToArray();
+            var packages = request.Request.PackageIds.Select(package => outcome switch
+            {
+                ActionResultStatus.Blocked => new ActionPackageOutcome(package, package, ManagedRequestAction.Install,
+                    PackageOutcomeStatus.Blocked, 3, false, null, MigrationFixtures.Now, []),
+                ActionResultStatus.Failed => new ActionPackageOutcome(package, package, ManagedRequestAction.Install,
+                    PackageOutcomeStatus.Failed, 1603, false, MigrationFixtures.Now, MigrationFixtures.Now, Arguments(package)),
+                _ => new ActionPackageOutcome(package, package, ManagedRequestAction.Install,
+                    PackageOutcomeStatus.Succeeded, 0, true, MigrationFixtures.Now, MigrationFixtures.Now, Arguments(package))
+            }).ToArray();
+            var (exitCode, message) = outcome switch
+            {
+                ActionResultStatus.Blocked => (3, "The worker blocked the request when it rechecked this PC."),
+                ActionResultStatus.Failed => (1, "An installer failed."),
+                _ => (0, "Succeeded")
+            };
             result = codec.Serialize(new ActionFinalResult(ActionProtocolLimits.CurrentResultSchemaVersion, id, MigrationFixtures.Now, "Fixture",
-                ActionResultStatus.Succeeded, "Succeeded", 0, request.Request.ManagedCatalogRevision, paths.RequestPath, paths.ProgressPath,
+                outcome, message, exitCode, request.Request.ManagedCatalogRevision, paths.RequestPath, paths.ProgressPath,
                 paths.WinGetLogPath, packages), request.Request, paths);
             return Task.FromResult(paths);
         }
@@ -549,7 +567,10 @@ public sealed class WorkstationMigrationTests
         public Task<bool> CreateCancellationMarkerAsync(string requestId, CancellationToken cancellationToken = default) => Task.FromResult(false);
 
         public Task<byte[]?> TryReadArtifactAsync(string requestId, ActionArtifactKind kind, CancellationToken cancellationToken = default) =>
-            Task.FromResult(kind == ActionArtifactKind.Result ? result : null);
+            Task.FromResult(kind == ActionArtifactKind.Result && Running is not { Task.IsCompleted: false } ? result : null);
+
+        private static string[] Arguments(string package) =>
+            ["install", "--id", package, "--exact", "--source", "winget", "--accept-package-agreements", "--accept-source-agreements"];
     }
 
     internal sealed class ImmediateLauncher : ICompiledWorkerLauncher

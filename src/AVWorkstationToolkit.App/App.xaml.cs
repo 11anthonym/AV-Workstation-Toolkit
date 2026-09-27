@@ -12,6 +12,10 @@ using AVWorkstationToolkit.Application.Catalog;
 
 namespace AVWorkstationToolkit.App;
 
+/// <summary>
+/// How the packaged launcher starts the app. SmokeTest is the production smoke that package QA runs; it accepts only a
+/// disposable package QA data root, never the user's profile.
+/// </summary>
 public sealed record PackagedAppStartupContext(
     string ApplicationRoot,
     string DataRoot,
@@ -71,7 +75,8 @@ public partial class App : System.Windows.Application
                     packagedContext.DataRoot,
                     packagedContext.Version,
                     packagedContext.WorkerSha256,
-                    packagedContext.Prerelease);
+                    packagedContext.Prerelease,
+                    packageQaSmoke: packagedContext.SmokeTest);
                 coordinator = services.Planning;
                 diagnostics = services.Diagnostics;
                 details = services.Details;

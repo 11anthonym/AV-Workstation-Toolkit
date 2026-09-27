@@ -24,11 +24,17 @@ public sealed record MigrationChecklist(
     WorkstationInventory TargetInventory,
     WorkstationPlan Plan);
 
+/// <summary>
+/// What an installation run achieved. ScanProblem is set when this PC couldn't be scanned afterward, so nothing could be
+/// marked complete; SaveProblem is set when the attempts couldn't be saved, although the checklist still shows them.
+/// </summary>
 public sealed record MigrationInstallOutcome(
     ActionResultStatus Status,
     string Message,
     int Requested,
-    int DetectedAfterward);
+    int DetectedAfterward,
+    string ScanProblem = "",
+    string SaveProblem = "");
 
 /// <summary>
 /// Coordinates a migration or provisioning checklist. Imported inventories and profiles only describe what is wanted;
@@ -203,6 +209,8 @@ public sealed class WorkstationMigrationService
             throw;
         }
         var now = timeProvider.GetUtcNow();
+        var saveProblem = string.Empty;
+        var scanProblem = string.Empty;
         lock (gate)
         {
             installing = new HashSet<string>(StringComparer.Ordinal);
@@ -226,15 +234,32 @@ public sealed class WorkstationMigrationService
                 if (session.Items.Any(entry => entry.ItemId == item.ItemId))
                     session = session.RecordAttempt(item.ItemId, new InstallAttempt(now, succeeded, message), now);
             }
+            // The installers have already run, so a failed save must not hide that or skip the scan below. The saved file
+            // keeps its previous valid contents, and the next successful save records these attempts.
             Session = session;
-            store.Save(session);
+            try { store.Save(session); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or WorkstationDocumentException)
+            {
+                saveProblem = DiagnosticsRedactor.Sanitize(exception.Message);
+            }
         }
         // Completion comes only from a fresh scan: the coordinator's post-install refresh, or a scan of our own if that
         // refresh carried no inventory evidence. A worker's success report never marks an item done by itself.
-        if (Accept(run.RefreshedPlan)) PlanRefreshed?.Invoke(this, run.RefreshedPlan);
-        else await ScanAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-        var detected = Checklist?.Items.Count(item => selected.Any(entry => entry.ItemId == item.ItemId) && item.Status == ChecklistStatus.Installed) ?? 0;
-        return new MigrationInstallOutcome(run.Result.Status, DiagnosticsRedactor.Sanitize(run.Result.Message), selected.Length, detected);
+        try
+        {
+            if (Accept(run.RefreshedPlan)) PlanRefreshed?.Invoke(this, run.RefreshedPlan);
+            else await ScanAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Without a scan nothing is marked complete; the checklist drops its installing state and shows the last scan.
+            scanProblem = DiagnosticsRedactor.Sanitize(exception.Message);
+            Reconcile();
+        }
+        var detected = scanProblem.Length > 0 ? 0
+            : Checklist?.Items.Count(item => selected.Any(entry => entry.ItemId == item.ItemId) && item.Status == ChecklistStatus.Installed) ?? 0;
+        return new MigrationInstallOutcome(run.Result.Status, DiagnosticsRedactor.Sanitize(run.Result.Message), selected.Length, detected,
+            scanProblem, saveProblem);
     }
 
     private MigrationSession Replace(MigrationSession session)

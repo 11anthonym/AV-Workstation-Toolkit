@@ -26,6 +26,8 @@ On startup the launcher:
 5. rejects traversal and reparse-point paths; and
 6. starts the compiled C# WPF App in-process with the canonical data root and embedded compiled-worker SHA-256.
 
+Package QA's production smoke (`--production-smoke --data-root`) is the only launch that runs the production app against another data root. It accepts only a disposable `%TEMP%\AVWorkstationToolkit-package-qa-<32 hex>` folder, writes nothing to the user's profile, and never starts the worker.
+
 Normal startup does not launch PowerShell, and the packaged runtime contains no PowerShell UI, worker, vendor bridge, or recovery switch. The launcher removes only an exact allowlist of obsolete extracted runtime files from earlier versions; it does not execute them or delete unrelated application data. Application-owned runtime content is always the versioned LocalAppData tree above.
 
 Read-only inventory can directly start only the Microsoft-signed `winget.exe` resolved from the installed `Microsoft.DesktopAppInstaller` package under protected `Program Files\WindowsApps`. Expected inventory arguments are fixed combinations of `--version`, `export`, `list`, source selection, agreement acceptance, and disabled interactivity. A temporary `AVWorkstationToolkit-winget-export-*.json` data file may be created beneath the current Windows temporary directory and is removed after parsing; it is never executable.

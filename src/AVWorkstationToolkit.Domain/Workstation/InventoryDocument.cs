@@ -70,25 +70,35 @@ public static class WorkstationInventoryDocumentCodec
 
     internal static readonly IReadOnlyDictionary<string, InstallScope> Scopes = new Dictionary<string, InstallScope>(StringComparer.Ordinal)
     {
-        ["unknown"] = InstallScope.Unknown, ["machine"] = InstallScope.Machine, ["user"] = InstallScope.User
+        ["unknown"] = InstallScope.Unknown,
+        ["machine"] = InstallScope.Machine,
+        ["user"] = InstallScope.User
     };
     internal static readonly IReadOnlyDictionary<string, MigrationRelevance> Relevances = new Dictionary<string, MigrationRelevance>(StringComparer.Ordinal)
     {
-        ["application"] = MigrationRelevance.Application, ["supportComponent"] = MigrationRelevance.SupportComponent,
-        ["systemComponent"] = MigrationRelevance.SystemComponent, ["update"] = MigrationRelevance.Update
+        ["application"] = MigrationRelevance.Application,
+        ["supportComponent"] = MigrationRelevance.SupportComponent,
+        ["systemComponent"] = MigrationRelevance.SystemComponent,
+        ["update"] = MigrationRelevance.Update
     };
     private static readonly IReadOnlyDictionary<string, UninstallHive> Views = new Dictionary<string, UninstallHive>(StringComparer.Ordinal)
     {
-        ["HKLM64"] = UninstallHive.Machine64, ["HKLM32"] = UninstallHive.Machine32, ["HKCU"] = UninstallHive.User
+        ["HKLM64"] = UninstallHive.Machine64,
+        ["HKLM32"] = UninstallHive.Machine32,
+        ["HKCU"] = UninstallHive.User
     };
     private static readonly IReadOnlyDictionary<string, WinGetCorrelation> Correlations = new Dictionary<string, WinGetCorrelation>(StringComparer.Ordinal)
     {
-        ["exportOnly"] = WinGetCorrelation.ExportOnly, ["catalogIdentity"] = WinGetCorrelation.CatalogIdentity,
-        ["registeredName"] = WinGetCorrelation.RegisteredName, ["registeredVersion"] = WinGetCorrelation.RegisteredVersion
+        ["exportOnly"] = WinGetCorrelation.ExportOnly,
+        ["catalogIdentity"] = WinGetCorrelation.CatalogIdentity,
+        ["registeredName"] = WinGetCorrelation.RegisteredName,
+        ["registeredVersion"] = WinGetCorrelation.RegisteredVersion
     };
     private static readonly IReadOnlyDictionary<string, EvidenceQuality> Qualities = new Dictionary<string, EvidenceQuality>(StringComparer.Ordinal)
     {
-        ["complete"] = EvidenceQuality.Complete, ["partial"] = EvidenceQuality.Partial, ["unavailable"] = EvidenceQuality.Unavailable
+        ["complete"] = EvidenceQuality.Complete,
+        ["partial"] = EvidenceQuality.Partial,
+        ["unavailable"] = EvidenceQuality.Unavailable
     };
 
     /// <summary>

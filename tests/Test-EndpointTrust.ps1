@@ -236,7 +236,7 @@ if ($compiledWorkerSource -notmatch '--production' -or
     $compiledWorkerSource -notmatch 'ProductionRuntimePolicy\.RequireDataRoot' -or
     $compiledWorkerSource -notmatch 'ProductionRuntimePolicy\.RequireApplicationRoot' -or
     $compiledWorkerSource -notmatch 'WindowsBuiltInRole\.Administrator' -or
-    $compiledWorkerSource -match '--test-mode|--live-rehearsal|--repository-root|DeterministicFakePackageExecutor|WorkerFixtureLoader|LiveRehearsalRootPolicy') {
+    $compiledWorkerSource -match '--test-mode|--live-rehearsal|--repository-root|DeterministicFakePackageExecutor|WorkerFixtureLoader|LiveRehearsalRootPolicy|RequirePackageQa') {
     throw 'The shipping compiled worker lost its production-only activation, standard-user, path, or protocol boundary.'
 }
 if ($productionWorkerCompositionSource -notmatch 'WinGetPackageActionExecutor' -or

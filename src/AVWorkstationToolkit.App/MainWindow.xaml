@@ -10,6 +10,8 @@
         <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
     </Window.InputBindings>
     <Window.Resources>
+        <!-- Declared here as well as in App.xaml so the window resolves its own resources, as the migration windows do. -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#94A4BB"/>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#3B82F6"/>
         <Style TargetType="Button">

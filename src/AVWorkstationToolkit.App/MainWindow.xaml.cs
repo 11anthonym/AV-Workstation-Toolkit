@@ -355,6 +355,33 @@ public partial class MainWindow : Window
         }
         VerifyPackageGridResponsivenessContract();
         VerifyActivityFollowContract();
+        VerifyMigrationPersistenceContract(viewModel.Migration
+            ?? throw new InvalidOperationException("Compiled production smoke did not compose workstation migration."));
+    }
+
+    // Package QA runs the production smoke twice against one disposable data root. The first run saves a checklist and the
+    // second reloads it from disk and finishes it, which proves the packaged migration store persists in that root.
+    private static void VerifyMigrationPersistenceContract(MigrationComposition migration)
+    {
+        const string profileId = "package-qa-smoke";
+        var service = migration.Service;
+        var saved = service.LoadSaved();
+        if (saved is null)
+        {
+            service.StartFromProfile(new AVWorkstationToolkit.Domain.Workstation.DeploymentProfile(profileId, "Package QA smoke", 1,
+                "Created by the packaged production smoke.", DateTimeOffset.UtcNow,
+                [new AVWorkstationToolkit.Domain.Workstation.ProfileApplication("7zip.7zip", "7-Zip")],
+                [new AVWorkstationToolkit.Domain.Workstation.ProfileCheck("package-qa-check", "Package QA check")]));
+            if (service.LoadSaved()?.Source.ProfileId != profileId)
+                throw new InvalidOperationException("Compiled production smoke could not save and reload a migration checklist.");
+            return;
+        }
+        // The smoke never changes a checklist it did not create.
+        if (saved.Source.ProfileId != profileId)
+            throw new InvalidOperationException("Compiled production smoke found a migration checklist it did not create and left it unchanged.");
+        service.Finish();
+        if (service.LoadSaved() is not null)
+            throw new InvalidOperationException("Compiled production smoke could not finish its migration checklist.");
     }
 
     private void VerifyPackageGridResponsivenessContract()

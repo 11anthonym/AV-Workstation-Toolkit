@@ -213,7 +213,8 @@ installation authority.
   `--id`, `--exact`, and `--source winget`.
 - **Nothing is marked done because an installer said so.** After an
   installation the workstation is scanned again, and an app is **Installed**
-  only when it is detected.
+  only when it is detected. If that scan fails or is incomplete, the window
+  says so and marks nothing complete that the scan didn't find.
 - **Strict parsing.** Every document has an explicit `schemaVersion` and
   `documentType`, a size limit, and bounded, control-character-free text.
   Unknown and repeated fields are rejected. A file from a newer version of the
@@ -320,7 +321,10 @@ undetectable application, the
 last installation attempt, removed and skipped counts, and manual-check
 progress. It holds no secrets and is validated as strictly as an imported
 file. If it can't be read, the window says so and offers to discard it.
-**Finish migration** deletes it.
+**Finish migration** deletes it. Each save writes a temporary file beside it and
+then replaces it, so a failed save leaves the last valid checklist in place and
+the window reports the failure; a leftover temporary file is never read as a
+checklist.
 
 ## Limitations and deferred work
 

@@ -89,6 +89,8 @@ AVWorkstationToolkit.exe --diagnostics   bounded diagnostics
 
 The worker is a separate production process, not an in-process UI service. The shipped `AVWorkstationToolkit.Worker.exe` accepts only `--production` with canonical packaged/data roots and request paths. Fake `--test-mode` and isolated `--live-rehearsal` activation live exclusively in the separately identified non-shipping `tests/AVWorkstationToolkit.Worker.DevHost` project; its fixed launch/root support lives in `tests/AVWorkstationToolkit.Development`. Neither project is referenced by a shipping assembly or release composition.
 
+The one packaged mode that composes production services against another data root is the production smoke that package QA runs. `--production-smoke` requires a disposable `%TEMP%\AVWorkstationToolkit-package-qa-<32 hex>` root (`ProductionRuntimePolicy.RequirePackageQaDataRoot`) and refuses the user's profile. Its worker launcher checks the extracted worker's hash and identity as production does but never starts it, and the worker still accepts only the canonical root.
+
 The shipping WPF application is `net10.0-windows`, `win-x64`, self-contained, single-file, and explicitly untrimmed. A trimming proposal requires WPF/reflection-specific evidence and package QA; it is not a default optimization.
 
 ### Release signing

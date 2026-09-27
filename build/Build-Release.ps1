@@ -408,6 +408,14 @@ if ($sourceReparsePoints.Count -gt 0) {
     throw ('Release source contains unsupported reparse points: {0}' -f ($sourceReparsePoints.FullName -join ', '))
 }
 
+# Existing release folders are evidence of what was built and published: this build may replace only its own
+# unfinished or unpublished folder, and must leave every other release folder exactly as it found it.
+$releaseParent = Split-Path -Parent $releaseRoot
+$publishedReleaseNotes = Join-Path $repositoryRoot (Join-Path 'docs\releases' ($releaseName + '.md'))
+Assert-ReleaseFolderReplaceable -ReleaseRoot $releaseRoot -ReleaseName $releaseName -PrereleaseLabel $PrereleaseLabel -CommitSha $commitSha `
+    -Published (Test-Path -LiteralPath $publishedReleaseNotes -PathType Leaf)
+$otherReleaseFoldersBefore = Get-ReleaseFolderState -ReleaseParent $releaseParent -ExcludedName $releaseName
+
 foreach ($target in @($stagingRoot,$workerStagingRoot,$releaseRoot,$intermediateRoot,$offlineStagingRoot)) {
     Reset-BuildDirectory -Path $target
 }
@@ -732,5 +740,12 @@ if ($ScanWithDefender) {
     & (Join-Path $repositoryRoot 'tests\Test-EndpointTrust.ps1') -ReleaseRoot $releaseRoot -ScanWithDefender -RequireDefender:$RequireDefender
 }
 
+$otherReleaseFolderChanges = @(Compare-Object -ReferenceObject $otherReleaseFoldersBefore `
+    -DifferenceObject (Get-ReleaseFolderState -ReleaseParent $releaseParent -ExcludedName $releaseName) |
+    ForEach-Object { '{0} {1}' -f $(if ($_.SideIndicator -eq '=>') { 'now' } else { 'was' }),$_.InputObject })
+if ($otherReleaseFolderChanges.Count -gt 0) {
+    throw ('The build changed release folders other than artifacts\release\{0}: {1}' -f $releaseName,(($otherReleaseFolderChanges | Select-Object -First 8) -join '; '))
+}
+Write-Output ('RELEASE_FOLDERS_OK built={0} others-unchanged={1}' -f $releaseName,@($otherReleaseFoldersBefore | Where-Object { $_ -like 'dir|*' -and $_ -notlike 'dir|*\*' }).Count)
 Write-Output ('Release folder: artifacts\release\{0}' -f $releaseName)
 Get-ChildItem -LiteralPath $releaseRoot -File | Sort-Object Name | Select-Object Name,Length,LastWriteTime
