@@ -121,8 +121,9 @@ separately signed reference catalog that updates in the app.
 - [Code signing policy](docs/Code-Signing-Policy.md) and [SignPath readiness](docs/SignPath-Readiness.md)
 - [Third-party notices](THIRD-PARTY-NOTICES.md)
 - Dated records: the [1.1.1 security audit](docs/records/AV-Workstation-Toolkit-Security-Audit.md),
-  [1.1.1 packaging QA report](docs/records/AV-Workstation-Toolkit-QA-Report.md), and
-  [Defender false-positive investigation](docs/records/Defender-False-Positive-Investigation.md)
+  [1.1.1 packaging QA report](docs/records/AV-Workstation-Toolkit-QA-Report.md),
+  [Defender false-positive investigation](docs/records/Defender-False-Positive-Investigation.md), and
+  [post-1.1.3 technical debt](docs/records/Post-1.1.3-Technical-Debt.md)
 
 **Catalogs**
 
