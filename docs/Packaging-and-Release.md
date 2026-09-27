@@ -6,7 +6,7 @@ AV Workstation Toolkit builds a directly downloadable x64 executable, a per-mach
 
 The direct release executable can run from any normal user-writable directory. The MSI installs that executable beneath `%ProgramFiles%\AVWorkstationToolkit` and creates an all-users Start-menu shortcut. The portable ZIP contains only `AVWorkstationToolkit.exe`.
 
-The launcher embeds the .NET 10.0.11 LTS compiled WPF application, the self-contained compiled worker, and reviewed catalogs/notices, so target systems do not need a separate .NET installation or adjacent scripts. Desktop App Installer/WinGet is the managed-package prerequisite. PowerShell is not required by the packaged application runtime. The launcher:
+The launcher embeds the compiled WPF application on the reviewed .NET 10 LTS runtime (10.0.12, set once in `build\ReviewedDotNetRuntime.props`), the self-contained compiled worker, and reviewed catalogs/notices, so target systems do not need a separate .NET installation or adjacent scripts. Desktop App Installer/WinGet is the managed-package prerequisite. PowerShell is not required by the packaged application runtime. The launcher:
 
 1. enumerates its compile-time embedded runtime resources;
 2. restores changed or missing files into `%LOCALAPPDATA%\AVWorkstationToolkit\runtime\1.1.3`, verifies every extracted SHA-256 hash against the embedded bytes, and leaves matching files untouched;
@@ -15,7 +15,7 @@ The launcher embeds the .NET 10.0.11 LTS compiled WPF application, the self-cont
 5. starts the compiled WPF App in-process for normal startup;
 6. gives the App only the exact embedded worker identity/hash and canonical `%LOCALAPPDATA%\AVWorkstationToolkit` root; the App launches the worker with a fixed production argument vector and `UseShellExecute=false`;
 7. removes only an exact allowlist of stale extracted application-runtime files left by earlier versions, without touching unrelated user data;
-8. restores the Apache-2.0 project license, project third-party notices, and the exact .NET 10.0.11 license and upstream third-party notices under the verified runtime `notices` directory; and
+8. restores the Apache-2.0 project license, project third-party notices, and the exact license and upstream third-party notices of the reviewed .NET runtime under the verified runtime `notices` directory; and
 9. never accepts a package ID, credential, URI, executable, worker path, or arbitrary command argument from its command line.
 
 Installed and portable runs write mutable data beneath `%LOCALAPPDATA%\AVWorkstationToolkit`:
@@ -69,6 +69,8 @@ The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell
 The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, Apache-2.0 license, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
 
 The SDK baseline is intentionally `10.0.100` with `rollForward: latestFeature`: a machine with a stable 10.0.303 or 10.0.400 SDK can build, while .NET 11 and prerelease SDKs are not selected. This follows the [.NET `global.json` roll-forward policy](https://learn.microsoft.com/dotnet/core/tools/global-json) and matches CI's stable `10.0.x` installation.
+
+The runtime the release embeds is a separate, reviewed choice: `build\ReviewedDotNetRuntime.props` names the one .NET 10 patch that the App, Launcher, and Worker projects import, and a runtime installed on Windows never updates a packaged build. To adopt a .NET security release, raise the patch there, run `dotnet restore --force-evaluate` for those three projects and review the `Microsoft.NET.ILLink.Tasks` lock change, add the patch's dotnet/dotnet commit (named in the runtime package's nuspec) to the reviewed runtime metadata in `build\New-ReleaseSbom.ps1`, update `THIRD-PARTY-NOTICES.md`, and rebuild. The SBOM refuses a patch whose notices are not reviewed, source QA refuses a project or script that pins its own patch, and package QA checks the runtime the packaged launcher reports.
 
 Release builds never update `packages.lock.json`. If locked restore reports a stale dependency graph, run the following review command, inspect the lock-file diff, and commit it only when the package change is intentional:
 

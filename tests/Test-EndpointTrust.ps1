@@ -415,8 +415,10 @@ if (-not [string]::IsNullOrWhiteSpace($ReleaseRoot)) {
     if ([int]$manifest.SchemaVersion -lt 3 -or $sbom.bomFormat -ne 'CycloneDX' -or $sbom.specVersion -ne '1.6') {
         throw 'Release manifest or SBOM identity is invalid.'
     }
-    if ([string]$manifest.TargetRuntime -ne 'Microsoft.NETCore.App.Runtime.win-x64/10.0.11' -or
-        [string]$manifest.TargetHost -ne 'Microsoft.NETCore.App.Host.win-x64/10.0.11' -or
+    $reviewedRuntime = [string]([xml](Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\ReviewedDotNetRuntime.props') -Raw)).Project.PropertyGroup.AvwtReviewedDotNetRuntimeVersion
+    if ($reviewedRuntime -notmatch '^10\.0\.\d+$' -or
+        [string]$manifest.TargetRuntime -ne "Microsoft.NETCore.App.Runtime.win-x64/$reviewedRuntime" -or
+        [string]$manifest.TargetHost -ne "Microsoft.NETCore.App.Host.win-x64/$reviewedRuntime" -or
         [string]$manifest.SelectedSdk -notmatch '^10\.0\.\d{3}$') {
         throw 'Release runtime, host, or selected SDK provenance is invalid.'
     }

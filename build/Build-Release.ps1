@@ -60,6 +60,12 @@ if (($RequireSignature -or $BuildChannel -eq 'Production') -and
     throw 'Externally signed production artifacts require ExpectedSignerSubject.'
 }
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+# The reviewed self-contained .NET runtime patch has one source, which the shipping projects import.
+$reviewedRuntimeProps = Join-Path $repositoryRoot 'build\ReviewedDotNetRuntime.props'
+$reviewedRuntimeVersion = [string]([xml](Get-Content -LiteralPath $reviewedRuntimeProps -Raw)).Project.PropertyGroup.AvwtReviewedDotNetRuntimeVersion
+if ($reviewedRuntimeVersion -notmatch '^10\.0\.\d+$') { throw "build\ReviewedDotNetRuntime.props does not name a reviewed .NET 10 runtime patch: '$reviewedRuntimeVersion'" }
+$reviewedRuntimeReference = '$(AvwtReviewedDotNetRuntimeVersion)'
+$reviewedRuntimeImport = '<Import Project="..\..\build\ReviewedDotNetRuntime.props" />'
 $canonicalReferenceCatalogBaseline = Join-Path $repositoryRoot 'catalog\reference\AVWT-Reference-Catalog.avwtcatalog'
 if ([string]::IsNullOrWhiteSpace($ReferenceCatalogBaselinePath) -and (Test-Path -LiteralPath $canonicalReferenceCatalogBaseline -PathType Leaf)) {
     $ReferenceCatalogBaselinePath = $canonicalReferenceCatalogBaseline
@@ -348,8 +354,9 @@ $launcherProjectIdentity = Get-Content -LiteralPath (Join-Path $repositoryRoot '
 $launcherProjectXml = [xml]$launcherProjectIdentity
 $launcherProperties = @($launcherProjectXml.Project.PropertyGroup | Where-Object { $null -ne $_.TargetFramework } | Select-Object -First 1)
 if ($launcherProperties.Count -ne 1 -or [string]$launcherProperties[0].TargetFramework -ne 'net10.0-windows' -or
-    [string]$launcherProperties[0].RuntimeFrameworkVersion -ne '10.0.11') {
-    throw 'Launcher must target the reviewed .NET 10.0.11 self-contained runtime.'
+    [string]$launcherProperties[0].RuntimeFrameworkVersion -ne $reviewedRuntimeReference -or
+    -not $launcherProjectIdentity.Contains($reviewedRuntimeImport)) {
+    throw "Launcher must target the reviewed .NET $reviewedRuntimeVersion self-contained runtime from build\ReviewedDotNetRuntime.props."
 }
 if ([string]$launcherProperties[0].Company -ne 'AV Workstation Toolkit Project' -or [string]$launcherProperties[0].Product -ne 'AV Workstation Toolkit' -or
     [string]$launcherProperties[0].Title -ne 'AV Workstation Toolkit' -or [string]$launcherProperties[0].AssemblyTitle -ne 'AV Workstation Toolkit' -or
@@ -389,8 +396,13 @@ function Assert-AVWorkstationToolkitExternalSignedArtifact {
 $workerProjectIdentity = Get-Content -LiteralPath $workerProject -Raw
 $workerProjectXml = [xml]$workerProjectIdentity
 $workerProperties = @($workerProjectXml.Project.PropertyGroup | Where-Object { $null -ne $_.TargetFramework } | Select-Object -First 1)
+$appProjectIdentity = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\AVWorkstationToolkit.App.csproj') -Raw
+if (-not $appProjectIdentity.Contains($reviewedRuntimeImport) -or -not $appProjectIdentity.Contains("<RuntimeFrameworkVersion>$reviewedRuntimeReference</RuntimeFrameworkVersion>")) {
+    throw "The compiled app must target the reviewed .NET $reviewedRuntimeVersion self-contained runtime from build\ReviewedDotNetRuntime.props."
+}
 if ($workerProperties.Count -ne 1 -or [string]$workerProperties[0].TargetFramework -ne 'net10.0-windows' -or
-    [string]$workerProperties[0].RuntimeFrameworkVersion -ne '10.0.11' -or
+    [string]$workerProperties[0].RuntimeFrameworkVersion -ne $reviewedRuntimeReference -or
+    -not $workerProjectIdentity.Contains($reviewedRuntimeImport) -or
     [string]$workerProperties[0].SelfContained -ne 'true' -or
     [string]$workerProperties[0].PublishSingleFile -ne 'true' -or
     [string]$workerProperties[0].PublishTrimmed -ne 'false' -or
@@ -667,8 +679,8 @@ $releaseManifest = [ordered]@{
     Platform = 'win-x64'
     Architecture = 'x64'
     TargetFramework = 'net10.0-windows'
-    TargetRuntime = 'Microsoft.NETCore.App.Runtime.win-x64/10.0.11'
-    TargetHost = 'Microsoft.NETCore.App.Host.win-x64/10.0.11'
+    TargetRuntime = "Microsoft.NETCore.App.Runtime.win-x64/$reviewedRuntimeVersion"
+    TargetHost = "Microsoft.NETCore.App.Host.win-x64/$reviewedRuntimeVersion"
     SelectedSdk = $dotnetVersionText
     Distribution = 'standalone-executable'
     GeneratedAt = $buildTimestamp
@@ -707,7 +719,7 @@ $releaseManifest = [ordered]@{
     Launcher = [ordered]@{
         Name = (Split-Path -Leaf $standalonePath)
         TargetFramework = 'net10.0-windows'
-        RuntimeFrameworkVersion = '10.0.11'
+        RuntimeFrameworkVersion = $reviewedRuntimeVersion
         Size = (Get-Item -LiteralPath $standalonePath).Length
         FileVersion = (Get-Item -LiteralPath $standalonePath).VersionInfo.FileVersion
         ProductVersion = (Get-Item -LiteralPath $standalonePath).VersionInfo.ProductVersion

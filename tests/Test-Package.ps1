@@ -36,6 +36,9 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()
+# The reviewed self-contained runtime the release must carry; the launcher's own report of its runtime is checked against it.
+$reviewedRuntime = [string]([xml](Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\ReviewedDotNetRuntime.props') -Raw)).Project.PropertyGroup.AvwtReviewedDotNetRuntimeVersion
+if ($reviewedRuntime -notmatch '^10\.0\.\d+$') { throw "build\ReviewedDotNetRuntime.props does not name a .NET 10 runtime patch: '$reviewedRuntime'" }
 # A release candidate is checked as the exact candidate it was built as, e.g. 1.1.3-rc.1.
 if ([string]::IsNullOrEmpty($PrereleaseLabel)) { $PrereleaseLabel = ''; $releaseName = $version }
 elseif ($PrereleaseLabel -cmatch '^rc\.[1-9][0-9]{0,2}$') { $releaseName = '{0}-{1}' -f $version,$PrereleaseLabel }
@@ -407,8 +410,8 @@ try {
         Assert-Equal 'standalone-executable' $manifest.Distribution 'Release distribution differs.'
         Assert-Equal 'x64' ([string]$manifest.Architecture) 'Release architecture differs.'
         Assert-Equal 'net10.0-windows' ([string]$manifest.TargetFramework) 'Release target framework differs.'
-        Assert-Equal 'Microsoft.NETCore.App.Runtime.win-x64/10.0.11' ([string]$manifest.TargetRuntime) 'Release target runtime differs.'
-        Assert-Equal 'Microsoft.NETCore.App.Host.win-x64/10.0.11' ([string]$manifest.TargetHost) 'Release target host differs.'
+        Assert-Equal "Microsoft.NETCore.App.Runtime.win-x64/$reviewedRuntime" ([string]$manifest.TargetRuntime) 'Release target runtime differs.'
+        Assert-Equal "Microsoft.NETCore.App.Host.win-x64/$reviewedRuntime" ([string]$manifest.TargetHost) 'Release target host differs.'
         Assert-True ([string]$manifest.SelectedSdk -match '^10\.0\.\d{3}$') 'Release selected SDK is missing or invalid.'
         Assert-Equal 'Release' ([string]$manifest.BuildMode) 'Release build mode differs.'
         Assert-True ([string]$manifest.BuildChannel -in @('Development','ReleaseCandidate','Production')) 'Release channel is invalid.'
@@ -417,7 +420,7 @@ try {
         Assert-Equal 'Passed' ([string]$manifest.NuGetAudit.Status) 'NuGet audit did not pass.'
         Assert-Equal 0 ([int]$manifest.NuGetAudit.VulnerablePackages) 'Release reports vulnerable NuGet packages.'
         Assert-Equal 'net10.0-windows' ([string]$manifest.Launcher.TargetFramework) 'Release launcher target framework differs.'
-        Assert-Equal '10.0.11' ([string]$manifest.Launcher.RuntimeFrameworkVersion) 'Release launcher runtime patch differs.'
+        Assert-Equal $reviewedRuntime ([string]$manifest.Launcher.RuntimeFrameworkVersion) 'Release launcher runtime patch differs.'
         # The authoritative check is against the launcher's own verified extraction below, which is
         # independent of build configuration. Here only assert the field is a usable positive count.
         Assert-True ([int]$manifest.EmbeddedPayloadFiles -gt 0) 'Release manifest does not report an embedded payload count.'
@@ -545,7 +548,8 @@ try {
         Assert-Equal 3 ([int]$diagnostic.SchemaVersion) 'Launcher diagnostic schema differs.'
         Assert-Equal $version ([string]$diagnostic.Version) 'Launcher diagnostic version differs.'
         Assert-True (([string]$diagnostic.RuntimeFramework) -match '^\.NET 10\.0\.') 'Launcher is not running its embedded .NET 10 runtime.'
-        Assert-True (([version]$diagnostic.RuntimeVersion) -ge [version]'10.0.11') 'Launcher embedded runtime predates the reviewed .NET 10 security baseline.'
+        # The runtime the packaged launcher actually runs on, not what the manifest claims, must be the reviewed patch.
+        Assert-Equal $reviewedRuntime ([string]$diagnostic.RuntimeVersion) 'Launcher embedded runtime is not the reviewed .NET 10 security baseline.'
         Assert-Equal 'X64' ([string]$diagnostic.RuntimeArchitecture) 'Launcher runtime architecture differs.'
         # Declared release provenance must equal what the launcher actually extracted and hash-verified.
         # This holds for both a development build and one carrying a signed reference-catalog baseline,

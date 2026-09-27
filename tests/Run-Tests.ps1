@@ -1643,7 +1643,18 @@ Invoke-Check 'AV Workstation Toolkit v1.1.3 identity is consistent across source
         $launcherProject -match '<Title>AV Workstation Toolkit</Title>' -and $launcherProject -match '<AssemblyTitle>AV Workstation Toolkit</AssemblyTitle>' -and
         $launcherProject -match '<Copyright>[^<]*AV Workstation Toolkit contributors</Copyright>') 'Launcher project release identity or deployment metadata differs.'
     Assert-True ($launcherProject -match '<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>') 'Scanner-friendly uncompressed single-file policy differs.'
-    Assert-True ($launcherProject -match '<TargetFramework>net10\.0-windows</TargetFramework>' -and $launcherProject -match '<RuntimeFrameworkVersion>10\.0\.11</RuntimeFrameworkVersion>') 'Launcher does not target the reviewed .NET 10 runtime.'
+    Assert-True ($launcherProject -match '<TargetFramework>net10\.0-windows</TargetFramework>') 'Launcher does not target .NET 10 for Windows.'
+    # The reviewed self-contained runtime patch has one source that every shipping project imports; none pins its own.
+    $reviewedRuntime = [string]([xml](Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\ReviewedDotNetRuntime.props') -Raw)).Project.PropertyGroup.AvwtReviewedDotNetRuntimeVersion
+    Assert-True ($reviewedRuntime -match '^10\.0\.\d+$') 'build\ReviewedDotNetRuntime.props does not name a .NET 10 runtime patch.'
+    foreach ($shippingProject in @('App','Launcher','Worker')) {
+        $projectText = Get-Content -LiteralPath (Join-Path $repositoryRoot "src\AVWorkstationToolkit.$shippingProject\AVWorkstationToolkit.$shippingProject.csproj") -Raw
+        Assert-True ($projectText.Contains('<Import Project="..\..\build\ReviewedDotNetRuntime.props" />') -and
+            $projectText.Contains('<RuntimeFrameworkVersion>$(AvwtReviewedDotNetRuntimeVersion)</RuntimeFrameworkVersion>')) "The $shippingProject project does not take its runtime from build\ReviewedDotNetRuntime.props."
+    }
+    $runtimeLiterals = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src'),(Join-Path $repositoryRoot 'build') -Recurse -File -Include '*.csproj','*.ps1','*.props' |
+        Where-Object { $_.FullName -notmatch '\\(?:bin|obj)\\' -and $_.Name -ne 'ReviewedDotNetRuntime.props' -and (Get-Content -LiteralPath $_.FullName -Raw) -match '<RuntimeFrameworkVersion>\d|Runtime\.win-x64/10\.0\.\d|RuntimeFrameworkVersion\s*=\s*''10' })
+    Assert-Equal 0 $runtimeLiterals.Count "A shipping project or build script repeats the runtime patch instead of reading it: $(@($runtimeLiterals | ForEach-Object { $_.Name }) -join ', ')"
     $globalSdk = Get-Content -LiteralPath (Join-Path $repositoryRoot 'global.json') -Raw | ConvertFrom-Json
     Assert-Equal '10.0.100' ([string]$globalSdk.sdk.version) '.NET SDK baseline differs.'
     Assert-Equal 'latestFeature' ([string]$globalSdk.sdk.rollForward) '.NET SDK roll-forward policy differs.'
@@ -1971,7 +1982,8 @@ Invoke-Check 'Third-party notices match locked and hosted build dependencies' {
     $analyzerVersion = [regex]::Match($workflowText,'PSScriptAnalyzer\s+-RequiredVersion\s+(?<Version>\d+\.\d+\.\d+)').Groups['Version'].Value
     Assert-True (-not [string]::IsNullOrWhiteSpace($analyzerVersion) -and $notices.Contains("| PSScriptAnalyzer | $analyzerVersion |")) 'Third-party notices do not match the pinned PSScriptAnalyzer version.'
 
-    foreach ($identity in @('Microsoft.NETCore.App.Runtime.win-x64 | 10.0.11','Microsoft.NETCore.App.Host.win-x64 | 10.0.11')) {
+    $reviewedRuntime = [string]([xml](Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\ReviewedDotNetRuntime.props') -Raw)).Project.PropertyGroup.AvwtReviewedDotNetRuntimeVersion
+    foreach ($identity in @("Microsoft.NETCore.App.Runtime.win-x64 | $reviewedRuntime","Microsoft.NETCore.App.Host.win-x64 | $reviewedRuntime","Microsoft.NET.ILLink.Tasks | $reviewedRuntime")) {
         Assert-True ($notices.Contains("| $identity |")) "Third-party notices omit packaged runtime identity: $identity"
     }
     Assert-True ($notices -match 'Commercial AV products[\s\S]+metadata records only' -and $notices -match 'No third-party source, submodule, Git LFS object, font, icon, installer, or\s+vendor binary is vendored') 'Third-party notices blur catalog knowledge or vendored-source boundaries.'
@@ -2020,8 +2032,9 @@ Invoke-Check 'Release build cleans directory contents without deleting the outpu
     Assert-True ($build -match 'complete externally signed worker, launcher, and MSI set' -and
         $build -match 'Externally signed production artifacts require ExpectedSignerSubject' -and
         $build -match 'Assert-AVWorkstationToolkitExternalSignedArtifact') 'Production builds can silently accept unsigned or unexpected externally signed output.'
-    Assert-True ($build -match "TargetRuntime\s*=\s*'Microsoft\.NETCore\.App\.Runtime\.win-x64/10\.0\.11'" -and
-        $build -match "TargetHost\s*=\s*'Microsoft\.NETCore\.App\.Host\.win-x64/10\.0\.11'" -and
+    Assert-True ($build -match 'TargetRuntime\s*=\s*"Microsoft\.NETCore\.App\.Runtime\.win-x64/\$reviewedRuntimeVersion"' -and
+        $build -match 'TargetHost\s*=\s*"Microsoft\.NETCore\.App\.Host\.win-x64/\$reviewedRuntimeVersion"' -and
+        $build -match 'build\\ReviewedDotNetRuntime\.props' -and
         $build -match 'SelectedSdk\s*=\s*\$dotnetVersionText' -and $build -match 'SigningProvider' -and
         $build -match 'ExternallySignedArtifactsReused') 'Release provenance does not record runtime, SDK, and signing origin.'
     $manifestWriteIndex = $build.IndexOf('$releaseManifest | ConvertTo-Json',[StringComparison]::Ordinal)

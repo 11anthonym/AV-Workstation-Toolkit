@@ -49,10 +49,10 @@ $reviewedPackageMetadata = @{
         Distribution = 'embedded'
         LicenseUrl = 'https://github.com/dotnet/runtime/blob/eba546b0f0d448e0176a2222548fd7a2fbf464c0/LICENSE.TXT'
     }
-    'Microsoft.NET.ILLink.Tasks@10.0.11' = [ordered]@{
+    'Microsoft.NET.ILLink.Tasks@10.0.12' = [ordered]@{
         License = 'MIT'
         Distribution = 'build-only'
-        LicenseUrl = 'https://github.com/dotnet/dotnet/blob/e2f47b0110ed922f21a1522da67279133ce28f32/LICENSE.TXT'
+        LicenseUrl = 'https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/LICENSE.TXT'
     }
     'SSH.NET@2026.0.0' = [ordered]@{
         License = 'MIT'
@@ -113,12 +113,16 @@ foreach ($property in @($target.PSObject.Properties | Where-Object { $_.Value.PS
 
 [xml]$launcherProject = Get-Content -LiteralPath $launcherProjectPath -Raw
 $runtimeNode = $launcherProject.SelectSingleNode('/Project/PropertyGroup/RuntimeFrameworkVersion')
-$runtimeVersion = $(if ($null -eq $runtimeNode) { '' } else { [string]$runtimeNode.InnerText })
+if ($null -eq $runtimeNode -or [string]$runtimeNode.InnerText -ne '$(AvwtReviewedDotNetRuntimeVersion)') {
+    throw 'The launcher does not take its runtime from build\ReviewedDotNetRuntime.props.'
+}
+$runtimeVersion = [string]([xml](Get-Content -LiteralPath (Join-Path $repositoryRoot 'build\ReviewedDotNetRuntime.props') -Raw)).Project.PropertyGroup.AvwtReviewedDotNetRuntimeVersion
+# Each entry is the dotnet/dotnet commit that the runtime, host, and ILLink packages of that patch name in their nuspec.
 $reviewedRuntimeMetadata = @{
-    '10.0.11' = [ordered]@{
+    '10.0.12' = [ordered]@{
         License = 'MIT'
-        LicenseUrl = 'https://github.com/dotnet/dotnet/blob/e2f47b0110ed922f21a1522da67279133ce28f32/LICENSE.TXT'
-        NoticesUrl = 'https://github.com/dotnet/dotnet/blob/e2f47b0110ed922f21a1522da67279133ce28f32/THIRD-PARTY-NOTICES.txt'
+        LicenseUrl = 'https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/LICENSE.TXT'
+        NoticesUrl = 'https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/THIRD-PARTY-NOTICES.txt'
     }
 }
 if (-not $reviewedRuntimeMetadata.ContainsKey($runtimeVersion)) {
@@ -138,7 +142,7 @@ $components.Add([ordered]@{
     licenses = @([ordered]@{ license = [ordered]@{ id='MIT' } })
     externalReferences = @(
         [ordered]@{ type='license'; url=$dotnetLicenseUrl },
-        [ordered]@{ type='other'; url=$dotnetNoticesUrl; comment='.NET 10.0.11 third-party notices' }
+        [ordered]@{ type='other'; url=$dotnetNoticesUrl; comment=".NET $runtimeVersion third-party notices" }
     )
     properties = @(
         [ordered]@{ name='avworkstationtoolkit:dependency:phase'; value='runtime' },
@@ -157,7 +161,7 @@ $components.Add([ordered]@{
     licenses = @([ordered]@{ license = [ordered]@{ id='MIT' } })
     externalReferences = @(
         [ordered]@{ type='license'; url=$dotnetLicenseUrl },
-        [ordered]@{ type='other'; url=$dotnetNoticesUrl; comment='.NET 10.0.11 third-party notices' }
+        [ordered]@{ type='other'; url=$dotnetNoticesUrl; comment=".NET $runtimeVersion third-party notices" }
     )
     properties = @(
         [ordered]@{ name='avworkstationtoolkit:dependency:phase'; value='runtime' },
@@ -226,7 +230,7 @@ $document = [ordered]@{
                 [ordered]@{ name='avworkstationtoolkit:build:commit'; value=$CommitSha.ToLowerInvariant() },
                 [ordered]@{ name='avworkstationtoolkit:target:architecture'; value='win-x64' },
                 [ordered]@{ name='avworkstationtoolkit:target:framework'; value='net10.0-windows' },
-                [ordered]@{ name='avworkstationtoolkit:runtime:version'; value='10.0.11' }
+                [ordered]@{ name='avworkstationtoolkit:runtime:version'; value=$runtimeVersion }
                 [ordered]@{ name='avworkstationtoolkit:runtime:primary'; value='compiled-csharp-wpf' }
                 [ordered]@{ name='avworkstationtoolkit:runtime:worker-sha256'; value=$WorkerSha256.ToUpperInvariant() }
             )

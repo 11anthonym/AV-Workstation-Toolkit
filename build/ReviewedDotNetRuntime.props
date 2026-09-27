@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    The reviewed .NET 10 runtime patch that every self-contained shipping project (App, Launcher, Worker) embeds, and the
+    one place to raise it when .NET publishes a security release. The release build, the SBOM, source QA, endpoint-trust
+    QA, and package QA all read this value, and package QA also checks the runtime the packaged launcher actually reports.
+    A self-contained app never picks up a newer runtime installed on Windows; it changes only when this value does.
+  -->
+  <PropertyGroup>
+    <AvwtReviewedDotNetRuntimeVersion>10.0.12</AvwtReviewedDotNetRuntimeVersion>
+  </PropertyGroup>
+</Project>
