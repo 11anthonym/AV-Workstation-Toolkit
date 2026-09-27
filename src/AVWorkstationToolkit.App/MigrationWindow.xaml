@@ -272,9 +272,9 @@
                     <StackPanel VerticalAlignment="Center">
                         <ProgressBar IsIndeterminate="True" Height="4" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" Foreground="#3B82F6"/>
                         <TextBlock Text="{Binding AutomaticInstallNote}" Foreground="{StaticResource MutedBrush}" FontSize="11.5" TextWrapping="Wrap" Margin="0,6,0,0"/>
-                        <CheckBox x:Name="MigrationRiskAcknowledgement" Content="{Binding RiskAcknowledgementText}" IsChecked="{Binding RiskAcknowledged}" Margin="0,6,0,0"
-                                  Visibility="{Binding RiskAcknowledgementVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                  AutomationProperties.Name="Confirm system-impact changes for this installation"/>
+                        <TextBlock x:Name="MigrationSystemImpactNote" Text="{Binding SystemImpactNote}" Foreground="#FFB86B" TextWrapping="Wrap" Margin="0,6,0,0"
+                                   Visibility="{Binding SystemImpactNoteVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                   AutomationProperties.Name="System-level changes among the apps ready to install"/>
                     </StackPanel>
                     <Button x:Name="InstallAllButton" Grid.Column="1" Style="{StaticResource SuccessButton}" Content="{Binding InstallAllText}" Command="{Binding InstallAllCommand}" Margin="12,0,0,0" MinWidth="190"
                             ToolTip="Installs every selected app the approved managed catalog allows, one at a time. Each app is checked again before it starts."/>

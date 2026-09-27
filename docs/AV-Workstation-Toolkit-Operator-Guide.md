@@ -89,10 +89,9 @@ Credentials are sent to the packaged launcher over redirected standard input, no
 2. Review the reboot banner, package status, version, risk, and restriction note.
 3. Select only the apps required for this workstation or role.
 4. Choose `Install selected` or `Update selected`.
-5. Review the exact name and package ID list in the confirmation dialog.
-6. If a driver, service, or listener is selected, approve the second run-specific risk prompt only after reviewing its impact.
-7. Allow each installer to finish. Progress and winget output appear in the activity pane.
-8. Review the final verification result, then refresh the plan.
+5. If the selection includes an app that may install a driver, add a background service, or accept network connections, **Confirm system changes** names each such app and what it may do. Review it, then choose `Install N apps` or `Update N apps`, or `Cancel` to change nothing. The answer covers that run only, and the next run asks again. A note under the selection says beforehand how many selected apps make system-level changes.
+6. Allow each installer to finish. Progress and winget output appear in the activity pane.
+7. Review the final verification result, then refresh the plan.
 
 The worker executes one exact winget package ID at a time through a verified Microsoft Desktop App Installer binary. Low-risk packages normally request silent installation. A small number of reviewed exceptions omit the silent flag because their installer cannot complete a quiet machine-wide upgrade from a standard-user session; PuTTY is currently the only one. Those operations still pass `--disable-interactivity`, so winget itself never waits on a prompt, but omitting the silent flag does not guarantee that the installer stays silent: it may display its own window or request administrator approval, and that behaviour has to be confirmed on the target workstation before the package is deployed at scale. Driver-, service-, and listener-bearing packages remain interactive so their installer choices stay visible. In a multi-package request, AV Workstation Toolkit refreshes reboot and eligibility state before each package after the first. If a reboot becomes pending, a low-risk next package may continue; a risk-bearing next package is rejected before execution.
 

@@ -531,38 +531,35 @@ public sealed class CompiledPresentationTests
         Assert.AreEqual("Install selected (1)", viewModel.InstallButtonText);
         Assert.AreEqual("Update selected (1)", viewModel.UpdateButtonText);
         Assert.IsTrue(viewModel.CanInstall);
-        Assert.IsFalse(viewModel.CanUpdate);
-        Assert.IsTrue(viewModel.RiskAcknowledgementRequired);
-        StringAssert.Contains(viewModel.RiskAcknowledgementText, "Gamma update");
-        StringAssert.Contains(viewModel.RiskAcknowledgementText, "install a driver");
-        viewModel.RiskAcknowledged = true;
-        Assert.IsTrue(viewModel.CanUpdate);
+        Assert.IsTrue(viewModel.CanUpdate, "A driver change is confirmed when the update starts, not by ticking something first.");
+        Assert.IsTrue(viewModel.SystemImpactSelected);
+        Assert.AreEqual("1 selected app makes system-level changes. You'll be asked to confirm when you start.", viewModel.SystemImpactNote);
         update.Selected = false;
         Assert.AreEqual(0, viewModel.UpdateCount);
         Assert.IsFalse(viewModel.CanUpdate);
-        Assert.IsFalse(viewModel.RiskAcknowledged);
+        Assert.IsFalse(viewModel.SystemImpactSelected);
+        Assert.AreEqual(string.Empty, viewModel.SystemImpactNote);
     }
 
     [TestMethod]
-    public async Task RiskAcknowledgementUpdatesCommandStateAndIsConsumedPerRun()
+    public async Task APreviewBuildRefusesARiskBearingUpdateWithoutAskingToConfirmIt()
     {
-        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()));
+        var confirmation = new SystemImpactConfirmationTests.RecordingConfirmation(answer: true);
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), systemImpactConfirmation: confirmation);
         await viewModel.RefreshAsync();
         var update = viewModel.Packages.Single(item => item.Id == "Fixture.Update");
         var commandChanges = 0;
         viewModel.UpdateCommand.CanExecuteChanged += (_, _) => commandChanges++;
         update.Selected = true;
 
-        Assert.IsFalse(viewModel.UpdateCommand.CanExecute(null));
-        viewModel.RiskAcknowledged = true;
         Assert.IsTrue(viewModel.UpdateCommand.CanExecute(null));
         Assert.IsGreaterThan(0, commandChanges);
+        Assert.IsFalse(viewModel.SystemImpactNoteVisible, "Only the packaged app can run an update, so there is nothing to confirm here.");
 
         viewModel.UpdateCommand.Execute(null);
         for (var attempt = 0; attempt < 20 && viewModel.MutationRefusalCount == 0; attempt++) await Task.Delay(10);
         Assert.AreEqual(1, viewModel.MutationRefusalCount);
-        Assert.IsFalse(viewModel.RiskAcknowledged);
-        Assert.IsFalse(viewModel.UpdateCommand.CanExecute(null));
+        Assert.IsEmpty(confirmation.Prompts);
     }
 
     [TestMethod]
@@ -661,6 +658,7 @@ public sealed class CompiledPresentationTests
         Assert.IsTrue(viewModel.WarningVisible);
         Assert.IsTrue(viewModel.CanInstall);
         Assert.IsFalse(viewModel.CanUpdate);
+        Assert.AreEqual("1 selected app makes system-level changes, so it waits until this PC restarts.", viewModel.SystemImpactNote);
     }
 
     [TestMethod]

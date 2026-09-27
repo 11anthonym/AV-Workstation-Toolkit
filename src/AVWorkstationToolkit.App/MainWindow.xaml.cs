@@ -96,7 +96,7 @@ public partial class MainWindow : Window
         {
             "BrandMark", "TopMenu", "RebootBanner", "WarningSeverity", "WarningTitle", "WarningDetail", "WarningDetailsButton", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "SearchStatus", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "StandardFilter", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter",
             "DisciplineFilter", "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid",
-            "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
+            "ActivityLog", "FollowActivityCheckBox", "SelectionSummary", "SystemImpactNote", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "ManagedCatalogUpdatesMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
@@ -221,7 +221,7 @@ public partial class MainWindow : Window
         {
             "BrandMark", "TopMenu", "SidebarScroll", "FindSoftwareAndDevicesHeading", "FindSoftwareAndDevicesHint", "SearchBox", "SearchStatus", "CompatibilityMatchesPanel", "CompatibilityResultsScroll", "CompatibilitySearchResults", "CompatibilitySearchOutcome", "CatalogPresetFilter", "PriorityFilter", "ManufacturerFilter", "DisciplineFilter",
             "RoleFilter", "AllAppsButton", "SelectMissingButton", "SelectUpdatesButton", "PackageGrid", "ActivityLog", "FollowActivityCheckBox",
-            "DetailsButton", "DiagnosticsButton", "RiskAcknowledgementCheckBox", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
+            "DetailsButton", "DiagnosticsButton", "SystemImpactNote", "GetPackageButton", "InstallButton", "UpdateButton", "RefreshButton",
             "ExportPlanMenuItem", "OpenLogsMenuItem", "RefreshPlanMenuItem", "SafetySecurityMenuItem", "CatalogUpdatesMenuItem", "ManagedCatalogUpdatesMenuItem", "AboutMenuItem"
         };
         foreach (var name in required)
@@ -310,9 +310,11 @@ public partial class MainWindow : Window
         toggle.Toggle();
         var installs = selectable.Action == AVWorkstationToolkit.Domain.Catalog.PackageAction.Install ? 1 : 0;
         var lowRisk = selectable.Risk == AVWorkstationToolkit.Domain.Catalog.PackageRisk.None;
-        // A low-risk selection enables its action at once; a risky one waits for acknowledgement instead.
+        // A selection enables its action at once. A system-level change is confirmed when the action starts instead, and
+        // waits while a restart is pending.
+        var enabled = lowRisk || viewModel.LatestPlan?.Reboot.Pending != true;
         if (!selectable.Selected || viewModel.SelectedCount != 1 || viewModel.InstallCount != installs || viewModel.UpdateCount != 1 - installs ||
-            viewModel.RiskAcknowledgementRequired == lowRisk || (installs == 1 ? viewModel.CanInstall : viewModel.CanUpdate) != lowRisk)
+            viewModel.SystemImpactSelected == lowRisk || (installs == 1 ? viewModel.CanInstall : viewModel.CanUpdate) != enabled)
             throw new InvalidOperationException("Compiled production selection did not update the authoritative action state.");
         toggle.Toggle();
         if (selectable.Selected || viewModel.SelectedCount != 0)

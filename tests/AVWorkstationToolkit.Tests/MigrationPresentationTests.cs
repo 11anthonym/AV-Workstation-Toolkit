@@ -10,6 +10,7 @@ using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Application.Workstation;
+using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Workstation;
 
 namespace AVWorkstationToolkit.Tests;
@@ -121,7 +122,7 @@ public sealed class MigrationPresentationTests
     }
 
     [TestMethod]
-    public async Task RiskBearingInstallsNeedAcknowledgementAndGoThroughTheCoordinator()
+    public async Task RiskBearingInstallsAreConfirmedOnceWhenTheyStartAndGoThroughTheCoordinator()
     {
         var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
         var after = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult(("7zip.7zip", "26.03"), ("WiresharkFoundation.Wireshark", "4.4.0")));
@@ -132,19 +133,50 @@ public sealed class MigrationPresentationTests
         await viewModel.InitializeAsync(before.Plan);
 
         StringAssert.Contains(viewModel.InstallAllText, "(2)");
-        Assert.IsTrue(viewModel.RiskAcknowledgementVisible);
-        StringAssert.Contains(viewModel.RiskAcknowledgementText, "Wireshark");
-        Assert.IsFalse(viewModel.CanInstallAll, "A driver-bearing install waits for acknowledgement, as in the main window.");
-        viewModel.RiskAcknowledged = true;
+        Assert.IsTrue(viewModel.SystemImpactNoteVisible);
+        Assert.AreEqual("1 app ready to install makes system-level changes. You'll be asked to confirm when you start.", viewModel.SystemImpactNote);
+        Assert.IsTrue(viewModel.CanInstallAll, "A driver change is confirmed when the install starts, as in the main window.");
+        var wireshark = viewModel.VisibleItems.Single(item => item.CanInstall && item.Risk != PackageRisk.None);
+        var sevenZip = viewModel.VisibleItems.Single(item => item.CanInstall && item.Risk == PackageRisk.None);
+
+        files.SystemImpactAnswer = false;
+        await viewModel.InstallAsync(viewModel.VisibleItems.Where(item => item.CanInstall).ToArray());
+        Assert.IsNull(actions.Request, "A cancelled confirmation reaches no worker.");
+        Assert.AreEqual("Install cancelled. Nothing was installed.", viewModel.Status);
         Assert.IsTrue(viewModel.CanInstallAll);
 
+        files.SystemImpactAnswer = true;
         await viewModel.InstallAsync(viewModel.VisibleItems.Where(item => item.CanInstall).ToArray());
 
+        Assert.HasCount(2, files.SystemImpactPrompts, "Each install asks once.");
+        var prompt = files.SystemImpactPrompts[^1];
+        StringAssert.StartsWith(prompt.Message, "Install 2 apps? 1 of them makes system-level changes to this PC:");
+        StringAssert.Contains(prompt.Message, $"{wireshark.Name} — may install a driver");
+        Assert.DoesNotContain(sevenZip.Name, prompt.Message);
+        Assert.AreEqual("Install 2 apps", prompt.ProceedLabel);
         CollectionAssert.AreEquivalent(new[] { "7zip.7zip", "WiresharkFoundation.Wireshark" }, actions.Request!.PackageIds.ToArray());
         Assert.IsTrue(actions.Request.RiskAcknowledged);
-        Assert.IsFalse(viewModel.RiskAcknowledged, "An acknowledgement covers one run only.");
         StringAssert.Contains(viewModel.Status, "2 of 2 now detected");
         Assert.IsFalse(viewModel.VisibleItems.Any(item => item.CanInstall));
+        Assert.IsFalse(viewModel.SystemImpactNoteVisible);
+    }
+
+    [TestMethod]
+    public async Task InstallingOnlyAppsWithoutSystemChangesAsksNothing()
+    {
+        var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
+        var after = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult(("7zip.7zip", "26.03")));
+        var actions = new WorkstationMigrationTests.RecordingActionStore();
+        var files = new FakeFiles { SystemImpactAnswer = false };
+        var (viewModel, service, _) = Create(new QueuePlanning(after.Plan), files, actions);
+        service.StartFromInventory(WorkstationMigrationTests.Exported(WorkstationMigrationTests.SourceInventory()));
+        await viewModel.InitializeAsync(before.Plan);
+
+        await viewModel.InstallAsync([viewModel.VisibleItems.Single(item => item.CanInstall && item.Risk == PackageRisk.None)]);
+
+        Assert.IsEmpty(files.SystemImpactPrompts);
+        CollectionAssert.AreEqual(new[] { "7zip.7zip" }, actions.Request!.PackageIds.ToArray());
+        Assert.IsFalse(actions.Request.RiskAcknowledged, "Nothing was confirmed, so nothing is claimed.");
     }
 
     [TestMethod]
@@ -363,6 +395,15 @@ public sealed class MigrationPresentationTests
             LastChoiceMessage = message;
             LastChoiceLabels = (keepLabel, replaceLabel);
             return ReplaceAnswer;
+        }
+
+        /// <summary>What the technician answers when an install includes system-level changes, and each question asked.</summary>
+        public bool SystemImpactAnswer { get; set; } = true;
+        public List<SystemImpactPrompt> SystemImpactPrompts { get; } = [];
+        public bool ConfirmSystemImpact(SystemImpactPrompt prompt)
+        {
+            SystemImpactPrompts.Add(prompt);
+            return SystemImpactAnswer;
         }
         public byte[] Read(string path, int maximumBytes) => Files[path];
         public void Write(string path, byte[] content) => Files[path] = content;

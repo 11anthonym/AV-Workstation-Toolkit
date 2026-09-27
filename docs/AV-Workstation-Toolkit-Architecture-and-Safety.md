@@ -109,7 +109,7 @@ A fail-closed repository SignPath workflow prepares the signed production chain:
 8. The worker rebuilds a live plan and revalidates every ID; during a multi-package run it refreshes state before every package after the first.
 9. An explicit Windows Update or Component Based Servicing reboot is always surfaced. It blocks driver-, service-, and listener-bearing packages at shared request validation, while ordinary low-risk applications may continue. A newly detected reboot is reevaluated before the next package. Generic queued file cleanup is not a reboot signal.
 10. Manual deployment and maintenance holds cannot be bypassed by the interface.
-11. Driver, service, and listener risk requires a second, run-specific acknowledgement.
+11. Driver, service, and listener risk requires a second, run-specific acknowledgement. The technician gives it when starting the install or update, in a confirmation that names those apps and defaults to Cancel; there is no standing or "don't ask again" acknowledgement, and the worker rejects such a package in a request that doesn't carry it.
 12. winget is invoked with `--id`, `--exact`, and `--source winget` for one package at a time.
 13. The execution path contains no `--all`, `winget import`, or uninstall operation.
 14. Each successful native command is post-verified before being reported as succeeded.

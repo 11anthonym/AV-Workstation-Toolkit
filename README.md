@@ -72,8 +72,9 @@ not part of the packaged application runtime.
    bounded vendor release pages; it changes nothing.
 3. Use **Missing apps** or **Available updates**, select only the applications
    you need, and choose **Install selected** or **Update selected**.
-4. Review the exact package list, and the separate risk prompt for any driver-,
-   service-, or listener-bearing application, before confirming.
+4. If a selected application may install a driver, add a background service, or
+   accept network connections, **Confirm system changes** names it and what it
+   may do. Review it before you continue; the next run asks again.
 
 The [operator guide](docs/AV-Workstation-Toolkit-Operator-Guide.md) explains
 every status, filter, delivery button, and failure path. Operators who prefer a

@@ -36,7 +36,6 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     private string searchText = string.Empty;
     private MigrationItemViewModel? selectedItem;
     private bool isBusy;
-    private bool riskAcknowledged;
     private string status = string.Empty;
     private string savedSessionProblem = string.Empty;
     private bool disposed;
@@ -106,6 +105,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             if (!SetProperty(ref isBusy, value)) return;
             OnPropertyChanged(nameof(IsNotBusy));
             OnPropertyChanged(nameof(RemainingHeadline));
+            OnPropertyChanged(nameof(SystemImpactNoteVisible));
             RaiseCommandStates();
         }
     }
@@ -253,37 +253,23 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     public bool TasksVisible => tasks.Count > 0;
     public string TasksSummary => $"Manual checks · {tasks.Count(task => task.Done)} of {tasks.Count} done";
 
-    public bool RiskAcknowledged
-    {
-        get => riskAcknowledged;
-        set
-        {
-            if (!SetProperty(ref riskAcknowledged, value)) return;
-            RaiseCommandStates();
-        }
-    }
-
-    public bool RiskAcknowledgementVisible => AutomaticInstallAvailable && InstallCandidates().Any(item => item.Risk != PackageRisk.None);
-    public string RiskAcknowledgementText
+    // Only a note: driver, service, and listener changes are confirmed once, when an install starts, so there is nothing
+    // here to tick, and nothing that clears itself while the install goes on.
+    public bool SystemImpactNoteVisible => AutomaticInstallAvailable && !IsBusy && InstallCandidates().Any(item => item.Risk != PackageRisk.None);
+    public string SystemImpactNote
     {
         get
         {
-            var risky = InstallCandidates().Where(item => item.Risk != PackageRisk.None).ToArray();
-            if (risky.Length == 0) return string.Empty;
-            var names = string.Join(", ", risky.Take(3).Select(item => item.Name)) + (risky.Length > 3 ? $", and {risky.Length - 3} more" : string.Empty);
-            var effects = string.Join(", ", risky.Select(item => item.Risk switch
-            {
-                PackageRisk.Driver => "install a driver",
-                PackageRisk.Service => "add a background service",
-                _ => "accept network connections"
-            }).Distinct(StringComparer.Ordinal));
-            return $"I understand that {names} may {effects}. Continue with this operation.";
+            var risky = InstallCandidates().Count(item => item.Risk != PackageRisk.None);
+            if (risky == 0) return string.Empty;
+            var apps = risky == 1 ? "1 app ready to install makes" : $"{risky.ToString(CultureInfo.CurrentCulture)} apps ready to install make";
+            return $"{apps} system-level changes. You'll be asked to confirm when you start.";
         }
     }
 
     public string InstallAllText => $"Install all available ({InstallCandidates().Count})";
-    public bool CanInstallAll => !IsBusy && AutomaticInstallAvailable && InstallCandidates().Count > 0 && RiskSatisfied(InstallCandidates());
-    public bool CanInstallSelected => !IsBusy && AutomaticInstallAvailable && SelectedItem is { CanInstall: true } item && RiskSatisfied([item]);
+    public bool CanInstallAll => !IsBusy && AutomaticInstallAvailable && InstallCandidates().Count > 0;
+    public bool CanInstallSelected => !IsBusy && AutomaticInstallAvailable && SelectedItem is { CanInstall: true };
 
     /// <summary>
     /// Opens the active migration, if any, and compares it with this PC. A saved checklist is shown at once, as not checked
@@ -509,13 +495,15 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         var eligible = targets.Where(item => item.CanInstall).ToArray();
         if (eligible.Length == 0) return;
-        if (!RiskSatisfied(eligible))
+        // Driver, service, and listener changes are confirmed here, once, with the apps named. The answer covers this install
+        // only, and the worker still requires it for every such app.
+        var prompt = SystemImpactPrompt.For(PackageAction.Install, eligible.Select(item => (item.Name, item.Risk)).ToArray());
+        var acknowledged = prompt is not null && files.ConfirmSystemImpact(prompt);
+        if (prompt is not null && !acknowledged)
         {
-            Status = "Confirm the system-impact changes before installing.";
+            Status = "Install cancelled. Nothing was installed.";
             return;
         }
-        var acknowledged = RiskAcknowledged;
-        RiskAcknowledged = false;
         IsBusy = true;
         Status = eligible.Length == 1 ? $"Installing {eligible[0].Name}…" : $"Installing {eligible.Length} apps one at a time…";
         try
@@ -614,8 +602,6 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     }
 
     private IReadOnlyList<MigrationItemViewModel> InstallCandidates() => rows.Values.Where(item => item.CanInstall).ToArray();
-
-    private bool RiskSatisfied(IEnumerable<MigrationItemViewModel> items) => RiskAcknowledged || items.All(item => item.Risk == PackageRisk.None);
 
     private void Service_ChecklistChanged(object? sender, EventArgs e)
     {

@@ -33,7 +33,7 @@ public partial class MigrationWindow : Window
             "NewProfileButton", "EditProfileButton", "SaveAsProfileButton", "MigrationStatus", "SourceTitle", "MigrationProgress",
             "RemainingHeadline", "ProgressText", "SummaryText", "RescanButton", "FinishButton", "ChecklistSearch", "ChecklistFilters", "ChecklistGrid",
             "EmptyState", "ReviewSearch", "ReviewSummary", "ReviewGrid", "DetailPanel", "InstallSelectedButton", "ConfirmButton", "ClearConfirmationButton", "ExcludeButton", "IncludeButton", "RemoveButton",
-            "TasksPanel", "TaskList", "MigrationRiskAcknowledgement", "InstallAllButton"
+            "TasksPanel", "TaskList", "MigrationSystemImpactNote", "InstallAllButton"
         };
         foreach (var name in required)
             if (FindName(name) is null) throw new InvalidOperationException($"The migration window is missing control '{name}'.");

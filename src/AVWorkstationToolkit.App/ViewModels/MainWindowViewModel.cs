@@ -84,7 +84,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private PlanWarningPresentation warningPresentation = PlanWarningPresentation.None;
     private int mutationRefusalCount;
     private bool actionActive;
-    private bool riskAcknowledged;
+    private readonly ISystemImpactConfirmation? systemImpactConfirmation;
     private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "No installation or update is running.", [], null);
     private CompiledActionSnapshot? pendingActionSnapshot;
     private int refreshInvocationCount;
@@ -116,9 +116,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         TimeSpan? searchDebounce = null,
         Dispatcher? presentationDispatcher = null,
         TimeProvider? timeProvider = null,
-        MigrationComposition? migration = null)
+        MigrationComposition? migration = null,
+        ISystemImpactConfirmation? systemImpactConfirmation = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
+        this.systemImpactConfirmation = systemImpactConfirmation;
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
         this.detailService = detailService ?? new CatalogDetailService();
         this.actionCoordinator = actionCoordinator;
@@ -243,18 +245,6 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public bool MigrationActionMode => actionCoordinator is not null;
     public bool LiveRehearsalMode { get; }
     public bool CanCancelAction => ActionSnapshot.State == CompiledActionState.Running;
-    public bool RiskAcknowledged
-    {
-        get => riskAcknowledged;
-        set
-        {
-            if (!SetProperty(ref riskAcknowledged, value)) return;
-            OnPropertyChanged(nameof(CanInstall));
-            OnPropertyChanged(nameof(CanUpdate));
-            InstallCommand.RaiseCanExecuteChanged();
-            UpdateCommand.RaiseCanExecuteChanged();
-        }
-    }
     public CompiledActionSnapshot ActionSnapshot { get => actionSnapshot; private set => SetProperty(ref actionSnapshot, value); }
 
     public string SearchText
@@ -397,28 +387,24 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         DeliveryMode.DirectDownload or DeliveryMode.AuthenticatedSftp or DeliveryMode.ParentProvider => "Download package",
         _ => "Get package"
     };
-    public string RiskAcknowledgementText
+    // Only a note: driver, service, and listener changes are confirmed once, when Install or Update is clicked, so there
+    // is nothing here to tick, and nothing that clears itself while the run goes on.
+    public string SystemImpactNote
     {
         get
         {
-            var selected = packages.Where(item => item.Selected && item.Risk != PackageRisk.None).ToArray();
-            if (selected.Length == 0) return "I understand these changes and want to continue.";
-            var names = string.Join(", ", selected.Take(3).Select(item => item.Name));
-            if (selected.Length > 3) names += $", and {selected.Length - 3} more";
-            var effects = string.Join(", ", selected.Select(item => item.Risk switch
-            {
-                PackageRisk.Driver => "install a driver",
-                PackageRisk.Service => "add a background service",
-                PackageRisk.Listener => "accept network connections",
-                _ => string.Empty
-            }).Where(value => value.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase));
-            return $"I understand that {names} may {effects}. Continue with this operation.";
+            var risky = packages.Count(item => item.Selected && item.Risk != PackageRisk.None);
+            if (risky == 0) return string.Empty;
+            var apps = risky == 1 ? "1 selected app makes" : $"{risky} selected apps make";
+            return plan?.Reboot.Pending == true
+                ? $"{apps} system-level changes, so {(risky == 1 ? "it waits" : "they wait")} until this PC restarts."
+                : $"{apps} system-level changes. You'll be asked to confirm when you start.";
         }
     }
-    public bool CanInstall => !IsBusy && !actionActive && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install) && !SelectedRiskNeedsAcknowledgement(PackageAction.Install);
-    public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update) && !SelectedRiskNeedsAcknowledgement(PackageAction.Update);
-    public bool RiskAcknowledgementRequired => packages.Any(item => item.Selected && item.Risk != PackageRisk.None);
-    public bool RiskAcknowledgementVisible => MigrationActionMode && RiskAcknowledgementRequired;
+    public bool CanInstall => !IsBusy && !actionActive && InstallCount > 0 && !SelectedRiskBlocked(PackageAction.Install);
+    public bool CanUpdate => !IsBusy && !actionActive && UpdateCount > 0 && !SelectedRiskBlocked(PackageAction.Update);
+    public bool SystemImpactSelected => packages.Any(item => item.Selected && item.Risk != PackageRisk.None);
+    public bool SystemImpactNoteVisible => MigrationActionMode && !actionActive && SystemImpactSelected;
     public bool WarningVisible => warningPresentation.Visible;
     public string WarningSeverityText => warningPresentation.SeverityText;
     public string WarningTitle => warningPresentation.Title;
@@ -543,7 +529,6 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void ApplyPlan(WorkstationPlan result, IReadOnlySet<string> selectedIds, string? selectedRowId)
     {
         InvalidatePendingSearch();
-        RiskAcknowledged = false;
         var retainedManufacturer = SelectedManufacturer.Value;
         plan = result;
         warningPresentation = CreateWarningPresentation(result);
@@ -1011,7 +996,6 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void UpdateSelectionState()
     {
         Interlocked.Increment(ref selectionStateUpdateCount);
-        RiskAcknowledged = false;
         OnPropertyChanged(nameof(InstallCount));
         OnPropertyChanged(nameof(UpdateCount));
         OnPropertyChanged(nameof(SelectedCount));
@@ -1020,16 +1004,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectionSummary));
         OnPropertyChanged(nameof(CanInstall));
         OnPropertyChanged(nameof(CanUpdate));
-        OnPropertyChanged(nameof(RiskAcknowledgementRequired));
-        OnPropertyChanged(nameof(RiskAcknowledgementVisible));
-        OnPropertyChanged(nameof(RiskAcknowledgementText));
+        OnPropertyChanged(nameof(SystemImpactSelected));
+        OnPropertyChanged(nameof(SystemImpactNoteVisible));
+        OnPropertyChanged(nameof(SystemImpactNote));
         RaiseCommandStates();
     }
 
     private bool SelectedRiskBlocked(PackageAction action) => plan?.Reboot.Pending == true &&
-        packages.Any(item => item.Selected && item.Action == action && item.Risk != PackageRisk.None);
-
-    private bool SelectedRiskNeedsAcknowledgement(PackageAction action) => !RiskAcknowledged &&
         packages.Any(item => item.Selected && item.Action == action && item.Risk != PackageRisk.None);
 
     private void RefuseMutation(PackageAction action)
@@ -1041,19 +1022,27 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private async Task RunActionAsync(ManagedRequestAction action)
     {
-        var riskAcknowledgedForThisRun = RiskAcknowledged;
-        RiskAcknowledged = false;
+        var expected = action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update;
         if (actionCoordinator is null)
         {
-            RefuseMutation(action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update);
+            RefuseMutation(expected);
             return;
         }
         if (plan is null) return;
-        var expected = action == ManagedRequestAction.Install ? PackageAction.Install : PackageAction.Update;
-        var selected = packages.Where(item => item.Selected && item.Action == expected).Select(item => item.State).ToArray();
+        var rows = packages.Where(item => item.Selected && item.Action == expected).ToArray();
+        // Driver, service, and listener changes are confirmed here, once, with the apps named. The answer covers this run
+        // only, and the worker still requires it for every such app. Without a way to ask, nothing starts.
+        var prompt = SystemImpactPrompt.For(expected, rows.Select(item => (item.Name, item.Risk)).ToArray());
+        var riskAcknowledged = prompt is not null && systemImpactConfirmation?.ConfirmSystemImpact(prompt) == true;
+        if (prompt is not null && !riskAcknowledged)
+        {
+            AppendActivity($"{(expected == PackageAction.Install ? "Install" : "Update")} cancelled. Nothing was changed.");
+            return;
+        }
+        var selected = rows.Select(item => item.State).ToArray();
         try
         {
-            var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledgedForThisRun, dryRun: false).ConfigureAwait(true);
+            var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledged, dryRun: false).ConfigureAwait(true);
             ApplyPlan(completed.RefreshedPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), SelectedRow?.Id);
             Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(completed.RefreshedPlan).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
             PlanApplied?.Invoke(completed.RefreshedPlan);
@@ -1147,6 +1136,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanCancelAction));
         OnPropertyChanged(nameof(CanInstall));
         OnPropertyChanged(nameof(CanUpdate));
+        OnPropertyChanged(nameof(SystemImpactNoteVisible));
         RaiseCommandStates();
     }
 
