@@ -121,13 +121,14 @@ public partial class App : System.Windows.Application
                 productVersion = services.Version;
                 executionMode = services.ExecutionMode;
             }
-            var systemImpact = new WpfSystemImpactConfirmation();
+            var confirmation = new WpfActionConfirmation();
             var viewModel = new MainWindowViewModel(coordinator, diagnostics, details, actions, diagnosticsExport, handoffs, packageDelivery,
                 applicationMenu, liveRehearsalMode: false, compatibilityService: compatibility, referenceCatalogUpdates: referenceCatalogUpdates,
-                managedCatalogUpdates: managedCatalogUpdates, migration: migration, systemImpactConfirmation: systemImpact);
+                managedCatalogUpdates: managedCatalogUpdates, migration: migration, actionConfirmation: confirmation,
+                openApplications: migration?.OpenApplications);
             var release = new ProductRelease(productVersion, packagedContext?.Prerelease ?? string.Empty);
             var window = new MainWindow(viewModel, release.DisplayVersion, executionMode, autoRefresh: !smoke && !readOnlyCheck, allowDialogs: !smoke && !readOnlyCheck);
-            systemImpact.Owner = window;
+            confirmation.Owner = window;
             if (release.Prerelease.Length > 0) window.Title = $"AV Workstation Toolkit {release.DisplayVersion}";
             MainWindow = window;
             window.Show();

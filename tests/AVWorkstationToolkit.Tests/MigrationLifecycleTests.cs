@@ -446,6 +446,7 @@ public sealed class MigrationLifecycleTests
         public bool Confirm(string title, string message) => true;
         public bool ChooseToReplace(string title, string message, string keepLabel, string replaceLabel) => true;
         public bool ConfirmSystemImpact(SystemImpactPrompt prompt) => true;
+        public OpenAppsDecision ChooseForOpenApps(OpenAppsPrompt prompt) => OpenAppsDecision.Cancel;
         public byte[] Read(string path, int maximumBytes) => Files[path];
         public void Write(string path, byte[] content) => Files[path] = content;
     }

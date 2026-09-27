@@ -360,9 +360,138 @@ public sealed class ActionWorkerOrchestratorTests
             Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current), State("Vendor.Two")])), executor, protocol).RunAsync(request);
 
         Assert.AreEqual(ActionResultStatus.Cancelled, result.Status);
-        Assert.HasCount(1, result.Packages);
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.Succeeded, PackageOutcomeStatus.NotStarted },
+            result.Packages.Select(item => item.Status).ToArray(), "The package the run never reached stays in the result.");
         Assert.AreEqual(1, executor.CallCount);
         Assert.IsTrue(protocol.Progress.Any(item => item.Stage == "Cancelled"));
+        StringAssert.Contains(protocol.Result!.Message, "1 app wasn't started.");
+    }
+
+    [TestMethod]
+    public async Task ARestartBecomingPendingSkipsOnlyTheRiskBearingPackageAndTheRunContinues()
+    {
+        var risky = State("Vendor.A", risk: PackageRisk.Service);
+        var plain = State("Vendor.B");
+        var request = Request(ids: ["Vendor.A", "Vendor.B"], riskAcknowledged: true);
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Success);
+
+        var result = await Worker(new SequencePlans(
+            Plan([risky, plain]),
+            Plan([risky, plain], pending: true),
+            Plan([risky, plain], pending: true),
+            Plan([risky, State("Vendor.B", PackageAction.None, PackageStatus.Current)], pending: true)), executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Status);
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.Blocked, PackageOutcomeStatus.Succeeded },
+            result.Packages.Select(item => item.Status).ToArray(), "The low-risk package after the blocked one still ran.");
+        Assert.AreEqual(1, executor.CallCount);
+        var blocked = protocol.Progress.Single(item => item.Stage == "Blocked");
+        StringAssert.Contains(blocked.Message, "Skipped Vendor.A. Windows is waiting for a restart");
+        Assert.AreEqual("1 app was skipped when it was rechecked.", protocol.Result!.Message);
+    }
+
+    [TestMethod]
+    public async Task AnOpenAppIsNotClosedWithoutConsentAndItsPackageIsSkipped()
+    {
+        var request = Request(ids: ["Vendor.One", "Vendor.Two"]);
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Success);
+        var open = new FakeOpenApplications(new() { ["Vendor.One"] = ["Vendor App"] });
+
+        var result = await Worker(new SequencePlans(
+            Plan([State("Vendor.One"), State("Vendor.Two")]),
+            Plan([State("Vendor.One"), State("Vendor.Two")]),
+            Plan([State("Vendor.One"), State("Vendor.Two")]),
+            Plan([State("Vendor.One"), State("Vendor.Two", PackageAction.None, PackageStatus.Current)])), executor, protocol, open).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Status);
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.InUse, PackageOutcomeStatus.Succeeded },
+            result.Packages.Select(item => item.Status).ToArray());
+        Assert.IsEmpty(open.Closed, "No consent means no app is asked to close.");
+        Assert.AreEqual(1, executor.CallCount);
+        Assert.AreEqual("Vendor App is open, so Vendor.One wasn't installed. Close it and install it again.",
+            protocol.Progress.Single(item => item.Stage == "InUse").Message);
+        Assert.AreEqual("1 app was open, so it wasn't changed.", protocol.Result!.Message);
+    }
+
+    [TestMethod]
+    public async Task WithConsentAnOpenAppIsAskedToCloseJustBeforeItsInstallerAndReopenedAfter()
+    {
+        var request = new ActionRequest(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Update, ["Vendor.One"],
+            false, false, closeOpenAppsFor: ["Vendor.One"]);
+        var protocol = new MemoryProtocol(request);
+        var open = new FakeOpenApplications(new() { ["Vendor.One"] = ["Vendor App", "Vendor Helper"] }, reopens: ["Vendor App"]);
+        var executor = new FakeExecutor(PackageExecutionResult.Success)
+        {
+            AfterCall = _ => Assert.AreEqual(0, open.LastClosure!.ReopenCount, "Apps stay closed while the installer runs.")
+        };
+        var updatable = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+
+        var result = await Worker(new SequencePlans(Plan([updatable]), Plan([updatable]),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)])), executor, protocol, open).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        CollectionAssert.AreEqual(new[] { "Vendor.One" }, open.Closed);
+        Assert.AreEqual(1, open.LastClosure!.ReopenCount);
+        Assert.IsTrue(open.LastClosure.Disposed);
+        CollectionAssert.AreEqual(new[] { "Preflight", "Closing", "Starting", "Reopened", "Verified", "Complete" },
+            protocol.Progress.Select(item => item.Stage).ToArray());
+        Assert.AreEqual("Reopened Vendor App. Vendor Helper was closed and can't reopen by itself; open it again when you need it.",
+            protocol.Progress.Single(item => item.Stage == "Reopened").Message);
+    }
+
+    [TestMethod]
+    public async Task AnAppThatRefusesToCloseIsSkippedWithoutRunningItsInstaller()
+    {
+        var request = new ActionRequest(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Install,
+            ["Vendor.One", "Vendor.Two"], false, false, closeOpenAppsFor: ["Vendor.One"]);
+        var protocol = new MemoryProtocol(request);
+        var open = new FakeOpenApplications(new() { ["Vendor.One"] = ["Vendor App"] }, refuse: true);
+        var executor = new FakeExecutor(PackageExecutionResult.Success);
+
+        var result = await Worker(new SequencePlans(
+            Plan([State("Vendor.One"), State("Vendor.Two")]),
+            Plan([State("Vendor.One"), State("Vendor.Two")]),
+            Plan([State("Vendor.One"), State("Vendor.Two")]),
+            Plan([State("Vendor.One"), State("Vendor.Two", PackageAction.None, PackageStatus.Current)])), executor, protocol, open).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Status);
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.InUse, PackageOutcomeStatus.Succeeded },
+            result.Packages.Select(item => item.Status).ToArray());
+        Assert.AreEqual(1, executor.CallCount, "Only the second package's installer ran.");
+        Assert.IsTrue(open.LastClosure!.Disposed);
+        StringAssert.StartsWith(protocol.Progress.Single(item => item.Stage == "InUse").Message,
+            "Vendor App didn't close when asked, so Vendor.One wasn't installed. It may have unsaved work");
+    }
+
+    [TestMethod]
+    public async Task ClosedAppsAreOfferedBackEvenWhenTheInstallerThrows()
+    {
+        var request = new ActionRequest(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Install, ["Vendor.One"],
+            false, false, closeOpenAppsFor: ["Vendor.One"]);
+        var open = new FakeOpenApplications(new() { ["Vendor.One"] = ["Vendor App"] }, reopens: ["Vendor App"]);
+
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => Worker(
+            new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")])), new FakeExecutor(), new MemoryProtocol(request), open)
+            .RunAsync(request));
+
+        Assert.AreEqual(1, open.LastClosure!.ReopenCount);
+        Assert.IsTrue(open.LastClosure.Disposed);
+    }
+
+    [TestMethod]
+    public async Task ATestRunNeverLooksForOrClosesApps()
+    {
+        var request = Request(dryRun: true);
+        var open = new FakeOpenApplications(new() { ["Vendor.One"] = ["Vendor App"] });
+
+        var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")])), new FakeExecutor(),
+            new MemoryProtocol(request), open).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        Assert.IsEmpty(open.Found);
+        Assert.IsEmpty(open.Closed);
     }
 
     [TestMethod]
@@ -410,8 +539,9 @@ public sealed class ActionWorkerOrchestratorTests
     private static ActionWorkerOrchestrator Worker(
         IActionWorkerPlanProvider plans,
         IPackageActionExecutor executor,
-        IActionWorkerProtocol protocol) =>
-        new(plans, executor, protocol, "FixtureHost", timeProvider: new FixedTimeProvider());
+        IActionWorkerProtocol protocol,
+        IOpenApplicationService? openApplications = null) =>
+        new(plans, executor, protocol, "FixtureHost", timeProvider: new FixedTimeProvider(), openApplications: openApplications);
 
     private static ActionRequest Request(
         IReadOnlyList<string>? ids = null,
@@ -506,9 +636,48 @@ public sealed class ActionWorkerOrchestratorTests
         public ValueTask PersistFinalResultAsync(ActionRequest value, ActionFinalResult result, CancellationToken cancellationToken = default)
         {
             if (Result is not null) throw new InvalidOperationException("Duplicate final result.");
+            // Every result the worker produces must also pass the strict result codec the app reads it with.
+            _ = new ActionResultCodec().Serialize(result, request, Paths);
             Result = result;
             return ValueTask.CompletedTask;
         }
+    }
+
+    private sealed class FakeOpenApplications(Dictionary<string, string[]> open, bool refuse = false, string[]? reopens = null) : IOpenApplicationService
+    {
+        public List<string> Found { get; } = [];
+        public List<string> Closed { get; } = [];
+        public FakeClosure? LastClosure { get; private set; }
+
+        public IReadOnlyList<string> FindOpen(string packageId)
+        {
+            Found.Add(packageId);
+            return open.TryGetValue(packageId, out var names) ? names : [];
+        }
+
+        public IOpenApplicationClosure Close(string packageId)
+        {
+            Closed.Add(packageId);
+            var names = open[packageId];
+            LastClosure = refuse ? new FakeClosure([], names, []) : new FakeClosure(names, [], reopens ?? []);
+            return LastClosure;
+        }
+    }
+
+    private sealed class FakeClosure(IReadOnlyList<string> closed, IReadOnlyList<string> stillOpen, IReadOnlyList<string> reopens) : IOpenApplicationClosure
+    {
+        public IReadOnlyList<string> Closed { get; } = closed;
+        public IReadOnlyList<string> StillOpen { get; } = stillOpen;
+        public int ReopenCount { get; private set; }
+        public bool Disposed { get; private set; }
+
+        public IReadOnlyList<string> Reopen()
+        {
+            ReopenCount++;
+            return reopens;
+        }
+
+        public void Dispose() => Disposed = true;
     }
 
     private sealed class FixedTimeProvider : TimeProvider

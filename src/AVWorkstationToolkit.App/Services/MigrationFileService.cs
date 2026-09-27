@@ -6,7 +6,7 @@ using Microsoft.Win32;
 namespace AVWorkstationToolkit.App.Services;
 
 /// <summary>File choices and confirmations for the migration window, kept behind an interface so the view model stays testable.</summary>
-public interface IMigrationFileService : ISystemImpactConfirmation
+public interface IMigrationFileService : IActionConfirmation
 {
     string? PickInventoryToSave(string suggestedName);
     string? PickInventoryToOpen();
@@ -51,11 +51,9 @@ public sealed class WpfMigrationFileService(string dataRoot, Window? owner = nul
     public bool ChooseToReplace(string title, string message, string keepLabel, string replaceLabel) =>
         ChoiceDialog.Ask(Owner, title, message, safeLabel: keepLabel, proceedLabel: replaceLabel);
 
-    public bool ConfirmSystemImpact(SystemImpactPrompt prompt)
-    {
-        ArgumentNullException.ThrowIfNull(prompt);
-        return ChoiceDialog.Ask(Owner, prompt.Title, prompt.Message, safeLabel: "Cancel", proceedLabel: prompt.ProceedLabel);
-    }
+    public bool ConfirmSystemImpact(SystemImpactPrompt prompt) => ChoiceDialog.ConfirmSystemImpact(Owner, prompt);
+
+    public OpenAppsDecision ChooseForOpenApps(OpenAppsPrompt prompt) => ChoiceDialog.ChooseForOpenApps(Owner, prompt);
 
     public byte[] Read(string path, int maximumBytes) => WorkstationDocumentFiles.ReadBounded(path, maximumBytes);
 

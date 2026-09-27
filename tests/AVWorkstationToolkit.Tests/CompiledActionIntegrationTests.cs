@@ -370,6 +370,12 @@ public sealed class CompiledActionIntegrationTests
                     new ActionPackageOutcome(Request.PackageIds[0], Request.PackageIds[0], Request.Action, PackageOutcomeStatus.Failed,
                         23, false, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, Arguments(Request))
                 },
+                // A cancelled run still accounts for the package it never reached.
+                ActionResultStatus.Cancelled => new[]
+                {
+                    new ActionPackageOutcome(Request.PackageIds[0], Request.PackageIds[0], Request.Action, PackageOutcomeStatus.NotStarted,
+                        2, false, null, DateTimeOffset.UtcNow, [])
+                },
                 _ => []
             };
             var exit = status switch { ActionResultStatus.Succeeded => 0, ActionResultStatus.Cancelled => 2, _ => 1 };

@@ -545,7 +545,7 @@ public sealed class CompiledPresentationTests
     public async Task APreviewBuildRefusesARiskBearingUpdateWithoutAskingToConfirmIt()
     {
         var confirmation = new SystemImpactConfirmationTests.RecordingConfirmation(answer: true);
-        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), systemImpactConfirmation: confirmation);
+        using var viewModel = new MainWindowViewModel(new QueueCoordinator(CreatePlan()), actionConfirmation: confirmation);
         await viewModel.RefreshAsync();
         var update = viewModel.Packages.Single(item => item.Id == "Fixture.Update");
         var commandChanges = 0;

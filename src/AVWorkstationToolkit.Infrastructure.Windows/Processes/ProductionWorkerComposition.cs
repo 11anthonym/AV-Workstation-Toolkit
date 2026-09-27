@@ -1,3 +1,4 @@
+using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Application.Workers;
@@ -13,7 +14,8 @@ namespace AVWorkstationToolkit.Infrastructure.Windows.Processes;
 public sealed record ProductionWorkerServices(
     IActionWorkerPlanProvider Plans,
     IPackageActionExecutor Executor,
-    long ManagedCatalogRevision);
+    long ManagedCatalogRevision,
+    IOpenApplicationService OpenApplications);
 
 public static class ProductionWorkerComposition
 {
@@ -51,7 +53,8 @@ public static class ProductionWorkerComposition
             new WindowsRebootStateProvider(),
             new ExternalInventoryMatcher());
         var executor = new WinGetPackageActionExecutor(new WinGetMutationProcessRunner(resolver));
-        return new(new ProductionPlanProvider(planning, managedCatalogRevision), executor, managedCatalogRevision);
+        return new(new ProductionPlanProvider(planning, managedCatalogRevision), executor, managedCatalogRevision,
+            new RestartManagerOpenApplications());
     }
 
     private sealed class ProductionPlanProvider(IWorkstationPlanningCoordinator planning, long revision) : IActionWorkerPlanProvider

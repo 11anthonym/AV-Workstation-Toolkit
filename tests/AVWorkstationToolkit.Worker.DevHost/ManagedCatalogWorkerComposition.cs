@@ -80,7 +80,7 @@ internal static class ManagedCatalogWorkerComposition
         var managed = new ManagedCatalogStore(options.ApplicationRoot, options.DataRoot, verifier,
             channel: null, requireSignedBaseline: true).LoadActiveOrEmbedded();
         var plans = new VerifiedManagedCatalogPlanProvider(managed.Source.Revision, managed.Catalog, request);
-        return new(plans, new RefusingManagedCatalogExecutor(), managed.Source.Revision);
+        return new(plans, new RefusingManagedCatalogExecutor(), managed.Source.Revision, NoOpenApplications.Instance);
     }
 }
 

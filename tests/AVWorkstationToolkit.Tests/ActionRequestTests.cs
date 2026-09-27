@@ -45,7 +45,9 @@ public sealed class ActionRequestTests
         foreach (var request in new[]
         {
             Request(ManagedRequestAction.Install, ["Vendor.One"], false, false),
-            Request(ManagedRequestAction.Update, ["Vendor.One", "Vendor.Two"], true, true)
+            Request(ManagedRequestAction.Update, ["Vendor.One", "Vendor.Two"], true, true),
+            new ActionRequest(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Update, ["Vendor.One", "Vendor.Two"],
+                true, false, closeOpenAppsFor: ["Vendor.Two"])
         })
         {
             var parsed = codec.Parse(codec.Serialize(request), RequestId);
@@ -53,6 +55,7 @@ public sealed class ActionRequestTests
             Assert.AreEqual(request.RiskAcknowledged, parsed.RiskAcknowledged);
             Assert.AreEqual(request.DryRun, parsed.DryRun);
             CollectionAssert.AreEqual(request.PackageIds.ToArray(), parsed.PackageIds.ToArray());
+            CollectionAssert.AreEqual(request.CloseOpenAppsFor.ToArray(), parsed.CloseOpenAppsFor.ToArray());
         }
     }
 
@@ -65,7 +68,10 @@ public sealed class ActionRequestTests
             (ValidJson().Replace(",\"DryRun\":false", string.Empty, StringComparison.Ordinal), ActionRequestFailure.MissingField),
             (ValidJson().Replace("}", ",\"Extra\":true}", StringComparison.Ordinal), ActionRequestFailure.UnknownField),
             (ValidJson().Replace("\"DryRun\":false", "\"DryRun\":false,\"DryRun\":true", StringComparison.Ordinal), ActionRequestFailure.DuplicateField),
-            (ValidJson().Replace("\"SchemaVersion\":2", "\"SchemaVersion\":\"2\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
+            (ValidJson().Replace("\"SchemaVersion\":3", "\"SchemaVersion\":\"3\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
+            (ValidJson().Replace(",\"CloseOpenAppsFor\":[]", string.Empty, StringComparison.Ordinal), ActionRequestFailure.MissingField),
+            (ValidJson().Replace("\"CloseOpenAppsFor\":[]", "\"CloseOpenAppsFor\":\"Vendor.One\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
+            (ValidJson().Replace("\"CloseOpenAppsFor\":[]", "\"CloseOpenAppsFor\":[1]", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"RiskAcknowledged\":false", "\"RiskAcknowledged\":\"true\"", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"DryRun\":false", "\"DryRun\":1", StringComparison.Ordinal), ActionRequestFailure.WrongType),
             (ValidJson().Replace("\"ManagedCatalogRevision\":0", "\"ManagedCatalogRevision\":[]", StringComparison.Ordinal), ActionRequestFailure.WrongType),
@@ -86,7 +92,13 @@ public sealed class ActionRequestTests
     {
         var cases = new (string Json, ActionRequestFailure Failure)[]
         {
-            (ValidJson().Replace("\"SchemaVersion\":2", "\"SchemaVersion\":3", StringComparison.Ordinal), ActionRequestFailure.UnsupportedSchema),
+            (ValidJson().Replace("\"SchemaVersion\":3", "\"SchemaVersion\":2", StringComparison.Ordinal), ActionRequestFailure.UnsupportedSchema),
+            (ValidJson().Replace("\"SchemaVersion\":3", "\"SchemaVersion\":4", StringComparison.Ordinal), ActionRequestFailure.UnsupportedSchema),
+            (ValidJson().Replace("\"CloseOpenAppsFor\":[]", "\"CloseOpenAppsFor\":[\"Vendor.Other\"]", StringComparison.Ordinal), ActionRequestFailure.InvalidCloseOpenApps),
+            (ValidJson().Replace("\"CloseOpenAppsFor\":[]", "\"CloseOpenAppsFor\":[\"Vendor.One\",\"vendor.one\"]", StringComparison.Ordinal), ActionRequestFailure.InvalidCloseOpenApps),
+            (ValidJson().Replace("\"CloseOpenAppsFor\":[]", "\"CloseOpenAppsFor\":[\"bad id\"]", StringComparison.Ordinal), ActionRequestFailure.InvalidCloseOpenApps),
+            (ValidJson().Replace("\"DryRun\":false", "\"DryRun\":true", StringComparison.Ordinal)
+                .Replace("\"CloseOpenAppsFor\":[]", "\"CloseOpenAppsFor\":[\"Vendor.One\"]", StringComparison.Ordinal), ActionRequestFailure.InvalidCloseOpenApps),
             (ValidJson().Replace("\"Action\":\"Install\"", "\"Action\":\"Uninstall\"", StringComparison.Ordinal), ActionRequestFailure.UnsupportedAction),
             (ValidJson().Replace(RequestId, "request-invalid", StringComparison.Ordinal), ActionRequestFailure.InvalidRequestId),
             (ValidJson().Replace("\"Vendor.One\"", "\"\"", StringComparison.Ordinal), ActionRequestFailure.InvalidPackageId),
@@ -248,7 +260,7 @@ public sealed class ActionRequestTests
         new(ActionRequestRules.CurrentSchemaVersion, RequestId, action, ids, riskAcknowledged, dryRun);
 
     private static string ValidJson() =>
-        "{\"SchemaVersion\":2,\"RequestId\":\"request-20260829-142233-0123abcd\",\"Action\":\"Install\",\"PackageIds\":[\"Vendor.One\"],\"RiskAcknowledged\":false,\"DryRun\":false,\"ManagedCatalogRevision\":0}";
+        "{\"SchemaVersion\":3,\"RequestId\":\"request-20260829-142233-0123abcd\",\"Action\":\"Install\",\"PackageIds\":[\"Vendor.One\"],\"RiskAcknowledged\":false,\"DryRun\":false,\"ManagedCatalogRevision\":0,\"CloseOpenAppsFor\":[]}";
 
     private static PackageState State(
         string id,

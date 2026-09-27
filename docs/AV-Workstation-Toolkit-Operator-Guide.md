@@ -89,11 +89,14 @@ Credentials are sent to the packaged launcher over redirected standard input, no
 2. Review the reboot banner, package status, version, risk, and restriction note.
 3. Select only the apps required for this workstation or role.
 4. Choose `Install selected` or `Update selected`.
-5. If the selection includes an app that may install a driver, add a background service, or accept network connections, **Confirm system changes** names each such app and what it may do. Review it, then choose `Install N apps` or `Update N apps`, or `Cancel` to change nothing. The answer covers that run only, and the next run asks again. A note under the selection says beforehand how many selected apps make system-level changes.
-6. Allow each installer to finish. Progress and winget output appear in the activity pane.
-7. Review the final verification result, then refresh the plan.
+5. If any of the selected apps is open, **Close open apps** names them, because an installer can fail while its app runs. Choose `Close apps and continue` to have each open app asked to close just before its own installer, `Skip open apps` to leave them out of this run, or `Cancel` to change nothing.
+6. If the selection includes an app that may install a driver, add a background service, or accept network connections, **Confirm system changes** names each such app and what it may do. Review it, then choose `Install N apps` or `Update N apps`, or `Cancel` to change nothing. The answer covers that run only, and the next run asks again. A note under the selection says beforehand how many selected apps make system-level changes.
+7. Allow each installer to finish. Progress and winget output appear in the activity pane.
+8. Review the final verification result, then refresh the plan.
 
-The worker executes one exact winget package ID at a time through a verified Microsoft Desktop App Installer binary. Low-risk packages normally request silent installation. A small number of reviewed exceptions omit the silent flag because their installer cannot complete a quiet machine-wide upgrade from a standard-user session; PuTTY is currently the only one. Those operations still pass `--disable-interactivity`, so winget itself never waits on a prompt, but omitting the silent flag does not guarantee that the installer stays silent: it may display its own window or request administrator approval, and that behaviour has to be confirmed on the target workstation before the package is deployed at scale. Driver-, service-, and listener-bearing packages remain interactive so their installer choices stay visible. In a multi-package request, AV Workstation Toolkit refreshes reboot and eligibility state before each package after the first. If a reboot becomes pending, a low-risk next package may continue; a risk-bearing next package is rejected before execution.
+The worker executes one exact winget package ID at a time through a verified Microsoft Desktop App Installer binary. Low-risk packages normally request silent installation. A small number of reviewed exceptions omit the silent flag because their installer cannot complete a quiet machine-wide upgrade from a standard-user session; PuTTY is currently the only one. Those operations still pass `--disable-interactivity`, so winget itself never waits on a prompt, but omitting the silent flag does not guarantee that the installer stays silent: it may display its own window or request administrator approval, and that behaviour has to be confirmed on the target workstation before the package is deployed at scale. Driver-, service-, and listener-bearing packages remain interactive so their installer choices stay visible. In a multi-package request, AV Workstation Toolkit refreshes reboot and eligibility state before each package after the first. If a reboot becomes pending, a low-risk next package may continue; a risk-bearing package is skipped with the reason, and the run continues with the rest.
+
+Many installers refuse to run while their app is open. ShareX's installer, for example, exits with code 1 under a silent install whenever ShareX is running in the notification area. Just before each package, the worker asks Windows Restart Manager which apps are running that package's installed programs, located from the app's own uninstall registration rather than by process name. If you agreed to close them, each is asked to close the way Windows asks at sign-out; nothing is forced. Its installer then runs, and apps that registered with Windows for restart reopen afterward; the activity pane names any you need to reopen yourself. An app that is open without your agreement, or that refuses to close (for example over unsaved work), is recorded as **In use** and its installer never runs. Every requested app appears in the result, including any a stopped run never reached (**Not started**).
 
 The main banner describes this condition in plain language: `Restart recommended. Windows is waiting for a restart to finish an update. Most low-risk actions remain available, but system-level changes stay paused until you restart.` Select `Check again` after restarting or after Windows finishes servicing. If a provider check also failed, the banner lists both conditions rather than hiding one. Technical reboot signals remain available in Diagnostics.
 
@@ -129,8 +132,9 @@ workstation template.
    needs, split into available for automatic installation, manual, not in the
    catalog, and to review.
 3. Use **Install** or **Install all available** for approved managed apps. The
-   same confirmation, risk acknowledgement, restart rule, holds, and worker
-   checks apply as in the main window, and the Toolkit rescans afterward.
+   same open-app question, confirmation, risk acknowledgement, restart rule,
+   holds, and worker checks apply as in the main window, and the Toolkit
+   rescans afterward.
    Install everything else yourself; for a catalog app, **Get package** in the
    main window opens its approved vendor page or download. Then choose
    **Rescan**. An app leaves **Remaining** only when a scan detects it.

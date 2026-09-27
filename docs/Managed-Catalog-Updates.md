@@ -10,7 +10,7 @@ The store keeps no revision database or history. Staging is bounded, activation 
 
 ## Worker authority and revision consistency
 
-The UI never sends package policy, installer arguments, commands, URLs, or paths. Action-request schema 2 contains exact package IDs, the reviewed action flags, and `ManagedCatalogRevision`. The compiled worker independently loads and verifies the active managed catalog, rebuilds a fresh plan, and rejects the request unless its verified revision exactly matches the application revision. It then derives eligibility, risk, installer mode, deployment/maintenance policy, and fixed WinGet arguments from that worker-owned plan.
+The UI never sends package policy, installer arguments, commands, URLs, or paths. Action-request schema 3 contains exact package IDs, the reviewed action flags, `ManagedCatalogRevision`, and `CloseOpenAppsFor`, the requested packages whose open apps the technician agreed may be asked to close. The compiled worker independently loads and verifies the active managed catalog, rebuilds a fresh plan, and rejects the request unless its verified revision exactly matches the application revision. It then derives eligibility, risk, installer mode, deployment/maintenance policy, and fixed WinGet arguments from that worker-owned plan.
 
 Catalog payloads retain the strict `managed-applications.json` schema. Unknown fields and invalid policy tokens are rejected. Remote catalogs cannot add commands, scripts, sources, installer URLs, executable paths, environment expansion, or WinGet arguments. `ForbiddenPattern` must exactly match the compiled reviewed contract, so a signed update cannot weaken that security policy.
 

@@ -8,7 +8,7 @@ namespace AVWorkstationToolkit.Application.Actions;
 
 public static class ActionProtocolLimits
 {
-    public const int CurrentResultSchemaVersion = 2;
+    public const int CurrentResultSchemaVersion = 3;
     public const int MaximumProgressBytes = 20 * 1024 * 1024;
     public const int MaximumProgressRecordBytes = 16 * 1024;
     public const int MaximumResultBytes = 2 * 1024 * 1024;
@@ -329,19 +329,22 @@ public sealed class ActionResultCodec
             {
                 PackageOutcomeStatus.Planned => request.DryRun && package.ExitCode == 0 && !package.Verified,
                 PackageOutcomeStatus.Blocked => package.ExitCode == 3 && !package.Verified && package.StartedAt is null,
+                PackageOutcomeStatus.InUse => !request.DryRun && package.ExitCode == 3 && !package.Verified && package.StartedAt is null,
+                PackageOutcomeStatus.NotStarted => package.ExitCode == 2 && !package.Verified && package.StartedAt is null,
                 PackageOutcomeStatus.Failed => package.ExitCode != 0 && !package.Verified,
                 PackageOutcomeStatus.Succeeded => package.ExitCode == 0 && package.Verified,
                 PackageOutcomeStatus.Unverified => package.ExitCode == 0 && !package.Verified,
                 _ => false
             };
             if (!consistent) throw Invalid($"Package result semantics are inconsistent for {package.Id}.");
-            if (package.Status != PackageOutcomeStatus.Blocked && package.StartedAt is null)
+            var neverRan = package.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse or PackageOutcomeStatus.NotStarted;
+            if (!neverRan && package.StartedAt is null)
                 throw Invalid($"Package result StartedAt is required for {package.Id}.");
             if (package.StartedAt is not null && package.FinishedAt < package.StartedAt)
                 throw Invalid($"Package result timestamps are inconsistent for {package.Id}.");
-            if (package.Status == PackageOutcomeStatus.Blocked)
+            if (neverRan)
             {
-                if (package.Arguments.Count != 0) throw Invalid($"A blocked package result cannot contain WinGet arguments for {package.Id}.");
+                if (package.Arguments.Count != 0) throw Invalid($"A package that never ran cannot carry WinGet arguments for {package.Id}.");
             }
             else if (!HasExpectedWinGetArguments(package))
             {
@@ -349,18 +352,26 @@ public sealed class ActionResultCodec
             }
         }
 
+        // Only a rejected request may omit packages: every other result accounts for each requested package, so none can
+        // silently drop out of what the technician is told.
+        if (result.Status != ActionResultStatus.Rejected &&
+            result.Packages.Count != request.PackageIds.Distinct(StringComparer.OrdinalIgnoreCase).Count())
+            throw Invalid("A final result must account for every requested package.");
+
+        static bool Failed(ActionPackageOutcome item) => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified;
+        static bool Held(ActionPackageOutcome item) => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse;
         if (result.Status == ActionResultStatus.Succeeded)
         {
             var requiredStatus = request.DryRun ? PackageOutcomeStatus.Planned : PackageOutcomeStatus.Succeeded;
-            if (result.Packages.Count != request.PackageIds.Distinct(StringComparer.OrdinalIgnoreCase).Count() || result.Packages.Any(item => item.Status != requiredStatus))
+            if (result.Packages.Any(item => item.Status != requiredStatus))
                 throw Invalid("A successful final result must account for every requested package with the expected verified or dry-run status.");
         }
-        if (result.Status == ActionResultStatus.Failed && !result.Packages.Any(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified))
+        if (result.Status == ActionResultStatus.Failed && !result.Packages.Any(Failed))
             throw Invalid("A failed final result must contain a failed or unverified package outcome.");
-        if (result.Status == ActionResultStatus.Blocked && !result.Packages.Any(item => item.Status == PackageOutcomeStatus.Blocked))
-            throw Invalid("A blocked final result must contain a blocked package outcome.");
-        if (result.Status == ActionResultStatus.Cancelled && result.Packages.Any(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified or PackageOutcomeStatus.Blocked))
-            throw Invalid("A cancelled final result cannot contain a failed, unverified, or blocked package outcome under the shipping precedence rules.");
+        if (result.Status == ActionResultStatus.Blocked && (!result.Packages.Any(Held) || result.Packages.Any(Failed)))
+            throw Invalid("A blocked final result must contain a blocked or in-use package outcome and no failed one.");
+        if (result.Status == ActionResultStatus.Cancelled && result.Packages.Any(item => Failed(item) || Held(item)))
+            throw Invalid("A cancelled final result cannot contain a failed, unverified, blocked, or in-use package outcome under the shipping precedence rules.");
     }
 
     private static bool HasExpectedWinGetArguments(ActionPackageOutcome package)

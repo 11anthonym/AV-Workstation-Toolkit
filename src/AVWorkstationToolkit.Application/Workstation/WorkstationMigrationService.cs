@@ -223,6 +223,7 @@ public sealed class WorkstationMigrationService
     public async Task<MigrationInstallOutcome> InstallAsync(
         IReadOnlyCollection<string> itemIds,
         bool riskAcknowledged,
+        IReadOnlyCollection<string>? closeOpenAppsFor = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
@@ -245,8 +246,13 @@ public sealed class WorkstationMigrationService
         var scanProblem = string.Empty;
         try
         {
+            // Consent to close apps can name only packages in this request.
+            var closeFor = (closeOpenAppsFor ?? [])
+                .Where(id => states.Any(state => state.Package.Id.Equals(id, StringComparison.OrdinalIgnoreCase)))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
             run = await actions.StartAsync(ManagedRequestAction.Install, states, checklist.Plan, riskAcknowledged, dryRun: false,
-                cancellationToken).ConfigureAwait(false);
+                closeOpenAppsFor: closeFor, cancellationToken: cancellationToken).ConfigureAwait(false);
             result = run.Result;
         }
         catch (CompiledActionVerificationException unverified)
@@ -280,8 +286,9 @@ public sealed class WorkstationMigrationService
                     {
                         PackageOutcomeStatus.Succeeded => "Installed and verified by the worker.",
                         PackageOutcomeStatus.Blocked => "Blocked by policy when the worker rechecked it.",
+                        PackageOutcomeStatus.InUse => "The app was open, so it wasn't installed. Close it and install again.",
                         PackageOutcomeStatus.Unverified => "The installer finished, but the worker couldn't verify the result.",
-                        PackageOutcomeStatus.Planned => "The worker didn't reach this app.",
+                        PackageOutcomeStatus.Planned or PackageOutcomeStatus.NotStarted => "The worker didn't reach this app.",
                         _ => $"The installer failed with exit code {outcome.ExitCode}."
                     };
                 if (session.Items.Any(entry => entry.ItemId == item.ItemId))

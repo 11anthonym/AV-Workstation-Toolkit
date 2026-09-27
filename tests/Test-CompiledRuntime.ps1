@@ -44,6 +44,13 @@ else {
     if ($LASTEXITCODE -ne 0) { throw 'Compiled App action-flow integration failed.' }
 }
 
+# Windows Restart Manager against the non-shipping open-app fixture only: it must find the fixture by its program file,
+# close it without force when it agrees, and leave it running when it refuses. No other app is touched.
+$openAppHarness = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.IntegrationTests\bin\Release\net10.0-windows\AVWorkstationToolkit.IntegrationTests.exe'
+$openAppFixture = Join-Path $repositoryRoot 'tests\AVWorkstationToolkit.OpenAppFixture\bin\Release\net10.0-windows\AVWorkstationToolkit.OpenAppFixture.exe'
+& $openAppHarness --open-app-boundary $openAppFixture
+if ($LASTEXITCODE -ne 0) { throw 'Open-app Restart Manager boundary failed.' }
+
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -STA -File (Join-Path $PSScriptRoot 'Test-CompiledWpfSmoke.ps1')
 if ($LASTEXITCODE -ne 0) { throw 'Compiled WPF smoke failed.' }
 & powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $PSScriptRoot 'Test-CompiledLiveRehearsal.ps1') -NoBuild

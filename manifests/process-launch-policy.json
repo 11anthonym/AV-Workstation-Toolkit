@@ -30,6 +30,16 @@
       "Boundary": "The executable must be the registered Microsoft Desktop App Installer winget.exe beneath protected Program Files\\WindowsApps with a valid Microsoft Authenticode signature. Inventory uses fixed read-only vectors. Production change actions are internally constructed Install/Update vectors for one exact reauthorized managed catalog package ID."
     },
     {
+      "Id": "restart-manager-reopen",
+      "Initiator": "Compiled production worker through Windows Restart Manager (RmRestart)",
+      "Executable": "<restart-command-the-app-registered-with-Windows>",
+      "ShellExecute": false,
+      "Arguments": [
+        "<arguments-the-app-registered-with-RegisterApplicationRestart>"
+      ],
+      "Boundary": "Only after the technician agreed to close a package's open apps, and only for apps Windows Restart Manager asked to close (never forced) just before that package's installer and that registered themselves with Windows for restart. Restart Manager reopens each with the command line the app itself registered; AV Workstation Toolkit supplies no executable, argument, or path."
+    },
+    {
       "Id": "explorer-handoff",
       "Initiator": "Compiled WPF App",
       "Executable": "%SystemRoot%\\explorer.exe",

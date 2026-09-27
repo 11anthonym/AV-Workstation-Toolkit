@@ -1812,7 +1812,7 @@ Invoke-Check 'Child-process policy is explicit, bounded, and complete' {
     $policy = Get-Content -LiteralPath $processPolicyPath -Raw | ConvertFrom-Json
     Assert-Equal 1 ([int]$policy.SchemaVersion) 'Process policy schema differs.'
     Assert-Equal 'AV Workstation Toolkit' ([string]$policy.Product) 'Process policy product differs.'
-    $expectedIds = @('compiled-action-worker','winget','explorer-handoff','https-shell-handoff','snapshot-dsregcmd')
+    $expectedIds = @('compiled-action-worker','winget','restart-manager-reopen','explorer-handoff','https-shell-handoff','snapshot-dsregcmd')
     Assert-Equal ($expectedIds -join '|') (@($policy.Launches.Id) -join '|') 'Allowed child-process categories differ.'
     Assert-Equal @($policy.Launches).Count @($policy.Launches.Id | Sort-Object -Unique).Count 'Process policy contains duplicate IDs.'
     foreach ($launch in @($policy.Launches)) {
@@ -1846,7 +1846,7 @@ Invoke-Check 'Worker launch arguments are deterministic and arbitrary request pa
 }
 Invoke-Check 'Endpoint-trust static QA rejects suspicious production patterns' {
     $output = (& (Join-Path $PSScriptRoot 'Test-EndpointTrust.ps1') | Out-String)
-    Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=5') 'Endpoint-trust QA did not validate the reviewed process contract.'
+    Assert-True ($output -match 'ENDPOINT_TRUST_OK launches=6') 'Endpoint-trust QA did not validate the reviewed process contract.'
 }
 Invoke-Check 'Clone build entry point and tagged-release workflow publish the standalone executable' {
     $buildEntryPath = Join-Path $repositoryRoot 'Build-AVWorkstationToolkit.cmd'

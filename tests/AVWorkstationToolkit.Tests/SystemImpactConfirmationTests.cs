@@ -141,27 +141,35 @@ public sealed class SystemImpactConfirmationTests
         Assert.IsFalse(harness.Actions.Request!.RiskAcknowledged);
     }
 
-    internal sealed class RecordingConfirmation(bool answer) : ISystemImpactConfirmation
+    internal sealed class RecordingConfirmation(bool answer, OpenAppsDecision openAppsAnswer = OpenAppsDecision.Cancel) : IActionConfirmation
     {
         public List<SystemImpactPrompt> Prompts { get; } = [];
+        public List<OpenAppsPrompt> OpenAppsPrompts { get; } = [];
         public bool ConfirmSystemImpact(SystemImpactPrompt prompt)
         {
             Prompts.Add(prompt);
             return answer;
         }
+
+        public OpenAppsDecision ChooseForOpenApps(OpenAppsPrompt prompt)
+        {
+            OpenAppsPrompts.Add(prompt);
+            return openAppsAnswer;
+        }
     }
 
-    private sealed record MainWindowHarness(MainWindowViewModel ViewModel, RecordingConfirmation Confirmation, WorkstationMigrationTests.RecordingActionStore Actions)
+    internal sealed record MainWindowHarness(MainWindowViewModel ViewModel, RecordingConfirmation Confirmation, WorkstationMigrationTests.RecordingActionStore Actions)
     {
-        public static async Task<MainWindowHarness> CreateAsync(bool answer, bool withConfirmation = true)
+        public static async Task<MainWindowHarness> CreateAsync(bool answer, bool withConfirmation = true,
+            OpenAppsDecision openAppsAnswer = OpenAppsDecision.Cancel, IOpenApplicationService? openApplications = null)
         {
             var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
             var after = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult(("7zip.7zip", "26.03"), ("WiresharkFoundation.Wireshark", "4.4.0")));
             var planning = new MigrationPresentationTests.QueuePlanning(before.Plan, after.Plan);
             var actions = new WorkstationMigrationTests.RecordingActionStore();
-            var confirmation = new RecordingConfirmation(answer);
+            var confirmation = new RecordingConfirmation(answer, openAppsAnswer);
             var viewModel = new MainWindowViewModel(planning, actionCoordinator: Coordinator(actions, planning), searchDebounce: TimeSpan.Zero,
-                systemImpactConfirmation: withConfirmation ? confirmation : null);
+                actionConfirmation: withConfirmation ? confirmation : null, openApplications: openApplications);
             await viewModel.RefreshAsync();
             return new MainWindowHarness(viewModel, confirmation, actions);
         }
@@ -170,7 +178,7 @@ public sealed class SystemImpactConfirmationTests
     private static CompiledActionCoordinator Coordinator(WorkstationMigrationTests.RecordingActionStore actions, AVWorkstationToolkit.Application.Planning.IWorkstationPlanningCoordinator planning) =>
         new(actions, new WorkstationMigrationTests.ImmediateLauncher(), planning, pollInterval: TimeSpan.FromMilliseconds(1), resultTimeout: TimeSpan.FromSeconds(10));
 
-    private static async Task Until(Func<bool> condition)
+    internal static async Task Until(Func<bool> condition)
     {
         for (var attempt = 0; attempt < 500 && !condition(); attempt++) await Task.Delay(10);
         Assert.IsTrue(condition(), "The expected state was not reached.");

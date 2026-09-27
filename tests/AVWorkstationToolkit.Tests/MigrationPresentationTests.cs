@@ -304,14 +304,15 @@ public sealed class MigrationPresentationTests
         Create(new WorkstationMigrationTests.FixedPlanning(plan), files, actions);
 
     internal static (MigrationViewModel ViewModel, WorkstationMigrationService Service, WorkstationMigrationTests.MemorySessionStore Store) Create(
-        IWorkstationPlanningCoordinator planning, FakeFiles files, WorkstationMigrationTests.RecordingActionStore? actions = null)
+        IWorkstationPlanningCoordinator planning, FakeFiles files, WorkstationMigrationTests.RecordingActionStore? actions = null,
+        IOpenApplicationService? openApplications = null)
     {
         var store = new WorkstationMigrationTests.MemorySessionStore();
         var coordinator = actions is null ? null : new CompiledActionCoordinator(actions, new WorkstationMigrationTests.ImmediateLauncher(), planning,
             pollInterval: TimeSpan.FromMilliseconds(1), resultTimeout: TimeSpan.FromSeconds(10));
         var service = new WorkstationMigrationService(planning, MigrationFixtures.InventoryService(), store, coordinator,
             new WorkstationMigrationTests.FixedTime(MigrationFixtures.Now));
-        return (new MigrationViewModel(service, files, "1.1.2"), service, store);
+        return (new MigrationViewModel(service, files, "1.1.2", openApplications: openApplications), service, store);
     }
 
     // Offscreen rendering: layout and binding must succeed; when AVWT_RENDER_DIR is set, the image is saved for review.
@@ -405,6 +406,15 @@ public sealed class MigrationPresentationTests
         {
             SystemImpactPrompts.Add(prompt);
             return SystemImpactAnswer;
+        }
+
+        /// <summary>What the technician chooses when some apps to install are open, and each question asked.</summary>
+        public OpenAppsDecision OpenAppsAnswer { get; set; } = OpenAppsDecision.Cancel;
+        public List<OpenAppsPrompt> OpenAppsPrompts { get; } = [];
+        public OpenAppsDecision ChooseForOpenApps(OpenAppsPrompt prompt)
+        {
+            OpenAppsPrompts.Add(prompt);
+            return OpenAppsAnswer;
         }
         public byte[] Read(string path, int maximumBytes) => Files[path];
         public void Write(string path, byte[] content) => Files[path] = content;

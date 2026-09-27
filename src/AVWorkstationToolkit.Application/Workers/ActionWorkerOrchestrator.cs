@@ -92,6 +92,7 @@ public sealed class ActionWorkerOrchestrator
     private readonly IPackageActionExecutor executor;
     private readonly IActionWorkerProtocol protocol;
     private readonly ActionRequestAuthorizationService authorization;
+    private readonly IOpenApplicationService openApplications;
     private readonly TimeProvider timeProvider;
     private readonly string computerName;
 
@@ -101,12 +102,14 @@ public sealed class ActionWorkerOrchestrator
         IActionWorkerProtocol protocol,
         string computerName,
         ActionRequestAuthorizationService? authorization = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IOpenApplicationService? openApplications = null)
     {
         this.planProvider = planProvider ?? throw new ArgumentNullException(nameof(planProvider));
         this.executor = executor ?? throw new ArgumentNullException(nameof(executor));
         this.protocol = protocol ?? throw new ArgumentNullException(nameof(protocol));
         this.authorization = authorization ?? new ActionRequestAuthorizationService();
+        this.openApplications = openApplications ?? NoOpenApplications.Instance;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         if (string.IsNullOrWhiteSpace(computerName) || computerName.Length > ActionProtocolLimits.MaximumComputerCharacters || computerName.Any(char.IsControl))
             throw new ArgumentException("The worker computer label is invalid.", nameof(computerName));
@@ -142,15 +145,19 @@ public sealed class ActionWorkerOrchestrator
             return await CompleteAsync(request, ActionResultStatus.Rejected, 1, exception.Message, outcomes, cancellationToken).ConfigureAwait(false);
         }
 
-        string blockReason = string.Empty;
         var cancellationObserved = false;
-        foreach (var initiallyPlannedPackage in initiallyAuthorized.Packages)
+        var planned = initiallyAuthorized.Packages;
+        for (var index = 0; index < planned.Count; index++)
         {
+            var initiallyPlannedPackage = planned[index];
             if (await protocol.IsCancellationRequestedAsync(cancellationToken).ConfigureAwait(false))
             {
                 cancellationObserved = true;
+                // Every requested package stays in the result, so the ones the run never reached are recorded too.
+                foreach (var remaining in planned.Skip(index))
+                    outcomes.Add(CreateOutcome(remaining, request.Action, PackageOutcomeStatus.NotStarted, 2, false, null, []));
                 await ProgressAsync(request, ActionProgressLevel.Warning, "Cancelled", string.Empty,
-                    "Stopped before starting the next package.", cancellationToken).ConfigureAwait(false);
+                    $"Stopped before starting the next package. {PackageCount(planned.Count - index)} not started.", cancellationToken).ConfigureAwait(false);
                 break;
             }
 
@@ -164,29 +171,81 @@ public sealed class ActionWorkerOrchestrator
             }
             catch (Exception exception) when (exception is ActionRequestValidationException or InvalidOperationException)
             {
-                blockReason = "Stopped before the next package: " + exception.Message;
+                // A package that fails its recheck is skipped on its own; the rest of the run continues, and each later
+                // package is rechecked against a fresh plan as always.
                 outcomes.Add(CreateOutcome(initiallyPlannedPackage, request.Action, PackageOutcomeStatus.Blocked, 3, false, null, []));
                 await ProgressAsync(request, ActionProgressLevel.Warning, "Blocked", initiallyPlannedPackage.Package.Id,
-                    blockReason, cancellationToken).ConfigureAwait(false);
-                break;
+                    $"Skipped {initiallyPlannedPackage.Package.Name}. {BlockedReason(exception)}", cancellationToken).ConfigureAwait(false);
+                continue;
             }
 
-            var startedAt = timeProvider.GetUtcNow();
             var arguments = ReviewedArgumentEvidence(package, request.Action);
-            await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
-                $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
-
             if (request.DryRun)
             {
-                outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.Planned, 0, false, startedAt, arguments));
+                var plannedAt = timeProvider.GetUtcNow();
+                await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
+                    $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
+                outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.Planned, 0, false, plannedAt, arguments));
                 await ProgressAsync(request, ActionProgressLevel.Success, "Planned", package.Package.Id,
                     "Safety checks passed. No change was made during this test run.", cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
-            var execution = await executor.ExecuteAsync(
-                new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk, package.Package.InstallerMode),
-                cancellationToken).ConfigureAwait(false);
+            // Many installers refuse to replace a program that is running. An app is closed only for a package the
+            // technician agreed to, only by asking it, and only just before that package's own installer runs.
+            IOpenApplicationClosure? closure = null;
+            var open = openApplications.FindOpen(package.Package.Id);
+            if (open.Count > 0)
+            {
+                if (!request.CloseOpenAppsFor.Contains(package.Package.Id, StringComparer.OrdinalIgnoreCase))
+                {
+                    outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.InUse, 3, false, null, []));
+                    await ProgressAsync(request, ActionProgressLevel.Warning, "InUse", package.Package.Id,
+                        $"{OpenApplicationText.Names(open)} {(OpenApplicationText.IsPlural(open) ? "are" : "is")} open, so {package.Package.Name} wasn't {ActionPastTense(request.Action).ToLowerInvariant()}. " +
+                        $"Close {(OpenApplicationText.IsPlural(open) ? "them" : "it")} and {ActionVerb(request.Action)} it again.", cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+                await ProgressAsync(request, ActionProgressLevel.Info, "Closing", package.Package.Id,
+                    $"Asking {OpenApplicationText.Names(open)} to close so {package.Package.Name} can be {ActionPastTense(request.Action).ToLowerInvariant()}.", cancellationToken).ConfigureAwait(false);
+                closure = openApplications.Close(package.Package.Id);
+                if (closure.StillOpen.Count > 0)
+                {
+                    var stillOpen = closure.StillOpen;
+                    var reopenedEarly = closure.Reopen();
+                    closure.Dispose();
+                    outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.InUse, 3, false, null, []));
+                    await ProgressAsync(request, ActionProgressLevel.Warning, "InUse", package.Package.Id,
+                        $"{OpenApplicationText.Names(stillOpen)} didn't close when asked, so {package.Package.Name} wasn't {ActionPastTense(request.Action).ToLowerInvariant()}. " +
+                        $"{(OpenApplicationText.IsPlural(stillOpen) ? "They" : "It")} may have unsaved work: close {(OpenApplicationText.IsPlural(stillOpen) ? "them" : "it")} yourself, then {ActionVerb(request.Action)} it again." +
+                        ReopenedNote(closure.Closed, reopenedEarly), cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+            }
+
+            var startedAt = timeProvider.GetUtcNow();
+            await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
+                $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
+            PackageExecutionResult execution;
+            IReadOnlyList<string> reopened = [];
+            try
+            {
+                execution = await executor.ExecuteAsync(
+                    new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk, package.Package.InstallerMode),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                // Whatever the installer did, the apps it needed closed are offered back as soon as it has finished.
+                if (closure is not null)
+                {
+                    reopened = closure.Reopen();
+                    closure.Dispose();
+                }
+            }
+            if (closure is not null && closure.Closed.Count > 0)
+                await ProgressAsync(request, ActionProgressLevel.Info, "Reopened", package.Package.Id,
+                    ReopenedNote(closure.Closed, reopened).TrimStart(), cancellationToken).ConfigureAwait(false);
+
             var verified = false;
             if (execution.Disposition == PackageExecutionDisposition.Succeeded)
             {
@@ -228,23 +287,56 @@ public sealed class ActionWorkerOrchestrator
             await ProgressAsync(request, level, stage, package.Package.Id, message, cancellationToken).ConfigureAwait(false);
         }
 
-        var failed = outcomes.Any(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
-        var blocked = outcomes.Any(item => item.Status == PackageOutcomeStatus.Blocked);
+        var failedCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
+        var heldCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse);
         var cancellationPresent = cancellationObserved || await protocol.IsCancellationRequestedAsync(cancellationToken).ConfigureAwait(false);
-        if (failed)
-        {
-            var failedCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
-            return await CompleteAsync(request, ActionResultStatus.Failed, 1,
-                $"{PackageCount(failedCount)} couldn't be completed or verified.", outcomes, cancellationToken).ConfigureAwait(false);
-        }
-        if (blocked)
-            return await CompleteAsync(request, ActionResultStatus.Blocked, 3, blockReason, outcomes, cancellationToken).ConfigureAwait(false);
+        if (failedCount > 0)
+            return await CompleteAsync(request, ActionResultStatus.Failed, 1, Summary(outcomes), outcomes, cancellationToken).ConfigureAwait(false);
+        if (heldCount > 0)
+            return await CompleteAsync(request, ActionResultStatus.Blocked, 3, Summary(outcomes), outcomes, cancellationToken).ConfigureAwait(false);
         if (cancellationPresent)
-            return await CompleteAsync(request, ActionResultStatus.Cancelled, 2, "Stopped after the current package.", outcomes, cancellationToken).ConfigureAwait(false);
+        {
+            var stopped = outcomes.Any(item => item.Status == PackageOutcomeStatus.NotStarted)
+                ? $"Stopped after the current package. {Summary(outcomes)}"
+                : "Stopped after the current package.";
+            return await CompleteAsync(request, ActionResultStatus.Cancelled, 2, stopped, outcomes, cancellationToken).ConfigureAwait(false);
+        }
 
         var successMessage = request.DryRun ? "Test run completed. No changes were made." : "All selected apps were completed and verified.";
         await ProgressAsync(request, ActionProgressLevel.Success, "Complete", string.Empty, successMessage, cancellationToken).ConfigureAwait(false);
         return await CompleteAsync(request, ActionResultStatus.Succeeded, 0, successMessage, outcomes, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>One sentence per kind of outcome that needs the technician, most serious first.</summary>
+    private static string Summary(IReadOnlyList<ActionPackageOutcome> outcomes)
+    {
+        var sentences = new List<string>();
+        var failed = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
+        var inUse = outcomes.Count(item => item.Status == PackageOutcomeStatus.InUse);
+        var blocked = outcomes.Count(item => item.Status == PackageOutcomeStatus.Blocked);
+        var notStarted = outcomes.Count(item => item.Status == PackageOutcomeStatus.NotStarted);
+        if (failed > 0) sentences.Add($"{PackageCount(failed)} couldn't be completed or verified.");
+        if (inUse > 0) sentences.Add(inUse == 1 ? "1 app was open, so it wasn't changed." : $"{inUse} apps were open, so they weren't changed.");
+        if (blocked > 0) sentences.Add(blocked == 1 ? "1 app was skipped when it was rechecked." : $"{blocked} apps were skipped when they were rechecked.");
+        if (notStarted > 0) sentences.Add(notStarted == 1 ? "1 app wasn't started." : $"{notStarted} apps weren't started.");
+        return string.Join(' ', sentences);
+    }
+
+    private static string BlockedReason(Exception exception) => exception switch
+    {
+        ActionRequestValidationException { ReasonCode: "PendingRebootRiskBlocked" } =>
+            "Windows is waiting for a restart, and this app can install a driver, add a background service, or accept network connections. Restart Windows, then try it again.",
+        _ => $"It was blocked when it was rechecked: {exception.Message}"
+    };
+
+    private static string ReopenedNote(IReadOnlyList<string> closed, IReadOnlyList<string> reopened)
+    {
+        if (closed.Count == 0) return string.Empty;
+        var notReopened = closed.Where(name => !reopened.Contains(name, StringComparer.OrdinalIgnoreCase)).ToArray();
+        var note = reopened.Count > 0 ? $" Reopened {OpenApplicationText.Names(reopened)}." : string.Empty;
+        if (notReopened.Length > 0)
+            note += $" {OpenApplicationText.Names(notReopened)} {(OpenApplicationText.IsPlural(notReopened) ? "were" : "was")} closed and can't reopen by itself; open {(OpenApplicationText.IsPlural(notReopened) ? "them" : "it")} again when you need {(OpenApplicationText.IsPlural(notReopened) ? "them" : "it")}.";
+        return note;
     }
 
     private async ValueTask ProgressAsync(

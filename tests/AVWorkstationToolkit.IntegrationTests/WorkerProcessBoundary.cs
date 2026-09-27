@@ -90,7 +90,10 @@ internal static class WorkerProcessBoundary
 
             var result = await ReadResultAsync(store, request, paths);
             AssertResult("cancellation", ActionResultStatus.Cancelled, process.ExitCode, result);
-            if (result.Packages.Count != 1 || result.Packages[0].Id != "Vendor.One")
+            // The package the stopped run never reached stays in the result as NotStarted.
+            if (result.Packages.Count != 2 ||
+                result.Packages[0].Id != "Vendor.One" || result.Packages[0].Status != PackageOutcomeStatus.Succeeded ||
+                result.Packages[1].Id != "Vendor.Two" || result.Packages[1].Status != PackageOutcomeStatus.NotStarted)
                 throw new InvalidDataException("Cancellation was not observed between packages.");
             var progress = ParseProgress(await store.ReadArtifactAsync(request.RequestId, ActionArtifactKind.Progress), request);
             if (!progress.Records.Any(item => item.Stage == "Cancelled"))

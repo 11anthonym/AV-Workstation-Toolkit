@@ -31,7 +31,8 @@ public enum ActionRequestFailure
     TooManyPackages,
     PackageNotInPlan,
     ActionMismatch,
-    PackageNotEligible
+    PackageNotEligible,
+    InvalidCloseOpenApps
 }
 
 public sealed class ActionRequestValidationException : Exception
@@ -40,6 +41,9 @@ public sealed class ActionRequestValidationException : Exception
         : base(message, innerException) => Failure = failure;
 
     public ActionRequestFailure Failure { get; }
+
+    /// <summary>The selection policy's reason code when a package isn't eligible; otherwise empty.</summary>
+    public string ReasonCode { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -55,7 +59,8 @@ public sealed record ActionRequest
         IEnumerable<string> packageIds,
         bool riskAcknowledged,
         bool dryRun,
-        long managedCatalogRevision = 0)
+        long managedCatalogRevision = 0,
+        IEnumerable<string>? closeOpenAppsFor = null)
     {
         ArgumentNullException.ThrowIfNull(packageIds);
         SchemaVersion = schemaVersion;
@@ -65,6 +70,7 @@ public sealed record ActionRequest
         RiskAcknowledged = riskAcknowledged;
         DryRun = dryRun;
         ManagedCatalogRevision = managedCatalogRevision;
+        CloseOpenAppsFor = Array.AsReadOnly((closeOpenAppsFor ?? []).ToArray());
     }
 
     public int SchemaVersion { get; }
@@ -74,6 +80,13 @@ public sealed record ActionRequest
     public bool RiskAcknowledged { get; }
     public bool DryRun { get; }
     public long ManagedCatalogRevision { get; }
+
+    /// <summary>
+    /// The requested packages whose open apps the technician agreed may be asked to close before that package's
+    /// installer runs. It is consent, not authority: the worker still reauthorizes every package, never forces an app
+    /// to close, and skips a package whose apps are open when its ID is absent here.
+    /// </summary>
+    public IReadOnlyList<string> CloseOpenAppsFor { get; }
 }
 
 public sealed record ActionRequestArtifactNames(
@@ -109,7 +122,7 @@ public sealed record AuthorizedActionRequest
 
 public static partial class ActionRequestRules
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
     public const int MaximumPackageCount = 100;
     public const int MaximumPayloadBytes = 65_536;
 
@@ -121,7 +134,8 @@ public static partial class ActionRequestRules
         "PackageIds",
         "RiskAcknowledged",
         "DryRun",
-        "ManagedCatalogRevision"
+        "ManagedCatalogRevision",
+        "CloseOpenAppsFor"
     ];
 
     public static IReadOnlyList<string> Properties => RequiredProperties;
@@ -176,6 +190,24 @@ public static partial class ActionRequestRules
         ValidatePackageIds(request.PackageIds);
         if (request.ManagedCatalogRevision < 0)
             throw new ActionRequestValidationException(ActionRequestFailure.WrongType, "ManagedCatalogRevision must be a non-negative integer.");
+        ValidateCloseOpenAppsFor(request);
+    }
+
+    // Consent to close apps names only packages in this request, each once, and a test run never closes anything.
+    private static void ValidateCloseOpenAppsFor(ActionRequest request)
+    {
+        if (request.CloseOpenAppsFor.Count == 0) return;
+        if (request.DryRun)
+            throw new ActionRequestValidationException(ActionRequestFailure.InvalidCloseOpenApps, "A test run never closes apps, so CloseOpenAppsFor must be empty.");
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var packageId in request.CloseOpenAppsFor)
+        {
+            if (packageId is null || !PackageIdPattern().IsMatch(packageId) ||
+                !request.PackageIds.Contains(packageId, StringComparer.OrdinalIgnoreCase))
+                throw new ActionRequestValidationException(ActionRequestFailure.InvalidCloseOpenApps, "CloseOpenAppsFor may name only packages in this request.");
+            if (!seen.Add(packageId))
+                throw new ActionRequestValidationException(ActionRequestFailure.InvalidCloseOpenApps, "CloseOpenAppsFor names a package more than once.");
+        }
     }
 }
 
@@ -197,7 +229,8 @@ public sealed class ActionRequestFactory
         ManagedRequestAction action,
         IEnumerable<string> packageIds,
         bool riskAcknowledged,
-        bool dryRun)
+        bool dryRun,
+        IEnumerable<string>? closeOpenAppsFor = null)
     {
         ArgumentNullException.ThrowIfNull(packageIds);
         if (!Enum.IsDefined(action))
@@ -221,7 +254,8 @@ public sealed class ActionRequestFactory
             ids,
             riskAcknowledged,
             dryRun,
-            managedCatalogRevision);
+            managedCatalogRevision,
+            closeOpenAppsFor);
         ActionRequestRules.Validate(request);
         return request;
     }
@@ -249,6 +283,9 @@ public sealed class ActionRequestCodec
             writer.WriteBoolean("RiskAcknowledged", request.RiskAcknowledged);
             writer.WriteBoolean("DryRun", request.DryRun);
             writer.WriteNumber("ManagedCatalogRevision", request.ManagedCatalogRevision);
+            writer.WriteStartArray("CloseOpenAppsFor");
+            foreach (var packageId in request.CloseOpenAppsFor) writer.WriteStringValue(packageId);
+            writer.WriteEndArray();
             writer.WriteEndObject();
         }
         return stream.ToArray();
@@ -323,8 +360,17 @@ public sealed class ActionRequestCodec
             var riskAcknowledged = RequireBoolean(properties["RiskAcknowledged"], "RiskAcknowledged");
             var dryRun = RequireBoolean(properties["DryRun"], "DryRun");
             var managedCatalogRevision = RequireInt64(properties["ManagedCatalogRevision"], "ManagedCatalogRevision");
+            if (properties["CloseOpenAppsFor"].ValueKind != JsonValueKind.Array)
+            {
+                throw WrongType("CloseOpenAppsFor must be a JSON array.");
+            }
+            var closeOpenAppsFor = new List<string>();
+            foreach (var item in properties["CloseOpenAppsFor"].EnumerateArray())
+            {
+                closeOpenAppsFor.Add(RequireString(item, "CloseOpenAppsFor item"));
+            }
 
-            var request = new ActionRequest(schema, requestId, action, ids, riskAcknowledged, dryRun, managedCatalogRevision);
+            var request = new ActionRequest(schema, requestId, action, ids, riskAcknowledged, dryRun, managedCatalogRevision, closeOpenAppsFor);
             ActionRequestRules.Validate(request);
             if (expectedRequestId is not null && !string.Equals(request.RequestId, expectedRequestId, StringComparison.Ordinal))
             {
@@ -413,7 +459,10 @@ public sealed class ActionRequestAuthorizationService
             var decision = selectionPolicy.Evaluate(package, plan.Reboot, request.RiskAcknowledged);
             if (!decision.IsAllowed)
             {
-                throw new ActionRequestValidationException(ActionRequestFailure.PackageNotEligible, $"{package.Package.Id}: {decision.ReasonCode}");
+                throw new ActionRequestValidationException(ActionRequestFailure.PackageNotEligible, $"{package.Package.Id}: {decision.ReasonCode}")
+                {
+                    ReasonCode = decision.ReasonCode
+                };
             }
             packages.Add(package);
         }

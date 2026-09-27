@@ -43,7 +43,9 @@ public sealed record CompiledAppServices(
     MigrationComposition Migration);
 
 /// <summary>The workstation migration service and the per-user data root that holds its checklist and profiles.</summary>
-public sealed record MigrationComposition(WorkstationMigrationService Service, string DataRoot, string ProductVersion);
+/// <remarks>OpenApplications finds apps that are open before an install; it is Restart Manager only in the packaged app.</remarks>
+public sealed record MigrationComposition(WorkstationMigrationService Service, string DataRoot, string ProductVersion,
+    IOpenApplicationService? OpenApplications = null);
 
 public static class CompiledAppComposition
 {
@@ -171,6 +173,7 @@ public static class CompiledAppComposition
         var executionMode = production ? "Packaged compiled runtime" : "Source compiled runtime";
         return new(catalog, compatibility, catalogUpdates, managedUpdates, managedCatalog.Source.Revision, planning, diagnostics, new CatalogDetailService(), actions, new DiagnosticsExportService(dataRoot), vendors,
             handoffs, packageDelivery, applicationMenu, version, executionMode, production,
-            new MigrationComposition(migration, dataRoot, new ProductRelease(version, prerelease).DisplayVersion));
+            new MigrationComposition(migration, dataRoot, new ProductRelease(version, prerelease).DisplayVersion,
+                production ? new RestartManagerOpenApplications() : NoOpenApplications.Instance));
     }
 }

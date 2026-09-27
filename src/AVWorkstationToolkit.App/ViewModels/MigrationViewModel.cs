@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Threading;
 using AVWorkstationToolkit.App.Commands;
 using AVWorkstationToolkit.App.Services;
+using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Application.Diagnostics;
 using AVWorkstationToolkit.Application.Planning;
 using AVWorkstationToolkit.Application.Workstation;
@@ -21,6 +22,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
 {
     private readonly WorkstationMigrationService service;
     private readonly IMigrationFileService files;
+    private readonly IOpenApplicationService openApplications;
     private readonly string generator;
     private readonly Dispatcher? dispatcher;
     private readonly Dictionary<string, MigrationItemViewModel> rows = new(StringComparer.Ordinal);
@@ -41,12 +43,14 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
     private bool disposed;
     private bool refreshScheduled;
 
-    public MigrationViewModel(WorkstationMigrationService service, IMigrationFileService files, string productVersion, Dispatcher? dispatcher = null)
+    public MigrationViewModel(WorkstationMigrationService service, IMigrationFileService files, string productVersion, Dispatcher? dispatcher = null,
+        IOpenApplicationService? openApplications = null)
     {
         this.service = service ?? throw new ArgumentNullException(nameof(service));
         this.files = files ?? throw new ArgumentNullException(nameof(files));
         generator = $"AV Workstation Toolkit {productVersion}";
         this.dispatcher = dispatcher ?? System.Windows.Application.Current?.Dispatcher;
+        this.openApplications = openApplications ?? NoOpenApplications.Instance;
         VisibleItems = new ReadOnlyObservableCollection<MigrationItemViewModel>(visible);
         Tasks = new ReadOnlyObservableCollection<MigrationTaskViewModel>(tasks);
         ReviewItems = new ReadOnlyObservableCollection<InventoryReviewRowViewModel>(reviewRows);
@@ -495,6 +499,31 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         }
         var eligible = targets.Where(item => item.CanInstall).ToArray();
         if (eligible.Length == 0) return;
+
+        // As in the main window: open apps are named first, and are closed only if the technician chooses that, by the
+        // worker asking each one just before its own installer runs.
+        var openApps = await OpenAppsCheck.RunAsync(openApplications, files, PackageAction.Install,
+            eligible.Where(item => item.PackageId.Length > 0).Select(item => (item.PackageId, item.Name)).ToArray()).ConfigureAwait(true);
+        if (!openApps.Proceed)
+        {
+            Status = "Install cancelled. Nothing was installed.";
+            return;
+        }
+        var skippedNote = string.Empty;
+        if (openApps.Skipped.Count > 0)
+        {
+            var skipped = eligible.Where(item => openApps.Skipped.Contains(item.PackageId)).Select(item => item.Name).ToArray();
+            eligible = eligible.Where(item => !openApps.Skipped.Contains(item.PackageId)).ToArray();
+            skippedNote = $"Skipped {OpenApplicationText.Names(skipped)} because {(skipped.Length == 1 ? "it's" : "they're")} open. ";
+            if (eligible.Length == 0)
+            {
+                Status = skippedNote + "Nothing was installed.";
+                return;
+            }
+        }
+        if (openApps.Problem.Length > 0)
+            skippedNote += $"Couldn't check which apps are open, so none will be closed: {Sanitize(openApps.Problem)} ";
+
         // Driver, service, and listener changes are confirmed here, once, with the apps named. The answer covers this install
         // only, and the worker still requires it for every such app.
         var prompt = SystemImpactPrompt.For(PackageAction.Install, eligible.Select(item => (item.Name, item.Risk)).ToArray());
@@ -505,10 +534,10 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
             return;
         }
         IsBusy = true;
-        Status = eligible.Length == 1 ? $"Installing {eligible[0].Name}…" : $"Installing {eligible.Length} apps one at a time…";
+        Status = skippedNote + (eligible.Length == 1 ? $"Installing {eligible[0].Name}…" : $"Installing {eligible.Length} apps one at a time…");
         try
         {
-            var outcome = await service.InstallAsync(eligible.Select(item => item.ItemId).ToArray(), acknowledged).ConfigureAwait(true);
+            var outcome = await service.InstallAsync(eligible.Select(item => item.ItemId).ToArray(), acknowledged, openApps.CloseFor).ConfigureAwait(true);
             // The installer's result and this PC's check afterward are separate facts. Only a scan completes an item, so a
             // missing or partial check says so rather than turning a finished install into a failure.
             var verification = outcome.ScanProblem.Length > 0
@@ -517,7 +546,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
                     ? $"The check afterward was incomplete ({inventory.Sources.Detail}): {outcome.DetectedAfterward} of {outcome.Requested} confirmed installed. Scan this PC again to check the rest."
                     : $"This PC was checked again: {outcome.DetectedAfterward} of {outcome.Requested} now detected as installed.";
             var saved = outcome.SaveProblem.Length > 0 ? $" The checklist couldn't be saved: {outcome.SaveProblem}" : string.Empty;
-            Status = $"Installer result: {outcome.Message} {verification}{saved}";
+            Status = $"{skippedNote}Installer result: {outcome.Message} {verification}{saved}";
         }
         catch (Exception exception)
         {

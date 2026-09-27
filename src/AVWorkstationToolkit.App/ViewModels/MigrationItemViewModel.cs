@@ -42,6 +42,7 @@ public sealed class MigrationItemViewModel : ObservableObject
     public bool IsApplication => item.IsApplication;
     public bool Undetectable => ApplicationReconciliationService.IsUndetectable(item.Desired);
     public PackageRisk Risk => item.CatalogState?.Package.Risk ?? PackageRisk.None;
+    public string PackageId => item.CatalogState?.Package.Id ?? string.Empty;
     public string OptionalLabel => item.Desired.Spec.Required ? string.Empty : "Not required";
 
     public bool Included

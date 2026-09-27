@@ -84,7 +84,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private PlanWarningPresentation warningPresentation = PlanWarningPresentation.None;
     private int mutationRefusalCount;
     private bool actionActive;
-    private readonly ISystemImpactConfirmation? systemImpactConfirmation;
+    private readonly IActionConfirmation? actionConfirmation;
+    private readonly IOpenApplicationService openApplications;
     private CompiledActionSnapshot actionSnapshot = new(CompiledActionState.Idle, string.Empty, "No installation or update is running.", [], null);
     private CompiledActionSnapshot? pendingActionSnapshot;
     private int refreshInvocationCount;
@@ -117,10 +118,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         Dispatcher? presentationDispatcher = null,
         TimeProvider? timeProvider = null,
         MigrationComposition? migration = null,
-        ISystemImpactConfirmation? systemImpactConfirmation = null)
+        IActionConfirmation? actionConfirmation = null,
+        IOpenApplicationService? openApplications = null)
     {
         this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
-        this.systemImpactConfirmation = systemImpactConfirmation;
+        this.actionConfirmation = actionConfirmation;
+        this.openApplications = openApplications ?? NoOpenApplications.Instance;
         this.diagnosticsService = diagnosticsService ?? CreateUnavailableDiagnosticsService();
         this.detailService = detailService ?? new CatalogDetailService();
         this.actionCoordinator = actionCoordinator;
@@ -1029,20 +1032,43 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
         if (plan is null) return;
+        var verb = expected == PackageAction.Install ? "Install" : "Update";
         var rows = packages.Where(item => item.Selected && item.Action == expected).ToArray();
+
+        // An installer can refuse to run while its app is open, so open apps are named first and the technician
+        // chooses to close them, skip them, or stop. Apps are only ever asked to close, by the worker, just before
+        // their own installer runs.
+        var openApps = await OpenAppsCheck.RunAsync(openApplications, actionConfirmation, expected,
+            rows.Select(item => (item.Id, item.Name)).ToArray()).ConfigureAwait(true);
+        if (openApps.Problem.Length > 0)
+            AppendActivity($"Couldn't check which apps are open, so none will be closed: {openApps.Problem}");
+        if (!openApps.Proceed)
+        {
+            AppendActivity($"{verb} cancelled. Nothing was changed.");
+            return;
+        }
+        if (openApps.Skipped.Count > 0)
+        {
+            var skipped = rows.Where(item => openApps.Skipped.Contains(item.Id)).Select(item => item.Name).ToArray();
+            rows = rows.Where(item => !openApps.Skipped.Contains(item.Id)).ToArray();
+            AppendActivity($"Skipped {OpenApplicationText.Names(skipped)} because {(skipped.Length == 1 ? "it's" : "they're")} open.");
+            if (rows.Length == 0) return;
+        }
+
         // Driver, service, and listener changes are confirmed here, once, with the apps named. The answer covers this run
         // only, and the worker still requires it for every such app. Without a way to ask, nothing starts.
         var prompt = SystemImpactPrompt.For(expected, rows.Select(item => (item.Name, item.Risk)).ToArray());
-        var riskAcknowledged = prompt is not null && systemImpactConfirmation?.ConfirmSystemImpact(prompt) == true;
+        var riskAcknowledged = prompt is not null && actionConfirmation?.ConfirmSystemImpact(prompt) == true;
         if (prompt is not null && !riskAcknowledged)
         {
-            AppendActivity($"{(expected == PackageAction.Install ? "Install" : "Update")} cancelled. Nothing was changed.");
+            AppendActivity($"{verb} cancelled. Nothing was changed.");
             return;
         }
         var selected = rows.Select(item => item.State).ToArray();
         try
         {
-            var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledged, dryRun: false).ConfigureAwait(true);
+            var completed = await actionCoordinator.StartAsync(action, selected, plan, riskAcknowledged, dryRun: false,
+                closeOpenAppsFor: openApps.CloseFor).ConfigureAwait(true);
             ApplyPlan(completed.RefreshedPlan, new HashSet<string>(StringComparer.OrdinalIgnoreCase), SelectedRow?.Id);
             Diagnostics = new DiagnosticsViewModel(await diagnosticsService.ComposeAsync(completed.RefreshedPlan).ConfigureAwait(true), ActionDiagnosticText(), diagnosticsExportService);
             PlanApplied?.Invoke(completed.RefreshedPlan);
@@ -1055,8 +1081,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            var verb = action == ManagedRequestAction.Install ? "install" : "update";
-            AppendActivity($"Couldn't {verb} the selected apps. {DiagnosticsRedactor.Sanitize(exception.Message)}");
+            AppendActivity($"Couldn't {verb.ToLowerInvariant()} the selected apps. {DiagnosticsRedactor.Sanitize(exception.Message)}");
         }
     }
 

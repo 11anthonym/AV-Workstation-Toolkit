@@ -186,9 +186,42 @@ public sealed class ActionProtocolTests
             Assert.AreEqual(ActionResultStatus.Failed,
                 codec.Parse(ResultJson(paths, "Failed", 1, PackageJson("Failed", 42, false)), Request(["Vendor.One"]), paths).Status);
             Assert.AreEqual(ActionResultStatus.Cancelled,
-                codec.Parse(ResultJson(paths, "Cancelled", 2, null), Request(["Vendor.One"]), paths).Status);
+                codec.Parse(ResultJson(paths, "Cancelled", 2, NotStartedJson()), Request(["Vendor.One"]), paths).Status);
             Assert.AreEqual(PackageOutcomeStatus.Planned,
                 codec.Parse(ResultJson(paths, "Succeeded", 0, PackageJson("Planned", 0, false)), Request(["Vendor.One"], dryRun: true), paths).Packages[0].Status);
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [TestMethod]
+    public void ResultParserAccountsForEveryPackageAndChecksOpenAndUnstartedPackages()
+    {
+        var root = CreateTemporaryRoot();
+        try
+        {
+            var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
+            var codec = new ActionResultCodec();
+            var request = Request(["Vendor.One"]);
+            Assert.AreEqual(PackageOutcomeStatus.InUse,
+                codec.Parse(ResultJson(paths, "Blocked", 3, NeverRanJson("InUse", 3)), request, paths).Packages[0].Status);
+            Assert.AreEqual(PackageOutcomeStatus.NotStarted,
+                codec.Parse(ResultJson(paths, "Cancelled", 2, NeverRanJson("NotStarted", 2)), request, paths).Packages[0].Status);
+
+            var rejected = new (byte[] Json, ActionRequest Request, string Why)[]
+            {
+                (ResultJson(paths, "Failed", 1, null), request, "a failed result that leaves out a requested package"),
+                (ResultJson(paths, "Blocked", 3, null), request, "a blocked result that leaves out a requested package"),
+                (ResultJson(paths, "Blocked", 3, NeverRanJson("InUse", 3)), Request(["Vendor.One"], dryRun: true), "an open app in a test run"),
+                (ResultJson(paths, "Blocked", 3, NeverRanJson("InUse", 0)), request, "an open app with the wrong exit code"),
+                (ResultJson(paths, "Blocked", 3, NeverRanJson("InUse", 3, started: true)), request, "an open app whose installer started"),
+                (ResultJson(paths, "Blocked", 3, NeverRanJson("InUse", 3, withArguments: true)), request, "an open app with WinGet arguments"),
+                (ResultJson(paths, "Cancelled", 2, NeverRanJson("InUse", 3)), request, "an open app in a cancelled result"),
+                (ResultJson(paths, "Blocked", 3, NeverRanJson("NotStarted", 2)), request, "a blocked result with nothing held"),
+                (ResultJson(paths, "Cancelled", 2, NeverRanJson("NotStarted", 3)), request, "an unstarted package with the wrong exit code"),
+                (ResultJson(paths, "Cancelled", 2, NeverRanJson("NotStarted", 2, withArguments: true)), request, "an unstarted package with WinGet arguments")
+            };
+            foreach (var item in rejected)
+                Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(item.Json, item.Request, paths), item.Why);
         }
         finally { Directory.Delete(root, true); }
     }
@@ -336,7 +369,7 @@ public sealed class ActionProtocolTests
         {
             var request = Request(["Vendor.One"]);
             var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
-            var cancelled = new ActionResultCodec().Parse(ResultJson(paths, "Cancelled", 2, null), request, paths);
+            var cancelled = new ActionResultCodec().Parse(ResultJson(paths, "Cancelled", 2, NotStartedJson()), request, paths);
             var lifecycle = new ActionRequestLifecycle(request);
             lifecycle.MarkPersisted();
             lifecycle.MarkAwaitingWorker();
@@ -558,6 +591,24 @@ public sealed class ActionProtocolTests
         ["Arguments"] = new JsonArray(
             "install", "--id", "Vendor.One", "--exact", "--source", "winget",
             "--accept-package-agreements", "--accept-source-agreements")
+    };
+
+    // A package the run never reached: every result except a rejection accounts for each requested package.
+    private static JsonObject NotStartedJson() => NeverRanJson("NotStarted", 2);
+
+    private static JsonObject NeverRanJson(string status, int exitCode, bool started = false, bool withArguments = false) => new()
+    {
+        ["Id"] = "Vendor.One",
+        ["Name"] = "Vendor One",
+        ["Action"] = "Install",
+        ["Status"] = status,
+        ["ExitCode"] = exitCode,
+        ["Verified"] = false,
+        ["StartedAt"] = started ? Timestamp.ToString("o") : null,
+        ["FinishedAt"] = Timestamp.AddSeconds(1).ToString("o"),
+        ["Arguments"] = withArguments
+            ? new JsonArray("install", "--id", "Vendor.One", "--exact", "--source", "winget", "--accept-package-agreements", "--accept-source-agreements")
+            : new JsonArray()
     };
 
     private static ActionRequest Request(IReadOnlyList<string> ids, bool dryRun = false, long revision = 0) =>

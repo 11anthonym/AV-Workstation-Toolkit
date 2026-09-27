@@ -32,7 +32,8 @@ try
         ? $"{assemblyVersion.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}"
         : throw new InvalidOperationException("The compiled worker version is unavailable.");
     var services = ProductionWorkerComposition.Create(dataRoot, applicationRoot, applicationVersion);
-    var orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName);
+    var orchestrator = new ActionWorkerOrchestrator(services.Plans, services.Executor, protocol, Environment.MachineName,
+        openApplications: services.OpenApplications);
     var result = await orchestrator.RunAsync(request);
     return result.ExitCode;
 }

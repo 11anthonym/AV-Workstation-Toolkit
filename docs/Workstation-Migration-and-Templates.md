@@ -230,9 +230,9 @@ installation authority.
 - **Authority comes from this workstation's plan.** Automatic installation is
   offered only for an app this workstation's current plan shows as an approved
   managed WinGet install. The request carries only exact plan package IDs and
-  goes through the same action coordinator, authorization, risk
-  acknowledgement, pending-restart rule, holds, and independently validating
-  worker as the main window. The worker installs one exact ID at a time with
+  goes through the same open-app question, action coordinator, authorization,
+  risk acknowledgement, pending-restart rule, holds, and independently
+  validating worker as the main window. The worker installs one exact ID at a time with
   `--id`, `--exact`, and `--source winget`.
 - **Nothing is marked done because an installer said so.** After an
   installation the workstation is scanned again, and an app is **Installed**

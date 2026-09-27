@@ -560,7 +560,8 @@ public partial class MainWindow : Window
             return;
         }
         var files = new WpfMigrationFileService(composition.DataRoot);
-        var migrationViewModel = new MigrationViewModel(composition.Service, files, composition.ProductVersion);
+        var migrationViewModel = new MigrationViewModel(composition.Service, files, composition.ProductVersion,
+            openApplications: composition.OpenApplications);
         migrationWindow = new MigrationWindow(migrationViewModel) { Owner = this };
         files.Owner = migrationWindow;
         migrationWindow.Closed += (_, _) => migrationWindow = null;

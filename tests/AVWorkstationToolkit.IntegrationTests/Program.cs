@@ -40,8 +40,15 @@ if (args.Length == 3 && args[0] == "--managed-catalog-binary-update")
     return 0;
 }
 
+if (args.Length == 2 && args[0] == "--open-app-boundary")
+{
+    Console.WriteLine(JsonSerializer.Serialize(OpenApplicationBoundary.Run(args[1])));
+    return 0;
+}
+
 Console.Error.WriteLine(
     "Usage: AVWorkstationToolkit.IntegrationTests --live-readonly | --worker-process <worker.exe> " +
     "| --compiled-action-flow <repository-root> | --live-rehearsal <repository-root> " +
-    "| --managed-app-host <fixture.json> | --managed-catalog-binary-update <repository-root> <worker-devhost.exe>");
+    "| --managed-app-host <fixture.json> | --managed-catalog-binary-update <repository-root> <worker-devhost.exe> " +
+    "| --open-app-boundary <open-app-fixture.exe>");
 return 2;

@@ -120,6 +120,7 @@ public sealed class CompiledActionCoordinator
         WorkstationPlan currentPlan,
         bool riskAcknowledged,
         bool dryRun,
+        IReadOnlyCollection<string>? closeOpenAppsFor = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(selectedPackages);
@@ -138,7 +139,7 @@ public sealed class CompiledActionCoordinator
             var ids = selectedPackages.Where(item => item.Action == expected).Select(item => item.Package.Id).ToArray();
             if (ids.Length != selectedPackages.Count)
                 throw new ActionRequestValidationException(ActionRequestFailure.ActionMismatch, "Every selected package must match the requested action.");
-            var request = requestFactory.Create(action, ids, riskAcknowledged, dryRun);
+            var request = requestFactory.Create(action, ids, riskAcknowledged, dryRun, closeOpenAppsFor);
             var authorized = authorization.Authorize(request, currentPlan);
             lifecycle = new ActionRequestLifecycle(request);
             paths = await store.PersistRequestAsync(authorized, cancellationToken).ConfigureAwait(false);

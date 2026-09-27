@@ -27,7 +27,7 @@ if ([int]$policy.SchemaVersion -ne 1 -or [string]$policy.Product -ne 'AV Worksta
     throw 'Process-launch policy identity is invalid.'
 }
 $expectedLaunchIds = @(
-    'compiled-action-worker','winget',
+    'compiled-action-worker','winget','restart-manager-reopen',
     'explorer-handoff','https-shell-handoff','snapshot-dsregcmd'
 )
 $actualLaunchIds = @($policy.Launches.Id)
@@ -369,6 +369,15 @@ if ($mutationRunnerSource -notmatch 'UseShellExecute\s*=\s*false' -or
     $mutationRunnerSource -notmatch 'Kill\(entireProcessTree:\s*true\)' -or
     $mutationRunnerSource -match '(?i)\b(?:cmd|powershell|pwsh)(?:\.exe)?\b|ShellExecute\s*=\s*true') {
     throw 'The non-shipping WinGet mutation boundary lost trusted resolution, typed arguments, standard-user enforcement, or bounded direct-process behavior.'
+}
+# Open apps are closed only through Windows Restart Manager, only by asking (never RmForceShutdown), and only for
+# processes Restart Manager found using the package's program files; nothing names, kills, or launches a process.
+$openApplicationsSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Infrastructure.Windows\Processes\RestartManagerOpenApplications.cs') -Raw
+if ($openApplicationsSource -notmatch 'RmShutdown\(handle, 0, IntPtr\.Zero\)' -or
+    $openApplicationsSource -notmatch 'RmRegisterResources\(handle, 0, null, \(uint\)native\.Length, native, 0, null\)' -or
+    $openApplicationsSource -notmatch 'RM_APP_TYPE\.RmMainWindow or RM_APP_TYPE\.RmOtherWindow or RM_APP_TYPE\.RmConsole or RM_APP_TYPE\.RmUnknownApp' -or
+    $openApplicationsSource -match '(?i)RmShutdown\([^)]*,\s*(?:0x)?1\s*,|RmShutdown\([^)]*RmForceShutdown|GetProcessesByName|\.Kill\(|TerminateProcess|ProcessStartInfo|Process\.Start|taskkill') {
+    throw 'Open-app handling can force an app closed, identify it by process name, or start a process.'
 }
 $argumentPolicySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Workers\ManagedWinGetArgumentPolicy.cs') -Raw
 if ($argumentPolicySource -notmatch '"install"\s*:\s*"upgrade"' -or
