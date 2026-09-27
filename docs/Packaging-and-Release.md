@@ -64,7 +64,7 @@ From the repository root, the supported fresh-clone build entry point is:
 Build-AVWorkstationToolkit.cmd
 ```
 
-The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.3` (for a beta, `artifacts\release\1.1.3-beta.N`; see [beta naming](#beta-naming)).
+The wrapper invokes the reviewed PowerShell build using inbox Windows PowerShell and `RemoteSigned`. Before deleting any prior output, the build enumerates installed SDKs, verifies that `global.json` selected a stable .NET 10 SDK under the supported feature-band policy, performs non-mutating locked restores, runs a machine-readable NuGet vulnerability audit, validates `VERSION` agreement and launcher/worker target settings, and runs the deterministic catalog compiler in `-Check` mode. It then runs source QA, publishes the self-contained untrimmed compiled worker, signs/verifies it when signing is configured, embeds those exact worker bytes plus the five strict runtime manifests into the self-contained untrimmed compiled-WPF bootstrap, builds the one-file MSI and ZIP, copies the reviewed third-party notices, creates a deterministic CycloneDX 1.6 SBOM containing the worker hash, and writes schema-v3 release metadata with compiled-runtime/signature identity plus SHA-256 checksums beneath `artifacts\release\1.1.3` (for a release candidate, `artifacts\release\1.1.3-rc.N`; see [release candidate naming](#beta-naming)).
 
 The release manifest records the build timestamp, commit SHA, clean/dirty source state, selected SDK, build channel, architecture, actual .NET runtime/apphost, NuGet audit state, artifact hashes, SBOM hash, checksum identity, and signer/timestamp state without local usernames or developer paths. The checksum list covers the EXE, MSI, ZIP, Apache-2.0 license, third-party notice, SBOM, and release manifest; only the checksum file itself is omitted to avoid a cycle. `Development` and `ReleaseCandidate` channels can be unsigned. `Production` requires a clean checkout and valid signed output.
 
@@ -137,9 +137,9 @@ Package QA never uses the operator's profile, so it is safe to run on a workstat
 - The isolated root must show what the packaged app wrote: the extracted `runtime\<version>`, its `logs\requests` and `reports` folders, and a migration checklist that the first smoke saves and the second reloads from disk and finishes. That proves the smoke exercised persistence rather than skipping it.
 - The MSI is only extracted with `msiexec /a`. Installing it would not be isolated: the package is per-machine, shares one upgrade code with every release, and allows same-version major upgrades, so installing a QA build would replace an installed release in `Program Files\AVWorkstationToolkit`, along with its Start menu shortcut and Installed Apps entry. The run reads the product's Windows Installer upgrade-family registration, Installed Apps entries, Start menu folder, and install folder before and after, and fails if any changed. An installation test belongs on a disposable virtual machine.
 
-Package QA stays a separate, explicit step rather than part of every `ReleaseCandidate` build. Its desktop smoke refreshes live WinGet and vendor release state, which is bounded but not deterministic, and it adds several minutes. Run it before publishing any release or beta.
+Package QA stays a separate, explicit step rather than part of every `ReleaseCandidate` build. Its desktop smoke refreshes live WinGet and vendor release state, which is bounded but not deterministic, and it adds several minutes. Run it on every release candidate and before publishing any release.
 
-A build replaces only its own release folder. It refuses to rebuild a pre-release label that already has a completed build (use the next label), or a published release (one with release notes in `docs\releases`) from a different commit. It records every other folder in `artifacts\release` before it starts and fails if any of them changed by the end.
+A completed release candidate or release is never rebuilt. Before it changes anything, the build refuses a target folder whose release manifest records the `ReleaseCandidate` or `Production` channel, whatever commit it came from: a candidate that needs changes gets the next `rc.N`, and an unpublished release whose QA failed is rebuilt only after someone moves its folder aside. A folder without a manifest (an unfinished build) and a `Development` build can be rebuilt. The build also records every other folder in `artifacts\release` before it starts and fails if any of them changed by the end. The tagged signing workflow removes its own intermediate unsigned build before each signed rebuild in its fresh workspace.
 
 ## Signing
 
@@ -202,45 +202,59 @@ powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-Endpo
 
 The optional scan uses an existing valid Microsoft-signed `MpCmdRun.exe`, reports unavailable versus passed, and fails on a nonzero scan/detection result. It does not change Defender policy, disable remediation, add exclusions, or upload artifacts to a public service. Pass `-RequireDefender` only on a release machine where Defender availability is an explicit prerequisite.
 
+<a id="release-lifecycle"></a>
+
+## Release lifecycle
+
+`VERSION` names the release the source is working toward. Every build of it is one of four kinds:
+
+| Stage | Build | Name people see | Published |
+|---|---|---|---|
+| Development | `Build-AVWorkstationToolkit.cmd` (the `Development` channel, no label) | `X.Y.Z`; product version `X.Y.Z+<commit>` | Never. It is a local working copy that the next build of the same version replaces. |
+| Release candidate | `-BuildChannel ReleaseCandidate -PrereleaseLabel rc.N` | `X.Y.Z-rc.N`, shown as "X.Y.Z RC N" | Not by default. A candidate is the evidence the owner reviews before a release; it becomes a GitHub pre-release only if the owner decides so. |
+| Unsigned release | `-BuildChannel ReleaseCandidate` without a label | `X.Y.Z` | Yes, with the owner's approval, until hosted signing is operational. |
+| Signed release | the tagged `vX.Y.Z` workflow on the `Production` channel, signature required | `X.Y.Z` | Yes, by that workflow only. |
+
+A candidate and the unsigned release of the same version are both `ReleaseCandidate` builds, so a candidate differs from the release it leads to only by its label. `Production` is never labeled, never unsigned, and never used for a local build.
+
 <a id="beta-publication"></a>
 
 ## Unsigned publication
 
-Until hosted signing is operational, public releases are unsigned `ReleaseCandidate` builds published as GitHub releases, each with the owner's explicit approval. They never use the production channel, the signature-required QA mode, or the `v*.*.*` production tag, so the fail-closed signing workflow does not run. The release title and notes state that the build is unsigned, and the newest release is marked as the latest so the repository's download link leads to it. An unsigned build is either:
+Until hosted signing is operational, public releases are unsigned `ReleaseCandidate` builds published as GitHub releases, each with the owner's explicit approval. They never use the production channel, the signature-required QA mode, or the `v*.*.*` production tag, so the fail-closed signing workflow does not run. The release title and notes state that the build is unsigned, and the newest release is marked as the latest so the repository's download link leads to it. An unsigned public build is either:
 
 - a **release**, `X.Y.Z`, built without a label, whose files and window title read `X.Y.Z` (1.1.2 is the first); or
-- a **beta**, `X.Y.Z-beta.N`, a pre-release of that version, named as described below.
+- a **release candidate**, `X.Y.Z-rc.N`, published as a GitHub pre-release only when the owner decides to.
 
 A version number is never reused for different bytes: once `X.Y.Z` is published unsigned, the first signed release is a later version.
 
-### Beta naming
+<a id="beta-naming"></a>
 
-A beta is a [Semantic Versioning](https://semver.org/) pre-release of the version in `VERSION`: `X.Y.Z-beta.N`, where `N` counts up from 1 and is never reused. The dot matters: `beta.10` sorts after `beta.9`. The label appears wherever people identify a build:
+### Release candidate naming
+
+A release candidate is a [Semantic Versioning](https://semver.org/) pre-release of the version in `VERSION`: `X.Y.Z-rc.N`, where `N` counts up from 1 for each version and is never reused. The dot matters: `rc.10` sorts after `rc.9`. A completed candidate is never rebuilt (see [Package QA](#package-qa)), so a candidate that needs changes becomes the next `rc.N`. The label appears wherever people identify a build:
 
 | Where | Example |
 |---|---|
-| Git tag (no leading `v`) | `1.1.1-beta.2` |
-| Release title | AV Workstation Toolkit 1.1.1 Beta 2 (unsigned) |
-| Artifact files and folder | `artifacts\release\1.1.1-beta.2\AV-Workstation-Toolkit-1.1.1-beta.2-win-x64.exe` |
-| Window title and About box | 1.1.1 Beta 2 |
-| Diagnostics, SBOM, and release manifest `ReleaseName` | `1.1.1-beta.2` |
-| Windows product version | `1.1.1-beta.2+<commit>` |
+| Artifact files and folder | `artifacts\release\1.1.3-rc.1\AV-Workstation-Toolkit-1.1.3-rc.1-win-x64.exe` |
+| Window title and About box | 1.1.3 RC 1 |
+| Diagnostics, SBOM, and release manifest `ReleaseName` | `1.1.3-rc.1` |
+| Windows product version | `1.1.3-rc.1+<commit>` |
+| Git tag and release title, only if the owner publishes it | `1.1.3-rc.1`; AV Workstation Toolkit 1.1.3 RC 1 (unsigned) |
 
-Everything that Windows or the catalogs compare stays numeric: assembly and file versions, the MSI `ProductVersion`, the `runtime\X.Y.Z` folder, and the application version checked against a catalog's `MinimumAppVersion`. Windows Installer compares only the first three version fields, so the MSI allows same-version upgrades: a later beta, and the final release, replace an installed beta instead of registering beside it. The build accepts a label only on the `ReleaseCandidate` channel, so production releases never carry one.
+Everything that Windows or the catalogs compare stays numeric: assembly and file versions, the MSI `ProductVersion`, the `runtime\X.Y.Z` folder, and the application version checked against a catalog's `MinimumAppVersion`. Windows Installer compares only the first three version fields, so the MSI allows same-version upgrades: a later candidate, and the final release, replace an installed candidate instead of registering beside it. The build accepts a label only on the `ReleaseCandidate` channel, so production releases never carry one.
 
-### Publishing an unsigned release or beta
+`rc.N` is the only label the build, the SBOM, package QA, endpoint-trust QA, and the app accept. The historical labels are facts about earlier builds, not a current convention: the first public releases were the betas `1.1.1-beta.1` (whose files and window title read `1.1.1`, before labels existed) and `1.1.1-beta.2`, built from their own tagged sources, and the local QA builds `1.1.2-alpha.1`, `1.1.3-alpha.1`, and `1.1.3-alpha.2` were never published and use no candidate number.
 
-1. Start from a clean checkout of current `main`, with AV Workstation Toolkit closed so the build does not replace an executable in use.
-2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate`, adding `-PrereleaseLabel beta.N` for a beta. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, any pre-release label, and unsigned signature state.
-3. Run full source QA and `tests\Test-Package.ps1`, adding `-PrereleaseLabel beta.N` for a beta. Package QA runs in isolated data roots and proves the operator's profile and installed copy unchanged (see [Package QA](#package-qa)); the owner still inspects the UI interactively.
-4. For a release (not a beta), make the release commit that moves the current-release statements from the previous release to `X.Y.Z` together with its notes `docs\releases\X.Y.Z.md`: the README download section and its three file names, SECURITY.md, the endpoint-security baseline, the SignPath readiness record, and the bug-report form's version placeholder, and remove `(unreleased)` from the change log's `Version X.Y.Z` entry. Source QA fails if these disagree with the newest release notes, so a version bump alone can never move them ahead of publication. Build the release from that commit.
-5. Tag the built commit `X.Y.Z` or `X.Y.Z-beta.N`. The tag deliberately has no leading `v`, so the production workflow does not run.
-6. Create a GitHub release from that tag, marked latest and titled `AV Workstation Toolkit X.Y.Z (unsigned)` or `AV Workstation Toolkit X.Y.Z Beta N (unsigned)`, with exactly the eight standard assets from `artifacts\release\<tag>` and the release packet `docs\releases\<tag>.md` as its notes, followed by the asset checksums and QA results.
-7. Never replace a published asset. A corrected build gets a new version or beta number and a new tag.
+### Publishing an unsigned release or release candidate
 
-`X.Y.Z-alpha.N` builds are internal QA artifacts of an unreleased version. They are built like betas, never published, and never tagged.
-
-`1.1.1-beta.1` predates the beta naming convention: its files and window title read `1.1.1`.
+1. Start from a clean checkout of the commit to release, with AV Workstation Toolkit closed so the build does not replace an executable in use.
+2. Build with `Build-AVWorkstationToolkit.cmd -BuildChannel ReleaseCandidate`, adding `-PrereleaseLabel rc.N` for a candidate. The release manifest then records the commit, clean source state, `ReleaseCandidate` channel, any label, and unsigned signature state.
+3. Run full source QA and `tests\Test-Package.ps1`, adding `-PrereleaseLabel rc.N` for a candidate. Package QA runs in isolated data roots and proves the operator's profile and installed copy unchanged (see [Package QA](#package-qa)); the owner still inspects the UI interactively.
+4. For a release (not a candidate), make the release commit that moves the current-release statements from the previous release to `X.Y.Z` together with its notes `docs\releases\X.Y.Z.md`: the README download section and its three file names, SECURITY.md, the endpoint-security baseline, the SignPath readiness record, and the bug-report form's version placeholder, and remove `(unreleased)` from the change log's `Version X.Y.Z` entry. Source QA fails if these disagree with the newest release notes, so a version bump alone can never move them ahead of publication. Build the release from that commit.
+5. Tag the built commit `X.Y.Z`, or `X.Y.Z-rc.N` for a candidate the owner publishes. The tag deliberately has no leading `v`, so the production workflow does not run.
+6. Create a GitHub release from that tag with exactly the eight standard assets from `artifacts\release\<tag>` and the release packet `docs\releases\<tag>.md` as its notes, followed by the asset checksums and QA results. A release is titled `AV Workstation Toolkit X.Y.Z (unsigned)` and marked latest; a published candidate is titled `AV Workstation Toolkit X.Y.Z RC N (unsigned)` and marked as a pre-release.
+7. Never replace a published asset. A corrected build gets a new version or candidate number and a new tag.
 
 ## Release checklist
 

@@ -394,11 +394,11 @@ if (-not [string]::IsNullOrWhiteSpace($ReleaseRoot)) {
     $releasePath = [IO.Path]::GetFullPath($ReleaseRoot)
     if (-not (Test-Path -LiteralPath $releasePath -PathType Container)) { throw "Release directory was not found: $releasePath" }
     $version = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()
-    # Artifacts are named for the release, which for a beta extends VERSION (1.1.1-beta.2).
+    # Artifacts are named for the release, which for a release candidate extends VERSION (1.1.3-rc.1).
     $manifestFiles = @(Get-ChildItem -LiteralPath $releasePath -File -Filter 'AV-Workstation-Toolkit-*-release.json')
     if ($manifestFiles.Count -ne 1) { throw 'The release directory must contain exactly one release manifest.' }
     $releaseName = $manifestFiles[0].Name -replace '^AV-Workstation-Toolkit-(.+)-release\.json$','$1'
-    if ($releaseName -cne $version -and $releaseName -cnotmatch ('^' + [regex]::Escape($version) + '-(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$')) {
+    if ($releaseName -cne $version -and $releaseName -cnotmatch ('^' + [regex]::Escape($version) + '-rc\.[1-9][0-9]{0,2}$')) {
         throw "Release $releaseName does not belong to VERSION $version."
     }
     $manifestPath = $manifestFiles[0].FullName

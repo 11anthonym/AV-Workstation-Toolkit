@@ -98,6 +98,8 @@ jobs:
           EXPECTED_SIGNER: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
         run: |
           $worker = Join-Path $env:RUNNER_TEMP 'signpath-worker\AVWorkstationToolkit.Worker.exe'
+          # A completed release folder is never rebuilt, so this job removes its own intermediate unsigned build first.
+          Remove-Item -LiteralPath '.\artifacts\release\${{ steps.version.outputs.value }}' -Recurse -Force
           powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 `
             -SkipTests -BuildChannel ReleaseCandidate -SignedWorkerPath $worker -ExpectedSignerSubject $env:EXPECTED_SIGNER
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -148,6 +150,8 @@ jobs:
           $worker = Join-Path $env:RUNNER_TEMP 'signpath-worker\AVWorkstationToolkit.Worker.exe'
           $launcher = Join-Path $env:RUNNER_TEMP 'signpath-launcher\AVWorkstationToolkit.exe'
           $msi = Join-Path $env:RUNNER_TEMP "signpath-msi\AV-Workstation-Toolkit-$version-x64.msi"
+          # The signed MSI was saved above, so the job removes its intermediate build before the final signed one.
+          Remove-Item -LiteralPath ".\artifacts\release\$version" -Recurse -Force
           powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\Build-Release.ps1 `
             -SkipTests -BuildChannel Production -RequireSignature `
             -SignedWorkerPath $worker -SignedLauncherPath $launcher -SignedMsiPath $msi `

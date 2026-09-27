@@ -36,10 +36,10 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()
-# A beta is checked as the exact pre-release it was built as, e.g. 1.1.1-beta.2.
+# A release candidate is checked as the exact candidate it was built as, e.g. 1.1.3-rc.1.
 if ([string]::IsNullOrEmpty($PrereleaseLabel)) { $PrereleaseLabel = ''; $releaseName = $version }
-elseif ($PrereleaseLabel -cmatch '^(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$') { $releaseName = '{0}-{1}' -f $version,$PrereleaseLabel }
-else { throw "PrereleaseLabel must be alpha.N, beta.N, or rc.N: $PrereleaseLabel" }
+elseif ($PrereleaseLabel -cmatch '^rc\.[1-9][0-9]{0,2}$') { $releaseName = '{0}-{1}' -f $version,$PrereleaseLabel }
+else { throw "PrereleaseLabel must be rc.N, a release candidate of VERSION: $PrereleaseLabel" }
 if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
     $ReleaseRoot = Join-Path $repositoryRoot (Join-Path 'artifacts\release' $releaseName)
 }
@@ -656,7 +656,7 @@ try {
         Assert-Equal 'AVWorkstationToolkit' ([IO.Path]::GetFileNameWithoutExtension([string]$versionInfo.OriginalFilename)) 'Launcher original filename base differs.'
         Assert-Equal 'AVWorkstationToolkit' ([IO.Path]::GetFileNameWithoutExtension([string]$versionInfo.InternalName)) 'Launcher internal-name base differs.'
         Assert-True ([string]$versionInfo.ProductVersion -like "$version*") 'EXE product version differs from MSI/release identity.'
-        # The product version people see names the exact pre-release; "1.1.1+commit" must not pass for a beta.
+        # The product version people see names the exact candidate; "1.1.3+commit" must not pass for a release candidate.
         Assert-True ([string]$versionInfo.ProductVersion -ceq $releaseName -or ([string]$versionInfo.ProductVersion).StartsWith("$releaseName+",[StringComparison]::Ordinal)) 'EXE product version does not name the exact release.'
         Add-Type -AssemblyName System.Drawing
         # Use a unique probe filename so the Windows Shell icon cache cannot return

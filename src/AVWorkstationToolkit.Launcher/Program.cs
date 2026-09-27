@@ -358,7 +358,7 @@ internal static class Program
         }
     }
 
-    // A beta build is stamped "1.1.1-beta.2+commit"; only the label is taken, and only for display.
+    // A release candidate is stamped "1.1.3-rc.1+commit"; only the label is taken, and only for display.
     private static string ProductPrerelease =>
         AVWorkstationToolkit.Application.Diagnostics.ProductRelease.FromInformationalVersion(
             ProductVersion,

@@ -16,7 +16,7 @@ if not "%AVWORKSTATIONTOOLKIT_BUILD_EXIT%"=="0" (
     exit /b %AVWORKSTATIONTOOLKIT_BUILD_EXIT%
 )
 
-rem The build prints its own release folder: a beta's name (1.1.1-beta.2) is not in VERSION,
+rem The build prints its own release folder: a release candidate's name (1.1.3-rc.1) is not in VERSION,
 rem and an older folder for the same VERSION may still exist.
 echo.
 echo Build complete. The release folder and its files are listed above.

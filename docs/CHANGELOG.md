@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026-09-27 — Release candidates and 1.1.3 release hardening (unreleased, for 1.1.3)
+
+- The release lifecycle has one vocabulary: a `Development` build is a local working copy, a release candidate is `X.Y.Z-rc.N` built with `-BuildChannel ReleaseCandidate -PrereleaseLabel rc.N` and shown as "X.Y.Z RC N", an unsigned release is the same channel without a label, and `Production` stays the signature-required path. `rc.N` is the only label the build, the SBOM, package QA, endpoint-trust QA, and the app accept; the 1.1.1 betas and the local `alpha` QA builds remain historical facts. [Packaging and release](Packaging-and-Release.md#release-lifecycle) describes the stages, candidate naming, and publishing a release or candidate.
+- A completed release candidate or release is never rebuilt. The build now refuses any target folder whose manifest records the `ReleaseCandidate` or `Production` channel, from any commit, before it changes anything; the 2026-09-26 rule still allowed rebuilding an unlabeled release from its own commit. Unfinished and `Development` folders can still be rebuilt. The tagged signing workflow removes its own intermediate unsigned build before each signed rebuild.
+
 ## 2026-09-26 — Package QA isolation and release validation (unreleased, for 1.1.3)
 
 - Package QA no longer touches the operator's profile. The packaged production smoke used to run against `%LOCALAPPDATA%\AVWorkstationToolkit`, and package QA backed up and restored the catalog folders around it; its `--verify` runs also used a `package-qa` folder inside that profile. Every packaged launch now uses a disposable `%TEMP%\AVWorkstationToolkit-package-qa-<id>` data root. The launcher accepts `--production-smoke` only with such a root, which `ProductionRuntimePolicy.RequirePackageQaDataRoot` bounds to the temporary folder and outside the profile. The smoke composes the production services against it, and its worker launcher validates the extracted worker but never starts it. Production actions and the worker still accept only the canonical root. Launcher failures in automated modes now go to standard error instead of a dialog, and are never logged beneath a rejected data root.
@@ -12,7 +17,7 @@
 ## 2026-09-26 — Version 1.1.3 (unreleased)
 
 - The source version is now 1.1.3: `VERSION`, the launcher, worker, and development-host assembly and file versions, the launcher manifest, the window title, and the repository script module. Builds extract to `runtime\1.1.3` and write to `artifacts\release\1.1.3`, and the 1.1.3 MSI upgrades an installed 1.1.2 build. 1.1.3 carries workstation migration and deployment profiles.
-- Pre-release QA builds of this version are labelled `1.1.3-alpha.N` (`-BuildChannel ReleaseCandidate -PrereleaseLabel alpha.N`) and are not published as releases. 1.1.2 remains the current published release, and README, SECURITY.md, the endpoint-security baseline, the code-signing policy, the SignPath readiness record, and the bug-report form still name it.
+- Release candidates of this version are `1.1.3-rc.N` (`-BuildChannel ReleaseCandidate -PrereleaseLabel rc.N`), starting at `rc.1`, and are not published as releases. The local QA builds `1.1.3-alpha.1` and `1.1.3-alpha.2` made before release-candidate naming use no candidate number. 1.1.2 remains the current published release, and README, SECURITY.md, the endpoint-security baseline, the code-signing policy, the SignPath readiness record, and the bug-report form still name it.
 - Catalog minimum application versions stay `1.1.1`, so earlier builds and betas keep receiving signed catalog updates.
 
 ## 2026-09-26 — Workstation migration and deployment profiles (unreleased, for 1.1.3)

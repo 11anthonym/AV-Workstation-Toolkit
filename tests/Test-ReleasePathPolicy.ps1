@@ -33,29 +33,53 @@ Assert-PathPolicy -Description 'malformed path' -Path 'C:\Catalog\bad|name.avwtc
 Assert-PathPolicy -Description 'extended device namespace' -Path '\\?\C:\Catalog\AVWT-Reference-Catalog.avwtcatalog' -Expected $false
 Assert-PathPolicy -Description 'device namespace' -Path '\\.\C:\Catalog\AVWT-Reference-Catalog.avwtcatalog' -Expected $false
 
+function Get-FolderBytes {
+    param([Parameter(Mandatory)][string]$Path)
+    @(Get-ChildItem -LiteralPath $Path -Recurse -File -Force | Sort-Object FullName |
+        ForEach-Object { '{0}|{1}|{2}' -f $_.FullName,$_.LastWriteTimeUtc.Ticks,(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }) -join "`n"
+}
+
 function Assert-Replaceable {
-    param([Parameter(Mandatory)][string]$Description,[Parameter(Mandatory)][scriptblock]$Call,[Parameter(Mandatory)][bool]$Expected)
+    # A refusal must also leave every byte of the existing folder as it was.
+    param([Parameter(Mandatory)][string]$Description,[Parameter(Mandatory)][string]$Name,[Parameter(Mandatory)][bool]$Expected)
+    $root = Join-Path $releaseParent $Name
+    $before = if (Test-Path -LiteralPath $root) { Get-FolderBytes -Path $root } else { '' }
     $refused = $false
-    try { & $Call } catch { $refused = $true }
+    try { Assert-ReleaseFolderReplaceable -ReleaseRoot $root -ReleaseName $Name } catch { $refused = $true }
     if ($refused -eq $Expected) { throw "Release folder policy failed '$Description': expected replaceable=$Expected." }
+    $after = if (Test-Path -LiteralPath $root) { Get-FolderBytes -Path $root } else { '' }
+    if ($before -cne $after) { throw "Release folder policy changed the folder while checking '$Description'." }
+}
+
+function New-CompletedFolder {
+    param([Parameter(Mandatory)][string]$Name,[Parameter(Mandatory)][string]$Channel,[Parameter(Mandatory)][string]$Commit)
+    $root = Join-Path $releaseParent $Name
+    New-Item -ItemType Directory -Path $root -Force | Out-Null
+    [pscustomobject]@{ BuildChannel = $Channel; CommitSha = $Commit } | ConvertTo-Json |
+        Set-Content -LiteralPath (Join-Path $root "AV-Workstation-Toolkit-$Name-release.json")
+    Set-Content -LiteralPath (Join-Path $root "AV-Workstation-Toolkit-$Name-win-x64.exe") -Value "fixture $Name"
 }
 
 $releaseParent = Join-Path ([IO.Path]::GetTempPath()) ('avwt-release-policy-' + [guid]::NewGuid().ToString('N'))
 try {
     $commit = 'a' * 40
-    $otherCommit = 'b' * 40
-    foreach ($name in @('1.1.2','1.1.3-alpha.1','1.1.3-alpha.2','1.1.4')) {
-        New-Item -ItemType Directory -Path (Join-Path $releaseParent $name) -Force | Out-Null
-    }
-    foreach ($name in @('1.1.2','1.1.3-alpha.1')) {
-        [pscustomobject]@{ CommitSha = $commit } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $releaseParent "$name\AV-Workstation-Toolkit-$name-release.json")
-    }
-    Assert-Replaceable 'missing folder' { Assert-ReleaseFolderReplaceable -ReleaseRoot (Join-Path $releaseParent '9.9.9') -ReleaseName '9.9.9' -PrereleaseLabel '' -CommitSha $commit -Published $false } $true
-    Assert-Replaceable 'completed pre-release label' { Assert-ReleaseFolderReplaceable -ReleaseRoot (Join-Path $releaseParent '1.1.3-alpha.1') -ReleaseName '1.1.3-alpha.1' -PrereleaseLabel 'alpha.1' -CommitSha $commit -Published $false } $false
-    Assert-Replaceable 'unfinished pre-release label' { Assert-ReleaseFolderReplaceable -ReleaseRoot (Join-Path $releaseParent '1.1.3-alpha.2') -ReleaseName '1.1.3-alpha.2' -PrereleaseLabel 'alpha.2' -CommitSha $commit -Published $false } $true
-    Assert-Replaceable 'published release from other source' { Assert-ReleaseFolderReplaceable -ReleaseRoot (Join-Path $releaseParent '1.1.2') -ReleaseName '1.1.2' -PrereleaseLabel '' -CommitSha $otherCommit -Published $true } $false
-    Assert-Replaceable 'published release from its own commit' { Assert-ReleaseFolderReplaceable -ReleaseRoot (Join-Path $releaseParent '1.1.2') -ReleaseName '1.1.2' -PrereleaseLabel '' -CommitSha $commit -Published $true } $true
-    Assert-Replaceable 'unpublished development folder' { Assert-ReleaseFolderReplaceable -ReleaseRoot (Join-Path $releaseParent '1.1.2') -ReleaseName '1.1.2' -PrereleaseLabel '' -CommitSha $otherCommit -Published $false } $true
+    New-CompletedFolder -Name '1.1.2' -Channel 'ReleaseCandidate' -Commit $commit
+    New-CompletedFolder -Name '1.1.3-rc.1' -Channel 'ReleaseCandidate' -Commit $commit
+    New-CompletedFolder -Name '1.1.4' -Channel 'Development' -Commit ('b' * 40)
+    New-CompletedFolder -Name '2.0.0' -Channel 'Production' -Commit $commit
+    New-Item -ItemType Directory -Path (Join-Path $releaseParent '1.1.3-rc.2') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $releaseParent '1.1.3-rc.2\partial.tmp') -Value 'an unfinished build'
+    New-Item -ItemType Directory -Path (Join-Path $releaseParent '1.1.3-rc.3') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $releaseParent '1.1.3-rc.3\AV-Workstation-Toolkit-1.1.3-rc.3-release.json') -Value '{ not json'
+
+    Assert-Replaceable 'new target' -Name '1.1.3-rc.9' -Expected $true
+    Assert-Replaceable 'unfinished build' -Name '1.1.3-rc.2' -Expected $true
+    Assert-Replaceable 'local Development build' -Name '1.1.4' -Expected $true
+    # The commit a later build comes from never matters: the policy doesn't take one.
+    Assert-Replaceable 'completed release candidate' -Name '1.1.3-rc.1' -Expected $false
+    Assert-Replaceable 'completed unsigned release' -Name '1.1.2' -Expected $false
+    Assert-Replaceable 'completed signed release' -Name '2.0.0' -Expected $false
+    Assert-Replaceable 'unreadable release manifest' -Name '1.1.3-rc.3' -Expected $false
 
     $before = Get-ReleaseFolderState -ReleaseParent $releaseParent -ExcludedName '1.1.4'
     Set-Content -LiteralPath (Join-Path $releaseParent '1.1.4\building.txt') -Value 'the folder being built may change'
@@ -72,4 +96,4 @@ finally {
     if (Test-Path -LiteralPath $releaseParent) { Remove-Item -LiteralPath $releaseParent -Recurse -Force }
 }
 
-Write-Output 'RELEASE_PATH_POLICY_OK powershell=5.1 drive=accepted unc=accepted relative=rejected drive-relative=rejected root-relative=rejected device-namespace=rejected release-folders=protected'
+Write-Output 'RELEASE_PATH_POLICY_OK powershell=5.1 drive=accepted unc=accepted relative=rejected drive-relative=rejected root-relative=rejected device-namespace=rejected completed-releases=immutable'

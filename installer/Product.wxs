@@ -9,7 +9,7 @@
       Compressed="yes">
 
     <!-- Preserve the released UpgradeCode explicitly. Existing AVinite packages must remain in this major-upgrade family. -->
-    <!-- Betas share their release's numeric version (1.1.1-beta.2 installs as 1.1.1), and Windows Installer
+    <!-- Release candidates share their release's numeric version (1.1.3-rc.1 installs as 1.1.3), and Windows Installer
          compares only three fields, so a same-version package must replace the installed one rather than
          register a second product in the same folder. -->
     <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of AV Workstation Toolkit is already installed." />

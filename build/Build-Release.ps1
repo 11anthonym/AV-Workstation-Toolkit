@@ -107,11 +107,12 @@ $declaredVersion = (Get-Content -LiteralPath $versionPath -Raw).Trim()
 if ($Version -ne $declaredVersion) {
     throw "Requested version $Version does not match VERSION $declaredVersion."
 }
-# A beta is a SemVer pre-release of VERSION: 1.1.1-beta.2. The label names artifacts and the informational
+# A release candidate is a SemVer pre-release of VERSION: 1.1.3-rc.1. The label names artifacts and the informational
 # version people see; assembly, file, MSI, and catalog-trust versions stay numeric. Production is never labeled.
+# rc.N is the only label: the historical 1.1.1 betas were built by their own tagged sources.
 if (-not [string]::IsNullOrEmpty($PrereleaseLabel)) {
-    if ($PrereleaseLabel -cnotmatch '^(?:alpha|beta|rc)\.[1-9][0-9]{0,2}$') {
-        throw "PrereleaseLabel must be alpha.N, beta.N, or rc.N: $PrereleaseLabel"
+    if ($PrereleaseLabel -cnotmatch '^rc\.[1-9][0-9]{0,2}$') {
+        throw "PrereleaseLabel must be rc.N, a release candidate of VERSION: $PrereleaseLabel"
     }
     if ($BuildChannel -ne 'ReleaseCandidate') {
         throw 'A pre-release label requires the ReleaseCandidate build channel.'
@@ -141,6 +142,9 @@ $workerStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path
 $releaseRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'release' $releaseName)))
 $intermediateRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'obj' $releaseName)))
 $offlineStagingRoot = [IO.Path]::GetFullPath((Join-Path $artifactsRoot (Join-Path 'staging' ($releaseName + '-offline-bundle'))))
+# Existing release folders are evidence of what was built and checked. Before anything else runs, refuse to replace a
+# completed release candidate or release; only an unfinished or Development folder can be rebuilt.
+Assert-ReleaseFolderReplaceable -ReleaseRoot $releaseRoot -ReleaseName $releaseName
 $productIconPath = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'assets\branding\AVWorkstationToolkit.ico'))
 if (-not (Test-Path -LiteralPath $productIconPath -PathType Leaf)) {
     throw "The canonical Windows application icon is unavailable: $productIconPath"
@@ -408,12 +412,8 @@ if ($sourceReparsePoints.Count -gt 0) {
     throw ('Release source contains unsupported reparse points: {0}' -f ($sourceReparsePoints.FullName -join ', '))
 }
 
-# Existing release folders are evidence of what was built and published: this build may replace only its own
-# unfinished or unpublished folder, and must leave every other release folder exactly as it found it.
+# Every other release folder must be exactly as it was when this build finishes.
 $releaseParent = Split-Path -Parent $releaseRoot
-$publishedReleaseNotes = Join-Path $repositoryRoot (Join-Path 'docs\releases' ($releaseName + '.md'))
-Assert-ReleaseFolderReplaceable -ReleaseRoot $releaseRoot -ReleaseName $releaseName -PrereleaseLabel $PrereleaseLabel -CommitSha $commitSha `
-    -Published (Test-Path -LiteralPath $publishedReleaseNotes -PathType Leaf)
 $otherReleaseFoldersBefore = Get-ReleaseFolderState -ReleaseParent $releaseParent -ExcludedName $releaseName
 
 foreach ($target in @($stagingRoot,$workerStagingRoot,$releaseRoot,$intermediateRoot,$offlineStagingRoot)) {

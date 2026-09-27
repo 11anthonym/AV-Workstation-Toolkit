@@ -5,7 +5,7 @@ if exist "%~dp0AVWorkstationToolkit.exe" (
     exit /b 0
 )
 set /p AVWORKSTATIONTOOLKIT_VERSION=<"%~dp0VERSION"
-rem Start the most recently built release of VERSION: 1.1.1 itself or a pre-release such as 1.1.1-beta.2.
+rem Start the most recently built release of VERSION: 1.1.3 itself or a release candidate such as 1.1.3-rc.1.
 rem The wildcard also matches 1.1.10, so a folder counts only when VERSION is its whole name or is followed by "-".
 setlocal EnableDelayedExpansion
 set "AVWORKSTATIONTOOLKIT_RELEASE="

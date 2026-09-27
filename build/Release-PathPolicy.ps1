@@ -69,28 +69,21 @@ function Get-ReleaseFolderState {
 }
 
 function Assert-ReleaseFolderReplaceable {
-    # A pre-release label names exactly one completed build, and a published release folder is never rebuilt from other
-    # source. An unfinished folder (no release manifest) can be rebuilt, and so can a published release from its own
-    # commit, which the tagged workflow does while it assembles signed bytes.
+    # A completed release candidate or release is evidence of exactly what was built and checked. Once its folder holds a
+    # release manifest from the ReleaseCandidate or Production channel, no build replaces it, from any commit: a
+    # candidate that needs changes gets the next rc.N. A folder without a manifest is an unfinished build, and a
+    # Development build is a local working copy; either can be rebuilt. The build calls this before it changes a byte.
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$ReleaseRoot,
-        [Parameter(Mandatory)][string]$ReleaseName,
-        [AllowEmptyString()][string]$PrereleaseLabel,
-        [Parameter(Mandatory)][string]$CommitSha,
-        [Parameter(Mandatory)][bool]$Published
+        [Parameter(Mandatory)][string]$ReleaseName
     )
 
     if (-not (Test-Path -LiteralPath $ReleaseRoot -PathType Container)) { return }
     $manifestPath = Join-Path $ReleaseRoot ('AV-Workstation-Toolkit-{0}-release.json' -f $ReleaseName)
     if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { return }
-    if (-not [string]::IsNullOrEmpty($PrereleaseLabel)) {
-        throw "artifacts\release\$ReleaseName already holds a completed build, and a pre-release label names exactly one build. Use the next label instead of rebuilding $ReleaseName."
-    }
-    if ($Published) {
-        $existingCommit = [string](Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json).CommitSha
-        if (-not $existingCommit.Equals($CommitSha,[StringComparison]::OrdinalIgnoreCase)) {
-            throw "artifacts\release\$ReleaseName holds the published $ReleaseName release, built from $existingCommit. A published release is never rebuilt from other source; set a later VERSION or use -PrereleaseLabel."
-        }
-    }
+    # An unreadable manifest fails the build here rather than being guessed at.
+    $channel = [string](Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json).BuildChannel
+    if ($channel -ceq 'Development') { return }
+    throw "artifacts\release\$ReleaseName already holds a completed $channel build, and completed release candidates and releases are never rebuilt. Use the next rc.N for a new candidate. To rebuild an unpublished release whose QA failed, move its folder aside yourself first."
 }
