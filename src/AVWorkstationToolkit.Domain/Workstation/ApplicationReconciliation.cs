@@ -14,8 +14,10 @@ public enum ChecklistStatus
     /// <summary>The managed catalog allows an automatic installation here.</summary>
     ReadyToInstall,
     Installing,
-    /// <summary>The last installation attempt failed, or reported success without the app being detected.</summary>
+    /// <summary>The last installation attempt failed, or the worker refused it.</summary>
     InstallFailed,
+    /// <summary>The installer reported success, but no scan has detected the application yet, so it isn't complete.</summary>
+    InstallUnverified,
     /// <summary>A known catalog application that must be installed manually.</summary>
     ManualInstall,
     /// <summary>Not in the catalog. Install it manually; a later scan recognizes it.</summary>
@@ -68,7 +70,7 @@ public sealed record ReconciledApplication(
     /// action coordinator's authorization and the worker's independent revalidation.
     /// </summary>
     public bool CanInstallAutomatically => AutomaticInstallAllowed && Desired.Included &&
-        Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.InstallFailed &&
+        Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.InstallFailed or ChecklistStatus.InstallUnverified &&
         CatalogState is { Action: PackageAction.Install } state && state.Package.HasManagedExecutionAuthority;
 
     /// <summary>
@@ -95,7 +97,8 @@ public sealed record ChecklistSummary(
     int Failed,
     int Installing,
     int Excluded,
-    int Supporting)
+    int Supporting,
+    int Unverified = 0)
 {
     public static ChecklistSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -122,7 +125,8 @@ public sealed record ChecklistSummary(
             Count(ChecklistStatus.InstallFailed),
             Count(ChecklistStatus.Installing),
             list.Count(item => !item.Desired.Included && item.IsApplication),
-            list.Count(item => !item.Desired.Included && !item.IsApplication));
+            list.Count(item => !item.Desired.Included && !item.IsApplication),
+            Count(ChecklistStatus.InstallUnverified));
     }
 }
 
@@ -199,10 +203,13 @@ public sealed class ApplicationReconciliationService
         var outcome = known is null ? Uncatalogued(desired, registryComplete) : Catalogued(desired, known, state, target, registryComplete);
         if (desired.LastAttempt is { } attempt && outcome.Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.ManualInstall or ChecklistStatus.CheckUnavailable)
         {
-            var message = attempt.Succeeded
-                ? "The installer reported success, but the app isn't detected on this PC yet. Rescan, or restart Windows if the installer asked for it."
-                : $"The last installation attempt failed: {attempt.Message}";
-            return Result(ChecklistStatus.InstallFailed, message, outcome.State, outcome.Allowed);
+            // The installer's result and this PC's scan are separate facts: a reported success completes nothing until a scan
+            // detects the app, and it isn't a failure either.
+            return attempt.Succeeded
+                ? Result(ChecklistStatus.InstallUnverified,
+                    $"The installer reported success on {attempt.AtUtc.ToLocalTime():yyyy-MM-dd HH:mm}, but no scan has detected the app yet. Scan this PC again, or restart Windows if the installer asked for it.",
+                    outcome.State, outcome.Allowed)
+                : Result(ChecklistStatus.InstallFailed, $"The last installation attempt failed: {attempt.Message}", outcome.State, outcome.Allowed);
         }
         return Result(outcome.Status, outcome.Detail, outcome.State, outcome.Allowed);
     }

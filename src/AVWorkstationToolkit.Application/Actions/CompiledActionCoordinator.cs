@@ -51,6 +51,16 @@ public sealed class CompiledActionSnapshot(
 public sealed record CompiledActionRunResult(ActionFinalResult Result, WorkstationPlan RefreshedPlan);
 
 /// <summary>
+/// The worker finished and reported <see cref="Result"/>, but the refresh of installed apps after it failed, so nothing it
+/// did has been verified. Callers report the worker's result and the failed check separately; neither is lost.
+/// </summary>
+public sealed class CompiledActionVerificationException(ActionFinalResult result, Exception refreshFailure)
+    : Exception($"The worker finished ({result.Status}), but the installed apps couldn't be checked afterward: {refreshFailure.Message}", refreshFailure)
+{
+    public ActionFinalResult Result { get; } = result;
+}
+
+/// <summary>
 /// Compiled UI action coordinator. Authority comes from the current typed plan
 /// and the independent worker. The coordinator only persists
 /// an authorized request, starts the fixed packaged worker, observes correlated
@@ -139,15 +149,31 @@ public sealed class CompiledActionCoordinator
                 "Installation is running. You can close this window without stopping it.", [], null);
 
             var result = await ObserveAsync(request, session, cancellationToken).ConfigureAwait(false);
-            var refreshedPlan = await planning.RefreshAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
             var finalState = result.Status switch
             {
                 ActionResultStatus.Succeeded => CompiledActionState.Completed,
                 ActionResultStatus.Cancelled => CompiledActionState.Cancelled,
                 _ => CompiledActionState.Failed
             };
+            WorkstationPlan refreshedPlan;
+            try
+            {
+                refreshedPlan = await planning.RefreshAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception refreshFailure) when (refreshFailure is not OperationCanceledException)
+            {
+                // The worker's outcome is already known; a refresh that fails afterward leaves it unverified, not undone.
+                SetSnapshot(finalState, request.RequestId,
+                    $"{result.Message} The installed apps couldn't be checked afterward: {Diagnostics.DiagnosticsRedactor.Sanitize(refreshFailure.Message)}",
+                    lifecycle.Progress, result);
+                throw new CompiledActionVerificationException(result, refreshFailure);
+            }
             SetSnapshot(finalState, request.RequestId, result.Message, lifecycle.Progress, result);
             return new(result, refreshedPlan);
+        }
+        catch (CompiledActionVerificationException)
+        {
+            throw;
         }
         catch (OperationCanceledException)
         {

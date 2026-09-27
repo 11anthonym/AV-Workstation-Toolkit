@@ -48,60 +48,86 @@ public sealed class MigrationFailureStateTests
         Assert.IsNotEmpty(viewModel.VisibleItems);
     }
 
-    [TestMethod]
-    [DataRow(ActionResultStatus.Blocked, "Blocked by policy")]
-    [DataRow(ActionResultStatus.Failed, "exit code 1603")]
-    public async Task AWorkerRefusalOrInstallerFailureReleasesTheWindowWithoutCompletion(ActionResultStatus outcome, string attempt)
-    {
-        var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
-        var actions = new WorkstationMigrationTests.RecordingActionStore(outcome);
-        var (viewModel, service, _) = Create(new WorkstationMigrationTests.FixedPlanning(before.Plan), actions);
-        service.StartFromInventory(WorkstationMigrationTests.Exported(WorkstationMigrationTests.SourceInventory()));
-        await viewModel.InitializeAsync(before.Plan);
-
-        await viewModel.InstallAsync([SevenZip(viewModel)]);
-
-        AssertUsable(viewModel, service, "0 of 1 now detected");
-        var item = service.Checklist!.Items.Single(entry => entry.CatalogState?.Package.Id == "7zip.7zip");
-        Assert.AreEqual(ChecklistStatus.InstallFailed, item.Status);
-        StringAssert.Contains(service.Session!.Items.Single(entry => entry.ItemId == item.ItemId).LastAttempt!.Message, attempt);
-        viewModel.Filter = MigrationFilter.NeedsAttention;
-        Assert.IsTrue(viewModel.VisibleItems.Any(row => row.ItemId == item.ItemId));
-    }
 
     [TestMethod]
-    public async Task ARescanFailureAfterInstallingMarksNothingComplete()
+    [DataRow("worker success, detected")]
+    [DataRow("worker success, not detected")]
+    [DataRow("worker success, rescan failed")]
+    [DataRow("worker success, refresh failed")]
+    [DataRow("worker failure")]
+    [DataRow("worker refusal")]
+    [DataRow("attempt not saved")]
+    public async Task EveryInstallOutcomeKeepsTheWorkerResultApartFromTheScan(string path)
     {
         var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
         var after = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult(("7zip.7zip", "26.03")));
-        // The worker reports success, but the refresh afterward carries no inventory and this PC then can't be scanned.
-        var planning = new ScriptedPlanning(() => after.Plan with { Evidence = null }, () => throw new InvalidOperationException("WinGet could not be started."));
-        var (viewModel, service, _) = Create(planning, new WorkstationMigrationTests.RecordingActionStore());
+        IWorkstationPlanningCoordinator planning = path switch
+        {
+            "worker success, detected" or "attempt not saved" => new WorkstationMigrationTests.FixedPlanning(after.Plan),
+            // The coordinator's refresh carries no inventory, and this PC then can't be scanned.
+            "worker success, rescan failed" => new ScriptedPlanning(() => after.Plan with { Evidence = null }, () => throw new InvalidOperationException("WinGet could not be started.")),
+            // The coordinator's own refresh after the worker fails.
+            "worker success, refresh failed" => new ScriptedPlanning(() => throw new InvalidOperationException("WinGet could not be started.")),
+            _ => new WorkstationMigrationTests.FixedPlanning(before.Plan)
+        };
+        var workerOutcome = path switch { "worker failure" => ActionResultStatus.Failed, "worker refusal" => ActionResultStatus.Blocked, _ => ActionResultStatus.Succeeded };
+        var store = new FailingStore();
+        var (viewModel, service, _) = Create(planning, new WorkstationMigrationTests.RecordingActionStore(workerOutcome), store);
         service.StartFromInventory(WorkstationMigrationTests.Exported(WorkstationMigrationTests.SourceInventory()));
         await viewModel.InitializeAsync(before.Plan);
+        store.FailSaves = path == "attempt not saved";
 
         await viewModel.InstallAsync([SevenZip(viewModel)]);
 
-        AssertUsable(viewModel, service, "couldn't be scanned again");
-        StringAssert.Contains(viewModel.Status, "nothing was marked complete");
-        Assert.AreNotEqual(ChecklistStatus.Installed, service.Checklist!.Items.Single(entry => entry.CatalogState?.Package.Id == "7zip.7zip").Status);
+        var (status, statusText, attemptSucceeded, attemptText) = path switch
+        {
+            "worker success, detected" => (ChecklistStatus.Installed, "1 of 1 now detected", true, "verified by the worker"),
+            "worker success, not detected" => (ChecklistStatus.InstallUnverified, "0 of 1 now detected", true, "verified by the worker"),
+            "worker success, rescan failed" or "worker success, refresh failed" =>
+                (ChecklistStatus.InstallUnverified, "Install finished; verification failed", true, "verified by the worker"),
+            "worker failure" => (ChecklistStatus.InstallFailed, "0 of 1 now detected", false, "exit code 1603"),
+            "worker refusal" => (ChecklistStatus.InstallFailed, "0 of 1 now detected", false, "Blocked by policy"),
+            _ => (ChecklistStatus.Installed, "The checklist couldn't be saved", true, "verified by the worker")
+        };
+        AssertUsable(viewModel, service, statusText);
+        StringAssert.Contains(viewModel.Status, "Installer result:", "The worker's own result is always reported.");
+        var item = service.Checklist!.Items.Single(entry => entry.CatalogState?.Package.Id == "7zip.7zip");
+        Assert.AreEqual(status, item.Status, path);
+        Assert.AreEqual(status == ChecklistStatus.Installed, item.Satisfied, "Only a scan that detects the app completes it.");
+        // The attempt history keeps the worker's result whatever the scan found, even when it couldn't be saved yet.
+        var attempt = service.Session!.Items.Single(entry => entry.ItemId == item.ItemId).LastAttempt!;
+        Assert.AreEqual(attemptSucceeded, attempt.Succeeded);
+        StringAssert.Contains(attempt.Message, attemptText);
+        viewModel.Filter = MigrationFilter.All;
+        var row = viewModel.VisibleItems.Single(entry => entry.ItemId == item.ItemId);
+        if (status == ChecklistStatus.InstallUnverified)
+        {
+            Assert.AreEqual("Installed · not verified", row.StatusLabel);
+            StringAssert.Contains(item.Detail, "no scan has detected");
+            Assert.AreEqual(1, service.Checklist.Summary.Unverified);
+            Assert.IsTrue(row.Matches(MigrationFilter.Remaining) && row.Matches(MigrationFilter.NeedsAttention));
+        }
+        if (status == ChecklistStatus.InstallFailed) Assert.AreEqual("Install failed", row.StatusLabel);
     }
 
     [TestMethod]
-    public async Task ARefreshFailureInsideTheInstallReleasesTheWindow()
+    public async Task TheCoordinatorKeepsTheWorkerResultWhenItsRefreshFails()
     {
         var before = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
-        var planning = new ScriptedPlanning(() => throw new InvalidOperationException("WinGet could not be started."));
-        var (viewModel, service, _) = Create(planning, new WorkstationMigrationTests.RecordingActionStore());
-        service.StartFromInventory(WorkstationMigrationTests.Exported(WorkstationMigrationTests.SourceInventory()));
-        await viewModel.InitializeAsync(before.Plan);
+        var coordinator = new CompiledActionCoordinator(new WorkstationMigrationTests.RecordingActionStore(), new WorkstationMigrationTests.ImmediateLauncher(),
+            new ScriptedPlanning(() => throw new InvalidOperationException("WinGet could not be started.")),
+            pollInterval: TimeSpan.FromMilliseconds(1), resultTimeout: TimeSpan.FromSeconds(10));
+        var sevenZip = before.Plan.Packages.Single(state => state.Package.Id == "7zip.7zip");
 
-        await viewModel.InstallAsync([SevenZip(viewModel)]);
+        var unverified = await Assert.ThrowsAsync<CompiledActionVerificationException>(() =>
+            coordinator.StartAsync(ManagedRequestAction.Install, [sevenZip], before.Plan, riskAcknowledged: false, dryRun: false));
 
-        AssertUsable(viewModel, service, "Couldn't install");
-        Assert.AreNotEqual(ChecklistStatus.Installed, service.Checklist!.Items.Single(entry => entry.CatalogState?.Package.Id == "7zip.7zip").Status);
+        Assert.AreEqual(ActionResultStatus.Succeeded, unverified.Result.Status);
+        Assert.IsInstanceOfType<InvalidOperationException>(unverified.InnerException);
+        Assert.AreSame(unverified.Result, coordinator.Snapshot.Result, "The snapshot keeps the worker's result.");
+        Assert.AreEqual(CompiledActionState.Completed, coordinator.Snapshot.State);
+        StringAssert.Contains(coordinator.Snapshot.Status, "couldn't be checked afterward");
     }
-
     [TestMethod]
     public async Task SaveFailuresAreReportedAndChangeNothingSilently()
     {

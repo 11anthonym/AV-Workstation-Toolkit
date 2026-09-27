@@ -61,6 +61,7 @@ public sealed class MigrationItemViewModel : ObservableObject
         ChecklistStatus.ReadyToInstall => item.CanInstallAutomatically ? "Install available" : "Restart first",
         ChecklistStatus.Installing => "Installing…",
         ChecklistStatus.InstallFailed => "Install failed",
+        ChecklistStatus.InstallUnverified => "Installed · not verified",
         ChecklistStatus.ManualInstall => Undetectable ? "Manual · can't be detected" : "Manual · not yet detected",
         ChecklistStatus.UnknownApplication => "Manual · not in catalog",
         ChecklistStatus.NeedsReview => "Review",
@@ -70,7 +71,7 @@ public sealed class MigrationItemViewModel : ObservableObject
 
     public int StatusOrder => item.Status switch
     {
-        ChecklistStatus.InstallFailed => 0,
+        ChecklistStatus.InstallFailed or ChecklistStatus.InstallUnverified => 0,
         ChecklistStatus.Installing => 1,
         ChecklistStatus.ReadyToInstall => 2,
         ChecklistStatus.ManualInstall => 3,
@@ -118,9 +119,9 @@ public sealed class MigrationItemViewModel : ObservableObject
     public bool Matches(MigrationFilter filter) => filter switch
     {
         MigrationFilter.Remaining => item.Desired.Included && !item.Satisfied,
-        MigrationFilter.ReadyToInstall => item.Desired.Included && item.Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.InstallFailed && item.CanInstallAutomatically,
+        MigrationFilter.ReadyToInstall => item.Desired.Included && item.Status is ChecklistStatus.ReadyToInstall or ChecklistStatus.InstallFailed or ChecklistStatus.InstallUnverified && item.CanInstallAutomatically,
         MigrationFilter.Manual => item.Desired.Included && item.Status is ChecklistStatus.ManualInstall or ChecklistStatus.UnknownApplication,
-        MigrationFilter.NeedsAttention => item.Desired.Included && item.Status is ChecklistStatus.NeedsReview or ChecklistStatus.CheckUnavailable or ChecklistStatus.InstallFailed,
+        MigrationFilter.NeedsAttention => item.Desired.Included && item.Status is ChecklistStatus.NeedsReview or ChecklistStatus.CheckUnavailable or ChecklistStatus.InstallFailed or ChecklistStatus.InstallUnverified,
         MigrationFilter.Completed => item.Desired.Included && item.Satisfied,
         MigrationFilter.Excluded => !item.Desired.Included && item.IsApplication,
         MigrationFilter.Supporting => !item.Desired.Included && !item.IsApplication,
@@ -140,7 +141,7 @@ public sealed class MigrationItemViewModel : ObservableObject
         ChecklistStatus.Installing => ("#33215C", "#6745A2", "#C4A4FF"),
         ChecklistStatus.InstallFailed => ("#451A22", "#893044", "#FF9AAA"),
         ChecklistStatus.ManualInstall or ChecklistStatus.UnknownApplication => ("#3B2B13", "#7A5B20", "#FFD27A"),
-        ChecklistStatus.NeedsReview or ChecklistStatus.CheckUnavailable => ("#2D2B45", "#55517A", "#C8C3FF"),
+        ChecklistStatus.NeedsReview or ChecklistStatus.CheckUnavailable or ChecklistStatus.InstallUnverified => ("#2D2B45", "#55517A", "#C8C3FF"),
         _ => ("#252D39", "#485568", "#B8C3D2")
     };
 }

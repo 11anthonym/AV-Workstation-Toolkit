@@ -195,11 +195,20 @@ public sealed class WorkstationMigrationService
 
         lock (gate) installing = selected.Select(item => item.ItemId).ToHashSet(StringComparer.Ordinal);
         Reconcile();
-        CompiledActionRunResult run;
+        CompiledActionRunResult? run = null;
+        ActionFinalResult result;
+        var scanProblem = string.Empty;
         try
         {
             run = await actions.StartAsync(ManagedRequestAction.Install, states, checklist.Plan, riskAcknowledged, dryRun: false,
                 cancellationToken).ConfigureAwait(false);
+            result = run.Result;
+        }
+        catch (CompiledActionVerificationException unverified)
+        {
+            // The worker finished and its result is recorded below; only the check of installed apps afterward failed.
+            result = unverified.Result;
+            scanProblem = DiagnosticsRedactor.Sanitize(unverified.InnerException?.Message ?? unverified.Message);
         }
         catch
         {
@@ -210,7 +219,6 @@ public sealed class WorkstationMigrationService
         }
         var now = timeProvider.GetUtcNow();
         var saveProblem = string.Empty;
-        var scanProblem = string.Empty;
         lock (gate)
         {
             installing = new HashSet<string>(StringComparer.Ordinal);
@@ -219,10 +227,10 @@ public sealed class WorkstationMigrationService
             foreach (var item in selected)
             {
                 var packageId = item.CatalogState!.Package.Id;
-                var outcome = run.Result.Packages.FirstOrDefault(package => package.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase));
+                var outcome = result.Packages.FirstOrDefault(package => package.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase));
                 var succeeded = outcome?.Status == PackageOutcomeStatus.Succeeded;
                 var message = outcome is null
-                    ? DiagnosticsRedactor.Sanitize(run.Result.Message)
+                    ? DiagnosticsRedactor.Sanitize(result.Message)
                     : outcome.Status switch
                     {
                         PackageOutcomeStatus.Succeeded => "Installed and verified by the worker.",
@@ -245,20 +253,27 @@ public sealed class WorkstationMigrationService
         }
         // Completion comes only from a fresh scan: the coordinator's post-install refresh, or a scan of our own if that
         // refresh carried no inventory evidence. A worker's success report never marks an item done by itself.
-        try
-        {
-            if (Accept(run.RefreshedPlan)) PlanRefreshed?.Invoke(this, run.RefreshedPlan);
-            else await ScanAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        if (run is null)
         {
             // Without a scan nothing is marked complete; the checklist drops its installing state and shows the last scan.
-            scanProblem = DiagnosticsRedactor.Sanitize(exception.Message);
             Reconcile();
+        }
+        else
+        {
+            try
+            {
+                if (Accept(run.RefreshedPlan)) PlanRefreshed?.Invoke(this, run.RefreshedPlan);
+                else await ScanAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                scanProblem = DiagnosticsRedactor.Sanitize(exception.Message);
+                Reconcile();
+            }
         }
         var detected = scanProblem.Length > 0 ? 0
             : Checklist?.Items.Count(item => selected.Any(entry => entry.ItemId == item.ItemId) && item.Status == ChecklistStatus.Installed) ?? 0;
-        return new MigrationInstallOutcome(run.Result.Status, DiagnosticsRedactor.Sanitize(run.Result.Message), selected.Length, detected,
+        return new MigrationInstallOutcome(result.Status, DiagnosticsRedactor.Sanitize(result.Message), selected.Length, detected,
             scanProblem, saveProblem);
     }
 

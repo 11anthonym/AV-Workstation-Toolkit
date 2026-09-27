@@ -253,9 +253,11 @@ public sealed class WorkstationMigrationTests
 
         var notDetected = await Target([], MigrationFixtures.WinGetResult());
         var pending = service.Reconcile([attempted], notDetected.Reconciliation).Single();
-        Assert.AreEqual(ChecklistStatus.InstallFailed, pending.Status);
-        StringAssert.Contains(pending.Detail, "isn't detected");
-        Assert.IsTrue(pending.CanInstallAutomatically, "A failed attempt can be retried through the same authority.");
+        // A reported success that no scan has confirmed is neither complete nor a failure.
+        Assert.AreEqual(ChecklistStatus.InstallUnverified, pending.Status);
+        Assert.IsFalse(pending.Satisfied);
+        StringAssert.Contains(pending.Detail, "no scan has detected");
+        Assert.IsTrue(pending.CanInstallAutomatically, "An unverified attempt can be retried through the same authority.");
 
         var detected = await Target([], MigrationFixtures.WinGetResult(("7zip.7zip", "24.08")));
         Assert.AreEqual(ChecklistStatus.Installed, service.Reconcile([attempted], detected.Reconciliation).Single().Status);

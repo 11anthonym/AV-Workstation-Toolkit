@@ -1059,6 +1059,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             PlanApplied?.Invoke(completed.RefreshedPlan);
             AppendActivity($"{ActionStateLabel(ActionSnapshot.State)}: {completed.Result.Message}");
         }
+        catch (CompiledActionVerificationException unverified)
+        {
+            // The worker finished; only the check afterward failed, so its result is reported rather than a failure to start.
+            AppendActivity($"The worker finished: {DiagnosticsRedactor.Sanitize(unverified.Result.Message)} The installed apps couldn't be checked afterward: {DiagnosticsRedactor.Sanitize(unverified.InnerException?.Message ?? unverified.Message)} Refresh to see what's installed.");
+        }
         catch (Exception exception)
         {
             var verb = action == ManagedRequestAction.Install ? "install" : "update";

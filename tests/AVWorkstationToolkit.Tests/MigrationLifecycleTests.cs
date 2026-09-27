@@ -117,8 +117,9 @@ public sealed class MigrationLifecycleTests
 
         CollectionAssert.AreEquivalent(new[] { "7zip.7zip", "Git.Git" }, actions.Request!.PackageIds.ToArray());
         CollectionAssert.AreEqual(new[] { "Git" }, Names(viewModel).ToArray(), "An exit code alone never completes an item.");
-        Assert.AreEqual("Install failed", viewModel.VisibleItems.Single().StatusLabel);
-        StringAssert.Contains(viewModel.VisibleItems.Single().Detail, "isn't detected");
+        // The installer reported success, so it isn't a failure; it isn't complete either until a scan detects it.
+        Assert.AreEqual("Installed · not verified", viewModel.VisibleItems.Single().StatusLabel);
+        StringAssert.Contains(viewModel.VisibleItems.Single().Detail, "no scan has detected");
         StringAssert.Contains(viewModel.Status, "1 of 2 now detected");
     }
 

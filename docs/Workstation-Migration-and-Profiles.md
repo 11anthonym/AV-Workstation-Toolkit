@@ -55,7 +55,8 @@ every item; a detected item is shown under **Completed**, not deleted.
 | Install available | The approved managed catalog allows an automatic installation here. | **Install** or **Install all available**. |
 | Restart first | Allowed, but it installs a driver, service, or listener and Windows is waiting for a restart. | Restart Windows, then install. |
 | Installing… | The worker is installing it. | Wait. |
-| Install failed | The last attempt failed, or reported success without the app being detected. | Read the detail, then retry or install it yourself. |
+| Install failed | The last attempt failed, or the worker refused it when it rechecked this PC. | Read the detail, then retry or install it yourself. |
+| Installed · not verified | The installer reported success, but no scan has detected the app yet, or this PC couldn't be checked afterward. It still counts as remaining. | **Rescan**, or restart Windows if the installer asked for it. |
 | Manual · not yet detected | A catalog application the Toolkit can't install automatically, such as Crestron Toolbox or Q-SYS Designer. | Install it yourself (**Get package** in the main window opens its approved vendor page or download), then **Rescan**. |
 | Manual · not in catalog | An application the Toolkit doesn't catalog, or that WinGet knows but the managed catalog doesn't approve. | Install it yourself, then **Rescan**. |
 | Review | Its identity is ambiguous or only suggested by a similar name. | Decide whether it's needed; install it yourself or exclude it. |
@@ -222,8 +223,11 @@ installation authority.
   `--id`, `--exact`, and `--source winget`.
 - **Nothing is marked done because an installer said so.** After an
   installation the workstation is scanned again, and an app is **Installed**
-  only when it is detected. If that scan fails or is incomplete, the window
-  says so and marks nothing complete that the scan didn't find.
+  only when it is detected. The window reports the installer's result and the
+  check afterward separately: if the check fails or is incomplete, it says
+  "Install finished; verification failed" (or that the check was incomplete),
+  records the installer's result in the item's history, and leaves the app
+  **Installed · not verified** in Remaining until a scan detects it.
 - **Strict parsing.** Every document has an explicit `schemaVersion` and
   `documentType`, a size limit, and bounded, control-character-free text.
   Unknown and repeated fields are rejected. A file from a newer version of the

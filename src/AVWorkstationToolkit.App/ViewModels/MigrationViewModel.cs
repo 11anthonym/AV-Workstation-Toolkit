@@ -201,6 +201,7 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         Count(Summary.Manual, "to install manually"),
         Count(Summary.Unknown, "not in the catalog"),
         Count(Summary.Failed, "failed"),
+        Count(Summary.Unverified, "installed but not verified"),
         Count(Summary.Installing, "installing")
     }.Where(value => value.Length > 0));
     public bool CompleteVisible => HasSession && Summary.Included > 0 && Summary.Remaining == 0 && service.Checklist is not null;
@@ -482,14 +483,15 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         try
         {
             var outcome = await service.InstallAsync(eligible.Select(item => item.ItemId).ToArray(), acknowledged).ConfigureAwait(true);
-            // An install is reported complete only from what a scan found, so a missing or partial scan says so.
-            var scanned = outcome.ScanProblem.Length > 0
-                ? $"This PC couldn't be scanned again ({outcome.ScanProblem}), so nothing was marked complete. Scan this PC again to see what's installed."
+            // The installer's result and this PC's check afterward are separate facts. Only a scan completes an item, so a
+            // missing or partial check says so rather than turning a finished install into a failure.
+            var verification = outcome.ScanProblem.Length > 0
+                ? $"Install finished; verification failed: this PC couldn't be checked afterward ({outcome.ScanProblem}), so nothing is marked complete until a scan detects it. Scan this PC again."
                 : service.TargetInventory is { Sources.Complete: false } inventory
-                    ? $"The scan afterward was incomplete ({inventory.Sources.Detail}): {outcome.DetectedAfterward} of {outcome.Requested} confirmed installed. Scan this PC again to check the rest."
-                    : $"This PC was scanned again: {outcome.DetectedAfterward} of {outcome.Requested} now detected as installed.";
+                    ? $"The check afterward was incomplete ({inventory.Sources.Detail}): {outcome.DetectedAfterward} of {outcome.Requested} confirmed installed. Scan this PC again to check the rest."
+                    : $"This PC was checked again: {outcome.DetectedAfterward} of {outcome.Requested} now detected as installed.";
             var saved = outcome.SaveProblem.Length > 0 ? $" The checklist couldn't be saved: {outcome.SaveProblem}" : string.Empty;
-            Status = $"{outcome.Message} {scanned}{saved}";
+            Status = $"Installer result: {outcome.Message} {verification}{saved}";
         }
         catch (Exception exception)
         {
