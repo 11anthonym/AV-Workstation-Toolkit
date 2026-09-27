@@ -271,6 +271,7 @@ public sealed class MigrationPresentationTests
     }
 
     [TestMethod]
+    [DoNotParallelize]
     public void MigrationAndProfileWindowsBindAndRender()
     {
         RunOnSta(() =>

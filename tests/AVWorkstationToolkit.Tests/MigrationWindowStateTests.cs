@@ -24,6 +24,7 @@ namespace AVWorkstationToolkit.Tests;
 public sealed class MigrationWindowStateTests
 {
     [TestMethod]
+    [DoNotParallelize]
     public void MigrationWindowBindsEveryChecklistStateWithoutBindingErrors()
     {
         RunOnDispatcher(async dispatcher =>
@@ -162,6 +163,7 @@ public sealed class MigrationWindowStateTests
     }
 
     [TestMethod]
+    [DoNotParallelize]
     public void AMigrationScanFinishingOnAWorkerThreadUpdatesTheMainWindowOnItsDispatcher()
     {
         RunOnDispatcher(async dispatcher =>

@@ -21,6 +21,7 @@ public sealed class MigrationSessionContinuityTests
     private const string Widget = "Vendor Widget Configuration Tool";
 
     [TestMethod]
+    [DoNotParallelize]
     public void ClosingAndReopeningTheWindowRestoresTheSameMigration()
     {
         var root = NewRoot();
