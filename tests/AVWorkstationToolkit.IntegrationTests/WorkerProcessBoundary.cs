@@ -26,8 +26,11 @@ internal static class WorkerProcessBoundary
             await RunScenarioAsync(executable, "failure", ["Vendor.One"],
                 [Plan(Package("Vendor.One")), Plan(Package("Vendor.One"))],
                 [Execution("Vendor.One", "Failure", 23, 0)], ActionResultStatus.Failed),
+            // Live state changed after the request was checked: the package now needs a risk acknowledgement the request
+            // doesn't carry, so the per-package recheck blocks it. (A package that merely became current is settled as
+            // AlreadyCurrent instead, which the MSTest suite covers.)
             await RunScenarioAsync(executable, "revalidation", ["Vendor.One"],
-                [Plan(Package("Vendor.One")), Plan(Package("Vendor.One", "None", "Current"))],
+                [Plan(Package("Vendor.One")), Plan(Package("Vendor.One", risk: "Service"))],
                 [], ActionResultStatus.Blocked),
             await RunCancellationAsync(executable)
         };

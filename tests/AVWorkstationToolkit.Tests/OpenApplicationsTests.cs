@@ -199,6 +199,34 @@ public sealed class OpenApplicationsTests
     }
 
     [TestMethod]
+    public void WindowsInstallerKeyPathsNameProgramsDirectlyOrThroughTheirFolder()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "avwt-open-apps-" + Guid.NewGuid().ToString("N"));
+        var app = Directory.CreateDirectory(Path.Combine(root, "Vendor App")).FullName;
+        var tools = Directory.CreateDirectory(Path.Combine(app, "tools")).FullName;
+        try
+        {
+            File.WriteAllBytes(Path.Combine(app, "App.exe"), []);
+            File.WriteAllBytes(Path.Combine(app, "App.dat"), []);
+            File.WriteAllBytes(Path.Combine(tools, "Updater.exe"), []);
+            var fonts = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "vendor.ttf");
+
+            var programs = RegistryInstalledProgramLocator.ProgramsFromKeyPaths(
+            [
+                Path.Combine(tools, "Updater.exe"),          // an executable key path, even below the program folder
+                Path.Combine(app, "App.dat"),                // a file key path: the executables in its folder
+                app + @"\",                                  // a folder key path
+                @"01:\Software\Vendor\App\installed",        // a registry key path
+                fonts,                                       // a file in the Windows folder
+                @"C?\Program Files\Vendor\App.exe"           // a component that isn't installed locally
+            ]).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+            CollectionAssert.AreEquivalent(new[] { Path.Combine(tools, "Updater.exe"), Path.Combine(app, "App.exe") }, programs);
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [TestMethod]
     public void APackageWithoutARegisteredNameOrProgramsFindsNothingAndClosesNothing()
     {
         Assert.IsEmpty(new RegistryInstalledProgramLocator(new Dictionary<string, string>()).Locate("ShareX.ShareX"));

@@ -227,6 +227,37 @@ public sealed class ActionProtocolTests
     }
 
     [TestMethod]
+    public void AnAlreadyCurrentPackageCountsAsSuccessOnlyWhenVerified()
+    {
+        var root = CreateTemporaryRoot();
+        try
+        {
+            var paths = new ActionArtifactPathPolicy().GetPaths(root, RequestId);
+            var codec = new ActionResultCodec();
+            var request = Request(["Vendor.One"]);
+            var settledBeforeRunning = NeverRanJson("AlreadyCurrent", 0);
+            settledBeforeRunning["Verified"] = true;
+            Assert.AreEqual(ActionResultStatus.Succeeded, codec.Parse(ResultJson(paths, "Succeeded", 0, settledBeforeRunning), request, paths).Status);
+
+            // WinGet ran and found nothing to do (0x8A15002B), and a fresh check agreed.
+            var settledByWinGet = PackageJson("AlreadyCurrent", unchecked((int)0x8A15002B), true);
+            Assert.AreEqual(PackageOutcomeStatus.AlreadyCurrent,
+                codec.Parse(ResultJson(paths, "Succeeded", 0, settledByWinGet), request, paths).Packages[0].Status);
+
+            var unverified = NeverRanJson("AlreadyCurrent", 0);
+            var unstartedWithCode = NeverRanJson("AlreadyCurrent", 3);
+            unstartedWithCode["Verified"] = true;
+            var inTestRun = NeverRanJson("AlreadyCurrent", 0);
+            inTestRun["Verified"] = true;
+            Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(ResultJson(paths, "Succeeded", 0, unverified), request, paths));
+            Assert.ThrowsExactly<ActionProtocolValidationException>(() => codec.Parse(ResultJson(paths, "Succeeded", 0, unstartedWithCode), request, paths));
+            Assert.ThrowsExactly<ActionProtocolValidationException>(() =>
+                codec.Parse(ResultJson(paths, "Succeeded", 0, inTestRun), Request(["Vendor.One"], dryRun: true), paths));
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [TestMethod]
     public void ResultParserRejectsMalformedExistenceWrongTypesUnknownFieldsAndPathMismatch()
     {
         var root = CreateTemporaryRoot();

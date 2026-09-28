@@ -139,6 +139,30 @@ public sealed class ActionRequestTests
     }
 
     [TestMethod]
+    public void TheWorkersWholeRequestCheckRefusesOnlyWhatLiveStateCantChange()
+    {
+        var service = new ActionRequestAuthorizationService();
+        var plan = Plan([
+            State("Vendor.Held", PackageAction.Update, status: PackageStatus.Held),
+            State("Vendor.Current", PackageAction.None, status: PackageStatus.Current),
+            State("Vendor.Risky", PackageAction.Install, risk: PackageRisk.Driver),
+            State("External.One", PackageAction.Install, CatalogAuthority.OperationalExternal, ProviderKind.External),
+            State("Awareness.One", PackageAction.Install, CatalogAuthority.AwarenessOnly, ProviderKind.External)
+        ], pending: true);
+
+        // Holds, a package that is already current, a pending restart, and risk are decided per package just before it runs.
+        var resolved = service.ResolveRequested(Request(ManagedRequestAction.Install, ["Vendor.Risky", "Vendor.Held", "Vendor.Current"]), plan);
+        CollectionAssert.AreEqual(new[] { "Vendor.Current", "Vendor.Held", "Vendor.Risky" }, resolved.Select(item => item.Package.Id).ToArray());
+
+        // An unknown ID, or one that isn't a managed WinGet package, still refuses the whole request.
+        Assert.AreEqual(ActionRequestFailure.PackageNotInPlan, Assert.ThrowsExactly<ActionRequestValidationException>(() =>
+            service.ResolveRequested(Request(ManagedRequestAction.Install, ["Vendor.Held", "Vendor.Unknown"]), plan)).Failure);
+        foreach (var unmanaged in new[] { "External.One", "Awareness.One" })
+            Assert.AreEqual(ActionRequestFailure.PackageNotEligible, Assert.ThrowsExactly<ActionRequestValidationException>(() =>
+                service.ResolveRequested(Request(ManagedRequestAction.Install, ["Vendor.Held", unmanaged]), plan)).Failure, unmanaged);
+    }
+
+    [TestMethod]
     public void AuthorizationRejectsWrongActionAndUnknownPackage()
     {
         var plan = Plan([State("Vendor.One", PackageAction.Install)]);

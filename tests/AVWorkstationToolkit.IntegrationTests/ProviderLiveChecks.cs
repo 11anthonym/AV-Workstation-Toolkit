@@ -22,8 +22,16 @@ public static class ProviderLiveChecks
         var updates = await new WinGetAvailableUpdateInventory(runner).ReadAsync().ConfigureAwait(false);
         var registry = await new WindowsUninstallRegistryInventory().ReadAsync().ConfigureAwait(false);
         var reboot = await new WindowsRebootStateProvider().ReadAsync().ConfigureAwait(false);
+        // Which installed managed apps the open-app check can locate programs for, read-only. Nothing is closed.
+        var locator = new RegistryInstalledProgramLocator();
+        var located = AVWorkstationToolkit.Domain.Workstation.ManagedApplicationDetectors.Patterns.Keys
+            .Select(id => new { Id = id, Programs = locator.Locate(id).Count })
+            .Where(item => item.Programs > 0)
+            .OrderBy(item => item.Id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
         return new
         {
+            OpenAppProgramsLocated = located,
             WinGetResolution = resolution.Trusted ? "Available" : "Unavailable",
             WinGetResolutionDetail = resolution.Detail,
             InstalledInventory = installed.Quality.ToString(),

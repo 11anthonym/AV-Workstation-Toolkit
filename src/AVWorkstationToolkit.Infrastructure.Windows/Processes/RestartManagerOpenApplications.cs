@@ -5,6 +5,7 @@ using System.Text;
 using AVWorkstationToolkit.Application.Actions;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Domain.Workstation;
+using AVWorkstationToolkit.Infrastructure.Windows.Registry;
 using Microsoft.Win32;
 
 namespace AVWorkstationToolkit.Infrastructure.Windows.Processes;
@@ -98,6 +99,7 @@ public sealed class RegistryInstalledProgramLocator : IInstalledProgramLocator
 {
     private const string UninstallPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
     internal const int MaximumPrograms = 64;
+    private const int MaximumKeyPathFolders = 16;
     private readonly IReadOnlyDictionary<string, string> detectors;
 
     public RegistryInstalledProgramLocator(IReadOnlyDictionary<string, string>? detectors = null) =>
@@ -107,6 +109,7 @@ public sealed class RegistryInstalledProgramLocator : IInstalledProgramLocator
     {
         if (string.IsNullOrWhiteSpace(packageId) || !detectors.TryGetValue(packageId, out var pattern)) return [];
         var programs = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        var windowsInstallerProducts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (hive, view) in new[]
                  {
                      (RegistryHive.LocalMachine, RegistryView.Registry64),
@@ -129,6 +132,9 @@ public sealed class RegistryInstalledProgramLocator : IInstalledProgramLocator
                         if (programs.Count >= MaximumPrograms) break;
                         programs.Add(program);
                     }
+                    // A Windows Installer registration usually records no InstallLocation; its components' key paths do.
+                    if (IsSet(entry?.GetValue("WindowsInstaller")) && Guid.TryParse(name, out _) && name.StartsWith('{'))
+                        windowsInstallerProducts.Add(name);
                 }
             }
             catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
@@ -136,8 +142,50 @@ public sealed class RegistryInstalledProgramLocator : IInstalledProgramLocator
                 // A registry view that can't be read contributes nothing; the others still count.
             }
         }
+        if (windowsInstallerProducts.Count > 0)
+            foreach (var program in ProgramsFromKeyPaths(WindowsInstallerComponents.KeyPaths(windowsInstallerProducts)))
+            {
+                if (programs.Count >= MaximumPrograms) break;
+                programs.Add(program);
+            }
         return programs.ToArray();
     }
+
+    /// <summary>
+    /// Programs named by Windows Installer component key paths: an executable key path directly, otherwise the executables
+    /// in the key path's folder. Registry key paths and anything outside a specific local program folder are ignored.
+    /// </summary>
+    internal static IEnumerable<string> ProgramsFromKeyPaths(IEnumerable<string> keyPaths)
+    {
+        var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var keyPath in keyPaths)
+        {
+            if (keyPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                if (IconProgram(keyPath) is { } executable) yield return executable;
+                continue;
+            }
+            string? folder;
+            try
+            {
+                folder = keyPath.EndsWith('\\') ? keyPath : Path.GetDirectoryName(keyPath);
+            }
+            catch (ArgumentException)
+            {
+                continue;
+            }
+            if (folder is null || folders.Count >= MaximumKeyPathFolders || !folders.Add(Path.TrimEndingDirectorySeparator(folder))) continue;
+            foreach (var executable in ProgramsFrom(folder, null)) yield return executable;
+        }
+    }
+
+    private static bool IsSet(object? value) => value switch
+    {
+        int number => number == 1,
+        long number => number == 1,
+        string text => text.Trim() == "1",
+        _ => false
+    };
 
     internal static IEnumerable<string> ProgramsFrom(string? installLocation, string? displayIcon)
     {

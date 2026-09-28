@@ -251,21 +251,45 @@ public sealed class ActionWorkerOrchestratorTests
     }
 
     [TestMethod]
-    public async Task BecameCurrentHeldOrActionMismatchBlocksWithoutExecution()
+    public async Task APackageThatBecameCurrentIsSettledWithoutRunningAnything()
+    {
+        foreach (var (action, changed) in new[]
+        {
+            (ManagedRequestAction.Install, State("Vendor.One", PackageAction.None, PackageStatus.Current)),
+            (ManagedRequestAction.Install, State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable)),
+            (ManagedRequestAction.Update, State("Vendor.One", PackageAction.None, PackageStatus.Current))
+        })
+        {
+            var request = Request(action: action);
+            var protocol = new MemoryProtocol(request);
+            var executor = new FakeExecutor();
+            var planned = action == ManagedRequestAction.Install ? State("Vendor.One") : State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+            var result = await Worker(new SequencePlans(Plan([planned]), Plan([changed])), executor, protocol).RunAsync(request);
+
+            Assert.AreEqual(ActionResultStatus.Succeeded, result.Status, $"{action}: {changed.Status}");
+            Assert.AreEqual(PackageOutcomeStatus.AlreadyCurrent, result.Packages.Single().Status);
+            Assert.IsTrue(result.Packages.Single().Verified);
+            Assert.AreEqual(0, executor.CallCount);
+            StringAssert.Contains(protocol.Progress.Single(item => item.Stage == "AlreadyCurrent").Message, "nothing needed changing");
+        }
+    }
+
+    [TestMethod]
+    public async Task APackageThatIsHeldOrWasRemovedIsBlockedWithoutExecution()
     {
         foreach (var changed in new[]
         {
-            State("Vendor.One", PackageAction.None, PackageStatus.Current),
-            State("Vendor.One", PackageAction.Update, PackageStatus.Held),
-            State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable)
+            State("Vendor.One", PackageAction.Update, PackageStatus.Held, upgradeAvailable: true),
+            State("Vendor.One", PackageAction.Install, PackageStatus.Missing)
         })
         {
-            var request = Request();
+            var request = Request(action: ManagedRequestAction.Update);
             var protocol = new MemoryProtocol(request);
             var executor = new FakeExecutor();
-            var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([changed])), executor, protocol).RunAsync(request);
+            var result = await Worker(new SequencePlans(Plan([State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable)]), Plan([changed])),
+                executor, protocol).RunAsync(request);
 
-            Assert.AreEqual(ActionResultStatus.Blocked, result.Status);
+            Assert.AreEqual(ActionResultStatus.Blocked, result.Status, changed.Status.ToString());
             Assert.AreEqual(PackageOutcomeStatus.Blocked, result.Packages.Single().Status);
             Assert.AreEqual(0, executor.CallCount);
         }
@@ -320,9 +344,10 @@ public sealed class ActionWorkerOrchestratorTests
 
         var result = await Worker(plans, executor, protocol).RunAsync(request);
 
-        Assert.AreEqual(ActionResultStatus.Blocked, result.Status);
+        // Installing the first also installed the second, so the second is settled by its recheck instead of blocking.
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
         CollectionAssert.AreEqual(
-            new[] { PackageOutcomeStatus.Succeeded, PackageOutcomeStatus.Blocked },
+            new[] { PackageOutcomeStatus.Succeeded, PackageOutcomeStatus.AlreadyCurrent },
             result.Packages.Select(item => item.Status).ToArray());
         Assert.AreEqual(1, executor.CallCount);
     }
@@ -481,6 +506,173 @@ public sealed class ActionWorkerOrchestratorTests
     }
 
     [TestMethod]
+    public async Task AConditionThatUsuallyClearsIsRetriedAfterAFreshRecheck()
+    {
+        var request = Request();
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150102)), PackageExecutionResult.Success);
+
+        var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]), Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)])), executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        Assert.AreEqual(2, executor.CallCount);
+        Assert.AreEqual("Vendor.One: another installation was already running on this PC, often Windows Update. Trying again in 0 seconds (try 2 of 3).",
+            protocol.Progress.Single(item => item.Stage == "Retrying").Message);
+    }
+
+    [TestMethod]
+    public async Task RetriesAreBoundedAndTheLastFailureIsExplained()
+    {
+        var request = Request();
+        var protocol = new MemoryProtocol(request);
+        var download = PackageExecutionResult.Failure(Code(0x8A150008));
+        var executor = new FakeExecutor(download, download, download);
+
+        var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]), Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One")])), executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+        Assert.AreEqual(3, executor.CallCount, "The first try and two retries, no more.");
+        StringAssert.StartsWith(protocol.Progress.Single(item => item.Stage == "Failed").Message,
+            "Vendor.One couldn't be installed: WinGet couldn't download the installer. WinGet couldn't complete the change. Exit code: -1978335224 (0x8A150008).");
+    }
+
+    [TestMethod]
+    public async Task ARecheckDuringARetrySettlesAPackageThatBecameCurrent()
+    {
+        var request = Request();
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150008)));
+
+        var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)])), executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        Assert.AreEqual(PackageOutcomeStatus.AlreadyCurrent, result.Packages.Single().Status);
+        Assert.AreEqual(1, executor.CallCount);
+    }
+
+    [TestMethod]
+    public async Task WinGetFindingNothingToDoIsSettledOnlyWhenAFreshCheckAgrees()
+    {
+        foreach (var (verification, expected) in new[]
+        {
+            (State("Vendor.One", PackageAction.None, PackageStatus.Current), PackageOutcomeStatus.AlreadyCurrent),
+            (State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable), PackageOutcomeStatus.Failed)
+        })
+        {
+            var request = Request(action: ManagedRequestAction.Update);
+            var protocol = new MemoryProtocol(request);
+            var updatable = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+            var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A15002B)));
+
+            var result = await Worker(new SequencePlans(Plan([updatable]), Plan([updatable]), Plan([verification])), executor, protocol).RunAsync(request);
+
+            Assert.AreEqual(expected, result.Packages.Single().Status);
+            Assert.AreEqual(Code(0x8A15002B), result.Packages.Single().ExitCode);
+            Assert.AreEqual(expected == PackageOutcomeStatus.AlreadyCurrent ? ActionResultStatus.Succeeded : ActionResultStatus.Failed, result.Status);
+        }
+    }
+
+    [TestMethod]
+    public async Task AFailureWhileTheAppIsOpenIsRecoveredByClosingItOnlyWithConsent()
+    {
+        foreach (var consent in new[] { true, false })
+        {
+            var request = new ActionRequest(ActionRequestRules.CurrentSchemaVersion, RequestId, ManagedRequestAction.Install, ["Vendor.One"],
+                false, false, closeOpenAppsFor: consent ? ["Vendor.One"] : []);
+            var protocol = new MemoryProtocol(request);
+            // Not open when the package started; open by the time its installer failed (reopened, or not locatable earlier).
+            var open = new SequencedOpenApplications([], ["Vendor App"]);
+            var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150006)), PackageExecutionResult.Success);
+
+            var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]),
+                Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)])), executor, protocol, open).RunAsync(request);
+
+            if (consent)
+            {
+                Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+                Assert.AreEqual(2, executor.CallCount);
+                Assert.AreEqual(1, open.Closures, "Asked to close once, then tried once more.");
+                Assert.AreEqual(1, open.LastClosure!.ReopenCount);
+                StringAssert.Contains(protocol.Progress.Last(item => item.Stage == "Closing").Message, "which can stop the installer");
+            }
+            else
+            {
+                Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+                Assert.AreEqual(1, executor.CallCount);
+                Assert.AreEqual(0, open.Closures);
+                StringAssert.Contains(protocol.Progress.Single(item => item.Stage == "Failed").Message,
+                    "Vendor App is open, which can stop its installer: close it and install it again.");
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task AFailureThatWontClearIsExplainedAndNotRetried()
+    {
+        var request = Request();
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150011)));
+
+        var result = await Worker(new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")])), executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+        Assert.AreEqual(1, executor.CallCount);
+        StringAssert.StartsWith(protocol.Progress.Single(item => item.Stage == "Failed").Message,
+            "Vendor.One couldn't be installed: the download didn't match the hash published for it, so it wasn't run.");
+    }
+
+    [TestMethod]
+    public async Task StoppingDuringARetryPauseEndsThePackageWithoutAnotherTry()
+    {
+        var request = Request(ids: ["Vendor.One", "Vendor.Two"]);
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150008))) { AfterCall = _ => protocol.CancellationRequested = true };
+
+        var result = await Worker(new SequencePlans(Plan([State("Vendor.One"), State("Vendor.Two")]), Plan([State("Vendor.One"), State("Vendor.Two")])),
+            executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(1, executor.CallCount);
+        Assert.AreEqual(ActionResultStatus.Failed, result.Status);
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.Failed, PackageOutcomeStatus.NotStarted }, result.Packages.Select(item => item.Status).ToArray());
+    }
+
+    [TestMethod]
+    public async Task APackageHeldAtTheStartIsSkippedAndTheOthersStillRun()
+    {
+        var request = Request(ids: ["Vendor.A", "Vendor.B"], action: ManagedRequestAction.Update);
+        var held = State("Vendor.A", PackageAction.Update, PackageStatus.Held, upgradeAvailable: true);
+        var updatable = State("Vendor.B", PackageAction.Update, PackageStatus.UpdateAvailable);
+        var protocol = new MemoryProtocol(request);
+        var executor = new FakeExecutor(PackageExecutionResult.Success);
+
+        var result = await Worker(new SequencePlans(Plan([held, updatable]), Plan([held, updatable]), Plan([held, updatable]),
+            Plan([held, State("Vendor.B", PackageAction.None, PackageStatus.Current)])), executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Status, "A hold at the start no longer refuses the whole request.");
+        CollectionAssert.AreEqual(new[] { PackageOutcomeStatus.Blocked, PackageOutcomeStatus.Succeeded }, result.Packages.Select(item => item.Status).ToArray());
+        Assert.AreEqual(1, executor.CallCount);
+    }
+
+    [TestMethod]
+    public void EveryRecognizedWinGetCodeIsAWinGetCodeWithAPlainReason()
+    {
+        Assert.IsNull(WinGetOutcomes.For(1603));
+        Assert.IsNull(WinGetOutcomes.For(Code(0x8A150006)), "A generic installer failure keeps WinGet's own output.");
+        foreach (var code in new uint[] { 0x8A150008, 0x8A150102, 0x8A150107, 0x8A150045 })
+            Assert.AreEqual(WinGetRecovery.RetryLater, WinGetOutcomes.For(Code(code))!.Recovery, $"0x{code:X8}");
+        foreach (var code in new uint[] { 0x8A150101, 0x8A150103, 0x8A150111 })
+            Assert.AreEqual(WinGetRecovery.CloseOpenApps, WinGetOutcomes.For(Code(code))!.Recovery, $"0x{code:X8}");
+        foreach (var code in new uint[] { 0x8A15002B, 0x8A150061, 0x8A15010D })
+            Assert.AreEqual(WinGetRecovery.CheckIfCurrent, WinGetOutcomes.For(Code(code))!.Recovery, $"0x{code:X8}");
+        Assert.AreEqual(WinGetRecovery.None, WinGetOutcomes.For(Code(0x8A150011))!.Recovery, "A hash mismatch is never retried.");
+    }
+
+    private static int Code(uint value) => unchecked((int)value);
+
+    [TestMethod]
     public async Task ATestRunNeverLooksForOrClosesApps()
     {
         var request = Request(dryRun: true);
@@ -541,7 +733,8 @@ public sealed class ActionWorkerOrchestratorTests
         IPackageActionExecutor executor,
         IActionWorkerProtocol protocol,
         IOpenApplicationService? openApplications = null) =>
-        new(plans, executor, protocol, "FixtureHost", timeProvider: new FixedTimeProvider(), openApplications: openApplications);
+        new(plans, executor, protocol, "FixtureHost", timeProvider: new FixedTimeProvider(), openApplications: openApplications,
+            retryPolicy: new WorkerRetryPolicy([TimeSpan.Zero, TimeSpan.Zero]));
 
     private static ActionRequest Request(
         IReadOnlyList<string>? ids = null,
@@ -555,7 +748,8 @@ public sealed class ActionWorkerOrchestratorTests
         string id,
         PackageAction action = PackageAction.Install,
         PackageStatus status = PackageStatus.Missing,
-        PackageRisk risk = PackageRisk.None)
+        PackageRisk risk = PackageRisk.None,
+        bool? upgradeAvailable = null)
     {
         var definition = new PackageDefinition(
             id, id, "Fixture", string.Empty, "Test", ProviderKind.WinGet, CatalogAuthority.ManagedWinGet,
@@ -565,7 +759,7 @@ public sealed class ActionWorkerOrchestratorTests
             [InstallationForm.WinGet], [SupportedOperatingSystem.Windows], DeliveryMode.None, ReleaseMode.None, DetectionMode.WinGet,
             DetectionVersionPolicy.None, "Stable", string.Empty, string.Empty, string.Empty, [], null, null, null, null, null,
             risk == PackageRisk.Driver, risk == PackageRisk.Service, risk == PackageRisk.Listener, null, string.Empty, []);
-        return new(definition, status != PackageStatus.Missing, string.Empty, [], string.Empty, status == PackageStatus.UpdateAvailable,
+        return new(definition, status != PackageStatus.Missing, string.Empty, [], string.Empty, upgradeAvailable ?? status == PackageStatus.UpdateAvailable,
             status, status.ToString(), status.ToString(), action, InventoryQuality.Complete);
     }
 
@@ -660,6 +854,23 @@ public sealed class ActionWorkerOrchestratorTests
             Closed.Add(packageId);
             var names = open[packageId];
             LastClosure = refuse ? new FakeClosure([], names, []) : new FakeClosure(names, [], reopens ?? []);
+            return LastClosure;
+        }
+    }
+
+    // Each FindOpen returns the next answer (repeating the last); every Close closes everything and reopens nothing.
+    private sealed class SequencedOpenApplications(params string[][] answers) : IOpenApplicationService
+    {
+        private int calls;
+        public int Closures { get; private set; }
+        public FakeClosure? LastClosure { get; private set; }
+
+        public IReadOnlyList<string> FindOpen(string packageId) => answers[Math.Min(calls++, answers.Length - 1)];
+
+        public IOpenApplicationClosure Close(string packageId)
+        {
+            Closures++;
+            LastClosure = new FakeClosure(answers[^1], [], []);
             return LastClosure;
         }
     }

@@ -379,6 +379,15 @@ if ($openApplicationsSource -notmatch 'RmShutdown\(handle, 0, IntPtr\.Zero\)' -o
     $openApplicationsSource -match '(?i)RmShutdown\([^)]*,\s*(?:0x)?1\s*,|RmShutdown\([^)]*RmForceShutdown|GetProcessesByName|\.Kill\(|TerminateProcess|ProcessStartInfo|Process\.Start|taskkill') {
     throw 'Open-app handling can force an app closed, identify it by process name, or start a process.'
 }
+# Automatic retries are limited to the four WinGet conditions that clear by themselves, never a hash mismatch, and bounded.
+$winGetOutcomeSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Workers\WinGetOutcome.cs') -Raw
+$retryCodes = @([regex]::Matches($winGetOutcomeSource, '\[(0x8A15[0-9A-F]{4})\]\s*=\s*new\([^\[\]]*?WinGetRecovery\.RetryLater\)') | ForEach-Object { $_.Groups[1].Value } | Sort-Object)
+$orchestratorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Workers\ActionWorkerOrchestrator.cs') -Raw
+if (($retryCodes -join ',') -ne '0x8A150008,0x8A150045,0x8A150102,0x8A150107' -or
+    $winGetOutcomeSource -notmatch '\[0x8A150011\]\s*=\s*new\([^\[\]]*?WinGetRecovery\.None\)' -or
+    $orchestratorSource -notmatch 'Pauses\.Count > 5' -or $orchestratorSource -notmatch 'pause > TimeSpan\.FromMinutes\(5\)') {
+    throw 'Automatic WinGet retries widened beyond the reviewed transient conditions or lost their bound.'
+}
 $argumentPolicySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Application\Workers\ManagedWinGetArgumentPolicy.cs') -Raw
 if ($argumentPolicySource -notmatch '"install"\s*:\s*"upgrade"' -or
     $argumentPolicySource -notmatch '"--id"' -or

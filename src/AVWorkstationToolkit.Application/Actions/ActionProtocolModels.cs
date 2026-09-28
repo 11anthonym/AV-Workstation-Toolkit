@@ -36,7 +36,12 @@ public enum PackageOutcomeStatus
     /// <summary>An app using the package's installed files was open and wasn't closed, so its installer never ran.</summary>
     InUse,
     /// <summary>The run was stopped before this package was reached.</summary>
-    NotStarted
+    NotStarted,
+    /// <summary>
+    /// A fresh check found the package already installed (or already up to date), for example because it updated itself
+    /// after the plan was read. Verified by that check; WinGet may or may not have been asked first.
+    /// </summary>
+    AlreadyCurrent
 }
 
 public enum ActionProtocolFailure

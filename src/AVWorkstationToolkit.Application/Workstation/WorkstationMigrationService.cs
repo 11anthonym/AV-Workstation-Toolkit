@@ -279,12 +279,13 @@ public sealed class WorkstationMigrationService
             {
                 var packageId = item.CatalogState!.Package.Id;
                 var outcome = result.Packages.FirstOrDefault(package => package.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase));
-                var succeeded = outcome?.Status == PackageOutcomeStatus.Succeeded;
+                var succeeded = outcome?.Status is PackageOutcomeStatus.Succeeded or PackageOutcomeStatus.AlreadyCurrent;
                 var message = outcome is null
                     ? DiagnosticsRedactor.Sanitize(result.Message)
                     : outcome.Status switch
                     {
                         PackageOutcomeStatus.Succeeded => "Installed and verified by the worker.",
+                        PackageOutcomeStatus.AlreadyCurrent => "Already installed when the worker checked it.",
                         PackageOutcomeStatus.Blocked => "Blocked by policy when the worker rechecked it.",
                         PackageOutcomeStatus.InUse => "The app was open, so it wasn't installed. Close it and install again.",
                         PackageOutcomeStatus.Unverified => "The installer finished, but the worker couldn't verify the result.",

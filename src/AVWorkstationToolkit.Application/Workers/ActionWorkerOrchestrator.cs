@@ -78,9 +78,11 @@ public sealed record PackageExecutionResult(
 public sealed record ActionWorkerRunResult(ActionResultStatus Status, int ExitCode, IReadOnlyList<ActionPackageOutcome> Packages);
 
 /// <summary>
-/// Worker orchestration. It independently reauthorizes the complete request and
-/// every individual package, then delegates package behavior to the configured
-/// constrained executor.
+/// Worker orchestration. It independently resolves the complete request (every ID must be exactly one managed WinGet
+/// package with execution authority), reauthorizes each package against a fresh plan just before it runs, and delegates
+/// package behavior to the configured constrained executor. A package already where the request wanted it is settled
+/// without running anything; recognized WinGet results get a plain reason and, when they usually clear, a bounded retry
+/// of the same reviewed vector after the same recheck.
 /// </summary>
 public sealed class ActionWorkerOrchestrator
 {
@@ -93,6 +95,7 @@ public sealed class ActionWorkerOrchestrator
     private readonly IActionWorkerProtocol protocol;
     private readonly ActionRequestAuthorizationService authorization;
     private readonly IOpenApplicationService openApplications;
+    private readonly WorkerRetryPolicy retryPolicy;
     private readonly TimeProvider timeProvider;
     private readonly string computerName;
 
@@ -103,13 +106,17 @@ public sealed class ActionWorkerOrchestrator
         string computerName,
         ActionRequestAuthorizationService? authorization = null,
         TimeProvider? timeProvider = null,
-        IOpenApplicationService? openApplications = null)
+        IOpenApplicationService? openApplications = null,
+        WorkerRetryPolicy? retryPolicy = null)
     {
         this.planProvider = planProvider ?? throw new ArgumentNullException(nameof(planProvider));
         this.executor = executor ?? throw new ArgumentNullException(nameof(executor));
         this.protocol = protocol ?? throw new ArgumentNullException(nameof(protocol));
         this.authorization = authorization ?? new ActionRequestAuthorizationService();
         this.openApplications = openApplications ?? NoOpenApplications.Instance;
+        this.retryPolicy = retryPolicy ?? WorkerRetryPolicy.Default;
+        if (this.retryPolicy.Pauses.Count > 5 || this.retryPolicy.Pauses.Any(pause => pause < TimeSpan.Zero || pause > TimeSpan.FromMinutes(5)))
+            throw new ArgumentOutOfRangeException(nameof(retryPolicy), "Retries are bounded to five, each at most five minutes apart.");
         this.timeProvider = timeProvider ?? TimeProvider.System;
         if (string.IsNullOrWhiteSpace(computerName) || computerName.Length > ActionProtocolLimits.MaximumComputerCharacters || computerName.Any(char.IsControl))
             throw new ArgumentException("The worker computer label is invalid.", nameof(computerName));
@@ -134,11 +141,14 @@ public sealed class ActionWorkerOrchestrator
                 outcomes, cancellationToken).ConfigureAwait(false);
         }
 
-        AuthorizedActionRequest initiallyAuthorized;
+        // The whole request is refused only for what live state can't change: an ID that isn't exactly one managed WinGet
+        // package with execution authority. Whether each package may run now (action, hold, restart, risk) is decided just
+        // before it runs, against a fresh plan, so one stale or blocked package can't sink the others.
+        IReadOnlyList<PackageState> planned;
         try
         {
             var initialPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
-            initiallyAuthorized = authorization.Authorize(request, initialPlan);
+            planned = authorization.ResolveRequested(request, initialPlan);
         }
         catch (Exception exception) when (exception is ActionRequestValidationException or InvalidOperationException)
         {
@@ -146,10 +156,8 @@ public sealed class ActionWorkerOrchestrator
         }
 
         var cancellationObserved = false;
-        var planned = initiallyAuthorized.Packages;
         for (var index = 0; index < planned.Count; index++)
         {
-            var initiallyPlannedPackage = planned[index];
             if (await protocol.IsCancellationRequestedAsync(cancellationToken).ConfigureAwait(false))
             {
                 cancellationObserved = true;
@@ -160,131 +168,7 @@ public sealed class ActionWorkerOrchestrator
                     $"Stopped before starting the next package. {PackageCount(planned.Count - index)} not started.", cancellationToken).ConfigureAwait(false);
                 break;
             }
-
-            PackageState package;
-            try
-            {
-                var freshPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
-                var singleRequest = new ActionRequest(request.SchemaVersion, request.RequestId, request.Action,
-                    [initiallyPlannedPackage.Package.Id], request.RiskAcknowledged, request.DryRun, request.ManagedCatalogRevision);
-                package = authorization.Authorize(singleRequest, freshPlan).Packages.Single();
-            }
-            catch (Exception exception) when (exception is ActionRequestValidationException or InvalidOperationException)
-            {
-                // A package that fails its recheck is skipped on its own; the rest of the run continues, and each later
-                // package is rechecked against a fresh plan as always.
-                outcomes.Add(CreateOutcome(initiallyPlannedPackage, request.Action, PackageOutcomeStatus.Blocked, 3, false, null, []));
-                await ProgressAsync(request, ActionProgressLevel.Warning, "Blocked", initiallyPlannedPackage.Package.Id,
-                    $"Skipped {initiallyPlannedPackage.Package.Name}. {BlockedReason(exception)}", cancellationToken).ConfigureAwait(false);
-                continue;
-            }
-
-            var arguments = ReviewedArgumentEvidence(package, request.Action);
-            if (request.DryRun)
-            {
-                var plannedAt = timeProvider.GetUtcNow();
-                await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
-                    $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
-                outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.Planned, 0, false, plannedAt, arguments));
-                await ProgressAsync(request, ActionProgressLevel.Success, "Planned", package.Package.Id,
-                    "Safety checks passed. No change was made during this test run.", cancellationToken).ConfigureAwait(false);
-                continue;
-            }
-
-            // Many installers refuse to replace a program that is running. An app is closed only for a package the
-            // technician agreed to, only by asking it, and only just before that package's own installer runs.
-            IOpenApplicationClosure? closure = null;
-            var open = openApplications.FindOpen(package.Package.Id);
-            if (open.Count > 0)
-            {
-                if (!request.CloseOpenAppsFor.Contains(package.Package.Id, StringComparer.OrdinalIgnoreCase))
-                {
-                    outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.InUse, 3, false, null, []));
-                    await ProgressAsync(request, ActionProgressLevel.Warning, "InUse", package.Package.Id,
-                        $"{OpenApplicationText.Names(open)} {(OpenApplicationText.IsPlural(open) ? "are" : "is")} open, so {package.Package.Name} wasn't {ActionPastTense(request.Action).ToLowerInvariant()}. " +
-                        $"Close {(OpenApplicationText.IsPlural(open) ? "them" : "it")} and {ActionVerb(request.Action)} it again.", cancellationToken).ConfigureAwait(false);
-                    continue;
-                }
-                await ProgressAsync(request, ActionProgressLevel.Info, "Closing", package.Package.Id,
-                    $"Asking {OpenApplicationText.Names(open)} to close so {package.Package.Name} can be {ActionPastTense(request.Action).ToLowerInvariant()}.", cancellationToken).ConfigureAwait(false);
-                closure = openApplications.Close(package.Package.Id);
-                if (closure.StillOpen.Count > 0)
-                {
-                    var stillOpen = closure.StillOpen;
-                    var reopenedEarly = closure.Reopen();
-                    closure.Dispose();
-                    outcomes.Add(CreateOutcome(package, request.Action, PackageOutcomeStatus.InUse, 3, false, null, []));
-                    await ProgressAsync(request, ActionProgressLevel.Warning, "InUse", package.Package.Id,
-                        $"{OpenApplicationText.Names(stillOpen)} didn't close when asked, so {package.Package.Name} wasn't {ActionPastTense(request.Action).ToLowerInvariant()}. " +
-                        $"{(OpenApplicationText.IsPlural(stillOpen) ? "They" : "It")} may have unsaved work: close {(OpenApplicationText.IsPlural(stillOpen) ? "them" : "it")} yourself, then {ActionVerb(request.Action)} it again." +
-                        ReopenedNote(closure.Closed, reopenedEarly), cancellationToken).ConfigureAwait(false);
-                    continue;
-                }
-            }
-
-            var startedAt = timeProvider.GetUtcNow();
-            await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
-                $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
-            PackageExecutionResult execution;
-            IReadOnlyList<string> reopened = [];
-            try
-            {
-                execution = await executor.ExecuteAsync(
-                    new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk, package.Package.InstallerMode),
-                    cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                // Whatever the installer did, the apps it needed closed are offered back as soon as it has finished.
-                if (closure is not null)
-                {
-                    reopened = closure.Reopen();
-                    closure.Dispose();
-                }
-            }
-            if (closure is not null && closure.Closed.Count > 0)
-                await ProgressAsync(request, ActionProgressLevel.Info, "Reopened", package.Package.Id,
-                    ReopenedNote(closure.Closed, reopened).TrimStart(), cancellationToken).ConfigureAwait(false);
-
-            var verified = false;
-            if (execution.Disposition == PackageExecutionDisposition.Succeeded)
-            {
-                try
-                {
-                    var verificationPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
-                    verified = VerifyPostActionState(request.Action, package.Package.Id, verificationPlan);
-                }
-                catch (Exception exception) when (exception is InvalidOperationException or IOException)
-                {
-                    verified = false;
-                }
-            }
-            var status = execution.Disposition switch
-            {
-                PackageExecutionDisposition.Succeeded when verified => PackageOutcomeStatus.Succeeded,
-                PackageExecutionDisposition.Succeeded => PackageOutcomeStatus.Unverified,
-                PackageExecutionDisposition.Failed => PackageOutcomeStatus.Failed,
-                PackageExecutionDisposition.VerificationFailed => PackageOutcomeStatus.Unverified,
-                PackageExecutionDisposition.TimedOut => PackageOutcomeStatus.Failed,
-                _ => throw new InvalidOperationException("The package executor returned an unknown disposition.")
-            };
-            if (execution.Disposition == PackageExecutionDisposition.Failed && execution.ExitCode == 0)
-                throw new InvalidOperationException("The package executor returned a failed disposition with a zero exit code.");
-            if (execution.Disposition == PackageExecutionDisposition.TimedOut && execution.ExitCode != -1)
-                throw new InvalidOperationException("The package executor returned an invalid timeout exit code.");
-            if (execution.Disposition is PackageExecutionDisposition.Succeeded or PackageExecutionDisposition.VerificationFailed && execution.ExitCode != 0)
-                throw new InvalidOperationException("The package executor returned a non-failed disposition with a nonzero exit code.");
-            outcomes.Add(CreateOutcome(package, request.Action, status, execution.ExitCode, verified, startedAt, arguments));
-
-            var (level, stage, message) = status switch
-            {
-                PackageOutcomeStatus.Succeeded => (ActionProgressLevel.Success, "Verified", $"{ActionPastTense(request.Action)} and verified."),
-                PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "WinGet finished, but AVWT couldn't confirm the installed version."),
-                PackageOutcomeStatus.Failed when execution.Disposition == PackageExecutionDisposition.TimedOut =>
-                    (ActionProgressLevel.Error, "Failed", "WinGet didn't finish within the allowed time."),
-                _ => (ActionProgressLevel.Error, "Failed", FailureMessage(execution))
-            };
-            await ProgressAsync(request, level, stage, package.Package.Id, message, cancellationToken).ConfigureAwait(false);
+            outcomes.Add(await RunPackageAsync(request, planned[index], cancellationToken).ConfigureAwait(false));
         }
 
         var failedCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
@@ -306,6 +190,209 @@ public sealed class ActionWorkerOrchestrator
         await ProgressAsync(request, ActionProgressLevel.Success, "Complete", string.Empty, successMessage, cancellationToken).ConfigureAwait(false);
         return await CompleteAsync(request, ActionResultStatus.Succeeded, 0, successMessage, outcomes, cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// One package, start to finish: a fresh recheck, the open-app rule, the installer with bounded recovery, and a fresh
+    /// verification. Recovery never widens authority: a retry is the same reviewed one-package vector after the same recheck,
+    /// and an app is closed only for a consented package, only by asking.
+    /// </summary>
+    private async Task<ActionPackageOutcome> RunPackageAsync(ActionRequest request, PackageState planned, CancellationToken cancellationToken)
+    {
+        var recheck = await RecheckAsync(request, planned, cancellationToken).ConfigureAwait(false);
+        if (recheck.Done is { } done) return done;
+        var package = recheck.Package!;
+        var arguments = ReviewedArgumentEvidence(package, request.Action);
+        if (request.DryRun)
+        {
+            var plannedAt = timeProvider.GetUtcNow();
+            await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
+                $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
+            await ProgressAsync(request, ActionProgressLevel.Success, "Planned", package.Package.Id,
+                "Safety checks passed. No change was made during this test run.", cancellationToken).ConfigureAwait(false);
+            return CreateOutcome(package, request.Action, PackageOutcomeStatus.Planned, 0, false, plannedAt, arguments);
+        }
+
+        // Many installers refuse to replace a program that is running. An app is closed only for a package the technician
+        // agreed to, only by asking it, and only just before that package's own installer runs.
+        var consented = request.CloseOpenAppsFor.Contains(package.Package.Id, StringComparer.OrdinalIgnoreCase);
+        IOpenApplicationClosure? closure = null;
+        var open = openApplications.FindOpen(package.Package.Id);
+        if (open.Count > 0)
+        {
+            if (!consented)
+            {
+                await ProgressAsync(request, ActionProgressLevel.Warning, "InUse", package.Package.Id,
+                    $"{OpenApplicationText.Names(open)} {IsAre(open)} open, so {package.Package.Name} wasn't {PastLower(request.Action)}. " +
+                    $"Close {ItThem(open)} and {ActionVerb(request.Action)} it again.", cancellationToken).ConfigureAwait(false);
+                return CreateOutcome(package, request.Action, PackageOutcomeStatus.InUse, 3, false, null, []);
+            }
+            await ProgressAsync(request, ActionProgressLevel.Info, "Closing", package.Package.Id,
+                $"Asking {OpenApplicationText.Names(open)} to close so {package.Package.Name} can be {PastLower(request.Action)}.", cancellationToken).ConfigureAwait(false);
+            closure = openApplications.Close(package.Package.Id);
+            if (closure.StillOpen.Count > 0)
+            {
+                var stillOpen = closure.StillOpen;
+                var reopenedEarly = closure.Reopen();
+                closure.Dispose();
+                await ProgressAsync(request, ActionProgressLevel.Warning, "InUse", package.Package.Id,
+                    $"{OpenApplicationText.Names(stillOpen)} didn't close when asked, so {package.Package.Name} wasn't {PastLower(request.Action)}. " +
+                    $"{(OpenApplicationText.IsPlural(stillOpen) ? "They" : "It")} may have unsaved work: close {ItThem(stillOpen)} yourself, then {ActionVerb(request.Action)} it again." +
+                    ReopenedNote(closure.Closed, reopenedEarly), cancellationToken).ConfigureAwait(false);
+                return CreateOutcome(package, request.Action, PackageOutcomeStatus.InUse, 3, false, null, []);
+            }
+        }
+
+        var startedAt = timeProvider.GetUtcNow();
+        await ProgressAsync(request, ActionProgressLevel.Info, "Starting", package.Package.Id,
+            $"{ActionInProgress(request.Action)} {package.Package.Name}.", cancellationToken).ConfigureAwait(false);
+        PackageExecutionResult execution;
+        IReadOnlyList<string> reopened = [];
+        IReadOnlyList<string> openAfterFailure = [];
+        try
+        {
+            var retries = 0;
+            while (true)
+            {
+                execution = await executor.ExecuteAsync(
+                    new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk, package.Package.InstallerMode),
+                    cancellationToken).ConfigureAwait(false);
+                if (execution.Disposition != PackageExecutionDisposition.Failed) break;
+                var known = WinGetOutcomes.For(execution.ExitCode);
+
+                // Conditions that usually clear by themselves: pause, recheck against a fresh plan, and try the same request again.
+                if (known?.Recovery == WinGetRecovery.RetryLater && retries < retryPolicy.Pauses.Count)
+                {
+                    var pause = retryPolicy.Pauses[retries++];
+                    await ProgressAsync(request, ActionProgressLevel.Warning, "Retrying", package.Package.Id,
+                        $"{package.Package.Name}: {known.Reason}. Trying again in {Describe(pause)} (try {retries + 1} of {retryPolicy.Pauses.Count + 1}).",
+                        cancellationToken).ConfigureAwait(false);
+                    if (pause > TimeSpan.Zero) await Task.Delay(pause, timeProvider, cancellationToken).ConfigureAwait(false);
+                    if (await protocol.IsCancellationRequestedAsync(cancellationToken).ConfigureAwait(false)) break;
+                    var again = await RecheckAsync(request, planned, cancellationToken).ConfigureAwait(false);
+                    if (again.Done is { } settled) return settled;
+                    package = again.Package!;
+                    continue;
+                }
+
+                // A failure while the package's app is open: with consent, ask it to close and try once more.
+                if (known?.Recovery is null or WinGetRecovery.CloseOpenApps or WinGetRecovery.None)
+                {
+                    var nowOpen = openApplications.FindOpen(package.Package.Id);
+                    if (nowOpen.Count > 0 && consented && closure is null)
+                    {
+                        await ProgressAsync(request, ActionProgressLevel.Warning, "Closing", package.Package.Id,
+                            $"{OpenApplicationText.Names(nowOpen)} {IsAre(nowOpen)} open, which can stop the installer. Asking {ItThem(nowOpen)} to close and trying again.",
+                            cancellationToken).ConfigureAwait(false);
+                        closure = openApplications.Close(package.Package.Id);
+                        if (closure.StillOpen.Count == 0) continue;
+                        openAfterFailure = closure.StillOpen;
+                    }
+                    else if (nowOpen.Count > 0)
+                    {
+                        openAfterFailure = nowOpen;
+                    }
+                }
+                break;
+            }
+        }
+        finally
+        {
+            // Whatever the installer did, the apps it needed closed are offered back as soon as it has finished.
+            if (closure is not null)
+            {
+                reopened = closure.Reopen();
+                closure.Dispose();
+            }
+        }
+        if (closure is not null && closure.Closed.Count > 0)
+            await ProgressAsync(request, ActionProgressLevel.Info, "Reopened", package.Package.Id,
+                ReopenedNote(closure.Closed, reopened).TrimStart(), cancellationToken).ConfigureAwait(false);
+
+        var outcome = WinGetOutcomes.For(execution.ExitCode);
+        var verified = false;
+        if (execution.Disposition == PackageExecutionDisposition.Succeeded ||
+            execution.Disposition == PackageExecutionDisposition.Failed && outcome?.Recovery == WinGetRecovery.CheckIfCurrent)
+        {
+            try
+            {
+                var verificationPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
+                verified = VerifyPostActionState(request.Action, package.Package.Id, verificationPlan);
+            }
+            catch (Exception exception) when (exception is InvalidOperationException or IOException)
+            {
+                verified = false;
+            }
+        }
+        var status = execution.Disposition switch
+        {
+            PackageExecutionDisposition.Succeeded when verified => PackageOutcomeStatus.Succeeded,
+            PackageExecutionDisposition.Succeeded => PackageOutcomeStatus.Unverified,
+            PackageExecutionDisposition.Failed when verified => PackageOutcomeStatus.AlreadyCurrent,
+            PackageExecutionDisposition.Failed => PackageOutcomeStatus.Failed,
+            PackageExecutionDisposition.VerificationFailed => PackageOutcomeStatus.Unverified,
+            PackageExecutionDisposition.TimedOut => PackageOutcomeStatus.Failed,
+            _ => throw new InvalidOperationException("The package executor returned an unknown disposition.")
+        };
+        if (execution.Disposition == PackageExecutionDisposition.Failed && execution.ExitCode == 0)
+            throw new InvalidOperationException("The package executor returned a failed disposition with a zero exit code.");
+        if (execution.Disposition == PackageExecutionDisposition.TimedOut && execution.ExitCode != -1)
+            throw new InvalidOperationException("The package executor returned an invalid timeout exit code.");
+        if (execution.Disposition is PackageExecutionDisposition.Succeeded or PackageExecutionDisposition.VerificationFailed && execution.ExitCode != 0)
+            throw new InvalidOperationException("The package executor returned a non-failed disposition with a nonzero exit code.");
+
+        var (level, stage, message) = status switch
+        {
+            PackageOutcomeStatus.Succeeded => (ActionProgressLevel.Success, "Verified", $"{ActionPastTense(request.Action)} and verified."),
+            PackageOutcomeStatus.AlreadyCurrent => (ActionProgressLevel.Success, "AlreadyCurrent",
+                $"{package.Package.Name} is already {(request.Action == ManagedRequestAction.Install ? "installed" : "up to date")}; nothing needed changing."),
+            PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "WinGet finished, but AVWT couldn't confirm the installed version."),
+            PackageOutcomeStatus.Failed when execution.Disposition == PackageExecutionDisposition.TimedOut =>
+                (ActionProgressLevel.Error, "Failed", "WinGet didn't finish within the allowed time."),
+            _ => (ActionProgressLevel.Error, "Failed", FailureMessage(package.Package.Name, request.Action, execution, outcome, openAfterFailure))
+        };
+        await ProgressAsync(request, level, stage, package.Package.Id, message, cancellationToken).ConfigureAwait(false);
+        return CreateOutcome(package, request.Action, status, execution.ExitCode, verified, startedAt, arguments);
+    }
+
+    /// <summary>
+    /// The per-package recheck against a fresh plan. A package that is already where the request wanted it is settled
+    /// without running anything; one that may not run now is skipped with its reason; otherwise the reauthorized state.
+    /// </summary>
+    private async Task<(PackageState? Package, ActionPackageOutcome? Done)> RecheckAsync(
+        ActionRequest request, PackageState planned, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var freshPlan = await planProvider.ReadFreshPlanAsync(cancellationToken).ConfigureAwait(false);
+            if (VerifyPostActionState(request.Action, planned.Package.Id, freshPlan))
+            {
+                await ProgressAsync(request, ActionProgressLevel.Success, "AlreadyCurrent", planned.Package.Id,
+                    $"{planned.Package.Name} is already {(request.Action == ManagedRequestAction.Install ? "installed" : "up to date")}; nothing needed changing.",
+                    cancellationToken).ConfigureAwait(false);
+                return (null, CreateOutcome(planned, request.Action, PackageOutcomeStatus.AlreadyCurrent, 0, true, null, []));
+            }
+            var singleRequest = new ActionRequest(request.SchemaVersion, request.RequestId, request.Action,
+                [planned.Package.Id], request.RiskAcknowledged, request.DryRun, request.ManagedCatalogRevision);
+            return (authorization.Authorize(singleRequest, freshPlan).Packages.Single(), null);
+        }
+        catch (Exception exception) when (exception is ActionRequestValidationException or InvalidOperationException)
+        {
+            // A package that fails its recheck is skipped on its own; the rest of the run continues, and each later
+            // package is rechecked against a fresh plan as always.
+            await ProgressAsync(request, ActionProgressLevel.Warning, "Blocked", planned.Package.Id,
+                $"Skipped {planned.Package.Name}. {BlockedReason(exception)}", cancellationToken).ConfigureAwait(false);
+            return (null, CreateOutcome(planned, request.Action, PackageOutcomeStatus.Blocked, 3, false, null, []));
+        }
+    }
+
+    private static string Describe(TimeSpan pause) =>
+        pause >= TimeSpan.FromMinutes(1) && pause.Seconds == 0
+            ? pause.TotalMinutes == 1 ? "a minute" : $"{(int)pause.TotalMinutes} minutes"
+            : $"{(int)Math.Ceiling(pause.TotalSeconds)} seconds";
+
+    private static string IsAre(IReadOnlyList<string> names) => OpenApplicationText.IsPlural(names) ? "are" : "is";
+    private static string ItThem(IReadOnlyList<string> names) => OpenApplicationText.IsPlural(names) ? "them" : "it";
+    private static string PastLower(ManagedRequestAction action) => ActionPastTense(action).ToLowerInvariant();
 
     /// <summary>One sentence per kind of outcome that needs the technician, most serious first.</summary>
     private static string Summary(IReadOnlyList<ActionPackageOutcome> outcomes)
@@ -393,13 +480,21 @@ public sealed class ActionWorkerOrchestrator
     /// also given in hexadecimal because WinGet documents its results that way - -1978335184 is
     /// 0x8A150030 - and the signed decimal on its own is not searchable.
     /// </summary>
-    private static string FailureMessage(PackageExecutionResult execution)
+    private static string FailureMessage(
+        string name,
+        ManagedRequestAction action,
+        PackageExecutionResult execution,
+        WinGetOutcome? outcome,
+        IReadOnlyList<string> openApps)
     {
         var codes = $"Exit code: {execution.ExitCode} (0x{execution.ExitCode:X8}).";
         var excerpt = DiagnosticExcerpt(execution);
+        var reason = outcome is null ? string.Empty : $"{name} couldn't be {PastLower(action)}: {outcome.Reason}. ";
+        var open = openApps.Count == 0 ? string.Empty
+            : $"{OpenApplicationText.Names(openApps)} {IsAre(openApps)} open, which can stop its installer: close {ItThem(openApps)} and {ActionVerb(action)} it again. ";
         return excerpt.Length == 0
-            ? $"WinGet couldn't complete the change. {codes}"
-            : $"WinGet couldn't complete the change. {codes} WinGet reported: {excerpt}";
+            ? $"{reason}{open}WinGet couldn't complete the change. {codes}"
+            : $"{reason}{open}WinGet couldn't complete the change. {codes} WinGet reported: {excerpt}";
     }
 
     /// <summary>

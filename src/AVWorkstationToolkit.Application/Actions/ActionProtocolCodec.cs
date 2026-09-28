@@ -331,13 +331,17 @@ public sealed class ActionResultCodec
                 PackageOutcomeStatus.Blocked => package.ExitCode == 3 && !package.Verified && package.StartedAt is null,
                 PackageOutcomeStatus.InUse => !request.DryRun && package.ExitCode == 3 && !package.Verified && package.StartedAt is null,
                 PackageOutcomeStatus.NotStarted => package.ExitCode == 2 && !package.Verified && package.StartedAt is null,
+                // Either found current before WinGet ran (no start, no arguments, exit 0), or WinGet ran and said so.
+                PackageOutcomeStatus.AlreadyCurrent => !request.DryRun && package.Verified &&
+                                                      (package.StartedAt is not null || package.ExitCode == 0),
                 PackageOutcomeStatus.Failed => package.ExitCode != 0 && !package.Verified,
                 PackageOutcomeStatus.Succeeded => package.ExitCode == 0 && package.Verified,
                 PackageOutcomeStatus.Unverified => package.ExitCode == 0 && !package.Verified,
                 _ => false
             };
             if (!consistent) throw Invalid($"Package result semantics are inconsistent for {package.Id}.");
-            var neverRan = package.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse or PackageOutcomeStatus.NotStarted;
+            var neverRan = package.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse or PackageOutcomeStatus.NotStarted ||
+                           package.Status == PackageOutcomeStatus.AlreadyCurrent && package.StartedAt is null;
             if (!neverRan && package.StartedAt is null)
                 throw Invalid($"Package result StartedAt is required for {package.Id}.");
             if (package.StartedAt is not null && package.FinishedAt < package.StartedAt)
@@ -362,8 +366,10 @@ public sealed class ActionResultCodec
         static bool Held(ActionPackageOutcome item) => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse;
         if (result.Status == ActionResultStatus.Succeeded)
         {
-            var requiredStatus = request.DryRun ? PackageOutcomeStatus.Planned : PackageOutcomeStatus.Succeeded;
-            if (result.Packages.Any(item => item.Status != requiredStatus))
+            var succeeded = request.DryRun
+                ? result.Packages.All(item => item.Status == PackageOutcomeStatus.Planned)
+                : result.Packages.All(item => item.Status is PackageOutcomeStatus.Succeeded or PackageOutcomeStatus.AlreadyCurrent);
+            if (!succeeded)
                 throw Invalid("A successful final result must account for every requested package with the expected verified or dry-run status.");
         }
         if (result.Status == ActionResultStatus.Failed && !result.Packages.Any(Failed))

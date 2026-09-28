@@ -430,6 +430,31 @@ public sealed class ActionRequestAuthorizationService
     public ActionRequestAuthorizationService(SelectionPolicy? selectionPolicy = null) =>
         this.selectionPolicy = selectionPolicy ?? new SelectionPolicy();
 
+    /// <summary>
+    /// The worker's whole-request check, in the order packages run. It refuses the request only for what live state can't
+    /// change: an ID that isn't exactly one managed WinGet package that catalog policy grants execution authority. Whether a
+    /// package may run now (its action, holds, a pending restart, risk acknowledgement) is decided by
+    /// <see cref="Authorize"/> against a fresh plan just before that package, so one stale or blocked package is skipped on
+    /// its own instead of refusing the others.
+    /// </summary>
+    public IReadOnlyList<PackageState> ResolveRequested(ActionRequest request, WorkstationPlan plan)
+    {
+        ActionRequestRules.Validate(request);
+        ArgumentNullException.ThrowIfNull(plan);
+        var resolved = new List<PackageState>();
+        foreach (var id in request.PackageIds.Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase))
+        {
+            var matches = plan.Packages.Where(item => string.Equals(item.Package.Id, id, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (matches.Length != 1)
+                throw new ActionRequestValidationException(ActionRequestFailure.PackageNotInPlan, $"Package ID is not present exactly once in the validated plan: {id}");
+            var package = matches[0].Package;
+            if (package.Authority != CatalogAuthority.ManagedWinGet || package.Provider != ProviderKind.WinGet || !package.HasManagedExecutionAuthority)
+                throw new ActionRequestValidationException(ActionRequestFailure.PackageNotEligible, $"{package.Id}: not a managed WinGet package with execution authority");
+            resolved.Add(matches[0]);
+        }
+        return resolved.AsReadOnly();
+    }
+
     public AuthorizedActionRequest Authorize(ActionRequest request, WorkstationPlan plan)
     {
         ActionRequestRules.Validate(request);
