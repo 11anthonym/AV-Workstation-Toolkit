@@ -132,7 +132,7 @@ Operational delivery modes remain fail closed:
 |---|---|
 | `VendorPage` | Open a reviewed official HTTPS page; no automatic installer execution |
 | `DirectDownload` | Cache only a version-matched installer from allowlisted HTTPS hosts and validate its Authenticode publisher |
-| `AuthenticatedSftp` | Use one curated feed, explicit host-key trust, current-user credentials, constrained paths, and signer checks |
+| `AuthenticatedSftp` | Use explicit host-key trust, current-user credentials, constrained paths, and signer checks; the provider downloads its own pinned, hash-checked installer, and its children use one curated feed |
 | `ParentProvider` | Resolve an independently detectable child through an existing authenticated provider and its product allowlist |
 | `Bundled` | Expose only a redistribution-approved, path-contained, hash-pinned payload |
 | `InventoryOnly` | Detect state without claiming availability or offering acquisition |

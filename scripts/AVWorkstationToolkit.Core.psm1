@@ -765,7 +765,7 @@ function ConvertFrom-AVWorkstationToolkitExternalCatalogJson {
         $allowedDeliveryKeys = switch ($deliveryMode) {
             'VendorPage'       { @('Mode','Uri') }
             'DirectDownload'   { @('Mode','Uri','DownloadUriPattern','AllowedHosts','PublisherPattern','MaxBytes') }
-            'AuthenticatedSftp'{ @('Mode','Host','Port','CatalogUri','RemoteRoot','AllowedProductIds','PublisherPattern','MaxBytes') }
+            'AuthenticatedSftp'{ @('Mode','Host','Port','CatalogUri','RemoteRoot','AllowedProductIds','RelativePath','Sha256','PublisherSubject','PublisherPattern','MaxBytes') }
             'ParentProvider'   { @('Mode','ProductId') }
             'Bundled'          { @('Mode','Uri','RelativePath','Sha256','PublisherSubject') }
             'Awareness'        { @('Mode') }
@@ -838,6 +838,29 @@ function ConvertFrom-AVWorkstationToolkitExternalCatalogJson {
             }
             if (@($sftpProductIds | Sort-Object -Unique).Count -ne $sftpProductIds.Count) {
                 throw "External catalog entry $index contains duplicate SFTP product IDs."
+            }
+            # A provider may pin its own installer beneath the remote root; the pin is all three fields or none.
+            $pinnedFields = @(@('RelativePath','Sha256','PublisherSubject') | Where-Object { $_ -in $deliveryKeys })
+            if ($pinnedFields.Count -notin @(0,3)) {
+                throw "External catalog entry $index pinned SFTP artifact requires RelativePath, Sha256, and PublisherSubject together."
+            }
+            if ($pinnedFields.Count -eq 3) {
+                if ([string]::IsNullOrWhiteSpace($payloadRelativePath) -or $payloadRelativePath.Length -gt 512 -or
+                    [IO.Path]::IsPathRooted($payloadRelativePath) -or $payloadRelativePath -match '\\' -or
+                    @($payloadRelativePath.Split('/') | Where-Object { $_ -in @('','.', '..') }).Count -gt 0 -or
+                    $payloadRelativePath -notmatch '\.(?:exe|msi)$') {
+                    throw "External catalog entry $index has an unsafe pinned SFTP artifact path."
+                }
+                if ($payloadSha256 -notmatch '^[A-Fa-f0-9]{64}$') {
+                    throw "External catalog entry $index pinned SFTP artifact requires a SHA-256 hash."
+                }
+                if ([string]::IsNullOrWhiteSpace($payloadPublisher) -or $payloadPublisher -ne $payloadPublisher.Trim() -or
+                    -not [regex]::IsMatch($payloadPublisher, [string]$rawDelivery.PublisherPattern, [Text.RegularExpressions.RegexOptions]::IgnoreCase, [TimeSpan]::FromSeconds(2))) {
+                    throw "External catalog entry $index pinned SFTP publisher subject must satisfy the publisher pattern."
+                }
+                if ([string]::IsNullOrWhiteSpace($knownVersion)) {
+                    throw "External catalog entry $index pinned SFTP artifact requires KnownVersion, the version of that artifact."
+                }
             }
         }
         if ($deliveryMode -eq 'ParentProvider' -and $deliveryProductId -notmatch '^\d{1,8}$') {

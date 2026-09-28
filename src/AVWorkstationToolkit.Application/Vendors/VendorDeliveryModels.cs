@@ -85,6 +85,7 @@ public sealed class VendorDeliveryAuthorization
         PackageDefinition package, string version, string username, VendorSftpHostTrust trustedHost, string remotePath)
     {
         var policy = RequirePolicy(package, DeliveryMode.AuthenticatedSftp);
+        if (HasPinnedArtifact(package)) throw new InvalidOperationException("A provider that pins its artifact downloads only that artifact.");
         _ = VersionValue.Parse(version);
         ArgumentNullException.ThrowIfNull(trustedHost);
         var endpoint = new VendorEndpoint(RequireDnsHost(policy.Host), RequirePort(policy.Port));
@@ -93,8 +94,34 @@ public sealed class VendorDeliveryAuthorization
         var root = RequireRemoteRoot(policy.RemoteRoot);
         var path = RequireRemotePath(remotePath, root);
         return new(package.Id, version, DeliveryMode.AuthenticatedSftp, null,
-            Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), policy.PublisherPattern, policy.MaximumBytes, policy.Sha256,
+            Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), policy.PublisherPattern, policy.MaximumBytes, string.Empty,
             identity, root, path);
+    }
+
+    /// <summary>Whether the SFTP provider pins its own artifact, which its row downloads instead of offering the product feed.</summary>
+    public static bool HasPinnedArtifact(PackageDefinition package) =>
+        package is { DeliveryMode: DeliveryMode.AuthenticatedSftp, DeliveryPolicy.RelativePath.Length: > 0 };
+
+    /// <summary>
+    /// The SFTP provider's own pinned artifact: exactly RemoteRoot/RelativePath, at the catalogued version, accepted only if
+    /// its SHA-256 matches the catalogued hash and its Authenticode signer is exactly the catalogued subject.
+    /// </summary>
+    public static VendorDeliveryAuthorization ForPinnedSftp(PackageDefinition package, string username, VendorSftpHostTrust trustedHost)
+    {
+        var policy = RequirePolicy(package, DeliveryMode.AuthenticatedSftp);
+        ArgumentNullException.ThrowIfNull(trustedHost);
+        if (!HasPinnedArtifact(package)) throw new InvalidOperationException("The package doesn't pin an SFTP artifact.");
+        _ = VersionValue.Parse(package.KnownVersion);
+        if (!Regex.IsMatch(policy.Sha256, "^[A-Fa-f0-9]{64}$", RegexOptions.CultureInvariant) || policy.PublisherSubject.Length == 0)
+            throw new InvalidDataException("The pinned SFTP artifact has no catalogued hash or publisher.");
+        var endpoint = new VendorEndpoint(RequireDnsHost(policy.Host), RequirePort(policy.Port));
+        if (!endpoint.Equals(trustedHost.Endpoint)) throw new InvalidDataException("The trusted SFTP identity does not match the catalogued endpoint.");
+        var identity = new VendorSftpIdentity(endpoint, RequireText(username, "username", 256), RequireFingerprint(trustedHost.Fingerprint));
+        var root = RequireRemoteRoot(policy.RemoteRoot);
+        var path = RequireRemotePath(root + "/" + policy.RelativePath, root);
+        return new(package.Id, package.KnownVersion, DeliveryMode.AuthenticatedSftp, null,
+            Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), "^" + Regex.Escape(policy.PublisherSubject) + "$",
+            policy.MaximumBytes, policy.Sha256, identity, root, path);
     }
 
     public static VendorDeliveryAuthorization ForSftp(
@@ -118,8 +145,9 @@ public sealed class VendorDeliveryAuthorization
                 throw new InvalidOperationException("The child package is not authorized by this parent provider product.");
         }
         else if (package.DeliveryMode != DeliveryMode.AuthenticatedSftp || !package.Id.Equals(provider.Id, StringComparison.OrdinalIgnoreCase) ||
-                 !policy.AllowedProductIds.Contains(product.ProductId, StringComparer.Ordinal))
+                 !policy.AllowedProductIds.Contains(product.ProductId, StringComparer.Ordinal) || HasPinnedArtifact(provider))
         {
+            // A provider that pins its own artifact downloads only that artifact; its feed products belong to its children.
             throw new InvalidOperationException("The provider package does not authorize this catalog product.");
         }
 
@@ -132,8 +160,9 @@ public sealed class VendorDeliveryAuthorization
         if (!Path.GetFileName(path).Equals(product.FileName, StringComparison.Ordinal) || product.SizeBytes <= 0 || product.SizeBytes > policy.MaximumBytes)
             throw new InvalidDataException("The parent catalog product metadata violates the provider policy.");
         var productLimit = checked((long)Math.Min(policy.MaximumBytes, Math.Ceiling(product.SizeBytes * 1.2d + 10 * 1024 * 1024)));
+        // Feed products carry no catalogued hash; the provider's Sha256 belongs to its pinned artifact alone.
         return new(package.Id, product.Version, DeliveryMode.AuthenticatedSftp, null,
-            Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), policy.PublisherPattern, productLimit, policy.Sha256,
+            Array.Empty<string>().ToFrozenSet(StringComparer.OrdinalIgnoreCase), policy.PublisherPattern, productLimit, string.Empty,
             identity, root, path);
     }
 

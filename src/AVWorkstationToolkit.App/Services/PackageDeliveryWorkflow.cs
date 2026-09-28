@@ -101,15 +101,22 @@ public sealed class PackageDeliveryWorkflow(
         CancellationToken cancellationToken)
     {
         var provider = package.DeliveryMode == DeliveryMode.ParentProvider ? catalog.GetRequired(package.ParentProviderId) : package;
-        if (release is null || !release.OnlineAvailable || release.Products.Count == 0)
+        // A provider that pins its own artifact (Crestron MasterInstaller) downloads exactly that file; it needs neither
+        // the product feed its children use nor a choice among them.
+        var pinned = VendorDeliveryAuthorization.HasPinnedArtifact(package);
+        if (!pinned && (release is null || !release.OnlineAvailable || release.Products.Count == 0))
             return new(false, "The vendor's approved product list isn't available. Refresh and try again.");
         if (MessageBox.Show(
-                $"Download {package.Name} using your vendor account? AVWT will confirm the vendor server, check the file's publisher, and save the file. AVWT won't run it.",
+                pinned
+                    ? $"Download {package.Name} {package.KnownVersion} using your vendor account? AVWT will confirm the vendor server, check the file's integrity and publisher, and save the file. AVWT won't run it."
+                    : $"Download {package.Name} using your vendor account? AVWT will confirm the vendor server, check the file's publisher, and save the file. AVWT won't run it.",
                 "Sign in to vendor download", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return new(false, "Download cancelled. Your saved sign-in wasn't used.");
-        var product = package.DeliveryMode == DeliveryMode.ParentProvider
-            ? release.Products.Single()
-            : SelectProduct(release.Products);
+        var product = pinned
+            ? PinnedProduct(package)
+            : package.DeliveryMode == DeliveryMode.ParentProvider
+                ? release!.Products.Single()
+                : SelectProduct(release!.Products);
         if (product is null) return new(false, "No product was selected.");
         var policy = provider.DeliveryPolicy ?? throw new InvalidOperationException("The parent provider delivery policy is unavailable.");
         var endpoint = new VendorEndpoint(policy.Host, policy.Port);
@@ -130,7 +137,9 @@ public sealed class PackageDeliveryWorkflow(
         {
             var prompt = ShowCredentialPrompt(product, endpoint, observed);
             if (prompt is null) return new(false, "Download cancelled. Your saved sign-in wasn't used.");
-            var authorization = VendorDeliveryAuthorization.ForSftp(package, provider, product, prompt.Username, trusted);
+            var authorization = pinned
+                ? VendorDeliveryAuthorization.ForPinnedSftp(package, prompt.Username, trusted)
+                : VendorDeliveryAuthorization.ForSftp(package, provider, product, prompt.Username, trusted);
             if (prompt.ForgetSaved)
             {
                 var removed = vendors.DeleteCredential(authorization.SftpIdentity!);
@@ -169,6 +178,14 @@ public sealed class PackageDeliveryWorkflow(
         return MessageBox.Show($"{prefix}\n\nServer: {endpoint.Host}:{endpoint.Port}\nServer fingerprint:\n{fingerprint}\n\nApprove this server for your Windows account?",
             changed ? "Vendor server identity changed" : "Confirm vendor server", MessageBoxButton.YesNo,
             changed ? MessageBoxImage.Error : MessageBoxImage.Warning) == MessageBoxResult.Yes;
+    }
+
+    // What the sign-in prompt and cache show for a pinned artifact; the authorization itself comes from the catalog alone.
+    private static VendorCatalogProduct PinnedProduct(PackageDefinition package)
+    {
+        var policy = package.DeliveryPolicy!;
+        var remotePath = policy.RemoteRoot.TrimEnd('/') + "/" + policy.RelativePath;
+        return new VendorCatalogProduct(string.Empty, package.Name, package.KnownVersion, remotePath, Path.GetFileName(remotePath), 0, false);
     }
 
     private static VendorCatalogProduct? SelectProduct(IReadOnlyList<VendorCatalogProduct> products)

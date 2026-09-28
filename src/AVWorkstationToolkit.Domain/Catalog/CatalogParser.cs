@@ -183,6 +183,8 @@ public sealed class CatalogParser
         if (raw.Delivery is not null && raw.Delivery.Mode is null) throw new CatalogValidationException($"External catalog entry {index} requires Delivery.Mode.");
         if (deliveryMode == DeliveryMode.None) throw new CatalogValidationException($"External catalog entry {index} requires an external delivery mode.");
         ValidateDelivery(raw.Delivery, deliveryMode, index);
+        if (deliveryMode == DeliveryMode.AuthenticatedSftp && raw.Delivery?.RelativePath is not null && knownVersion.Length == 0)
+            throw new CatalogValidationException($"External catalog entry {index} pinned SFTP artifact requires KnownVersion, the version of that artifact.");
         var parentProviderId = Text(metadata.ParentProviderId ?? string.Empty, $"External catalog entry {index} Metadata.ParentProviderId", 128, true);
         if (parentProviderId.Length > 0 && !PackageIdPattern.IsMatch(parentProviderId)) throw new CatalogValidationException($"External catalog entry {index} Metadata.ParentProviderId is invalid.");
         var authority = deliveryMode == DeliveryMode.Awareness || deploymentClass is DeploymentClass.AwarenessOnly or DeploymentClass.WebOnly or DeploymentClass.ServerOnly or DeploymentClass.Embedded
@@ -290,7 +292,8 @@ public sealed class CatalogParser
         {
             DeliveryMode.VendorPage => new HashSet<string>([nameof(raw.Uri)], StringComparer.Ordinal),
             DeliveryMode.DirectDownload => new HashSet<string>([nameof(raw.Uri), nameof(raw.DownloadUriPattern), nameof(raw.AllowedHosts), nameof(raw.PublisherPattern), nameof(raw.MaxBytes)], StringComparer.Ordinal),
-            DeliveryMode.AuthenticatedSftp => new HashSet<string>([nameof(raw.Host), nameof(raw.Port), nameof(raw.CatalogUri), nameof(raw.RemoteRoot), nameof(raw.AllowedProductIds), nameof(raw.PublisherPattern), nameof(raw.MaxBytes)], StringComparer.Ordinal),
+            DeliveryMode.AuthenticatedSftp => new HashSet<string>([nameof(raw.Host), nameof(raw.Port), nameof(raw.CatalogUri), nameof(raw.RemoteRoot), nameof(raw.AllowedProductIds), nameof(raw.PublisherPattern), nameof(raw.MaxBytes),
+                nameof(raw.RelativePath), nameof(raw.Sha256), nameof(raw.PublisherSubject)], StringComparer.Ordinal),
             DeliveryMode.ParentProvider => new HashSet<string>([nameof(raw.ProductId)], StringComparer.Ordinal),
             DeliveryMode.Bundled => new HashSet<string>([nameof(raw.Uri), nameof(raw.RelativePath), nameof(raw.Sha256), nameof(raw.PublisherSubject)], StringComparer.Ordinal),
             _ => new HashSet<string>(StringComparer.Ordinal)
@@ -318,19 +321,41 @@ public sealed class CatalogParser
                 if (raw.AllowedProductIds.Count is < 1 or > 64 || raw.AllowedProductIds.Distinct(StringComparer.Ordinal).Count() != raw.AllowedProductIds.Count || raw.AllowedProductIds.Any(value => !Regex.IsMatch(value, @"^\d{1,8}$"))) throw new CatalogValidationException($"External catalog entry {index} contains an invalid SFTP product allowlist.");
                 ValidateRegex(raw.PublisherPattern, 512, null, $"External catalog entry {index} Delivery.PublisherPattern");
                 ValidateMaxBytes(raw.MaxBytes.Value, index);
+                ValidatePinnedSftpArtifact(raw, index);
                 break;
             case DeliveryMode.ParentProvider when raw.ProductId is null || !Regex.IsMatch(raw.ProductId, @"^\d{1,8}$"):
                 throw new CatalogValidationException($"External catalog entry {index} ParentProvider delivery requires a numeric ProductId.");
             case DeliveryMode.Bundled:
-                if (raw.RelativePath is null || raw.RelativePath.Length > 512 || raw.Sha256 is null ||
-                    !Regex.IsMatch(raw.RelativePath, @"^[A-Za-z0-9._/-]+$") || raw.RelativePath.StartsWith('/') ||
-                    raw.RelativePath.Contains('\\') || raw.RelativePath.Contains(':') ||
-                    raw.RelativePath.Split('/').Any(value => value is "" or "." or "..") ||
+                if (raw.RelativePath is null || raw.Sha256 is null || !IsSafeRelativePath(raw.RelativePath) ||
                     !Regex.IsMatch(raw.Sha256, "^[A-Fa-f0-9]{64}$"))
                     throw new CatalogValidationException($"External catalog entry {index} has an unsafe bundled payload policy.");
                 break;
         }
     }
+
+    // An SFTP provider can pin its own artifact, the file its row downloads, apart from the product feed its children use:
+    // an exact installer path under RemoteRoot, its SHA-256, and the exact Authenticode signer subject, which must also
+    // satisfy the provider's publisher pattern. The three come together or not at all.
+    private static void ValidatePinnedSftpArtifact(DeliveryRaw raw, int index)
+    {
+        var parts = new[] { raw.RelativePath, raw.Sha256, raw.PublisherSubject };
+        if (parts.All(value => value is null)) return;
+        if (parts.Any(value => value is null))
+            throw new CatalogValidationException($"External catalog entry {index} pinned SFTP artifact requires RelativePath, Sha256, and PublisherSubject together.");
+        if (!IsSafeRelativePath(raw.RelativePath!) ||
+            !(raw.RelativePath!.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || raw.RelativePath.EndsWith(".msi", StringComparison.OrdinalIgnoreCase)))
+            throw new CatalogValidationException($"External catalog entry {index} pinned SFTP artifact needs a safe relative installer path.");
+        if (!Regex.IsMatch(raw.Sha256!, "^[A-Fa-f0-9]{64}$"))
+            throw new CatalogValidationException($"External catalog entry {index} pinned SFTP artifact needs a SHA-256 hash.");
+        var subject = raw.PublisherSubject!;
+        if (subject.Length is 0 or > 512 || subject != subject.Trim() || subject.Any(char.IsControl) ||
+            !Regex.IsMatch(subject, raw.PublisherPattern!, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2)))
+            throw new CatalogValidationException($"External catalog entry {index} pinned SFTP artifact needs a publisher subject the publisher pattern accepts.");
+    }
+
+    private static bool IsSafeRelativePath(string value) =>
+        value.Length <= 512 && Regex.IsMatch(value, @"^[A-Za-z0-9._/-]+$") && !value.StartsWith('/') &&
+        !value.Contains('\\') && !value.Contains(':') && !value.Split('/').Any(part => part is "" or "." or "..");
 
     private static void ValidateHosts(IReadOnlyList<string> hosts, int index)
     {

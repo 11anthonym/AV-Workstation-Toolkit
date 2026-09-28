@@ -50,6 +50,8 @@ public sealed class VendorPayloadVerificationService(VendorCachePathPolicy paths
             return new(VendorPayloadState.Rejected, string.Empty, "Vendor cache metadata does not match the package identity.");
         var hash = Hash(fullPayload);
         if (!hash.Equals(metadata.Sha256, StringComparison.OrdinalIgnoreCase)) return new(VendorPayloadState.Rejected, string.Empty, "The cached vendor payload hash is invalid.");
+        if (!string.IsNullOrWhiteSpace(authorization.ExpectedSha256) && !hash.Equals(authorization.ExpectedSha256, StringComparison.OrdinalIgnoreCase))
+            return new(VendorPayloadState.Rejected, string.Empty, "The cached vendor payload hash does not match the catalogued hash.");
         var signature = signatures.Inspect(fullPayload);
         if (!signature.Valid || !Regex.IsMatch(signature.SignerSubject, authorization.PublisherPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2)))
             return new(VendorPayloadState.Rejected, string.Empty, "The cached vendor payload signature or publisher is invalid.");

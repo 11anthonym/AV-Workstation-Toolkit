@@ -57,7 +57,7 @@ Every external entry is forced to manual deployment and maintenance hold and is 
 - `InventoryOnly`: detection without acquisition or version-current claims; and
 - `Awareness`: product knowledge and official-page handoff without a Windows deployment action.
 
-Crestron MasterInstaller remains the sole authenticated SFTP provider. Its seven child applications inherit the fixed host, HTTPS feed, `/software` root, product scope, size bound, and publisher policy. A catalog edit cannot give a child an independent credential path.
+Crestron MasterInstaller remains the sole authenticated SFTP provider. Its seven child applications inherit the fixed host, HTTPS feed, `/software` root, product scope, size bound, and publisher policy. A catalog edit cannot give a child an independent credential path. The provider's own row downloads only its pinned artifact: `Delivery.RelativePath` beneath the remote root, `Delivery.Sha256`, and `Delivery.PublisherSubject` (the exact signer, which must also satisfy `PublisherPattern`), all three together, with `KnownVersion` naming that artifact's version. Children never inherit the pinned hash.
 
 Downloaded files are cached beneath the per-user data root, hash-recorded, revalidated before reuse, and shown in Explorer without execution. Q-SYS Designer LTS remains vendor-page-only because the [Q-SYS 9.13 EULA](https://help.qsys.com/q-sys_9.13/Content/Legal.htm) restricts external distribution.
 

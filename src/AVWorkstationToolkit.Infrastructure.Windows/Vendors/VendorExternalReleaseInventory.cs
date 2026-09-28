@@ -75,19 +75,23 @@ public sealed class VendorExternalReleaseInventory : IExternalReleaseInventory, 
 
             if (package.DeliveryMode == DeliveryMode.AuthenticatedSftp)
             {
+                // A provider that pins its own artifact reports that artifact's catalogued version; the product feed only
+                // serves its child applications.
+                var pinned = package.DeliveryPolicy?.RelativePath.Length > 0 ? known : string.Empty;
+                var pinnedDetail = pinned.Length > 0 ? $" {package.Name} {pinned} is the catalogued download." : string.Empty;
                 try
                 {
                     var products = await ReadProductsAsync(package, contentCache, productCache, cancellationToken).ConfigureAwait(false);
-                    results.Add(Evidence(package, string.Empty, string.Empty, true, true,
+                    results.Add(Evidence(package, pinned, string.Empty, true, true,
                         package.DeliveryPolicy!.CatalogUri, string.Empty,
-                        $"Validated parent provider catalog contains {products.Count} allowlisted products.", products));
+                        $"Validated parent provider catalog contains {products.Count} allowlisted products.{pinnedDetail}", products));
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
                     failures++;
-                    results.Add(Evidence(package, string.Empty, string.Empty, true, false,
+                    results.Add(Evidence(package, pinned, string.Empty, true, false,
                         package.DeliveryPolicy?.CatalogUri ?? string.Empty, string.Empty,
-                        FailureDetail("Parent-provider catalog unavailable", exception, string.Empty), []));
+                        FailureDetail("Parent-provider catalog unavailable", exception, pinned) + pinnedDetail, []));
                 }
                 continue;
             }

@@ -8,7 +8,7 @@ AV Workstation Toolkit 1.1.3 has 25 operational external records and 283 commerc
 |---|---|---|
 | `VendorPage` | Read a bounded official release page when configured, then open a reviewed HTTPS vendor page | Q-SYS, Biamp Canvas/Vocia, Dante, Shure, Sennheiser, Extron, FileZilla |
 | `DirectDownload` | Extract a version-matched installer URL from the reviewed page, enforce redirect host and size allowlists, then require a valid Authenticode publisher | Biamp Tesira |
-| `AuthenticatedSftp` | Read a public curated catalog, confirm SSH host identity, authenticate as the current user, and download a selected allowlisted product | Crestron MasterInstaller toolchain |
+| `AuthenticatedSftp` | Confirm SSH host identity, authenticate as the current user, and download the provider's own pinned installer (exact path, SHA-256, and signer); its children's products come from a public curated catalog | Crestron MasterInstaller |
 | `ParentProvider` | Detect and version a child application independently while inheriting one authenticated provider's host, feed, allowlist, root, size, and publisher policy | Seven Crestron MasterInstaller child applications |
 | `Bundled` | Expose a locally authored, redistribution-approved payload only after path, SHA-256, and optional signer validation | Organization-authored offline bundles |
 | `InventoryOnly` | Detect an installed version without claiming that a release is current or offering a delivery action | Java runtimes and Dell/Waves; also used for release state where an official account portal does not expose reliable public version data |
@@ -21,7 +21,7 @@ The embedded baselines and patterns were reviewed on 2026-08-16. Vendor pages ca
 | Provider | Release behavior | Delivery behavior |
 |---|---|---|
 | Q-SYS Designer LTS | Official page, baseline 9.13.2 LTS | Official page only; no redistribution |
-| Crestron MasterInstaller | Installed inventory plus public MasterInstaller XML | Authorized SFTP with explicit host trust and Credential Manager |
+| Crestron MasterInstaller | Installed inventory; catalogued installer 4.00.11 | The pinned MasterInstaller installer over authorized SFTP with explicit host trust and Credential Manager |
 | Seven Crestron child applications | Independent registry detection plus the common parent XML | Parent-provider handoff; no independent credentials or source |
 | Biamp Tesira | Official support page, baseline 5.7.0 | Signed direct download from `downloads.biamp.com` |
 | Biamp Canvas | Tesira support page, baseline 5.7.0 | Official page; use the release matching the Tesira software/firmware line |
@@ -51,12 +51,13 @@ The authoritative operational configuration is [external-applications.json](../m
 
 ## Crestron workflow
 
-1. AV Workstation Toolkit models MasterInstaller as the parent and VisionTools Pro-e, SIMPL Windows, Crestron Database, Device Database, Toolbox, Smart Graphics, and DM NVX Tool as independently detectable children. It reads Crestron's public `MasterInstallerSFTP.xml` feed over HTTPS and accepts only their product IDs `1`, `2`, `9`, `10`, `137`, `400`, and `406`.
+1. AV Workstation Toolkit models MasterInstaller as the parent and VisionTools Pro-e, SIMPL Windows, Crestron Database, Device Database, Toolbox, Smart Graphics, and DM NVX Tool as independently detectable children. For the children it reads Crestron's public `MasterInstallerSFTP.xml` feed over HTTPS and accepts only their product IDs `1`, `2`, `9`, `10`, `137`, `400`, and `406`.
+   The MasterInstaller row downloads MasterInstaller itself. The feed lists only the component programs and names MasterInstaller only as a minimum version, so the catalog pins the installer: `crestron_masterinstaller/crestron_masterinstaller_4.00.11.exe` beneath `/software`, its SHA-256, and the exact Crestron Authenticode signer subject. A new MasterInstaller release needs a reviewed catalog update of `RelativePath`, `Sha256`, and `KnownVersion` (and `PublisherSubject` if Crestron's certificate changes); until then the row keeps offering the catalogued version.
 2. The XML parser prohibits DTDs, caps the response at 2 MiB, requires every allowlisted product, constrains files beneath `/software`, matches each file path to its numeric version, and accepts only `.exe` payloads within the configured size limit.
 3. Before any credential is sent, the packaged launcher connects with a deliberately rejected no-authentication probe and displays the server's SHA-256 host-key fingerprint. First use requires explicit trust. A changed fingerprint blocks authentication until the user explicitly replaces the saved host identity.
 4. The user enters an authorized Crestron username and password. The password crosses the process boundary only through redirected standard input. It is not included in command-line arguments, environment variables, exported plans, or logs.
 5. Selecting **Save on this computer** writes a generic credential to Windows Credential Manager only after authentication succeeds. The target is scoped to AV Workstation Toolkit, host, port, and username. **Forget saved** deletes only that exact target.
-6. The SFTP download is restricted to the selected catalog path and a near-catalogued size bound. The result remains a `.download` file until the PowerShell core confirms the configured Crestron Authenticode publisher, records SHA-256 metadata, and atomically finalizes the cache entry.
+6. A child's download is restricted to its catalog path and a near-catalogued size bound; MasterInstaller's is restricted to its pinned path and must match its pinned SHA-256 and exact signer. The result remains a `.download` file until the compiled verifier confirms the hash and Crestron Authenticode publisher, records SHA-256 metadata, and atomically finalizes the cache entry. A saved MasterInstaller is reused only while it still matches the catalogued hash.
 
 Crestron's [MasterInstaller documentation](https://docs.crestron.com/en-us/9450/Content/Master%20Installer.htm) remains the operational reference. AV Workstation Toolkit does not provide credentials, bypass account requirements, redistribute Crestron software, or install a downloaded product.
 

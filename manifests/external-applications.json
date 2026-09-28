@@ -50,13 +50,13 @@
     },
     {
       "Profile": "Field",
-      "Name": "Crestron MasterInstaller toolchain",
+      "Name": "Crestron MasterInstaller",
       "Id": "Crestron.MasterInstaller",
       "Risk": "Driver",
-      "Note": "Authorized Crestron account required; browse only the curated MasterInstaller product feed and download without redistribution",
+      "Note": "Authorized Crestron account required; downloads the catalogued MasterInstaller installer from Crestron SFTP without redistribution",
       "Deployment": "ManualHold",
       "Maintenance": "Hold",
-      "KnownVersion": "",
+      "KnownVersion": "4.00.11",
       "Detection": {
         "RegistryDisplayNamePattern": "^Crestron MasterInstaller(?![A-Za-z])",
         "RegistryVersionPattern": "(?<Version>\\d+\\.\\d+(?:\\.\\d+){0,2})",
@@ -73,6 +73,9 @@
         "CatalogUri": "https://www.crestron.com/liveupdate/MasterInstallerSFTP.xml",
         "RemoteRoot": "/software",
         "AllowedProductIds": ["1", "2", "9", "10", "137", "400", "406"],
+        "RelativePath": "crestron_masterinstaller/crestron_masterinstaller_4.00.11.exe",
+        "Sha256": "063314D67A4CC13B431DCF9A67717BA9778D41D664F4029A5DE74BB02D6A8CE1",
+        "PublisherSubject": "CN=Crestron Electronics Inc., O=Crestron Electronics Inc., L=Rockleigh, S=New Jersey, C=US",
         "PublisherPattern": "Crestron Electronics",
         "MaxBytes": 2147483648
       },

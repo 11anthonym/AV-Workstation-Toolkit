@@ -1,6 +1,8 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using AVWorkstationToolkit.Application.Vendors;
 using AVWorkstationToolkit.Application.Providers;
 using AVWorkstationToolkit.Domain.Catalog;
@@ -52,6 +54,8 @@ public sealed class VendorDeliveryTests
         }
         Assert.AreEqual("/software/toolbox/3.125.0/toolbox.exe",
             result.Releases.Single(item => item.Id == "Crestron.Toolbox").Products.Single().RemotePath);
+        // The provider's own row reports its pinned installer, which the feed doesn't list.
+        Assert.AreEqual("4.00.11", result.Releases.Single(item => item.Id == "Crestron.MasterInstaller").AvailableVersion);
     }
 
     [TestMethod]
@@ -71,6 +75,96 @@ public sealed class VendorDeliveryTests
         Assert.Throws<InvalidOperationException>(() => VendorDeliveryAuthorization.ForSftp(
             toolbox, provider, product with { ProductId = "2" }, "engineer", trust));
         Assert.IsFalse(toolbox.HasManagedExecutionAuthority);
+    }
+
+    [TestMethod]
+    public void CrestronMasterInstallerRowDownloadsOnlyItsPinnedInstaller()
+    {
+        var catalog = new RepositoryCatalogLoader().Load(RepositoryRoot());
+        var provider = catalog.GetRequired("Crestron.MasterInstaller");
+        var toolbox = catalog.GetRequired("Crestron.Toolbox");
+        var policy = provider.DeliveryPolicy!;
+        var trust = new VendorSftpHostTrust(new VendorEndpoint(policy.Host, policy.Port), Fingerprint);
+
+        Assert.IsTrue(VendorDeliveryAuthorization.HasPinnedArtifact(provider));
+        Assert.IsFalse(VendorDeliveryAuthorization.HasPinnedArtifact(toolbox));
+        var authorization = VendorDeliveryAuthorization.ForPinnedSftp(provider, "engineer", trust);
+        Assert.AreEqual("/software/crestron_masterinstaller/crestron_masterinstaller_4.00.11.exe", authorization.RemotePath);
+        Assert.AreEqual("4.00.11", authorization.Version);
+        var pinnedHash = authorization.ExpectedSha256;
+        Assert.AreEqual(policy.Sha256, pinnedHash);
+        // The signer must be exactly the catalogued Crestron subject, not merely one the provider's broader pattern accepts.
+        Assert.IsTrue(Regex.IsMatch(policy.PublisherSubject, authorization.PublisherPattern, RegexOptions.IgnoreCase));
+        Assert.IsTrue(Regex.IsMatch("CN=Crestron Electronics Test", policy.PublisherPattern, RegexOptions.IgnoreCase));
+        Assert.IsFalse(Regex.IsMatch("CN=Crestron Electronics Test", authorization.PublisherPattern, RegexOptions.IgnoreCase));
+        Assert.IsFalse(Regex.IsMatch("CN=Other, " + policy.PublisherSubject, authorization.PublisherPattern, RegexOptions.IgnoreCase));
+
+        // The provider row no longer offers feed products, and children never inherit the provider's pinned hash.
+        var feedProduct = new VendorCatalogProduct("1", "VT Pro-e", "1.10.0", "/software/vtpro/1.10.0/vtpro.exe", "vtpro.exe", 1_048_576, false);
+        Assert.Throws<InvalidOperationException>(() => VendorDeliveryAuthorization.ForSftp(provider, provider, feedProduct, "engineer", trust));
+        Assert.Throws<InvalidOperationException>(() => VendorDeliveryAuthorization.ForSftp(provider, "4.00.11", "engineer", trust, "/software/vtpro/1.10.0/vtpro.exe"));
+        var toolboxProduct = new VendorCatalogProduct("137", "Crestron Toolbox", "3.125.0", "/software/toolbox/3.125.0/toolbox.exe", "toolbox.exe", 1_048_576, false);
+        var childHash = VendorDeliveryAuthorization.ForSftp(toolbox, provider, toolboxProduct, "engineer", trust).ExpectedSha256;
+        Assert.AreEqual(string.Empty, childHash);
+    }
+
+    [TestMethod]
+    public void PinnedSftpArtifactIsAcceptedOnlyWithItsHashAndExactSigner()
+    {
+        using var root = new TemporaryDirectory();
+        var paths = new VendorCachePathPolicy();
+        byte[] payload = [1, 2, 3];
+        const string signer = "CN=Approved Vendor Inc., O=Approved Vendor Inc., C=US";
+        var authorization = VendorDeliveryAuthorization.ForPinnedSftp(
+            PinnedSftpPackage(Convert.ToHexString(SHA256.HashData(payload)), signer), "engineer", Trust());
+        Assert.AreEqual("/approved/tool/setup.exe", authorization.RemotePath);
+
+        VendorDownloadResult Verify(byte[] content, string subject)
+        {
+            var temporary = paths.GetTemporaryPayloadPath(root.Path, authorization, "setup.exe");
+            File.WriteAllBytes(temporary, content);
+            return new VendorPayloadVerificationService(paths, new FakeSignatureInspector(true, subject))
+                .VerifyAndPromote(authorization, root.Path, temporary);
+        }
+
+        Assert.AreEqual(VendorPayloadState.Rejected, Verify([9, 9, 9], signer).State);
+        Assert.AreEqual(VendorPayloadState.Rejected, Verify(payload, "CN=Approved Vendor Inc. Impostor, O=Approved Vendor Inc., C=US").State);
+        var verified = Verify(payload, signer);
+        Assert.AreEqual(VendorPayloadState.Verified, verified.State);
+
+        // A saved copy stays trusted only while it still matches the catalogued hash.
+        var verifier = new VendorPayloadVerificationService(paths, new FakeSignatureInspector(true, signer));
+        Assert.AreEqual(VendorPayloadState.Verified, verifier.ResolveCached(authorization, root.Path, verified.Path).State);
+        var repinned = VendorDeliveryAuthorization.ForPinnedSftp(PinnedSftpPackage(new string('A', 64), signer), "engineer", Trust());
+        Assert.AreEqual(VendorPayloadState.Rejected, verifier.ResolveCached(repinned, root.Path, verified.Path).State);
+    }
+
+    [TestMethod]
+    public void PinnedSftpArtifactPolicyIsCompleteAndBounded()
+    {
+        var json = File.ReadAllText(Path.Combine(RepositoryRoot(), "manifests", "external-applications.json"));
+        var parser = new CatalogParser(DateOnly.FromDateTime(DateTime.UtcNow));
+        string Mutate(Action<JsonObject, JsonObject> change)
+        {
+            var document = JsonNode.Parse(json)!.AsObject();
+            var entry = document["Packages"]!.AsArray().Single(item => (string?)item!["Id"] == "Crestron.MasterInstaller")!.AsObject();
+            change(entry, entry["Delivery"]!.AsObject());
+            return document.ToJsonString();
+        }
+
+        _ = parser.ParseExternalCatalog(Mutate((_, _) => { }));
+        var invalid = new (string Case, Action<JsonObject, JsonObject> Change)[]
+        {
+            ("partial pin", (_, delivery) => delivery.Remove("Sha256")),
+            ("escaping path", (_, delivery) => delivery["RelativePath"] = "../crestron_masterinstaller.exe"),
+            ("rooted path", (_, delivery) => delivery["RelativePath"] = "/software/crestron_masterinstaller.exe"),
+            ("not an installer", (_, delivery) => delivery["RelativePath"] = "crestron_masterinstaller/readme.txt"),
+            ("short hash", (_, delivery) => delivery["Sha256"] = "063314D67A4CC13B"),
+            ("foreign signer", (_, delivery) => delivery["PublisherSubject"] = "CN=Someone Else, O=Someone Else"),
+            ("no version", (entry, _) => entry["KnownVersion"] = string.Empty)
+        };
+        foreach (var (name, change) in invalid)
+            Assert.ThrowsExactly<CatalogValidationException>(() => parser.ParseExternalCatalog(Mutate(change)), name);
     }
 
     [TestMethod]
@@ -263,6 +357,13 @@ public sealed class VendorDeliveryTests
     private static PackageDefinition SftpPackage() => Package(DeliveryMode.AuthenticatedSftp,
         new CatalogDeliveryPolicy("", "", [], "Approved Vendor", 1_048_576, "sftp.example", 22,
             "https://download.example/catalog.xml", "/approved", ["1"], "", "", "", ""));
+
+    private static PackageDefinition PinnedSftpPackage(string sha256, string signer)
+    {
+        var package = Package(DeliveryMode.AuthenticatedSftp, new CatalogDeliveryPolicy("", "", [], "Approved Vendor", 1_048_576,
+            "sftp.example", 22, "https://download.example/catalog.xml", "/approved", ["1"], "", "tool/setup.exe", sha256, signer));
+        return package with { KnownVersion = "2.0" };
+    }
 
     private static PackageDefinition Package(DeliveryMode mode, CatalogDeliveryPolicy policy) =>
         new("Vendor.Tool", "Vendor Tool", "Vendor", string.Empty, "Fixture", ProviderKind.External, CatalogAuthority.OperationalExternal,
