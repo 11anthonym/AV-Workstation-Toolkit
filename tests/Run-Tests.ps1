@@ -1708,6 +1708,24 @@ Invoke-Check 'Current-release statements follow published release notes, not the
     Assert-True $entry.Success "The change log has no entry for version $sourceVersion."
     Assert-Equal ($sourceVersion -gt $publishedVersions[-1]) $entry.Groups['unreleased'].Success "The change log's version $sourceVersion entry must say (unreleased) exactly until docs\releases\$sourceVersion.md exists."
 }
+Invoke-Check 'Published release notes contain no internal process or review language' {
+    # Release notes become public release pages. QA results, review status, build channels, and approvals belong in the
+    # change log and the release manifest; a candidate's review packet (X.Y.Z-rc.N.md) addresses its reviewers and is exempt.
+    $internal = @(
+        '\bQA\b','(?i)\bsmoke\b','(?i)\bowner\b','(?i)\bmaintainer','ReleaseCandidate','(?i)release candidate',
+        '(?i)publication procedure','(?i)hosted signing','(?i)\bharness','(?i)interactive (?:UI|desktop|visual) review',
+        '(?i)listed on the release page'
+    )
+    $notes = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'docs\releases') -File -Filter '*.md' | Where-Object { $_.BaseName -notmatch '-rc\.\d+$' })
+    Assert-True ($notes.Count -gt 0) 'No published release notes were found in docs\releases.'
+    foreach ($file in $notes) {
+        $text = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+        foreach ($pattern in $internal) {
+            $match = [regex]::Match($text,$pattern)
+            Assert-True (-not $match.Success) "$($file.Name) contains internal process language ('$($match.Value)'); keep it in the change log or release manifest."
+        }
+    }
+}
 Invoke-Check 'Package QA launches only in isolated data roots and never installs the MSI' {
     $packageTest = Get-Content -LiteralPath (Join-Path $repositoryRoot 'tests\Test-Package.ps1') -Raw
     $launcherSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\Program.cs') -Raw
