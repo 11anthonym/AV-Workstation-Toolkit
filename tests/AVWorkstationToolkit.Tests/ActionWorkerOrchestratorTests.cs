@@ -153,8 +153,32 @@ public sealed class ActionWorkerOrchestratorTests
         var failure = protocol.Progress.Single(item => item.Stage == "Failed");
         Assert.Contains("Exit code: -1978335184", failure.Message);
         Assert.Contains("0x8A150030", failure.Message);
+        Assert.Contains("uninstall command", failure.Message);
+        Assert.DoesNotContain("administrator approval", failure.Message);
         Assert.Contains("Uninstall failed with exit code: 1603", failure.Message);
         Assert.Contains("Starting package uninstall...", failure.Message);
+    }
+
+    [TestMethod]
+    public async Task RebootRequiredToFinishIsReportedSeparatelyAfterAFreshCheck()
+    {
+        var request = Request(action: ManagedRequestAction.Update);
+        var updatable = State("Vendor.One", PackageAction.Update, PackageStatus.UpdateAvailable);
+        var current = State("Vendor.One", PackageAction.None, PackageStatus.Current);
+        var protocol = new MemoryProtocol(request);
+        var plans = new SequencePlans(Plan([updatable]), Plan([updatable]), Plan([current], pending: true));
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150109)));
+
+        var result = await Worker(plans, executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Status);
+        Assert.AreEqual(PackageOutcomeStatus.RestartRequired, result.Packages.Single().Status);
+        Assert.IsTrue(result.Packages.Single().Verified, "The worker should still reconcile the changed package before it stops.");
+        Assert.AreEqual(3, plans.ReadCount);
+        Assert.AreEqual(1, executor.CallCount);
+        StringAssert.Contains(protocol.Progress.Single(item => item.Stage == "RestartRequired").Message,
+            "Windows must restart before the installation is complete");
+        Assert.AreEqual("1 app needs Windows restarted to finish.", protocol.Result!.Message);
     }
 
     [TestMethod]
@@ -667,6 +691,7 @@ public sealed class ActionWorkerOrchestratorTests
             Assert.AreEqual(WinGetRecovery.CloseOpenApps, WinGetOutcomes.For(Code(code))!.Recovery, $"0x{code:X8}");
         foreach (var code in new uint[] { 0x8A15002B, 0x8A150061, 0x8A15010D })
             Assert.AreEqual(WinGetRecovery.CheckIfCurrent, WinGetOutcomes.For(Code(code))!.Recovery, $"0x{code:X8}");
+        Assert.AreEqual(WinGetRecovery.RestartRequired, WinGetOutcomes.For(Code(0x8A150109))!.Recovery);
         Assert.AreEqual(WinGetRecovery.None, WinGetOutcomes.For(Code(0x8A150011))!.Recovery, "A hash mismatch is never retried.");
     }
 

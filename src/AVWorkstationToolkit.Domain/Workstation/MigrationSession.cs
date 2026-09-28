@@ -191,7 +191,8 @@ public static class MigrationSessionCodec
         ArgumentNullException.ThrowIfNull(session);
         if (session.Items.Count > MigrationSession.MaximumItems)
             throw new WorkstationDocumentException($"A checklist can hold at most {MigrationSession.MaximumItems} applications.");
-        using var stream = new MemoryStream();
+        ValidateForPersistence(session);
+        using var stream = new BoundedWorkstationDocumentStream(MaximumBytes, WorkstationDocumentTypes.Session);
         using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true, Encoder = WorkstationDocumentReader.Encoder }))
         {
             writer.WriteStartObject();
@@ -291,6 +292,7 @@ public static class MigrationSessionCodec
                     WorkstationDocumentReader.Text(element, "text", itemContext, required: true, maximumLength: 300),
                     WorkstationDocumentReader.Timestamp(element, "doneAtUtc", itemContext));
             }).ToArray();
+        ValidateTasks(tasks, context);
         return new MigrationSession(
             WorkstationDocumentReader.Text(root, "sessionId", context, required: true, maximumLength: 64),
             source,
@@ -300,6 +302,29 @@ public static class MigrationSessionCodec
             tasks,
             WorkstationDocumentReader.Integer(root, "removedCount", context, 0, 1_000_000, 0),
             WorkstationDocumentReader.Integer(root, "skippedComponentCount", context, 0, 1_000_000, 0));
+    }
+
+    private static void ValidateForPersistence(MigrationSession session)
+    {
+        if (session.Tasks.Count > DeploymentProfileCodec.MaximumChecks)
+            throw new WorkstationDocumentException($"A saved migration can hold at most {DeploymentProfileCodec.MaximumChecks} manual checks.");
+        if (session.Items.Select(item => item.ItemId).Distinct(StringComparer.Ordinal).Count() != session.Items.Count)
+            throw new WorkstationDocumentException("The saved migration repeats an item ID.");
+        ValidateTasks(session.Tasks, "The saved migration");
+    }
+
+    private static void ValidateTasks(IReadOnlyList<ChecklistTask> tasks, string context)
+    {
+        if (tasks.Select(task => task.Id).Distinct(StringComparer.Ordinal).Count() != tasks.Count)
+            throw new WorkstationDocumentException($"{context} repeats a manual check ID.");
+        foreach (var task in tasks)
+        {
+            if (string.IsNullOrEmpty(task.Id) || !ProfileKeys.IsSlug(task.Id))
+                throw new WorkstationDocumentException($"{context} has a manual check with an invalid ID.");
+            var text = ApplicationNames.Clean(task.Text);
+            if (text.Length is 0 or > 300)
+                throw new WorkstationDocumentException($"{context} has a manual check whose text is not from 1 to 300 characters.");
+        }
     }
 
     private static MigrationSessionItem ReadItem(JsonElement element, string context)

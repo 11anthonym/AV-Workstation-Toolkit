@@ -55,6 +55,7 @@ every item; a detected item is shown under **Completed**, not deleted.
 | Install available | The approved managed catalog allows an automatic installation here. | **Install** or **Install all available**. |
 | Restart first | Allowed, but it installs a driver, service, or listener and Windows is waiting for a restart. | Restart Windows, then install. |
 | Installing… | The worker is installing it. | Wait. |
+| Restart required | WinGet changed the application, but Windows reports that a restart is required to finish the installation. The worker still checks the resulting package state. | Restart Windows, then rescan before continuing. |
 | Install failed | The last attempt failed, or the worker refused it when it rechecked this PC. | Read the detail, then retry or install it yourself. |
 | Installed · not verified | The installer reported success, but no scan has detected the app yet, or this PC couldn't be checked afterward. It still counts as remaining. | **Rescan**, or restart Windows if the installer asked for it. |
 | Manual · not yet detected | A catalog application the Toolkit can't install automatically, such as Crestron Toolbox or Q-SYS Designer. | Install it yourself (**Get package** in the main window opens its approved vendor page or download), then **Rescan**. |
@@ -131,6 +132,8 @@ required, and manual checks such as "Verify remote connectivity".
 - **Revise a workstation template…** opens a saved template with the next revision number.
   Applying a newer revision of the template a checklist came from shows what the
   revision adds and removes, and keeps the progress on applications that stay.
+  Reapplying the same revision changes nothing. An older revision is refused and
+  cannot remove applications, checks, or progress from a newer checklist.
 
 Manual checks are reminders for the technician, ticked off by hand. The Toolkit
 never runs them. Applications in a template, including ones outside the catalog,
@@ -245,7 +248,9 @@ installation authority.
   `documentType`, a size limit, and bounded, control-character-free text.
   Unknown and repeated fields are rejected. A file from a newer version of the
   Toolkit is refused with a message to update, not guessed at. Opening one kind
-  of document in place of another reports which kind it is.
+  of document in place of another reports which kind it is. Export and
+  persistence enforce the same byte limit while writing, so the Toolkit never
+  creates a document that this version cannot read back.
 - **Manual checks are text.** A template has no field for commands, scripts,
   URLs, or installer paths, and a document containing one is rejected.
 - The feature adds no new process launches, network destinations, or

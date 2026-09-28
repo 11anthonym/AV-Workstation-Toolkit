@@ -337,6 +337,7 @@ public sealed class ActionResultCodec
                 PackageOutcomeStatus.Failed => package.ExitCode != 0 && !package.Verified,
                 PackageOutcomeStatus.Succeeded => package.ExitCode == 0 && package.Verified,
                 PackageOutcomeStatus.Unverified => package.ExitCode == 0 && !package.Verified,
+                PackageOutcomeStatus.RestartRequired => !request.DryRun && package.ExitCode != 0 && package.StartedAt is not null,
                 _ => false
             };
             if (!consistent) throw Invalid($"Package result semantics are inconsistent for {package.Id}.");
@@ -363,7 +364,7 @@ public sealed class ActionResultCodec
             throw Invalid("A final result must account for every requested package.");
 
         static bool Failed(ActionPackageOutcome item) => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified;
-        static bool Held(ActionPackageOutcome item) => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse;
+        static bool Held(ActionPackageOutcome item) => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse or PackageOutcomeStatus.RestartRequired;
         if (result.Status == ActionResultStatus.Succeeded)
         {
             var succeeded = request.DryRun

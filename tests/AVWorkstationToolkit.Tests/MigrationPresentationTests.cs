@@ -224,6 +224,27 @@ public sealed class MigrationPresentationTests
     }
 
     [TestMethod]
+    public async Task ApplyingTheSameOrOlderProfileRevisionLeavesTheChecklistUntouched()
+    {
+        var target = await WorkstationMigrationTests.Target([], MigrationFixtures.WinGetResult());
+        var files = new FakeFiles();
+        var (viewModel, service, _) = Create(target.Plan, files);
+        await viewModel.InitializeAsync(target.Plan);
+        await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(4));
+        var original = service.Session;
+
+        await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(3));
+        Assert.AreSame(original, service.Session);
+        Assert.IsNull(files.LastConfirmMessage);
+        StringAssert.Contains(viewModel.Status, "older than this checklist's revision 4");
+
+        await viewModel.ApplyProfileAsync(WorkstationMigrationTests.JumpPc(4));
+        Assert.AreSame(original, service.Session);
+        Assert.IsNull(files.LastConfirmMessage);
+        StringAssert.Contains(viewModel.Status, "already uses");
+    }
+
+    [TestMethod]
     public void ProfileEditorBuildsValidatedProfilesAndRevisions()
     {
         var files = new FakeFiles { SavePath = @"C:\fixture\jump.json" };

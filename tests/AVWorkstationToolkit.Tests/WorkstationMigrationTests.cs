@@ -70,6 +70,48 @@ public sealed class WorkstationMigrationTests
     }
 
     [TestMethod]
+    public void PortableDocumentSerializersEnforceTheirReaderByteLimits()
+    {
+        static string LongText(int index, char fill, int length = ApplicationNames.MaximumTextLength)
+        {
+            var prefix = $"{index:D4}-";
+            return prefix + new string(fill, length - prefix.Length);
+        }
+
+        var applications = Enumerable.Range(0, WorkstationInventoryDocumentCodec.MaximumApplications)
+            .Select(index => new ObservedApplication(
+                $"observation-{index}", LongText(index, 'a'), new string('1', 128), [], LongText(index, 'p'),
+                InstallScope.Machine, new string('x', 64),
+                [new UninstallRegistration(UninstallHive.Machine64, LongText(index, 'k', 256), LongText(index, 'r'),
+                    new string('2', 128), LongText(index, 'q'))],
+                null, WinGetCorrelation.None, IdentityResolution.Unidentified, string.Empty,
+                MigrationRelevance.Application, LongText(index, 'e', 200)))
+            .ToArray();
+        var inventory = new WorkstationInventory(MigrationFixtures.Now, WorkstationMachine.Unknown,
+            new InventorySourceQuality(EvidenceQuality.Complete, EvidenceQuality.Complete, string.Empty), applications);
+        StringAssert.Contains(
+            Assert.Throws<WorkstationDocumentException>(() => WorkstationInventoryDocumentCodec.Serialize(inventory, Generator)).Message,
+            "8 MiB limit");
+
+        var profile = new DeploymentProfile("oversized-profile", "Oversized profile", 1, string.Empty, MigrationFixtures.Now,
+            Enumerable.Range(0, DeploymentProfileCodec.MaximumApplications)
+                .Select(index => new ProfileApplication(string.Empty, LongText(index, 'd'), LongText(index, 'p'),
+                    Notes: LongText(index, 'n'))).ToArray(), []);
+        StringAssert.Contains(Assert.Throws<WorkstationDocumentException>(() => DeploymentProfileCodec.Serialize(profile)).Message,
+            "1 MiB limit");
+
+        var session = new MigrationSession("oversized-session", new MigrationSource(MigrationSourceKind.Inventory, "Imported workstation"),
+            MigrationFixtures.Now, MigrationFixtures.Now,
+            Enumerable.Range(0, MigrationSession.MaximumItems)
+                .Select(index => new MigrationSessionItem($"item-{index:D4}",
+                    new DesiredApplicationSpec(LongText(index, 'd'), new string('1', 128), LongText(index, 'p'), new string('x', 64),
+                        string.Empty, string.Empty, string.Empty, [], MigrationRelevance.Application, Notes: LongText(index, 'n')), true))
+                .ToArray(), []);
+        StringAssert.Contains(Assert.Throws<WorkstationDocumentException>(() => MigrationSessionCodec.Serialize(session)).Message,
+            "8 MiB limit");
+    }
+
+    [TestMethod]
     public async Task ImportedWinGetIdOutsideTheManagedCatalogCannotCauseInstallation()
     {
         const string json = """
@@ -400,6 +442,23 @@ public sealed class WorkstationMigrationTests
         CollectionAssert.AreEqual(new[] { "Mozilla Firefox" }, diff.AddedApplications.ToArray());
         CollectionAssert.AreEqual(new[] { "Adobe Acrobat Reader" }, diff.RemovedApplications.ToArray());
         CollectionAssert.AreEqual(new[] { "Verify customer VPN if applicable" }, diff.AddedChecks.ToArray());
+
+        Assert.Throws<InvalidOperationException>(() => DeploymentProfileRevision.Compare(JumpPc(3), JumpPc(3)));
+        Assert.Throws<InvalidOperationException>(() => DeploymentProfileRevision.Compare(JumpPc(4), JumpPc(3)));
+    }
+
+    [TestMethod]
+    public void SavedMigrationRejectsDuplicateManualCheckIdsOnWriteAndRead()
+    {
+        var session = MigrationSession.FromProfile(JumpPc(3), MigrationFixtures.Identities, "profile-fixture", MigrationFixtures.Now);
+        var duplicateTasks = session with { Tasks = [new("same-check", "First"), new("same-check", "Second")] };
+        StringAssert.Contains(Assert.Throws<WorkstationDocumentException>(() => MigrationSessionCodec.Serialize(duplicateTasks)).Message,
+            "repeats a manual check ID");
+
+        var json = Encoding.UTF8.GetString(MigrationSessionCodec.Serialize(session))
+            .Replace("\"id\": \"verify-teamviewer\"", "\"id\": \"verify-proactive\"", StringComparison.Ordinal);
+        StringAssert.Contains(Assert.Throws<WorkstationDocumentException>(() => MigrationSessionCodec.Parse(Encoding.UTF8.GetBytes(json))).Message,
+            "repeats a manual check ID");
     }
 
     [TestMethod]
@@ -433,6 +492,8 @@ public sealed class WorkstationMigrationTests
         Assert.IsNotNull(adopted.Tasks.Single(task => task.Id == "verify-sleep").DoneAtUtc);
         Assert.IsTrue(adopted.Tasks.Any(task => task.Id == "verify-vpn"));
         Assert.AreEqual(adopted.Items.Count, adopted.Items.Select(item => item.ItemId).Distinct().Count());
+        Assert.Throws<InvalidOperationException>(() => adopted.CompareToProfile(JumpPc(3)));
+        Assert.Throws<InvalidOperationException>(() => adopted.AdoptProfileRevision(JumpPc(4), identities, MigrationFixtures.Now.AddDays(2)));
     }
 
     internal static DeploymentProfile JumpPc(int version) => new(

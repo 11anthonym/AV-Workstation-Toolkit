@@ -89,6 +89,8 @@ public static class DeploymentProfileRevision
     {
         ArgumentNullException.ThrowIfNull(older);
         ArgumentNullException.ThrowIfNull(newer);
+        if (!string.Equals(older.ProfileId, newer.ProfileId, StringComparison.Ordinal))
+            throw new InvalidOperationException("Only revisions of the same workstation template can be compared.");
         return Compare(newer.ProfileId, older.ProfileVersion, newer,
             older.Applications.Select(item => (item.Key, Name(item))).ToArray(),
             older.Checks.Select(item => (item.Id, item.Text)).ToArray());
@@ -101,6 +103,10 @@ public static class DeploymentProfileRevision
         IReadOnlyList<(string Key, string Name)> previousApplications,
         IReadOnlyList<(string Id, string Text)> previousChecks)
     {
+        if (!string.Equals(profileId, newer.ProfileId, StringComparison.Ordinal))
+            throw new InvalidOperationException("Only revisions of the same workstation template can be compared.");
+        if (newer.ProfileVersion <= fromVersion)
+            throw new InvalidOperationException($"Workstation template revisions must move forward from {fromVersion}; revision {newer.ProfileVersion} is not newer.");
         var oldKeys = previousApplications.Select(item => item.Key).ToHashSet(StringComparer.Ordinal);
         var newKeys = newer.Applications.Select(item => item.Key).ToHashSet(StringComparer.Ordinal);
         var oldChecks = previousChecks.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
@@ -155,7 +161,7 @@ public static class DeploymentProfileCodec
     public static byte[] Serialize(DeploymentProfile profile)
     {
         profile = Validate(profile);
-        using var stream = new MemoryStream();
+        using var stream = new BoundedWorkstationDocumentStream(MaximumBytes, WorkstationDocumentTypes.Profile);
         using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true, Encoder = WorkstationDocumentReader.Encoder }))
         {
             writer.WriteStartObject();

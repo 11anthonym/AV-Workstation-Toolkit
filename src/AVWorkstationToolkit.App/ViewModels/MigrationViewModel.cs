@@ -425,8 +425,18 @@ public sealed class MigrationViewModel : ObservableObject, IDisposable
         // can't be saved is reported here and the current checklist stays as it was.
         try
         {
-            if (current?.Source is { Kind: MigrationSourceKind.Profile } source && source.ProfileId == profile.ProfileId && source.ProfileVersion != profile.ProfileVersion)
+            if (current?.Source is { Kind: MigrationSourceKind.Profile } source && source.ProfileId == profile.ProfileId)
             {
+                if (profile.ProfileVersion < source.ProfileVersion)
+                {
+                    Status = $"The {profile.Name} workstation template is revision {profile.ProfileVersion}, older than this checklist's revision {source.ProfileVersion}. No changes were made.";
+                    return;
+                }
+                if (profile.ProfileVersion == source.ProfileVersion)
+                {
+                    Status = $"This checklist already uses the {profile.Name} workstation template, revision {source.ProfileVersion}. No changes were made.";
+                    return;
+                }
                 var diff = current.CompareToProfile(profile);
                 if (!files.Confirm("Update workstation template",
                         $"This PC's checklist uses the {profile.Name} workstation template, revision {source.ProfileVersion}.{Environment.NewLine}{Environment.NewLine}{diff.Describe()}{Environment.NewLine}{Environment.NewLine}Update the checklist to revision {profile.ProfileVersion}? Progress on applications that remain is kept."))

@@ -172,7 +172,7 @@ public sealed class ActionWorkerOrchestrator
         }
 
         var failedCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
-        var heldCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse);
+        var heldCount = outcomes.Count(item => item.Status is PackageOutcomeStatus.Blocked or PackageOutcomeStatus.InUse or PackageOutcomeStatus.RestartRequired);
         var cancellationPresent = cancellationObserved || await protocol.IsCancellationRequestedAsync(cancellationToken).ConfigureAwait(false);
         if (failedCount > 0)
             return await CompleteAsync(request, ActionResultStatus.Failed, 1, Summary(outcomes), outcomes, cancellationToken).ConfigureAwait(false);
@@ -311,7 +311,7 @@ public sealed class ActionWorkerOrchestrator
         var outcome = WinGetOutcomes.For(execution.ExitCode);
         var verified = false;
         if (execution.Disposition == PackageExecutionDisposition.Succeeded ||
-            execution.Disposition == PackageExecutionDisposition.Failed && outcome?.Recovery == WinGetRecovery.CheckIfCurrent)
+            execution.Disposition == PackageExecutionDisposition.Failed && outcome?.Recovery is WinGetRecovery.CheckIfCurrent or WinGetRecovery.RestartRequired)
         {
             try
             {
@@ -327,6 +327,7 @@ public sealed class ActionWorkerOrchestrator
         {
             PackageExecutionDisposition.Succeeded when verified => PackageOutcomeStatus.Succeeded,
             PackageExecutionDisposition.Succeeded => PackageOutcomeStatus.Unverified,
+            PackageExecutionDisposition.Failed when outcome?.Recovery == WinGetRecovery.RestartRequired => PackageOutcomeStatus.RestartRequired,
             PackageExecutionDisposition.Failed when verified => PackageOutcomeStatus.AlreadyCurrent,
             PackageExecutionDisposition.Failed => PackageOutcomeStatus.Failed,
             PackageExecutionDisposition.VerificationFailed => PackageOutcomeStatus.Unverified,
@@ -345,6 +346,9 @@ public sealed class ActionWorkerOrchestrator
             PackageOutcomeStatus.Succeeded => (ActionProgressLevel.Success, "Verified", $"{ActionPastTense(request.Action)} and verified."),
             PackageOutcomeStatus.AlreadyCurrent => (ActionProgressLevel.Success, "AlreadyCurrent",
                 $"{package.Package.Name} is already {(request.Action == ManagedRequestAction.Install ? "installed" : "up to date")}; nothing needed changing."),
+            PackageOutcomeStatus.RestartRequired => (ActionProgressLevel.Warning, "RestartRequired", verified
+                ? $"{package.Package.Name} is now detected, but Windows must restart before the installation is complete."
+                : $"WinGet changed {package.Package.Name}, but Windows must restart before the installation is complete."),
             PackageOutcomeStatus.Unverified => (ActionProgressLevel.Error, "Verification", "WinGet finished, but AVWT couldn't confirm the installed version."),
             PackageOutcomeStatus.Failed when execution.Disposition == PackageExecutionDisposition.TimedOut =>
                 (ActionProgressLevel.Error, "Failed", "WinGet didn't finish within the allowed time."),
@@ -401,10 +405,14 @@ public sealed class ActionWorkerOrchestrator
         var failed = outcomes.Count(item => item.Status is PackageOutcomeStatus.Failed or PackageOutcomeStatus.Unverified);
         var inUse = outcomes.Count(item => item.Status == PackageOutcomeStatus.InUse);
         var blocked = outcomes.Count(item => item.Status == PackageOutcomeStatus.Blocked);
+        var restartRequired = outcomes.Count(item => item.Status == PackageOutcomeStatus.RestartRequired);
         var notStarted = outcomes.Count(item => item.Status == PackageOutcomeStatus.NotStarted);
         if (failed > 0) sentences.Add($"{PackageCount(failed)} couldn't be completed or verified.");
         if (inUse > 0) sentences.Add(inUse == 1 ? "1 app was open, so it wasn't changed." : $"{inUse} apps were open, so they weren't changed.");
         if (blocked > 0) sentences.Add(blocked == 1 ? "1 app was skipped when it was rechecked." : $"{blocked} apps were skipped when they were rechecked.");
+        if (restartRequired > 0) sentences.Add(restartRequired == 1
+            ? "1 app needs Windows restarted to finish."
+            : $"{restartRequired} apps need Windows restarted to finish.");
         if (notStarted > 0) sentences.Add(notStarted == 1 ? "1 app wasn't started." : $"{notStarted} apps weren't started.");
         return string.Join(' ', sentences);
     }

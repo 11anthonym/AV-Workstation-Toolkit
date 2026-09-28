@@ -10,7 +10,9 @@ public enum WinGetRecovery
     /// <summary>The app is open; with the technician's consent it is asked to close and the package is tried again once.</summary>
     CloseOpenApps,
     /// <summary>WinGet found nothing to do; a fresh check decides whether the package is already current.</summary>
-    CheckIfCurrent
+    CheckIfCurrent,
+    /// <summary>The installer changed the machine but Windows must restart before the installation is complete.</summary>
+    RestartRequired
 }
 
 /// <summary>A recognized WinGet or installer result: a plain reason, what to do next, and any automatic recovery.</summary>
@@ -49,6 +51,7 @@ public static class WinGetOutcomes
         [0x8A150104] = new("a component the installer needs is missing", WinGetRecovery.None),
         [0x8A150110] = new("a dependency couldn't be installed", WinGetRecovery.None),
         [0x8A15010A] = new("Windows has to restart before this installer can run. Restart, then try again", WinGetRecovery.None),
+        [0x8A150109] = new("Windows must restart to finish the installation", WinGetRecovery.RestartRequired),
         [0x8A15010B] = new("the installer started a restart", WinGetRecovery.None),
         [0x8A15010C] = new("the installation was cancelled at the installer or its Windows permission prompt", WinGetRecovery.None),
         [0x8A15010E] = new("a newer version is already installed", WinGetRecovery.None),
@@ -57,7 +60,7 @@ public static class WinGetOutcomes
         [0x8A150108] = new("the installer asked to contact the publisher's support", WinGetRecovery.None),
         [0x8A150112] = new("the installer rejected its parameters", WinGetRecovery.None),
         [0x8A150056] = new("the installer refuses to run with administrator rights", WinGetRecovery.None),
-        [0x8A150030] = new("removing the previous version needed administrator approval that a quiet install can't request", WinGetRecovery.None),
+        [0x8A150030] = new("WinGet couldn't run the installed version's uninstall command", WinGetRecovery.None),
         [0x8A150050] = new("WinGet can't tell which version is installed", WinGetRecovery.None),
         [0x8A15004F] = new("the available version isn't newer than the installed one", WinGetRecovery.None),
         [0x8A150041] = new("the package agreements weren't accepted", WinGetRecovery.None),

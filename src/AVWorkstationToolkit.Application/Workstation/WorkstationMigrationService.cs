@@ -288,6 +288,9 @@ public sealed class WorkstationMigrationService
                         PackageOutcomeStatus.AlreadyCurrent => "Already installed when the worker checked it.",
                         PackageOutcomeStatus.Blocked => "Blocked by policy when the worker rechecked it.",
                         PackageOutcomeStatus.InUse => "The app was open, so it wasn't installed. Close it and install again.",
+                        PackageOutcomeStatus.RestartRequired => outcome.Verified
+                            ? "The app is installed, but Windows must restart before the installation is complete."
+                            : "Windows must restart before the installation is complete. Scan again after restarting.",
                         PackageOutcomeStatus.Unverified => "The installer finished, but the worker couldn't verify the result.",
                         PackageOutcomeStatus.Planned or PackageOutcomeStatus.NotStarted => "The worker didn't reach this app.",
                         _ => $"The installer failed with exit code {outcome.ExitCode}."

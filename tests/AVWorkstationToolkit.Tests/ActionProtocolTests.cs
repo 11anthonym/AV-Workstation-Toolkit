@@ -189,6 +189,9 @@ public sealed class ActionProtocolTests
                 codec.Parse(ResultJson(paths, "Cancelled", 2, NotStartedJson()), Request(["Vendor.One"]), paths).Status);
             Assert.AreEqual(PackageOutcomeStatus.Planned,
                 codec.Parse(ResultJson(paths, "Succeeded", 0, PackageJson("Planned", 0, false)), Request(["Vendor.One"], dryRun: true), paths).Packages[0].Status);
+            Assert.AreEqual(PackageOutcomeStatus.RestartRequired,
+                codec.Parse(ResultJson(paths, "Blocked", 3, PackageJson("RestartRequired", unchecked((int)0x8A150109), true)),
+                    Request(["Vendor.One"]), paths).Packages[0].Status);
         }
         finally { Directory.Delete(root, true); }
     }

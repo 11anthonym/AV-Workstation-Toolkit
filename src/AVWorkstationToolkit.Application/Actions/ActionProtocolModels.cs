@@ -33,6 +33,8 @@ public enum PackageOutcomeStatus
     Failed,
     Succeeded,
     Unverified,
+    /// <summary>WinGet changed the package, but Windows must restart before the installation is complete.</summary>
+    RestartRequired,
     /// <summary>An app using the package's installed files was open and wasn't closed, so its installer never ran.</summary>
     InUse,
     /// <summary>The run was stopped before this package was reached.</summary>

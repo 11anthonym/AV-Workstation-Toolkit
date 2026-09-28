@@ -9,6 +9,43 @@ namespace AVWorkstationToolkit.Domain.Workstation;
 /// <summary>A workstation inventory, workstation template, or migration session file failed validation.</summary>
 public sealed class WorkstationDocumentException(string message, Exception? innerException = null) : Exception(message, innerException);
 
+/// <summary>
+/// A memory-backed document destination that enforces the same byte boundary as the corresponding reader while the
+/// JSON writer is producing output. This prevents an export or persisted session from becoming a file this version
+/// cannot read back, without first buffering an oversized document.
+/// </summary>
+internal sealed class BoundedWorkstationDocumentStream(int maximumBytes, string documentType) : MemoryStream
+{
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        EnsureRoom(count);
+        base.Write(buffer, offset, count);
+    }
+
+    public override void Write(ReadOnlySpan<byte> buffer)
+    {
+        EnsureRoom(buffer.Length);
+        base.Write(buffer);
+    }
+
+    public override void WriteByte(byte value)
+    {
+        EnsureRoom(1);
+        base.WriteByte(value);
+    }
+
+    private void EnsureRoom(int count)
+    {
+        if (count < 0 || Position > maximumBytes - count)
+            throw new WorkstationDocumentException(
+                $"The {WorkstationDocumentReader.Describe(documentType)} is larger than the {DescribeLimit(maximumBytes)} limit for this document.");
+    }
+
+    private static string DescribeLimit(int bytes) => bytes % (1024 * 1024) == 0
+        ? $"{bytes / (1024 * 1024)} MiB"
+        : $"{bytes} byte" + (bytes == 1 ? string.Empty : "s");
+}
+
 public static class WorkstationDocumentTypes
 {
     public const string Inventory = "workstation-inventory";
