@@ -16,7 +16,7 @@ signing request, or signed release is claimed.
 - MSI pattern: `AV-Workstation-Toolkit-<version>-x64.msi`
 - ZIP pattern: `AV-Workstation-Toolkit-<version>-win-x64.zip`
 - Build command: `Build-AVWorkstationToolkit.cmd`
-- Current release artifacts: unsigned, including the `1.1.2` release and the
+- Current release artifacts: unsigned, including the `1.1.3` release, the `1.1.2` release, and the
   `1.1.1-beta.1` and `1.1.1-beta.2` betas; no SignPath signing has occurred
 
 The Apache-2.0 license is committed. The two blockers previously recorded for

@@ -6,7 +6,7 @@ engineering tools AV and IT teams use, shows what is installed and out of date,
 and installs or updates only applications your team has explicitly approved.
 
 The current release is the unsigned
-[`1.1.2`](docs/releases/1.1.2.md); use it on test or pilot
+[`1.1.3`](docs/releases/1.1.3.md); use it on test or pilot
 workstations until you have reviewed it against your organization's software
 policy.
 
@@ -34,11 +34,11 @@ Releases are published on the
 Verify each download against the published SHA-256 checksum list before running
 it.
 
-Each release offers three delivery formats; for 1.1.2:
+Each release offers three delivery formats; for 1.1.3:
 
-- run `AV-Workstation-Toolkit-1.1.2-win-x64.exe` directly;
-- install `AV-Workstation-Toolkit-1.1.2-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
-- extract `AV-Workstation-Toolkit-1.1.2-win-x64.zip` and run `AVWorkstationToolkit.exe`.
+- run `AV-Workstation-Toolkit-1.1.3-win-x64.exe` directly;
+- install `AV-Workstation-Toolkit-1.1.3-x64.msi`, then open **AV Workstation Toolkit** from the Start menu; or
+- extract `AV-Workstation-Toolkit-1.1.3-win-x64.zip` and run `AVWorkstationToolkit.exe`.
 
 The tagged workflow's standard release set contains exactly eight assets: the
 three delivery formats above, the Apache-2.0 `LICENSE`, third-party notices, a
@@ -46,7 +46,7 @@ CycloneDX SBOM, a release manifest, and a SHA-256 checksum list. The checksum
 list covers the other seven assets and does not hash itself.
 
 AV Workstation Toolkit has prepared a fail-closed SignPath release workflow.
-Current artifacts remain unsigned, including 1.1.2, until external
+Current artifacts remain unsigned, including 1.1.3, until external
 configuration and approval are completed. Authenticode signing does not
 guarantee that SmartScreen or an organization's endpoint policy will accept a
 new binary.
@@ -112,7 +112,7 @@ separately signed reference catalog that updates in the app.
 - [Workstation migration and templates](docs/Workstation-Migration-and-Templates.md)
 - [Team application-onboarding playbook](docs/Team-Onboarding-Playbook.md)
 - [Repository scripts: command-line deployment and maintenance, snapshot, readiness, and catalog authoring](scripts/README.md)
-- Release notes for [1.1.2](docs/releases/1.1.2.md) and earlier releases ([1.1.1 Beta 2](docs/releases/1.1.1-beta.2.md), [Beta 1](docs/releases/1.1.1-beta.1.md)), and the [change log](docs/CHANGELOG.md)
+- Release notes for [1.1.3](docs/releases/1.1.3.md) and earlier releases ([1.1.2](docs/releases/1.1.2.md), [1.1.1 Beta 2](docs/releases/1.1.1-beta.2.md), [Beta 1](docs/releases/1.1.1-beta.1.md)), and the [change log](docs/CHANGELOG.md)
 
 **Security, privacy, and trust**
 
@@ -187,7 +187,7 @@ analytics, or crash-reporting service.
 
 ## Code signing
 
-Current development, release-candidate, and release artifacts, including 1.1.2, are unsigned. The build
+Current development, release-candidate, and release artifacts, including 1.1.3, are unsigned. The build
 retains a fail-closed organizational Authenticode path and prepared SignPath
 workflow, while the project has not submitted to or been accepted by SignPath
 Foundation. See the [code signing policy](docs/Code-Signing-Policy.md) and

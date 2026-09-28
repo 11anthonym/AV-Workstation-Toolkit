@@ -6,7 +6,7 @@ suspected vulnerabilities responsibly.
 
 ## Supported versions
 
-The current release is the unsigned `1.1.2`; the first public release was the
+The current release is the unsigned `1.1.3`; the first public release was the
 `1.1.1-beta.1` beta. Security fixes
 are applied to the current `main` branch, checked in a release candidate, and
 released in the next release. Historical 1.1.0 and earlier packages are unsupported and must not be
