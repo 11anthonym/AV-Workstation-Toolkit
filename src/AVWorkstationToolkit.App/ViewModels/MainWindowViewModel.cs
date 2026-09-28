@@ -1382,6 +1382,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CompiledActionState.Completed => "Completed",
         CompiledActionState.Failed => "Failed",
         CompiledActionState.Cancelled => "Stopped",
+        CompiledActionState.NeedsAttention => "Needs attention",
         _ => "Action status"
     };
     private static string Sanitize(string value) => new(DiagnosticsRedactor.Sanitize(value).Take(4000).ToArray());

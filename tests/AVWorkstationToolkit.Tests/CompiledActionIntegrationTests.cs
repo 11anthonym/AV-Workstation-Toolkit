@@ -104,6 +104,16 @@ public sealed class CompiledActionIntegrationTests
     }
 
     [TestMethod]
+    public async Task ARunWhereNothingFailedButSomethingWasHeldNeedsAttentionRatherThanFailing()
+    {
+        var current = Plan(State("Vendor.One", PackageStatus.Missing, PackageAction.Install));
+        var coordinator = Coordinator(new FakeProtocolStore(ActionResultStatus.Blocked), new QueuePlanningCoordinator(current));
+        var result = await coordinator.StartAsync(ManagedRequestAction.Install, current.Packages, current, false, false);
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Result.Status);
+        Assert.AreEqual(CompiledActionState.NeedsAttention, coordinator.Snapshot.State);
+    }
+
+    [TestMethod]
     public async Task CatalogRevisionMismatchRejectionSurvivesRealFileProtocolAndCoordinator()
     {
         var root = Path.Combine(Path.GetTempPath(), $"awt-revision-mismatch-{Guid.NewGuid():N}");
@@ -370,6 +380,11 @@ public sealed class CompiledActionIntegrationTests
                     new ActionPackageOutcome(Request.PackageIds[0], Request.PackageIds[0], Request.Action, PackageOutcomeStatus.Failed,
                         23, false, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, Arguments(Request))
                 },
+                ActionResultStatus.Blocked => new[]
+                {
+                    new ActionPackageOutcome(Request.PackageIds[0], Request.PackageIds[0], Request.Action, PackageOutcomeStatus.Blocked,
+                        3, false, null, DateTimeOffset.UtcNow, [])
+                },
                 // A cancelled run still accounts for the package it never reached.
                 ActionResultStatus.Cancelled => new[]
                 {
@@ -378,7 +393,7 @@ public sealed class CompiledActionIntegrationTests
                 },
                 _ => []
             };
-            var exit = status switch { ActionResultStatus.Succeeded => 0, ActionResultStatus.Cancelled => 2, _ => 1 };
+            var exit = status switch { ActionResultStatus.Succeeded => 0, ActionResultStatus.Cancelled => 2, ActionResultStatus.Blocked => 3, _ => 1 };
             var final = new ActionFinalResult(ActionProtocolLimits.CurrentResultSchemaVersion, Request.RequestId, DateTimeOffset.UtcNow,
                 "Fixture", status, status.ToString(), exit, Request.ManagedCatalogRevision,
                 Paths.RequestPath, Paths.ProgressPath, Paths.WinGetLogPath, packages);

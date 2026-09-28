@@ -53,14 +53,31 @@ public static class ProductionWorkerComposition
             new WindowsRebootStateProvider(),
             new ExternalInventoryMatcher());
         var executor = new WinGetPackageActionExecutor(new WinGetMutationProcessRunner(resolver));
-        return new(new ProductionPlanProvider(planning, managedCatalogRevision), executor, managedCatalogRevision,
+        return new(new ReusingWorkerPlanProvider(planning, managedCatalogRevision), executor, managedCatalogRevision,
             new RestartManagerOpenApplications());
     }
+}
 
-    private sealed class ProductionPlanProvider(IWorkstationPlanningCoordinator planning, long revision) : IActionWorkerPlanProvider
+/// <summary>
+/// The worker's live plan. A full refresh (WinGet export, the upgrade list, the registry, and restart state) takes several
+/// seconds, and the worker needs one before every package and after every installer. A plan read after the last change is
+/// still current, so it is reused until the worker says state may change (before each installer run), which halves the
+/// refreshes in a multi-package run without ever checking a package against a plan from before an installer ran.
+/// </summary>
+public sealed class ReusingWorkerPlanProvider(IWorkstationPlanningCoordinator planning, long revision) : IActionWorkerPlanProvider
+{
+    private readonly IWorkstationPlanningCoordinator planning = planning ?? throw new ArgumentNullException(nameof(planning));
+    private WorkstationPlan? current;
+
+    public long ManagedCatalogRevision { get; } = revision;
+
+    public async ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default)
     {
-        public long ManagedCatalogRevision { get; } = revision;
-        public async ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default) =>
-            await planning.RefreshAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (current is { } unchanged) return unchanged;
+        var plan = await planning.RefreshAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+        current = plan;
+        return plan;
     }
+
+    public void StateMayChange() => current = null;
 }

@@ -69,6 +69,22 @@ public static class WinGetOutcomes
 
     /// <summary>The recognized outcome for a WinGet exit code, or null when WinGet reported something else.</summary>
     public static WinGetOutcome? For(int exitCode) => Known.TryGetValue(unchecked((uint)exitCode), out var outcome) ? outcome : null;
+
+    // WinGet's en-US resource InstallFlowReturnCodeRebootRequiredToFinish (winget.resw).
+    private const string RestartToFinishNotice = "Restart your PC to finish installation.";
+
+    /// <summary>
+    /// Whether WinGet said the installation needs a restart to finish. The WinGet command line treats an installer's
+    /// "restart required to finish" result (MSI 3010, or a manifest's rebootRequiredToFinish code) as success, exits 0, and
+    /// only prints this notice; 0x8A150109 is not the command's exit code. The notice is printed in WinGet's display
+    /// language, so only the English notice is recognized; in another language the install is reported as verified.
+    /// </summary>
+    public static bool ReportsRestartToFinish(PackageExecutionResult execution)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        return execution.StandardOutput.Contains(RestartToFinishNotice, StringComparison.OrdinalIgnoreCase) ||
+               execution.StandardError.Contains(RestartToFinishNotice, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 /// <summary>How many times, and after what pauses, a condition that usually clears by itself is tried again.</summary>

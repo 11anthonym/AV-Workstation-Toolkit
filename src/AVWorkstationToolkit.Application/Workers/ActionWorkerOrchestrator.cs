@@ -10,7 +10,18 @@ namespace AVWorkstationToolkit.Application.Workers;
 public interface IActionWorkerPlanProvider
 {
     long ManagedCatalogRevision => 0;
+
+    /// <summary>
+    /// A plan that reflects the workstation as it is now: read after the last <see cref="StateMayChange"/>. A provider may
+    /// return the plan it read since then instead of reading again, because nothing that changes installed state has run.
+    /// </summary>
     ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The worker is about to run an installer or wait, so any plan read so far may no longer be current. The next
+    /// <see cref="ReadFreshPlanAsync"/> must read a new one.
+    /// </summary>
+    void StateMayChange() { }
 }
 
 public interface IPackageActionExecutor
@@ -253,6 +264,8 @@ public sealed class ActionWorkerOrchestrator
             var retries = 0;
             while (true)
             {
+                // Any plan read so far describes the workstation before this installer; the next check must read again.
+                planProvider.StateMayChange();
                 execution = await executor.ExecuteAsync(
                     new PackageExecutionRequest(package.Package.Id, package.Package.Name, request.Action, package.Package.Risk, package.Package.InstallerMode),
                     cancellationToken).ConfigureAwait(false);
@@ -325,6 +338,8 @@ public sealed class ActionWorkerOrchestrator
         }
         var status = execution.Disposition switch
         {
+            // WinGet treats "restart required to finish" as success and only prints a notice, so the notice is what says so.
+            PackageExecutionDisposition.Succeeded when WinGetOutcomes.ReportsRestartToFinish(execution) => PackageOutcomeStatus.RestartRequired,
             PackageExecutionDisposition.Succeeded when verified => PackageOutcomeStatus.Succeeded,
             PackageExecutionDisposition.Succeeded => PackageOutcomeStatus.Unverified,
             PackageExecutionDisposition.Failed when outcome?.Recovery == WinGetRecovery.RestartRequired => PackageOutcomeStatus.RestartRequired,

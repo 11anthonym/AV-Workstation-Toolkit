@@ -24,14 +24,21 @@ public static class ProviderLiveChecks
         var reboot = await new WindowsRebootStateProvider().ReadAsync().ConfigureAwait(false);
         // Which installed managed apps the open-app check can locate programs for, read-only. Nothing is closed.
         var locator = new RegistryInstalledProgramLocator();
-        var located = AVWorkstationToolkit.Domain.Workstation.ManagedApplicationDetectors.Patterns.Keys
+        var ids = AVWorkstationToolkit.Domain.Workstation.ManagedApplicationDetectors.Patterns.Keys.ToArray();
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        var located = ids
             .Select(id => new { Id = id, Programs = locator.Locate(id).Count })
             .Where(item => item.Programs > 0)
             .OrderBy(item => item.Id, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        var firstPass = timer.ElapsedMilliseconds;
+        timer.Restart();
+        foreach (var id in ids) _ = locator.Locate(id);
+        var secondPass = timer.ElapsedMilliseconds;
         return new
         {
             OpenAppProgramsLocated = located,
+            OpenAppLocateMilliseconds = new { Packages = ids.Length, FirstPass = firstPass, SecondPass = secondPass },
             WinGetResolution = resolution.Trusted ? "Available" : "Unavailable",
             WinGetResolutionDetail = resolution.Detail,
             InstalledInventory = installed.Quality.ToString(),

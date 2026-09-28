@@ -698,6 +698,68 @@ public sealed class ActionWorkerOrchestratorTests
     private static int Code(uint value) => unchecked((int)value);
 
     [TestMethod]
+    public async Task APlanReadAfterTheLastInstallerIsReusedAndNeverOneFromBeforeIt()
+    {
+        var ids = new[] { "Vendor.A", "Vendor.B", "Vendor.C" };
+        var workstation = new LiveWorkstation(ids);
+        var request = Request(ids: ids);
+        var protocol = new MemoryProtocol(request);
+
+        var result = await new ActionWorkerOrchestrator(new AVWorkstationToolkit.Infrastructure.Windows.Processes.ReusingWorkerPlanProvider(workstation, 0),
+            workstation, protocol, "FixtureHost", timeProvider: new FixedTimeProvider()).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        Assert.IsTrue(result.Packages.All(item => item.Status == PackageOutcomeStatus.Succeeded && item.Verified),
+            "Each verification saw its own installer's effect, so no plan from before an installer was reused.");
+        Assert.AreEqual(3, workstation.Installs);
+        // One read to start and one after each installer; each recheck reuses the read taken after the previous change.
+        Assert.AreEqual(1 + ids.Length, workstation.Refreshes, "Before reuse this run read the plan seven times.");
+    }
+
+    [TestMethod]
+    public async Task EveryInstallerRunInvalidatesThePlanFirst()
+    {
+        var request = Request();
+        var protocol = new MemoryProtocol(request);
+        var plans = new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]), Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)]));
+        var executor = new FakeExecutor(PackageExecutionResult.Failure(Code(0x8A150102)), PackageExecutionResult.Success)
+        {
+            AfterCall = call => Assert.AreEqual(call, plans.ChangeSignals, "The plan was invalidated before this installer ran.")
+        };
+
+        var result = await Worker(plans, executor, protocol).RunAsync(request);
+
+        Assert.AreEqual(ActionResultStatus.Succeeded, result.Status);
+        Assert.AreEqual(2, plans.ChangeSignals);
+    }
+
+    [TestMethod]
+    public async Task WinGetsRestartNoticeAfterASuccessfulInstallIsReportedAsRestartRequired()
+    {
+        var request = Request();
+        var protocol = new MemoryProtocol(request);
+        var plans = new SequencePlans(Plan([State("Vendor.One")]), Plan([State("Vendor.One")]),
+            Plan([State("Vendor.One", PackageAction.None, PackageStatus.Current)]));
+        // WinGet exits 0 for an installer's "restart required to finish" (MSI 3010) and only prints this notice.
+        var executor = new FakeExecutor(PackageExecutionResult.Success with
+        {
+            StandardOutput = "Successfully installed. Restart your PC to finish installation."
+        });
+
+        var result = await Worker(plans, executor, protocol).RunAsync(request);
+
+        var package = result.Packages.Single();
+        Assert.AreEqual(PackageOutcomeStatus.RestartRequired, package.Status);
+        Assert.AreEqual(0, package.ExitCode);
+        Assert.IsTrue(package.Verified);
+        Assert.AreEqual(ActionResultStatus.Blocked, result.Status, "Not complete until Windows restarts.");
+        StringAssert.Contains(protocol.Progress.Single(item => item.Stage == "RestartRequired").Message, "Windows must restart");
+        Assert.AreEqual("1 app needs Windows restarted to finish.", protocol.Result!.Message);
+        Assert.IsFalse(WinGetOutcomes.ReportsRestartToFinish(PackageExecutionResult.Success with { StandardOutput = "Successfully installed" }));
+    }
+
+    [TestMethod]
     public async Task ATestRunNeverLooksForOrClosesApps()
     {
         var request = Request(dryRun: true);
@@ -800,12 +862,38 @@ public sealed class ActionWorkerOrchestratorTests
     {
         public long ManagedCatalogRevision { get; init; }
         public int ReadCount { get; private set; }
+        public int ChangeSignals { get; private set; }
 
         public ValueTask<WorkstationPlan> ReadFreshPlanAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (ReadCount >= plans.Length) throw new InvalidOperationException("Test plan sequence exhausted.");
             return ValueTask.FromResult(plans[ReadCount++]);
+        }
+
+        public void StateMayChange() => ChangeSignals++;
+    }
+
+    // A workstation whose plan follows what has been installed on it, for runs through the production plan provider.
+    private sealed class LiveWorkstation(params string[] ids) : IWorkstationPlanningCoordinator, IPackageActionExecutor
+    {
+        private readonly HashSet<string> installed = new(StringComparer.OrdinalIgnoreCase);
+        public int Refreshes { get; private set; }
+        public int Installs { get; private set; }
+
+        public Task<WorkstationPlan> RefreshAsync(IProgress<PlanningRefreshStage>? progress = null, CancellationToken cancellationToken = default)
+        {
+            Refreshes++;
+            return Task.FromResult(Plan(ids.Select(id => installed.Contains(id)
+                ? State(id, PackageAction.None, PackageStatus.Current)
+                : State(id)).ToArray()));
+        }
+
+        public ValueTask<PackageExecutionResult> ExecuteAsync(PackageExecutionRequest request, CancellationToken cancellationToken = default)
+        {
+            Installs++;
+            installed.Add(request.Id);
+            return ValueTask.FromResult(PackageExecutionResult.Success);
         }
     }
 

@@ -337,7 +337,8 @@ public sealed class ActionResultCodec
                 PackageOutcomeStatus.Failed => package.ExitCode != 0 && !package.Verified,
                 PackageOutcomeStatus.Succeeded => package.ExitCode == 0 && package.Verified,
                 PackageOutcomeStatus.Unverified => package.ExitCode == 0 && !package.Verified,
-                PackageOutcomeStatus.RestartRequired => !request.DryRun && package.ExitCode != 0 && package.StartedAt is not null,
+                // WinGet usually exits 0 and prints a restart notice; a nonzero 0x8A150109 is also accepted.
+                PackageOutcomeStatus.RestartRequired => !request.DryRun && package.StartedAt is not null,
                 _ => false
             };
             if (!consistent) throw Invalid($"Package result semantics are inconsistent for {package.Id}.");

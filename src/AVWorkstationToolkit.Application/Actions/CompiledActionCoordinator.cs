@@ -31,7 +31,9 @@ public enum CompiledActionState
     CancellationRequested,
     Completed,
     Failed,
-    Cancelled
+    Cancelled,
+    /// <summary>The run finished, but some apps were skipped, open, or need a restart; nothing it ran failed.</summary>
+    NeedsAttention
 }
 
 public sealed class CompiledActionSnapshot(
@@ -154,6 +156,7 @@ public sealed class CompiledActionCoordinator
             {
                 ActionResultStatus.Succeeded => CompiledActionState.Completed,
                 ActionResultStatus.Cancelled => CompiledActionState.Cancelled,
+                ActionResultStatus.Blocked => CompiledActionState.NeedsAttention,
                 _ => CompiledActionState.Failed
             };
             WorkstationPlan refreshedPlan;

@@ -55,7 +55,7 @@ every item; a detected item is shown under **Completed**, not deleted.
 | Install available | The approved managed catalog allows an automatic installation here. | **Install** or **Install all available**. |
 | Restart first | Allowed, but it installs a driver, service, or listener and Windows is waiting for a restart. | Restart Windows, then install. |
 | Installing… | The worker is installing it. | Wait. |
-| Restart required | WinGet changed the application, but Windows reports that a restart is required to finish the installation. The worker still checks the resulting package state. | Restart Windows, then rescan before continuing. |
+| Restart required | The installer finished, but WinGet reported that Windows must restart to finish the installation (its English notice, or code `0x8A150109`). The worker still checks the resulting package state. | Restart Windows, then rescan before continuing. |
 | Install failed | The last attempt failed, or the worker refused it when it rechecked this PC. | Read the detail, then retry or install it yourself. |
 | Installed · not verified | The installer reported success, but no scan has detected the app yet, or this PC couldn't be checked afterward. It still counts as remaining. | **Rescan**, or restart Windows if the installer asked for it. |
 | Manual · not yet detected | A catalog application the Toolkit can't install automatically, such as Crestron Toolbox or Q-SYS Designer. | Install it yourself (**Get package** in the main window opens its approved vendor page or download), then **Rescan**. |
