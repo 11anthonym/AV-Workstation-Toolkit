@@ -86,8 +86,11 @@ public sealed class ProductionCompiledWorkerLauncher : ICompiledWorkerLauncher
         var actual = Convert.ToHexString(SHA256.HashData(workerStream));
         if (!CryptographicOperations.FixedTimeEquals(Convert.FromHexString(actual), Convert.FromHexString(expectedSha256)))
             throw new InvalidDataException("The packaged compiled worker failed its embedded integrity check.");
+        // The shipping worker carries the project's product name, as every signed binary must; its file description
+        // tells it apart from the launcher and from the development host, whose product name differs.
         var metadata = FileVersionInfo.GetVersionInfo(workerPath);
-        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit compiled worker", StringComparison.Ordinal))
+        if (!string.Equals(metadata.ProductName, "AV Workstation Toolkit", StringComparison.Ordinal) ||
+            !string.Equals(metadata.FileDescription, "AV Workstation Toolkit worker", StringComparison.Ordinal))
             throw new InvalidDataException("The packaged worker identity is not the reviewed production host.");
     }
 
