@@ -18,9 +18,9 @@
     <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
     <AssemblyName>AVWorkstationToolkit.Worker</AssemblyName>
     <RootNamespace>AVWorkstationToolkit.Worker</RootNamespace>
-    <Version>1.1.3</Version>
-    <AssemblyVersion>1.1.3.0</AssemblyVersion>
-    <FileVersion>1.1.3.0</FileVersion>
+    <Version>1.1.4</Version>
+    <AssemblyVersion>1.1.4.0</AssemblyVersion>
+    <FileVersion>1.1.4.0</FileVersion>
     <!-- Signed binaries carry the project's own product name (SignPath Foundation requires it); the file
          description tells the worker apart from the launcher. -->
     <AssemblyTitle>AV Workstation Toolkit worker</AssemblyTitle>

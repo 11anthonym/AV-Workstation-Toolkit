@@ -373,7 +373,7 @@ Invoke-Check 'Catalog loading does not depend on implicit module autoloading' {
 }
 Invoke-Check 'Module manifest is valid and versioned' {
     $manifest = Test-ModuleManifest -Path $modulePath
-    Assert-Equal '1.1.3' ([string]$manifest.Version) 'Module version differs.'
+    Assert-Equal '1.1.4' ([string]$manifest.Version) 'Module version differs.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Get-AVWorkstationToolkitDataRoot' 'Data-root resolver is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'Invoke-AVWorkstationToolkitLegacyDataMigration' 'Legacy data migration seam is not exported.'
     Assert-Contains @($manifest.ExportedFunctions.Keys) 'New-AVWorkstationToolkitActionRequest' 'Request builder is not exported.'
@@ -966,7 +966,7 @@ Invoke-Check 'Diagnostics are sanitized and report source-specific inventory hea
     $text = ConvertTo-AVWorkstationToolkitDiagnosticsText -Diagnostics $diagnostics
     Assert-True ($text -notmatch 'supersecret|private-token|topsecret') 'Diagnostics exposed a supplied secret.'
     Assert-True ($text -match '\[REDACTED\]') 'Diagnostics did not mark redacted values.'
-    Assert-True ($text -match '^AV Workstation Toolkit diagnostics' -and $diagnostics.Application.Version -eq '1.1.3') 'Diagnostics product identity differs.'
+    Assert-True ($text -match '^AV Workstation Toolkit diagnostics' -and $diagnostics.Application.Version -eq '1.1.4') 'Diagnostics product identity differs.'
     $coreSource = Get-Content -LiteralPath $moduleImplementationPath -Raw
     Assert-True ($coreSource -match '\(''Version: \{0\}'' -f \$Diagnostics\.WinGet\.Version\)' -and $coreSource -match '\(''Launcher runtime: \{0\}''') 'WinGet or launcher runtime information is missing from Diagnostics.'
     Assert-Equal 'OK' @($diagnostics.ExternalInventory.Sources | Where-Object Name -eq 'HKLM64')[0].Status 'HKLM64 diagnostic status differs.'
@@ -1633,12 +1633,12 @@ Invoke-Check 'Canonical application artwork covers WPF, executable, taskbar, sho
         $installerSource -match '<Property Id="ARPPRODUCTICON" Value="AVWorkstationToolkitProductIcon\.ico"' -and
         $installerSource -match 'Shortcut[\s\S]+?Icon="AVWorkstationToolkitProductIcon\.ico"') 'MSI Installed Apps or Start-menu icon identity is incomplete.'
 }
-Invoke-Check 'AV Workstation Toolkit v1.1.3 identity is consistent across source and package projects' {
+Invoke-Check 'AV Workstation Toolkit v1.1.4 identity is consistent across source and package projects' {
     $mainWindowXaml = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.App\MainWindow.xaml') -Raw
-    Assert-True ($mainWindowXaml -match 'Title="AV Workstation Toolkit 1\.1\.3"') 'Window title is missing the v1.1.3 identity.'
-    Assert-Equal '1.1.3' ((Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()) 'VERSION differs.'
+    Assert-True ($mainWindowXaml -match 'Title="AV Workstation Toolkit 1\.1\.4"') 'Window title is missing the v1.1.4 identity.'
+    Assert-Equal '1.1.4' ((Get-Content -LiteralPath (Join-Path $repositoryRoot 'VERSION') -Raw).Trim()) 'VERSION differs.'
     $launcherProject = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj') -Raw
-    Assert-True ($launcherProject -match '<Version>1\.1\.3</Version>' -and $launcherProject -match '<SelfContained>true</SelfContained>' -and
+    Assert-True ($launcherProject -match '<Version>1\.1\.4</Version>' -and $launcherProject -match '<SelfContained>true</SelfContained>' -and
         $launcherProject -match '<Company>AV Workstation Toolkit Project</Company>' -and $launcherProject -match '<Product>AV Workstation Toolkit</Product>' -and
         $launcherProject -match '<Title>AV Workstation Toolkit</Title>' -and $launcherProject -match '<AssemblyTitle>AV Workstation Toolkit</AssemblyTitle>' -and
         $launcherProject -match '<Copyright>[^<]*AV Workstation Toolkit contributors</Copyright>') 'Launcher project release identity or deployment metadata differs.'

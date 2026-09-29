@@ -1,6 +1,12 @@
 # Change Log
 
-## 2026-09-29 — Ready for SignPath signing (unreleased)
+## 2026-09-29 — Version 1.1.4 (unreleased)
+
+- The source version is now 1.1.4: `VERSION`, the launcher, worker, and development-host assembly and file versions, the launcher manifest, the window title, and the repository script module. Builds extract to `runtime\1.1.4` and write to `artifacts\release\1.1.4`, and the 1.1.4 MSI upgrades an installed 1.1.3 build.
+- 1.1.3 was published unsigned, so 1.1.4 is the first version that can be released signed. Release candidates of this version are `1.1.4-rc.N`, starting at `rc.1`. 1.1.3 remains the current published release, and README, SECURITY.md, the endpoint-security baseline, the SignPath readiness record, and the bug-report form still name it.
+- Catalog minimum application versions stay `1.1.1`, so earlier builds keep receiving signed catalog updates.
+
+## 2026-09-29 — Ready for SignPath signing (unreleased, for 1.1.4)
 
 - The worker names its product **AV Workstation Toolkit**, like the launcher, with **AV Workstation Toolkit worker** as its file description and the project copyright. SignPath Foundation signs only binaries whose product name is the project's name; the worker said "AV Workstation Toolkit compiled worker". The build's identity check and the production-worker boundary test follow, and the development host keeps its own product name.
 - Both SignPath artifact configurations enforce the product version as well as the product name, file version, company, and original file name: the workflow passes `productVersion` (`X.Y.Z+<commit>`) with each request, so SignPath rejects a file from any other build. The MSI configuration finds its launcher as `**/AVWorkstationToolkit.exe`, exactly one match, instead of assuming how SignPath names the MSI's install directories.

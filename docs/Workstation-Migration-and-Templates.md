@@ -269,7 +269,7 @@ domain or Entra join, VPN, EDR, and security-policy configuration.
 {
   "schemaVersion": 1,
   "documentType": "workstation-inventory",
-  "generator": "AV Workstation Toolkit 1.1.3",
+  "generator": "AV Workstation Toolkit 1.1.4",
   "capturedAtUtc": "2026-09-26T05:00:00Z",
   "machine": { "computerName": "AV-LAPTOP-01", "windowsEdition": "Windows 11 Pro", "windowsVersion": "24H2", "osBuild": "26100.4652", "architecture": "x64" },
   "sources": { "registry": "complete", "winget": "complete" },
