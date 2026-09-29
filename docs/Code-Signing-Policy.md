@@ -68,18 +68,62 @@ and must not use a
 separate unreviewed source checkout or regenerate application binaries during
 signing.
 
+## What is signed
+
+Only binaries built from this repository's source are signed, and only by the
+tagged release workflow on GitHub-hosted runners:
+
+- `AVWorkstationToolkit.exe`, the application, in the direct download, the
+  portable ZIP, and the MSI;
+- `AVWorkstationToolkit.Worker.exe`, the install worker embedded in the
+  application;
+- `AV-Workstation-Toolkit-<version>-x64.msi`, the installer.
+
+Every signed file names its product **AV Workstation Toolkit** and carries the
+release's version, and the signing configuration rejects a file whose product
+name or version differs. The application's own libraries travel inside the
+signed executable, which checks each against its embedded SHA-256 hash when it
+extracts them. This project never signs anyone else's binaries: the .NET runtime
+and third-party libraries the application carries keep their publishers'
+signatures, if any, and the applications it installs or downloads are signed, or
+not, by their own publishers.
+
 ## Roles
 
 Current repository access shows one maintainer:
 
-- Author / committer: GitHub user `@11anthonym`
-- Reviewer: GitHub user `@11anthonym` for externally contributed changes
-- Signing approver: GitHub user `@11anthonym`
+- Committers and reviewers: GitHub user [`@11anthonym`](https://github.com/11anthonym)
+  (author and committer; reviewer for externally contributed changes)
+- Approvers: GitHub user [`@11anthonym`](https://github.com/11anthonym), who
+  approves each signing request
 
 For self-authored changes, automated source/package QA and explicit signing
 approval remain separate gates even though one maintainer currently performs
 both responsibilities. Repository access changes require this section and the
 SignPath configuration to be reviewed.
+
+Everyone who can commit to this repository or holds a role in its SignPath
+project must use multi-factor authentication for both GitHub and SignPath.
+
+## Privacy
+
+AV Workstation Toolkit has no telemetry, analytics, or crash reporting, and it
+sends no inventory, logs, or credentials to this project. It does use the
+network: at startup it checks installed applications through WinGet, reads the
+official release pages and feeds of catalogued vendor applications, and checks
+for a newer signed device catalog; everything else happens only when you ask
+for it.
+The [privacy policy](../PRIVACY.md) lists every network operation, what
+triggers it, and what it sends.
+
+## System changes and removal
+
+The application installs or updates software only after it shows the plan and
+you confirm the run, and it names every selected app that installs a driver,
+service, or network listener before that run starts. It never uninstalls
+software. To remove AV Workstation Toolkit itself, uninstall it from Windows
+**Settings > Apps > Installed apps**, or delete the downloaded executable; see
+[Uninstallation](../README.md#uninstallation).
 
 ## Key and workflow requirements
 

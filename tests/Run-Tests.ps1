@@ -1684,11 +1684,12 @@ Invoke-Check 'Current-release statements follow published release notes, not the
     $published = $publishedVersions[-1].ToString(3)
     Assert-True ($sourceVersion -ge $publishedVersions[-1]) "VERSION $sourceVersion is older than the published release $published."
     $statements = @(
-        @{ Path = 'README.md'; Pattern = 'The current release is the unsigned\s+\[`(?<version>[^`]+)`\]\(docs/releases/(?<notes>[^)]+)\.md\)' },
+        # A signed release drops the word "unsigned"; the statements must still name the newest release.
+        @{ Path = 'README.md'; Pattern = 'The current release is(?: the unsigned)?\s+\[`(?<version>[^`]+)`\]\(docs/releases/(?<notes>[^)]+)\.md\)' },
         @{ Path = 'README.md'; Pattern = 'Each release offers three delivery formats; for (?<version>[^:\s]+):' },
-        @{ Path = 'SECURITY.md'; Pattern = 'The current release is the unsigned `(?<version>[^`]+)`' },
-        @{ Path = 'docs\Endpoint-Security-Behavior.md'; Pattern = 'its current release is the unsigned `(?<version>[^`]+)`' },
-        @{ Path = 'docs\SignPath-Readiness.md'; Pattern = 'Current release artifacts: unsigned, including the `(?<version>[^`]+)` release' },
+        @{ Path = 'SECURITY.md'; Pattern = 'The current release is (?:the unsigned )?`(?<version>[^`]+)`' },
+        @{ Path = 'docs\Endpoint-Security-Behavior.md'; Pattern = 'its current release is (?:the unsigned )?`(?<version>[^`]+)`' },
+        @{ Path = 'docs\SignPath-Readiness.md'; Pattern = 'Current release artifacts: (?:unsigned|signed), including the `(?<version>[^`]+)` release' },
         @{ Path = '.github\ISSUE_TEMPLATE\bug_report.yml'; Pattern = 'placeholder: (?<version>\S+)' }
     )
     foreach ($statement in $statements) {
@@ -2302,7 +2303,25 @@ Invoke-Check 'Apache-2.0 licensing and SignPath readiness remain factual' {
         Assert-True (Test-Path -LiteralPath $configurationPath -PathType Leaf) "SignPath artifact configuration is missing: $configuration"
         $xml = [xml](Get-Content -LiteralPath $configurationPath -Raw)
         Assert-True ($null -ne $xml.'artifact-configuration') "SignPath artifact configuration is malformed: $configuration"
+        # SignPath Foundation: every signed binary carries the project's name and a per-build version, enforced by
+        # file metadata restrictions.
+        $parameters = @($xml.SelectNodes('//*[local-name()="parameter"][@required="true"]') | ForEach-Object { $_.GetAttribute('name') })
+        Assert-Equal 'productVersion|version' (@($parameters | Sort-Object) -join '|') "SignPath artifact configuration $configuration must require version and productVersion."
+        $peFiles = @($xml.SelectNodes('//*[local-name()="pe-file"]'))
+        Assert-Equal 1 $peFiles.Count "SignPath artifact configuration $configuration must sign exactly one executable."
+        Assert-Equal 'AV Workstation Toolkit' $peFiles[0].GetAttribute('product-name') "SignPath artifact configuration $configuration does not enforce the project's product name."
+        Assert-Equal '${productVersion}' $peFiles[0].GetAttribute('product-version') "SignPath artifact configuration $configuration does not enforce the product version."
+        Assert-Equal '${version}.0' $peFiles[0].GetAttribute('file-version') "SignPath artifact configuration $configuration does not enforce the file version."
     }
+    foreach ($project in @('src\AVWorkstationToolkit.Launcher\AVWorkstationToolkit.Launcher.csproj','src\AVWorkstationToolkit.Worker\AVWorkstationToolkit.Worker.csproj')) {
+        Assert-True ((Get-Content -LiteralPath (Join-Path $repositoryRoot $project) -Raw) -match '<Product>AV Workstation Toolkit</Product>') "$project does not name its product AV Workstation Toolkit."
+    }
+    $signingWorkflow = Get-Content -LiteralPath (Join-Path $repositoryRoot '.github\workflows\release.yml') -Raw
+    Assert-Equal 2 ([regex]::Matches($signingWorkflow,'productVersion: "\$\{\{ steps\.version\.outputs\.value \}\}\+\$\{\{ github\.sha \}\}"').Count) 'Both signing requests must pass the build product version.'
+    Assert-Equal 2 ([regex]::Matches($signingWorkflow,'wait-for-completion-timeout-in-seconds:\s*3600').Count) 'Both signing requests must wait long enough for manual approval.'
+    Assert-True ($signingWorkflow -match 'already published unsigned') 'The tagged workflow can sign a version that was published unsigned.'
+    Assert-True ($signingWorkflow -match 'New-ReleaseNotes\.ps1' -and $signingWorkflow -match '--notes-file' -and $signingWorkflow -match '--latest') 'The tagged workflow does not publish the release notes page as the latest release.'
+    Assert-True ($readme -match '(?m)^## Code signing policy\s*$') 'README does not name its Code signing policy section.'
 }
 Invoke-Check 'Defender investigation keeps historical and current specimens distinct' {
     $path = Join-Path $repositoryRoot 'docs\records\Defender-False-Positive-Investigation.md'

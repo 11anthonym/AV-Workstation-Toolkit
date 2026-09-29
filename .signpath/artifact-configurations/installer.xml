@@ -1,12 +1,18 @@
 <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <!-- The release workflow passes the tag's version and the build's product version (version+commit), so a
+       request whose launcher or MSI carries any other identity is rejected rather than signed. -->
   <parameters>
     <parameter name="version" required="true" />
+    <parameter name="productVersion" required="true" />
   </parameters>
   <msi-file path="AV-Workstation-Toolkit-${version}-x64.msi"
             subject="AV Workstation Toolkit"
             author="AV Workstation Toolkit Project">
-    <pe-file path="AVWorkstationToolkit.exe"
+    <!-- The launcher is the MSI's only executable. "**/" matches it wherever SignPath roots the MSI's install
+         directories, and the default match count still requires exactly one file. -->
+    <pe-file path="**/AVWorkstationToolkit.exe"
              product-name="AV Workstation Toolkit"
+             product-version="${productVersion}"
              file-version="${version}.0"
              company-name="AV Workstation Toolkit Project"
              original-filename="AVWorkstationToolkit.dll">

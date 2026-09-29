@@ -82,7 +82,8 @@ if ($productionExit -eq 2) { throw 'Shipping worker did not recognize the exact 
 
 $workerIdentity = (Get-Item -LiteralPath $workerExe).VersionInfo
 $developmentIdentity = (Get-Item -LiteralPath $developmentExe).VersionInfo
-if ([string]$workerIdentity.ProductName -ne 'AV Workstation Toolkit compiled worker' -or
+if ([string]$workerIdentity.ProductName -ne 'AV Workstation Toolkit' -or
+    [string]$workerIdentity.FileDescription -ne 'AV Workstation Toolkit worker' -or
     [string]$developmentIdentity.ProductName -ne 'AV Workstation Toolkit worker development host') {
     throw 'Production and development worker identities are not distinct.'
 }

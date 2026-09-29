@@ -185,7 +185,7 @@ behavior, including automatic WinGet/vendor release checks and explicit HTTPS
 or authenticated-SFTP handoffs. AV Workstation Toolkit has no telemetry,
 analytics, or crash-reporting service.
 
-## Code signing
+## Code signing policy
 
 Current development, release-candidate, and release artifacts, including 1.1.3, are unsigned. The build
 retains a fail-closed organizational Authenticode path and prepared SignPath

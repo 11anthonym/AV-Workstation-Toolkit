@@ -406,7 +406,8 @@ if ($workerProperties.Count -ne 1 -or [string]$workerProperties[0].TargetFramewo
     [string]$workerProperties[0].SelfContained -ne 'true' -or
     [string]$workerProperties[0].PublishSingleFile -ne 'true' -or
     [string]$workerProperties[0].PublishTrimmed -ne 'false' -or
-    [string]$workerProperties[0].Product -ne 'AV Workstation Toolkit compiled worker') {
+    [string]$workerProperties[0].Product -ne 'AV Workstation Toolkit' -or
+    [string]$workerProperties[0].AssemblyTitle -ne 'AV Workstation Toolkit worker') {
     throw 'Compiled worker identity or self-contained single-file policy is incomplete.'
 }
 $launcherManifestIdentity = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src\AVWorkstationToolkit.Launcher\app.manifest') -Raw

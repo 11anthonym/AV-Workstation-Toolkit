@@ -321,6 +321,21 @@ function Get-MsiProperty {
     }
 }
 
+function Get-MsiSummaryProperty {
+    param([Parameter(Mandatory)][string]$Path,[Parameter(Mandatory)][int]$Id)
+
+    $installer = New-Object -ComObject WindowsInstaller.Installer
+    $summary = $null
+    try {
+        $summary = $installer.SummaryInformation([IO.Path]::GetFullPath($Path),0)
+        return [string]$summary.Property($Id)
+    }
+    finally {
+        if ($null -ne $summary) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($summary) }
+        if ($null -ne $installer) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($installer) }
+    }
+}
+
 if ($ProcessHelperSelfTest) {
     $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('AVWorkstationToolkit-process-helper-' + [guid]::NewGuid().ToString('N'))
     try {
@@ -693,6 +708,40 @@ try {
         }
         finally {
             if ($null -ne $packagedIcon) { $packagedIcon.Dispose() }
+        }
+    }
+
+    Invoke-Check 'Release binaries satisfy the SignPath artifact configurations' {
+        # SignPath rejects a signing request whose files differ from these restrictions; checking the built files
+        # here finds a mismatch before any request is submitted. The tagged workflow passes the same two values.
+        $commit = [string](Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json).CommitSha
+        $parameterValues = @{ version = $version; productVersion = "$releaseName+$commit" }
+        $versionProperties = @{
+            'product-name' = 'ProductName'; 'product-version' = 'ProductVersion'; 'file-version' = 'FileVersion'
+            'company-name' = 'CompanyName'; 'original-filename' = 'OriginalFilename'; 'copyright' = 'LegalCopyright'
+        }
+        $configurationRoot = Join-Path $repositoryRoot '.signpath\artifact-configurations'
+        $signedFiles = @{
+            'worker.xml' = Join-Path $script:runtimeApplicationRoot 'worker\AVWorkstationToolkit.Worker.exe'
+            'installer.xml' = $standalonePath
+        }
+        foreach ($configuration in @($signedFiles.Keys)) {
+            $peFiles = @(([xml](Get-Content -LiteralPath (Join-Path $configurationRoot $configuration) -Raw)).SelectNodes('//*[local-name()="pe-file"]'))
+            Assert-Equal 1 $peFiles.Count "$configuration must sign exactly one executable."
+            $versionInfo = (Get-Item -LiteralPath $signedFiles[$configuration]).VersionInfo
+            $restrictions = @($peFiles[0].Attributes | Where-Object { $versionProperties.ContainsKey($_.Name) })
+            Assert-True ($restrictions.Count -ge 5) "$configuration enforces too few file metadata restrictions."
+            foreach ($restriction in $restrictions) {
+                $expected = [regex]::Replace($restriction.Value,'\$\{(?<name>[A-Za-z]+)\}',{ param($match) $parameterValues[$match.Groups['name'].Value] })
+                Assert-Equal $expected ([string]$versionInfo.($versionProperties[$restriction.Name])) "$configuration $($restriction.Name) differs from the built file."
+            }
+        }
+        $msiFile = @(([xml](Get-Content -LiteralPath (Join-Path $configurationRoot 'installer.xml') -Raw)).SelectNodes('//*[local-name()="msi-file"]'))
+        Assert-Equal 1 $msiFile.Count 'installer.xml must sign exactly one MSI.'
+        Assert-Equal $msiFile[0].GetAttribute('subject') (Get-MsiSummaryProperty -Path $msiPath -Id 3) 'installer.xml MSI subject differs from the built MSI.'
+        Assert-Equal $msiFile[0].GetAttribute('author') (Get-MsiSummaryProperty -Path $msiPath -Id 4) 'installer.xml MSI author differs from the built MSI.'
+        if ($releaseName -ceq $version) {
+            Assert-Equal ($msiFile[0].GetAttribute('path').Replace('${version}',$version)) ([IO.Path]::GetFileName($msiPath)) 'installer.xml MSI file name differs from the built MSI.'
         }
     }
 

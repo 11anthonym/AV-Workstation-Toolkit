@@ -1,9 +1,13 @@
 <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <!-- The release workflow passes the tag's version and the build's product version (version+commit), so a
+       request whose worker carries any other identity is rejected rather than signed. -->
   <parameters>
     <parameter name="version" required="true" />
+    <parameter name="productVersion" required="true" />
   </parameters>
   <pe-file path="AVWorkstationToolkit.Worker.exe"
-           product-name="AV Workstation Toolkit compiled worker"
+           product-name="AV Workstation Toolkit"
+           product-version="${productVersion}"
            file-version="${version}.0"
            company-name="AV Workstation Toolkit Project"
            original-filename="AVWorkstationToolkit.Worker.dll">

@@ -10,7 +10,7 @@ permissions: {}
 jobs:
   sign-and-verify:
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     environment: signpath-production
     permissions:
       actions: read
@@ -44,6 +44,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'The trusted main ref could not be fetched.' }
           $mainSha = (git rev-parse origin/main).Trim()
           if ($env:GITHUB_SHA -ne $mainSha) { throw "Release tags must point to current origin/main ($mainSha)." }
+          # A version published unsigned (tag X.Y.Z) is never reused for signed bytes; a signed release needs a new version.
+          $publishedTag = @(git ls-remote --tags origin "refs/tags/$version")
+          if ($LASTEXITCODE -ne 0) { throw 'Published release tags could not be checked.' }
+          if ($publishedTag.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($publishedTag[0])) { throw "Version $version was already published unsigned; sign a later version." }
           foreach ($name in @(
             'SIGNPATH_ORGANIZATION_ID','SIGNPATH_PROJECT_SLUG','SIGNPATH_SIGNING_POLICY_SLUG',
             'SIGNPATH_WORKER_ARTIFACT_CONFIGURATION_SLUG','SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG',
@@ -78,7 +82,7 @@ jobs:
           retention-days: 1
 
       - name: Sign worker with SignPath
-        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
@@ -88,9 +92,12 @@ jobs:
           github-artifact-id: ${{ steps.upload-worker.outputs.artifact-id }}
           skip-decompress: true
           wait-for-completion: true
+          # Each request waits for a person to approve it in SignPath.
+          wait-for-completion-timeout-in-seconds: 3600
           output-artifact-directory: ${{ runner.temp }}/signpath-worker
           parameters: |
             version: "${{ steps.version.outputs.value }}"
+            productVersion: "${{ steps.version.outputs.value }}+${{ github.sha }}"
 
       - name: Build MSI around signed worker
         shell: powershell
@@ -115,7 +122,7 @@ jobs:
           retention-days: 1
 
       - name: Deep-sign launcher and MSI with SignPath
-        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
@@ -125,9 +132,12 @@ jobs:
           github-artifact-id: ${{ steps.upload-msi.outputs.artifact-id }}
           skip-decompress: true
           wait-for-completion: true
+          # Each request waits for a person to approve it in SignPath.
+          wait-for-completion-timeout-in-seconds: 3600
           output-artifact-directory: ${{ runner.temp }}/signpath-msi
           parameters: |
             version: "${{ steps.version.outputs.value }}"
+            productVersion: "${{ steps.version.outputs.value }}+${{ github.sha }}"
 
       - name: Extract exact signed launcher from signed MSI
         shell: powershell
@@ -171,6 +181,24 @@ jobs:
           powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\tests\Test-EndpointTrust.ps1 -ReleaseRoot ".\artifacts\release\$version"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Write release page from the tagged release notes
+        shell: powershell
+        run: |
+          $version = '${{ steps.version.outputs.value }}'
+          $notesRoot = Join-Path $env:RUNNER_TEMP 'release-notes'
+          New-Item -ItemType Directory -Path $notesRoot -Force | Out-Null
+          powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\build\New-ReleaseNotes.ps1 `
+            -ReleaseRoot ".\artifacts\release\$version" -Tag $env:GITHUB_REF_NAME -OutputPath (Join-Path $notesRoot 'release-notes.md')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload release page
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-notes-${{ github.run_id }}
+          path: ${{ runner.temp }}/release-notes/release-notes.md
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload verified signed release
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -192,6 +220,12 @@ jobs:
           name: verified-signed-release-${{ github.run_id }}
           path: release
 
+      - name: Download release page
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-notes-${{ github.run_id }}
+          path: notes
+
       - name: Publish immutable GitHub release assets
         shell: powershell
         env:
@@ -203,6 +237,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Existing release lookup failed.' }
           if ($env:GITHUB_REF_NAME -in $existing) { throw "Release $env:GITHUB_REF_NAME already exists; signed release assets are immutable." }
           $version = $env:GITHUB_REF_NAME.Substring(1)
-          $notes = 'The executable, embedded worker, and MSI are Authenticode signed and RFC3161 timestamped. Signature-required package QA passed before publication.'
-          gh release create $env:GITHUB_REF_NAME @($assets.FullName) --verify-tag --title "AV Workstation Toolkit $version" --notes $notes
+          $notes = Join-Path (Resolve-Path .\notes) 'release-notes.md'
+          if (-not (Test-Path -LiteralPath $notes -PathType Leaf)) { throw 'The release page was not produced.' }
+          gh release create $env:GITHUB_REF_NAME @($assets.FullName) --verify-tag --latest --title "AV Workstation Toolkit $version" --notes-file $notes
           if ($LASTEXITCODE -ne 0) { throw 'Release creation failed.' }

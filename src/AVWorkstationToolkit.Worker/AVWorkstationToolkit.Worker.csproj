@@ -21,10 +21,14 @@
     <Version>1.1.3</Version>
     <AssemblyVersion>1.1.3.0</AssemblyVersion>
     <FileVersion>1.1.3.0</FileVersion>
+    <!-- Signed binaries carry the project's own product name (SignPath Foundation requires it); the file
+         description tells the worker apart from the launcher. -->
+    <AssemblyTitle>AV Workstation Toolkit worker</AssemblyTitle>
     <Company>AV Workstation Toolkit Project</Company>
-    <Product>AV Workstation Toolkit compiled worker</Product>
+    <Product>AV Workstation Toolkit</Product>
     <Authors>AV Workstation Toolkit contributors</Authors>
     <Description>Independent exact-ID managed package action worker for AV Workstation Toolkit.</Description>
+    <Copyright>Copyright © AV Workstation Toolkit contributors</Copyright>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AVWorkstationToolkit.Application\AVWorkstationToolkit.Application.csproj" />

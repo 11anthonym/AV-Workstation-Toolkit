@@ -169,6 +169,12 @@ protected-environment configuration, approval, expected signer identity,
 signature, or RFC3161 timestamp fails closed. Ordinary local and pull-request
 builds remain explicitly unsigned. The local certificate-thumbprint path remains
 available for controlled organizational builds but is not used by tagged CI.
+Both signing requests pass the release version and the build's product version
+(`X.Y.Z+<commit>`), and the reviewed artifact configurations reject a worker or
+launcher whose product name is not **AV Workstation Toolkit** or whose product
+or file version differs. Each request waits up to an hour for its manual
+approval. A version already published unsigned (tag `X.Y.Z`) cannot be signed;
+the workflow refuses it, so the first signed release is a later version.
 
 Consequently, the tag-triggered workflow is not an unsigned first-release path:
 without valid SignPath configuration and approval it fails before publication.
@@ -255,7 +261,7 @@ Everything that Windows or the catalogs compare stays numeric: assembly and file
 3. Run full source QA and `tests\Test-Package.ps1`, adding `-PrereleaseLabel rc.N` for a candidate. Package QA runs in isolated data roots and proves the operator's profile and installed copy unchanged (see [Package QA](#package-qa)); the owner still inspects the UI interactively.
 4. For a release (not a candidate), make the release commit that moves the current-release statements from the previous release to `X.Y.Z` together with its notes `docs\releases\X.Y.Z.md`: the README download section and its three file names, SECURITY.md, the endpoint-security baseline, the SignPath readiness record, and the bug-report form's version placeholder, and remove `(unreleased)` from the change log's `Version X.Y.Z` entry. Source QA fails if these disagree with the newest release notes, so a version bump alone can never move them ahead of publication. Build the release from that commit.
 5. Tag the built commit `X.Y.Z`, or `X.Y.Z-rc.N` for a candidate the owner publishes. The tag deliberately has no leading `v`, so the production workflow does not run.
-6. Create a GitHub release from that tag with exactly the eight standard assets from `artifacts\release\<tag>` and the release packet `docs\releases\<tag>.md` as its notes, followed by the asset checksums and a short **Source** section naming the tagged commit, the embedded .NET runtime, and that the build is not code-signed. A release is titled `AV Workstation Toolkit X.Y.Z (unsigned)` and marked latest; a published candidate is titled `AV Workstation Toolkit X.Y.Z RC N (unsigned)` and marked as a pre-release. Add a superseded note to the previous release's page that links to the new one.
+6. Write the release page with `build\New-ReleaseNotes.ps1 -ReleaseRoot .\artifacts\release\<tag> -Tag <tag> -OutputPath <file>`. It takes the release packet `docs\releases\<tag>.md`, makes its links absolute at the tag, and adds the asset checksums and a one-line **Source** section naming the tagged commit, the embedded .NET runtime, the signing state, and the code signing policy; the tagged signing workflow publishes the same page. Create a GitHub release from that tag with exactly the eight standard assets from `artifacts\release\<tag>` and that page as its notes. A release is titled `AV Workstation Toolkit X.Y.Z (unsigned)` and marked latest; a published candidate is titled `AV Workstation Toolkit X.Y.Z RC N (unsigned)` and marked as a pre-release. Add a superseded note to the previous release's page that links to the new one.
    Release notes and pages are written for the people installing the app. QA results, review status, test harnesses, build channels, and who approved what belong in the change log and the release manifest, not in release notes; source QA rejects them in `docs\releases\X.Y.Z.md`. A candidate's review packet (`X.Y.Z-rc.N.md`) is addressed to its reviewers and is exempt.
 7. Never replace a published asset. A corrected build gets a new version or candidate number and a new tag.
 
