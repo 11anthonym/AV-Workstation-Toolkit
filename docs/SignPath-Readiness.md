@@ -39,7 +39,7 @@ The owner confirms the rows marked **owner**.
 | Actively maintained and already released | Public releases 1.1.1 Beta 1 (2026-09-24), 1.1.1 Beta 2, 1.1.2, and 1.1.3 (2026-09-28), all built from this repository. |
 | Functionality described on the download page | The README and every release page describe what the app does. |
 | Own project, own binaries | One maintainer owns the repository; only binaries built from it are signed. The .NET runtime, third-party libraries, and the applications it installs are never signed by this project ([What is signed](Code-Signing-Policy.md#what-is-signed)). |
-| No hacking tools | It installs and updates approved applications; it has no vulnerability-scanning or security-bypass features. |
+| No hacking tools | AVWT has no scanning, discovery, port-probing, vulnerability-detection, exploitation, credential-attack, or security-bypass features. Its catalog lets a technician install two third-party network tools, Nmap and Advanced IP Scanner, which AVWT doesn't bundle, sign, or use ([Network tools in the catalog](Code-Signing-Policy.md#network-tools-in-the-catalog)). The terms restrict features the signed software includes, so this isn't a condition AVWT fails, but a reviewer may ask; the policy section is the answer. |
 | Privacy | No telemetry or analytics; the [privacy policy](../PRIVACY.md) lists every network operation, including the startup refresh, and the code signing policy links it. |
 | Warns before changing the system | Installs and updates run only after the plan and an explicit confirmation; apps that add a driver, service, or listener are named before the run. |
 | Uninstallation | [README: Uninstallation](../README.md#uninstallation). |
@@ -93,8 +93,9 @@ public reputation to obtain Foundation acceptance.
 ## What acceptance changes
 
 - The certificate is issued to SignPath Foundation, so Windows names
-  **SignPath Foundation** as the publisher. Record the exact signer subject from
-  the first signed test as `SIGNPATH_EXPECTED_SIGNER_SUBJECT`.
+  **SignPath Foundation** as the publisher. That certificate's subject is the
+  `SIGNPATH_EXPECTED_SIGNER_SUBJECT` the workflow requires before its first
+  request; see [Values to record](#values-to-record).
 - Every release waits for a person to approve two signing requests in SignPath,
   the worker and then the MSI, each within an hour.
 - The Foundation can pause the subscription or revoke the certificate if the
@@ -191,9 +192,11 @@ names, signing policies, or certificate identifiers from a tag author.
   artifact configuration. It finds the nested launcher as
   `**/AVWorkstationToolkit.exe` and requires exactly one match, so it does not
   depend on how SignPath names the MSI's install directories.
-- Assign the approved Authenticode certificate to the policy and record its exact
-  signer subject. Foundation, paid, and bring-your-own-certificate choices are
-  external governance decisions; the repository does not invent one.
+- Assign the approved Authenticode certificate to the policy, then take its exact
+  subject from that certificate and set it as `SIGNPATH_EXPECTED_SIGNER_SUBJECT`
+  before the first test tag (see [Values to record](#values-to-record)).
+  Foundation, paid, and bring-your-own-certificate choices are external
+  governance decisions; the repository does not invent one.
 
 ## First signed release
 
@@ -205,17 +208,40 @@ names, signing policies, or certificate identifiers from a tag author.
    the word "unsigned", the code signing policy's attribution moved from its
    acceptance-only section into **Current state**, and the source-QA checks that
    assert the unsigned, not-yet-accepted state updated in the same commit.
-3. Push `main`, then tag that commit `vX.Y.Z` and push the tag.
-4. Approve the worker request, then the MSI request, in SignPath.
-5. The workflow publishes the eight assets and the generated release page as the
-   latest release. Add a superseded note to the previous release page.
+3. Confirm that `SIGNPATH_EXPECTED_SIGNER_SUBJECT` holds the exact subject of the
+   certificate assigned to the signing policy. The workflow stops before its
+   first request without it.
+4. Push `main`, then tag that commit `vX.Y.Z` and push the tag.
+5. Approve the worker request, then the MSI request, in SignPath. The workflow
+   verifies that the returned worker, launcher, and MSI are validly signed and
+   timestamped by exactly that subject, and stops if any differs.
+6. The workflow publishes the eight assets and the generated release page as the
+   latest release. Confirm that the published EXE's signer (**Properties >
+   Digital Signatures**) is that subject. Add a superseded note to the previous
+   release page.
 
 ## Values to record
 
 Record the exact organization ID, project slug, release signing-policy slug,
 worker artifact-configuration slug, installer artifact-configuration slug, and
 certificate signer subject as the `signpath-production` environment variables
-above. Never put the API token, certificate private key, or any password in the
+above.
+
+The signer subject must be set before the first signing test: the workflow
+refuses to start without it and compares every returned signature against it,
+character for character. Take it from the certificate assigned to the release
+signing policy, not from a signed file. Download that certificate's public part
+(`.cer`) from SignPath and read its subject in PowerShell, which prints the
+exact form the workflow compares:
+
+```powershell
+(New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 '.\signpath-certificate.cer').Subject
+```
+
+After the first approved test, confirm that the returned files were signed by
+that subject; a mismatch stops the workflow before anything is published.
+
+Never put the API token, certificate private key, or any password in the
 repository, an issue, or a chat or assistant session; set secrets directly in
 the protected environment.
 

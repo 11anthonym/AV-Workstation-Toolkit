@@ -88,6 +88,21 @@ and third-party libraries the application carries keep their publishers'
 signatures, if any, and the applications it installs or downloads are signed, or
 not, by their own publishers.
 
+## Network tools in the catalog
+
+The managed catalog includes two third-party network administration tools that
+AV and IT teams use to find the devices on networks they are responsible for:
+Nmap and Advanced IP Scanner. AV Workstation Toolkit itself performs no network
+scanning, host discovery, port probing, vulnerability detection, exploitation,
+or credential attacks, and it never uses either tool; it connects only to the
+destinations listed in the [privacy policy](../PRIVACY.md). The two tools are
+separate applications from their own publishers. This project doesn't bundle,
+sign, or distribute them: WinGet downloads each from its publisher's source, and
+only after a technician selects it and confirms the run. Nmap, which adds the
+Npcap capture driver, is also named in the confirmation of system changes. The
+catalog marks both for use only on networks the technician is authorized to
+scan.
+
 ## Roles
 
 Current repository access shows one maintainer:
