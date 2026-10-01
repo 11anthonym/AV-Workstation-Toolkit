@@ -78,7 +78,7 @@ public sealed class WinGetReadOnlyProcessRunner : IWinGetReadOnlyProcessRunner
         }
     }
 
-    private static ProcessStartInfo CreateStartInfo(string executable, WinGetReadOnlyOperation operation, string exportPath)
+    internal static ProcessStartInfo CreateStartInfo(string executable, WinGetReadOnlyOperation operation, string exportPath)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -87,7 +87,12 @@ public sealed class WinGetReadOnlyProcessRunner : IWinGetReadOnlyProcessRunner
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            RedirectStandardInput = false
+            RedirectStandardInput = false,
+            // WinGet writes UTF-8 to redirected streams. The app has no console, so .NET would
+            // otherwise decode with the ANSI code page and widen every non-ASCII name ("®" to "Â®"),
+            // shifting the columns the update parser reads.
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
         };
         var arguments = WinGetReadOnlyInvocationPolicy.GetArguments(operation, exportPath);
         foreach (var argument in arguments) startInfo.ArgumentList.Add(argument);

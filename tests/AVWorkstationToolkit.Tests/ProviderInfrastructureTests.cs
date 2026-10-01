@@ -1,3 +1,4 @@
+using System.Text;
 using AVWorkstationToolkit.Application.Inventory;
 using AVWorkstationToolkit.Domain.Catalog;
 using AVWorkstationToolkit.Infrastructure.Windows.Processes;
@@ -105,6 +106,37 @@ public sealed class ProviderInfrastructureTests
         Assert.Throws<ArgumentException>(() => WinGetReadOnlyInvocationPolicy.GetArguments(WinGetReadOnlyOperation.InstalledInventory, @"C:\Temp\arbitrary.json"));
         Assert.Throws<ArgumentOutOfRangeException>(() => WinGetReadOnlyInvocationPolicy.GetArguments((WinGetReadOnlyOperation)999));
         Assert.Throws<ArgumentOutOfRangeException>(() => new WinGetReadOnlyProcessRunner(new StubResolver(), TimeSpan.FromMinutes(6)));
+    }
+
+    [TestMethod]
+    public void WinGetOutputIsDecodedAsUtf8SoNonAsciiNamesKeepTheirColumns()
+    {
+        // WinGet writes UTF-8 to a redirected stream. The app has no console, so with no explicit
+        // encoding .NET decodes with the ANSI code page: "®" (C2 AE) arrives as two characters and
+        // shifts every later column of that row. This is the row that failed a technician's update check.
+        var bytes = Encoding.UTF8.GetBytes(string.Join('\n',
+            "Name".PadRight(11) + "Id".PadRight(14) + "Version".PadRight(8) + "Available",
+            new string('-', 42),
+            "HWiNFO® 64".PadRight(11) + "REALiX.HWiNFO".PadRight(14) + "8.50".PadRight(8) + "8.52",
+            "1 upgrades available."));
+        var executable = Candidate().ExecutablePath;
+        var readOnly = WinGetReadOnlyProcessRunner.CreateStartInfo(executable, WinGetReadOnlyOperation.AvailableUpdates, string.Empty);
+        var mutation = WinGetMutationProcessRunner.CreateStartInfo(executable, ["install", "--id", "Vendor.Tool"]);
+
+        foreach (var startInfo in new[] { readOnly, mutation })
+        {
+            Assert.AreEqual(Encoding.UTF8.CodePage, startInfo.StandardOutputEncoding?.CodePage);
+            Assert.AreEqual(Encoding.UTF8.CodePage, startInfo.StandardErrorEncoding?.CodePage);
+            Assert.IsFalse(startInfo.UseShellExecute);
+            Assert.IsTrue(startInfo.CreateNoWindow);
+        }
+        Assert.AreEqual(
+            new AvailableUpdateRecord("REALiX.HWiNFO", "8.50", "8.52"),
+            WinGetInventoryParsers.ParseAvailableUpdates(readOnly.StandardOutputEncoding!.GetString(bytes)).Single());
+
+        // Latin-1 decodes these bytes exactly as the ANSI fallback did. The shifted row is still refused
+        // rather than read from the wrong columns.
+        Assert.Throws<InvalidDataException>(() => WinGetInventoryParsers.ParseAvailableUpdates(Encoding.Latin1.GetString(bytes)));
     }
 
     [TestMethod]

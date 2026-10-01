@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026-09-30 — Update check with non-ASCII app names (unreleased, for 1.1.4)
+
+- The update check no longer fails when an installed app with an update has a non-ASCII character in its name. With HWiNFO 8.50 installed, whose name is `HWiNFO® 64`, every check ended in **Couldn't check for updates** with "WinGet update output contains a malformed package row", and update availability was unknown for every app. WinGet writes UTF-8 to a redirected stream, but the app set no encoding for it, and a process without a console decodes with the Windows ANSI code page: `®` arrived as `Â®`, one character too many, which moved every later column of that row. The parser refused the row, as it should for a row that doesn't fit its table. The app and the worker now read WinGet's output and error streams as UTF-8, so the row parses and WinGet text in the activity log shows such names correctly. The parser is unchanged and still refuses a misaligned row.
+
 ## 2026-09-29 — Version 1.1.4 (unreleased)
 
 - The source version is now 1.1.4: `VERSION`, the launcher, worker, and development-host assembly and file versions, the launcher manifest, the window title, and the repository script module. Builds extract to `runtime\1.1.4` and write to `artifacts\release\1.1.4`, and the 1.1.4 MSI upgrades an installed 1.1.3 build.

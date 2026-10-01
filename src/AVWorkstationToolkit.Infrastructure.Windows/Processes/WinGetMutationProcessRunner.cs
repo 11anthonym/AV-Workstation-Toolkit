@@ -75,6 +75,24 @@ public sealed class WinGetMutationProcessRunner : IWinGetMutationProcessRunner
     private static WinGetMutationProcessResult Failure(int exitCode, string detail, ProviderFailureKind failure) =>
         new(exitCode, string.Empty, DiagnosticText.Sanitize(detail), false, false, false, failure);
 
+    internal static ProcessStartInfo CreateStartInfo(string trustedExecutablePath, IReadOnlyList<string> reviewedArguments)
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = trustedExecutablePath,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            RedirectStandardInput = false,
+            // WinGet writes UTF-8 to redirected streams, whatever code page this process would assume.
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+        foreach (var argument in reviewedArguments) startInfo.ArgumentList.Add(argument);
+        return startInfo;
+    }
+
     internal interface IWinGetMutationProcessHost
     {
         Task<WinGetMutationProcessResult> RunAsync(
@@ -92,17 +110,7 @@ public sealed class WinGetMutationProcessRunner : IWinGetMutationProcessRunner
             TimeSpan timeout,
             CancellationToken cancellationToken)
         {
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = trustedExecutablePath,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = false
-            };
-            foreach (var argument in reviewedArguments) startInfo.ArgumentList.Add(argument);
-
+            var startInfo = CreateStartInfo(trustedExecutablePath, reviewedArguments);
             using var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
             if (!process.Start()) return Failure(1, "Trusted WinGet process could not be started.", ProviderFailureKind.ExecutionFailed);
             var stdout = ReadBoundedAsync(process.StandardOutput, OutputCharacterLimit);
